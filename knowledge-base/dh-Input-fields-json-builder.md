@@ -43,105 +43,272 @@ Set list: true if the user preconfigures multiple values as an array during setu
 Set list: false if the value is single or needs to be dynamic later
  (comma-separated input allowed)
 
-#### 6. Output Constraint
+#### 6. Limit Rule
+Set limit to a number representing the maximum number of list entries allowed.
+Include limit only if list is true. Omit this key otherwise.
+
+#### 7. Output Constraint
 Return only valid JSON
 Do not add explanations, comments, or extra keys
 
 ### String | Date | Number | HTML | Markdown JSON Schema:
-
+```json
+{
+    "name": "input_field_creator",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "key": {
+                "type": "string",
+                "pattern": "^[^.]*$",
+                "description": "The unique identifier for the field. MUST NOT contain a dot (.)."
+            },
+            "type": {
+                "type": "string",
+                "enum": ["string", "number", "html", "markdown"],
+                "description": "The type of input field."
+            },
+            "label": {
+                "type": "string",
+                "description": "A clean, human-readable label."
+            },
+            "help": {
+                "type": "string",
+                "description": "Guidance text explaining what the user should enter."
+            },
+            "placeholder": {
+                "type": "string",
+                "description": "An example value relevant to the purpose."
+            },
+            "required": {
+                "type": "boolean",
+                "description": "True if the field implies mandatory input."
+            },
+            "list": {
+                "type": "boolean",
+                "description": "Whether this field accepts an array of values. Only applicable for 'string' and 'number' types."
+            },
+            "limit": {
+                "type": "number",
+                "description": "The max number of list entries. Only applicable if 'list' is true."
+            },
+            "visibilityCondition": {
+                "type": "string",
+                "description": "A JS condition string. Omit if always visible."
+            },
+            "defaultValue": {
+                "type": "string",
+                "description": "The default value. Omit if none."
+            }
+        },
+        "required": [
+            "key",
+            "type",
+            "label",
+            "help",
+            "required"
+        ]
+    }
+}
+```
 ### String | Date | Number | HTML | Markdown TOON Schema:
 ```toon
-name,input_field_creator
-strict,true
-schema,
-  type,object
-  properties,
-    key,
-      type,string
-      pattern,^[^.]*$
-      description,The unique identifier for the field (e.g.,'email','fileContent'). The key MUST NOT contain a dot (.)
-    type,
-      type,string
-      enum[4],string,number,html,markdown
-      description,The type of input field. Use 'string' for text/dates,'html' or 'markdown' for rich text.
-    label,
-      type,string
-      description,A clean,human-readable label generated from the fieldPurpose.
-    help,
-      type,string
-      description,Guidance text explaining what the user should enter.
-    placeholder,
-      type,string
-      description,An example value relevant to the purpose.
-    required,
-      type,boolean
-      description,True if the field implies mandatory input.
-    list,
-      type,boolean
-      description,Whether this field accepts a list/array of values. Usually false unless specified.
-    visibilityCondition,
-      type,string
-      description,A JavaScript condition string if logic is needed. Return an empty string \\ if not applicable.
-    defaultValue,
-      type,string
-      description,The default value for the field. Return an empty string \\ if not applicable.
-  required[9],key,type,label,help,placeholder,required,list,visibilityCondition,defaultValue
-  additionalProperties,false
-
+name: input_field_creator
+strict: false
+schema:
+  type: object
+  properties:
+    key:
+      type: string
+      pattern: "^[^.]*$"
+      description: The unique identifier for the field. MUST NOT contain a dot (.).
+    type:
+      type: string
+      enum[4]: string,number,html,markdown
+      description: The type of input field.
+    label:
+      type: string
+      description: "A clean, human-readable label."
+    help:
+      type: string
+      description: Guidance text explaining what the user should enter.
+    placeholder:
+      type: string
+      description: An example value relevant to the purpose.
+    required:
+      type: boolean
+      description: True if the field implies mandatory input.
+    list:
+      type: boolean
+      description: Whether this field accepts an array of values. Only applicable for 'string' and 'number' types.
+    limit:
+      type: number
+      description: The max number of list entries. Only applicable if 'list' is true.
+    visibilityCondition:
+      type: string
+      description: A JS condition string. Omit if always visible.
+    defaultValue:
+      type: string
+      description: The default value. Omit if none.
+  required[5]: key,type,label,help,required
 ```
 
 ### String | Date | Number | HTML | Markdown Examples:
-```toon
-[6],
-  -
-    key,email
-    help,Enter Learner's Email ID
-    list,false
-    type,string
-    label,Learner's Email ID
-    required,true
-    placeholder,E.g. john@example.com
-  -
-    key,name
-    help,Enter Learner's Name
-    list,false
-    type,string
-    label,Learner's Name
-    required,true
-    placeholder,E.g. John Doe
-  -
-    key,password
-    help,Password of the learner. If not sent,account is created with random password
-    list,false
-    type,string
-    label,Learner's Password
-    required,false
-    placeholder,Enter Password
-  -
-    key,mobile
-    help,Mobile number of the learner with country code. For example,+9175XXXXXXXX
-    list,false
-    type,string
-    label,Learner's Mobile No
-    required,false
-    placeholder,E.g. +9175XXXXXXXX
-  -
-    key,htmlBody
-    help,Enter the body of the email. You can include HTML tags for formatting.
-    type,html
-    label,Message Body
-    required,true
-    placeholder,E.g. <p>Write your HTML email message here</p>
-    visibilityCondition,context.inputData.messageType === 'html'
-  -
-    key,fileContent
-    type,markdown
-    label,File Content
-    help,Enter the content for the file. You can use Markdown syntax for formatting.
-    placeholder,# My Project\n\nThis is the readme content...
-    required,true
-    list,false
+```json
+[
+  {
+    "key": "email",
+    "help": "Enter Learner's Email ID",
+    "type": "string",
+    "label": "Learner's Email ID",
+    "required": true,
+    "placeholder": "E.g. john@example.com"
+  },
+  {
+    "key": "name",
+    "help": "Enter Learner's Name",
+    "type": "string",
+    "label": "Learner's Name",
+    "required": true,
+    "placeholder": "E.g. John Doe"
+  },
+  {
+    "key": "password", 
+    "help": "Password of the learner. If not sent, account is created with random password",
+    "type": "string",
+    "label": "Learner's Password",
+    "required": false,
+    "placeholder": "Enter Password"
+  },
+  {
+    "key": "mobile",
+    "help": "Mobile number of the learner with country code. For example, +9175XXXXXXXX",
+    "type": "string",
+    "label": "Learner's Mobile No",
+    "required": false,
+    "placeholder": "E.g. +9175XXXXXXXX"
+  },
+  {
+    "key": "to",
+    "help": "Enter the recipient's email address. For multiple recipients, separate addresses with commas.",
+    "type": "string",
+    "label": "Recipient's Email",
+    "required": true,
+    "placeholder": "E.g. recipient@example.com"
+  },
+  {
+    "key": "pageLimit",
+    "help": "Default it will fetch data upto 100. The maximum value is 100.",
+    "type": "number",
+    "label": "Page Limit",
+    "placeholder": "Eg. 10",
+    "defaultValue": 100
+  },
+  {
+    "key": "feed_url",
+    "help": "Paste your RSS URL here. Must be publicly accessible. Multiple feed links can be given in a line item.",
+    "list": true,
+    "type": "string",
+    "label": "Feed URL",
+    "required": true,
+    "placeholder": "E.g. https://example.com/rss1.xml"
+  },
+  {
+    "key": "quick_reply",
+    "help": "Paste your quick reply options here. Multiple reply options can be given in a line item. Maximum of 10 reply options are allowed.",
+    "list": true,
+    "limit": 10,
+    "type": "string",
+    "label": "Quick Reply Options",
+    "required": true,
+    "placeholder": "E.g. Option 1"
+  },
+  {
+    "key": "htmlBody",
+    "help": "Enter the body of the email. You can include HTML tags for formatting.",
+    "type": "html",
+    "label": "Message Body",
+    "required": true,
+    "placeholder": "E.g. <p>Write your HTML email message here</p>",
+    "visibilityCondition": "context.inputData.messageType === 'html'"
+  },
+  {
+    "key": "fileContent",
+    "type": "markdown",
+    "label": "File Content",
+    "help": "Enter the content for the file. You can use Markdown syntax for formatting.",
+    "placeholder": "# My Project\n\nThis is the readme content...",
+    "required": true
+  }
+]
+```
 
+```toon
+  - key: email
+    help: Enter Learner's Email ID
+    type: string
+    label: Learner's Email ID
+    required: true
+    placeholder: E.g. john@example.com
+  - key: name
+    help: Enter Learner's Name
+    type: string
+    label: Learner's Name
+    required: true
+    placeholder: E.g. John Doe
+  - key: password
+    help: "Password of the learner. If not sent, account is created with random password"
+    type: string
+    label: Learner's Password
+    required: false
+    placeholder: Enter Password
+  - key: mobile
+    help: "Mobile number of the learner with country code. For example, +9175XXXXXXXX"
+    type: string
+    label: Learner's Mobile No
+    required: false
+    placeholder: E.g. +9175XXXXXXXX
+  - key: to
+    help: "Enter the recipient's email address. For multiple recipients, separate addresses with commas."
+    type: string
+    label: Recipient's Email
+    required: true
+    placeholder: E.g. recipient@example.com
+  - key: pageLimit
+    help: Default it will fetch data upto 100. The maximum value is 100.
+    type: number
+    label: Page Limit
+    placeholder: Eg. 10
+    defaultValue: 100
+  - key: feed_url
+    help: Paste your RSS URL here. Must be publicly accessible. Multiple feed links can be given in a line item.
+    list: true
+    type: string
+    label: Feed URL
+    required: true
+    placeholder: "E.g. https://example.com/rss1.xml"
+  - key: quick_reply
+    help: Paste your quick reply options here. Multiple reply options can be given in a line item. Maximum of 10 reply options are allowed.
+    list: true
+    limit: 10
+    type: string
+    label: Quick Reply Options
+    required: true
+    placeholder: E.g. Option 1
+  - key: htmlBody
+    help: Enter the body of the email. You can include HTML tags for formatting.
+    type: html
+    label: Message Body
+    required: true
+    placeholder: E.g. <p>Write your HTML email message here</p>
+    visibilityCondition: context.inputData.messageType === 'html'
+  - key: fileContent
+    type: markdown
+    label: File Content
+    help: Enter the content for the file. You can use Markdown syntax for formatting.
+    placeholder: "# My Project\n\nThis is the readme content..."
+    required: true
 ```
 
 ## Dictionary
