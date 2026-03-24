@@ -1,6 +1,7 @@
 # DH Input Fields Knowledge Base
 
 This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON.
+
 # Static Input Fields
 
 The input fields, which are static, have fixed values. The depends on other feild will be through visibilityCondition in the static input fields.
@@ -8,48 +9,48 @@ The input fields, which are static, have fixed values. The depends on other feil
 ## String | Date | Number | HTML | Markdown
 
 ### String | Date | Number | HTML | Markdown Purpose:
-A String is a basic input type used to capture plain text values such as names, titles, identifiers, or short descriptions. It is suitable when the input is textual and does not require numeric calculation or formatting.
-A Date input type is used to capture calendar-based values such as dates, times, or date-time combinations. It ensures the input follows a valid date or time format.
-A Number input type is used to capture numeric values such as amounts, prices, counts, quantities, or any value that may be used in calculations or comparisons.
-An HTML input type is used to capture rich text content that includes HTML tags. It is suitable when the input needs structured formatting and the HTML is required in the payload.
-A Markdown input type is used to capture formatted text using Markdown syntax. It is ideal for content that needs lightweight formatting such as headings, lists, links, or emphasis.
+- A String is a basic input type used to capture plain text values such as names, titles, identifiers, or short descriptions. It is suitable when the input is textual and does not require numeric calculation or formatting.
+- A Date input type is used to capture calendar-based values such as dates, times, or date-time combinations. It ensures the input follows a valid date or time format.
+- A Number input type is used to capture numeric values such as amounts, prices, counts, quantities, or any value that may be used in calculations or comparisons.
+- An HTML input type is used to capture rich text content that includes HTML tags. It is suitable when the input needs structured formatting and the HTML is required in the payload.
+- A Markdown input type is used to capture formatted text using Markdown syntax. It is ideal for content that needs lightweight formatting such as headings, lists, links, or emphasis.
 
 ### String | Date | Number | HTML | Markdown Input Field Generation Rules:
 Generate a JSON object strictly following the rules below.
 
 #### 1. Type Selection
-If fieldPurpose contains date, time, DOB → type: "string"
-If it contains amount, price, count, quantity, number → type: "number"
-If the field supports HTML → type: "html"
-If the field supports Markdown → type: "markdown"
-Otherwise → type: "string"
+- If fieldPurpose contains date, time, DOB → type: "string"
+- If it contains amount, price, count, quantity, number → type: "number"
+- If the field supports HTML → type: "html"
+- If the field supports Markdown → type: "markdown"
+- Otherwise → type: "string"
 
 #### 2. Label, Help, Placeholder
-label: Clean, human-readable version of fieldPurpose
-help: Clearly explain what the user should enter
-placeholder: Provide a realistic example relevant to the purpose
+- label: Clean, human-readable version of fieldPurpose
+- help: Clearly explain what the user should enter
+- placeholder: Provide a realistic example relevant to the purpose
 
 #### 3. Required Rule
-Set required: true if fieldPurpose implies mandatory input
+- Set required: true if fieldPurpose implies mandatory input
  (e.g. name, email, amount, date)
-Otherwise set required: false
+- Otherwise set required: false
 
 #### 4. Visibility Condition Rule
-Include visibilityCondition only if both parentKey and parentValue are provided
-Do not include this key otherwise
+- Include visibilityCondition only if both parentKey and parentValue are provided
+- Do not include this key otherwise
 
 #### 5. List Rule
-Set list: true if the user preconfigures multiple values as an array during setup
-Set list: false if the value is single or needs to be dynamic later
+- Set list: true if the user preconfigures multiple values as an array during setup
+- Set list: false if the value is single or needs to be dynamic later
  (comma-separated input allowed)
 
 #### 6. Limit Rule
-Set limit to a number representing the maximum number of list entries allowed.
-Include limit only if list is true. Omit this key otherwise.
+- Set limit to a number representing the maximum number of list entries allowed.
+- Include limit only if list is true. Omit this key otherwise.
 
 #### 7. Output Constraint
-Return only valid JSON
-Do not add explanations, comments, or extra keys
+- Return only valid JSON
+- Do not add explanations, comments, or extra keys
 
 ### String | Date | Number | HTML | Markdown JSON Schema:
 ```json
@@ -155,6 +156,8 @@ schema:
 ```
 
 ### String | Date | Number | HTML | Markdown Examples:
+
+#### String | Date | Number | HTML | Markdown JSON Example:
 ```json
 [
   {
@@ -243,8 +246,9 @@ schema:
   }
 ]
 ```
-
+#### String | Date | Number | HTML | Markdown TOON Example:
 ```toon
+[10]:
   - key: email
     help: Enter Learner's Email ID
     type: string
@@ -316,128 +320,304 @@ schema:
 ### Dictionary Purpose:
 A Dictionary (also called Map or Key-Value Pair) is a special input type in viaSocket that lets users dynamically define custom pairs of keys and values. This provides high flexibility when the structure of input data is variable or unknown in advance.
 
-### Dictionary TOON Schema:
-```toon
-name,Dictionary TOON Schema
-strict,true
-schema,
-  type,object
-  properties,
-    inputFields,
-      type,array
-      description,The array of input fields including the newly created or updated dictionary field.
-      items,
-        type,object
-        properties,
-          key,
-            type,string
-            pattern,^[^.]*$
-            description,Unique identifier for the field. The key MUST NOT contain a dot (.)
-          label,
-            type,string
-            description,A user-friendly label derived from the fieldPurpose.
-          help,
-            type,string
-            description,Clear instructions for the user about what to input.
-          required,
-            type,boolean
-            description,Indicates if this dictionary field is mandatory.
-          type,
-            type,string
-            enum[1],dictionary
-            description,Must be set to 'dictionary'.
-          template,
-            type,object
-            properties,
-              key,
-                type,object
-                properties,
-                  type,
-                    type,string
-                    const,string
-                  placeholder,
-                    type,string
-                required[2],type,placeholder
-                additionalProperties,false
-              value,
-                type,object
-                properties,
-                  type,
-                    type,string
-                    enum[1],string
-                    description,The data type the value field supports. Always its value is string
-                  placeholder,
-                    type,string
-                required[2],type,placeholder
-                additionalProperties,false
-            required[2],key,value
-            additionalProperties,false
-        required[6],key,label,help,required,type,template
-        additionalProperties,false
-  required[1],inputFields
-  additionalProperties,false
-
 ### Dictionary Input Field Generation Rules:
-
-Create one input field with type: "dictionary".
-Add the new or updated field to the existing inputFields array.
-Key Rules
-key must be unique.
-key must not contain a dot (.).
-Label Rules
-label must be a clean, human-readable version of fieldPurpose.
-Help Rules
-help must clearly explain what key-value pairs the user should enter.
-Required Rules
-Set required: true only if fieldPurpose implies mandatory input.
-Otherwise set required: false.
-Type Rule
-type must always be "dictionary".
-Template Rules
-The dictionary must follow this fixed template:
-key
+Generate a JSON object strictly following the rules below for a dictionary.
+#### 1. Key Rules
+- key must be unique.
+- key must not contain a dot (.).
+#### 2. Label Rules
+- label must be a clean, human-readable version of fieldPurpose.
+#### 3. Help Rules
+- help must clearly explain what key-value pairs the user should enter.
+#### 4. Required Rules
+- Set required: true only if fieldPurpose implies mandatory input. 
+- Otherwise, set required: false.
+#### 5. Type Rule
+- type must always be "dictionary".
+#### 6. Template Rules
+- The dictionary must follow this fixed template:
+**key**
 type: "string"
 placeholder: "Enter key"
-value
+**value**
 type: "string"
 placeholder: "Enter value"
 
 Do not modify template structure or data types.
 Do not add extra properties.
-Output Rules
+#### 7. Output Rules
 Return only valid JSON.
 
+### Dictionary Input Field JSON Schema:
+```json
+{
+    "name": "Dictionary_Field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated dictionary field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field. The key MUST NOT contain a dot (.)"
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A user-friendly label derived from the fieldPurpose."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Clear instructions for the user about what to input."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Indicates if this dictionary field is mandatory."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "dictionary"
+                            ],
+                            "description": "Must be set to 'dictionary'."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit this field entirely if not applicable."
+                        },
+                        "template": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "string"
+                                            ],
+                                            "description": "The data type the key field supports. Always 'string'."
+                                        },
+                                        "placeholder": {
+                                            "type": "string",
+                                            "description": "Placeholder text for the key."
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "placeholder"
+                                    ]
+                                },
+                                "value": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "string"
+                                            ],
+                                            "description": "The data type the value field supports. Always 'string'."
+                                        },
+                                        "placeholder": {
+                                            "type": "string",
+                                            "description": "Placeholder text for the value."
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "placeholder"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "key",
+                                "value"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "label",
+                        "help",
+                        "required",
+                        "type",
+                        "template"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
 ```
 
-### Dictionary Examples:
+### Dictionary TOON Schema:
 ```toon
-[2],
-  -
-    key,url_button
-    help,The URL Button opens a web page in the in-app browser.
-    type,dictionary
-    label,URL Button
-    template,
-      key,
-        type,string
-        placeholder,Button Title
-      value,
-        type,string
-        placeholder,Link
-    visibilityCondition,context.inputData.message_type === 'text'
-  -
-    key,postback_button
-    help,The postback button sends a messagin_postbacks event to your trigger \New DM\ with the string set in the payload property. This allows you to take arbitrary actions when the button is tapped. [Learn More](https,//developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/messaging-api/button-template)
-    type,dictionary
-    label,Postback Button
-    template,
-      key,
-        type,string
-        placeholder,Button Title
-      value,
-        type,string
-        placeholder,PAYLOAD
-    visibilityCondition,context.inputData.message_type === 'text'
+name: Dictionary_Field
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated dictionary field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: Unique identifier for the field. The key MUST NOT contain a dot (.)
+          label:
+            type: string
+            description: A user-friendly label derived from the fieldPurpose.
+          help:
+            type: string
+            description: Clear instructions for the user about what to input.
+          required:
+            type: boolean
+            description: Indicates if this dictionary field is mandatory.
+          type:
+            type: string
+            enum[1]: dictionary
+            description: Must be set to 'dictionary'.
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility. Omit this field entirely if not applicable.
+          template:
+            type: object
+            properties:
+              key:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum[1]: string
+                    description: The data type the key field supports. Always 'string'.
+                  placeholder:
+                    type: string
+                    description: Placeholder text for the key.
+                required[2]: type,placeholder
+              value:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum[1]: string
+                    description: The data type the value field supports. Always 'string'.
+                  placeholder:
+                    type: string
+                    description: Placeholder text for the value.
+                required[2]: type,placeholder
+            required[2]: key,value
+        required[6]: key,label,help,required,type,template
+  required[1]: inputFields
+```
+
+
+### Dictionary Examples:
+
+#### Dictionary JSON Example:
+```json
+[
+{
+    "key": "quick_replies",
+    "help": "Quick replies provide a way to present a set of buttons in-conversation for users to reply with.",
+    "type": "dictionary",
+    "label": "Quick Replies",
+    "required": true,
+    "template": {
+      "key": {
+        "type": "string",
+        "placeholder": "Title"
+      },
+      "value": {
+        "type": "string",
+        "placeholder": "PAYLOAD TEXT"
+      }
+    }
+  },
+  {
+    "key": "url_button",
+    "help": "The URL Button opens a web page in the in-app browser.",
+    "type": "dictionary",
+    "label": "URL Button",
+    "template": {
+      "key": {
+        "type": "string",
+        "placeholder": "Button Title"
+      },
+      "value": {
+        "type": "string",
+        "placeholder": "Link"
+      }
+    },
+    "visibilityCondition": "context.inputData.message_type === 'text'"
+  },
+    {
+    "key": "custom_fields",
+    "help": "Enter Custom Fields with custom fields title and value.",
+    "type": "dictionary",
+    "label": "Custom Fields",
+    "template": {
+      "key": {
+        "type": "string",
+        "placeholder": "Custom Field Name"
+      },
+      "value": {
+        "type": "string",
+        "placeholder": "Enter Value"
+      }
+    }
+  }
+  ]
+  ```
+#### Dictionary TOON Example:
+
+```toon
+[3]:
+  - key: quick_replies
+    help: Quick replies provide a way to present a set of buttons in-conversation for users to reply with.
+    type: dictionary
+    label: Quick Replies
+    required: true
+    template:
+      key:
+        type: string
+        placeholder: Title
+      value:
+        type: string
+        placeholder: PAYLOAD TEXT
+  - key: url_button
+    help: The URL Button opens a web page in the in-app browser.
+    type: dictionary
+    label: URL Button
+    template:
+      key:
+        type: string
+        placeholder: Button Title
+      value:
+        type: string
+        placeholder: Link
+    visibilityCondition: context.inputData.message_type === 'text'
+  - key: custom_fields
+    help: Enter Custom Fields with custom fields title and value.
+    type: dictionary
+    label: Custom Fields
+    template:
+      key:
+        type: string
+        placeholder: Custom Field Name
+      value:
+        type: string
+        placeholder: Enter Value
 ```
 
 ## Boolean
