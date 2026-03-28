@@ -18,37 +18,41 @@ The input fields, which are static, have fixed values. The depends on other feil
 ### String | Date | Number | HTML | Markdown Input Field Generation Rules:
 Generate a JSON object strictly following the rules below.
 
-#### 1. Type Selection
+#### 1. Key Rules
+key must be unique.
+key must not contain a dot (.).
+
+#### 2. Type Selection
 - If fieldPurpose contains date, time, DOB → type: "string"
 - If it contains amount, price, count, quantity, number → type: "number"
 - If the field supports HTML → type: "html"
 - If the field supports Markdown → type: "markdown"
 - Otherwise → type: "string"
 
-#### 2. Label, Help, Placeholder
+#### 3. Label, Help, Placeholder
 - label: Clean, human-readable version of fieldPurpose
 - help: Clearly explain what the user should enter
 - placeholder: Provide a realistic example relevant to the purpose
 
-#### 3. Required Rule
+#### 4. Required Rule
 - Set required: true if fieldPurpose implies mandatory input
  (e.g. name, email, amount, date)
 - Otherwise set required: false
 
-#### 4. Visibility Condition Rule
+#### 5. Visibility Condition Rule
 - Include visibilityCondition only if both parentKey and parentValue are provided
 - Do not include this key otherwise
 
-#### 5. List Rule
+#### 6. List Rule
 - Set list: true if the user preconfigures multiple values as an array during setup
 - Set list: false if the value is single or needs to be dynamic later
  (comma-separated input allowed)
 
-#### 6. Limit Rule
+#### 7. Limit Rule
 - Set limit to a number representing the maximum number of list entries allowed.
 - Include limit only if list is true. Omit this key otherwise.
 
-#### 7. Output Constraint
+#### 8. Output Constraint
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
@@ -623,12 +627,172 @@ schema:
 ## Boolean
 
 ### Boolean Purpose:
-A Boolean input type is used to capture a yes-or-no (true/false) decision. It is suitable when the user needs to enable or disable a feature, apply a condition, or make a binary choice.
+A Boolean input type is used to represent a binary configuration choice where each option maps directly to a `true` or `false` value in the system. While it appears as a simple yes/no decision to the user, it often controls feature toggles, behavioral modes, or execution paths in the underlying logic.
+
+This input type is ideal when:
+
+- The decision has exactly two mutually exclusive outcomes
+- Each option corresponds to a clear system action or state
+- The UI label may vary (e.g., Yes/No, Basic/Advance, Workspace/Parent Page), but internally resolves to a Boolean value
+
+
+### Boolean Input Field Generation Rules:
+Generate a JSON object strictly following the rules below for a boolean field.
+
+#### 1. Key Rules
+- key must be unique.
+- key must not contain a dot (.).
+
+#### 2. Type Rule
+- type must always be "boolean".
+
+#### 3. Label, Help Rules
+- label: Clean, human-readable question or description of the toggle (e.g. "Does your first row contain column name?")
+- help: Clearly explain what happens when the user enables or disables this option
+
+#### 4. Required Rule
+- Set required: true if the field implies a mandatory decision
+  (e.g. toggling a core feature on/off)
+- Otherwise set required: false
+
+#### 5. Options Rule
+- options must always contain exactly two items: one with value: true and one with value: false
+- Each option must include:
+  - label: user-facing display text (e.g. "Yes", "No", "Enable", "Disable", "Basic", "Advanced")
+  - value: the actual boolean value (true or false)
+- The true-value option must appear first, followed by the false-value option
+
+#### 6. Default Value Rule
+- Set defaultValue only if a sensible default exists
+- defaultValue must be an object with label and value matching one of the options
+- Omit defaultValue entirely if there is no default
+
+#### 7. Custom Input Rules
+- Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
+- Include customPlaceholder only if a placeholder is needed for manual input (e.g. "E.g., true"). Omit if not applicable
+
+#### 8. Visibility Condition Rule
+- Include visibilityCondition only if both parentKey and parentValue are provided
+- Do not include this key otherwise
+
+#### 9. Output Constraint
+- Return only valid JSON
+- Do not add explanations, comments, or extra keys
+
+### Boolean JSON Schema:
+```json
+{
+    "name": "generate_boolean_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated boolean field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'isActive', 'showLabels'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "boolean"
+                            ],
+                            "description": "Must be 'boolean'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label (e.g. 'Does your first row contain column name?')."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Helper text explaining what enabling/disabling this does."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Whether the field is mandatory."
+                        },
+                        "options": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "description": "The toggle options. MUST contain exactly two items: one where the value is true, and one where the value is false. (e.g., [{'label': 'Yes', 'value': true}, {'label': 'No', 'value': false}]).",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "description": "Display label (e.g. 'Yes', 'Basic')."
+                                    },
+                                    "value": {
+                                        "type": "boolean",
+                                        "description": "The actual boolean value (true or false)."
+                                    }
+                                },
+                                "required": [
+                                    "label",
+                                    "value"
+                                ]
+                            }
+                        },
+                        "defaultValue": {
+                            "type": "object",
+                            "description": "The default selection. Omit this field entirely if there is no default.",
+                            "properties": {
+                                "label": {
+                                    "type": "string",
+                                    "description": "The label of the default option (e.g. 'No', 'Basic')."
+                                },
+                                "value": {
+                                    "type": "boolean",
+                                    "description": "The value of the default option (e.g. false, true)."
+                                }
+                            },
+                            "required": [
+                                "label",
+                                "value"
+                            ]
+                        },
+                        "customHelp": {
+                            "type": "string",
+                            "description": "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
+                        },
+                        "customPlaceholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text (e.g. 'E.g., true'). Omit if not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "required",
+                        "options"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
 
 ### Boolean TOON Schema:
 ```toon
 name: generate_boolean_field
-strict: true
+strict: false
 schema:
   type: object
   properties:
@@ -640,99 +804,214 @@ schema:
         properties:
           key:
             type: string
-            description: "Unique identifier for the field (e.g. 'isActive', 'showLabels')."
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'isActive', 'showLabels'). The key MUST NOT contain a dot (.)."
           type:
             type: string
-            const: boolean
+            enum[1]: boolean
             description: Must be 'boolean'.
           label:
             type: string
-            description: A human-readable label (e.g. 'Show Advanced Options').
+            description: A human-readable label (e.g. 'Does your first row contain column name?').
           help:
             type: string
             description: Helper text explaining what enabling/disabling this does.
           required:
             type: boolean
             description: Whether the field is mandatory.
-          placeholder:
-            type: string
-            description: "Placeholder text (e.g. 'E.g., true')."
-          customInputLabel:
-            type: string
-            description: "Label for the manual input mode (e.g. 'Enter \"true\" to enable...')."
-          visibilityCondition:
-            type: string
-            description: "A JavaScript condition for visibility. Return an empty string \"\" if always visible."
           options:
             type: array
-            description: The toggle options. Usually Yes(true) and No(false).
+            minItems: 2
+            maxItems: 2
+            description: "The toggle options. MUST contain exactly two items: one where the value is true, and one where the value is false. (e.g., [{'label': 'Yes', 'value': true}, {'label': 'No', 'value': false}])."
             items:
               type: object
               properties:
                 label:
                   type: string
-                  description: "Display label (e.g. 'Yes', 'True', 'Enable')."
+                  description: "Display label (e.g. 'Yes', 'Basic')."
                 value:
                   type: boolean
                   description: The actual boolean value (true or false).
               required[2]: label,value
-              additionalProperties: false
           defaultValue:
             type: object
-            description: The default selection. Usually set to false/No if unsure.
+            description: The default selection. Omit this field entirely if there is no default.
             properties:
               label:
                 type: string
-                description: The label of the default option (e.g. 'No').
+                description: "The label of the default option (e.g. 'No', 'Basic')."
               value:
                 type: boolean
-                description: The value of the default option (e.g. false).
+                description: "The value of the default option (e.g. false, true)."
             required[2]: label,value
-            additionalProperties: false
-        required[10]: key,type,label,help,required,placeholder,customInputLabel,visibilityCondition,options,defaultValue
-        additionalProperties: false
+          customHelp:
+            type: string
+            description: "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
+          customPlaceholder:
+            type: string
+            description: "Optional placeholder text (e.g. 'E.g., true'). Omit if not applicable."
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility. Omit if always visible.
+        required[6]: key,type,label,help,required,options
   required[1]: inputFields
-  additionalProperties: false
-
-### Boolean Input Field Generation Rules:
-
-Use type: "boolean".
-Present two options only: true and false.
-Labels must clearly indicate the effect of enabling or disabling the option.
-Set required: true only if the decision is mandatory for execution.
-Default value should usually be false unless the purpose clearly implies otherwise.
-Include visibilityCondition only when dependent on another field.
-Return only valid JSON with no extra keys.
-
 ```
 
-### Boolean TOON Examples:
-```toon
+### Boolean Examples:
 
-[2]:
+#### Boolean JSON Example:
+```json
+[
+   {
+        "key": "column_key",
+        "help": "Determines how the data columns are labelled.",
+        "type": "boolean",
+        "label": "Does your first row contain column name?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
+        "defaultValue": {
+          "label": "Yes",
+          "value": true
+        },
+        "customPlaceholder": "E.g., true "
+      },
+      {
+        "key": "search_filter_type",
+        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns.",
+        "type": "boolean",
+        "label": "Search Filter Type",
+        "options": [
+          {
+            "label": "Basic",
+            "value": true
+          },
+          {
+            "label": "Advance",
+            "value": false
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
+        "defaultValue": {
+          "label": "Basic",
+          "value": true
+        },
+        "customPlaceholder": "E.g., true "
+      },
+            {
+        "key": "is_pagination",
+        "help": "If yes, you can provide the page size and start cursor. If no you will receive all the page content.",
+        "type": "boolean",
+        "label": "Enable Pagination",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter \"true\" if you want to enable pagination else \"false\"",
+        "customPlaceholder": "E.g., true",
+        "defaultValue": {
+          "label": "No",
+          "value": false
+        }
+      },
+        {
+    "key": "page_location",
+    "help": "Location of the datination page to be created.",
+    "type": "boolean",
+    "label": "Create page at",
+    "options": [
+      {
+        "label": "Workspace",
+        "value": false
+      },
+      {
+        "label": "Parent Page",
+        "value": true
+      }
+    ],
+    "required": true,
+    "customPlaceholder": "E.g., true",
+    "defaultValue": {
+      "label": "Parent Page",
+      "value": true
+    },
+    "customHelp": "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
+  }
+]
+```
+#### Boolean TOON Example:
+```toon
+[4]:
   - key: column_key
-    help: Determines how the data columns are labeled.
+    help: Determines how the data columns are labelled.
     type: boolean
     label: Does your first row contain column name?
     options[2]{label,value}:
       Yes,true
       No,false
     required: true
-    placeholder: "E.g., true"
-    customInputLabel: "Enter \"true\" if the first row contain the column name."
-  - key: is_last_row
-    help: List from the last row of the spreadsheet. Select “Yes” to enable.
+    customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
+    defaultValue:
+      label: Yes
+      value: true
+    customPlaceholder: "E.g., true "
+  - key: search_filter_type
+    help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns."
     type: boolean
-    label: List from last row
+    label: Search Filter Type
+    options[2]{label,value}:
+      Basic,true
+      Advance,false
+    required: true
+    customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
+    defaultValue:
+      label: Basic
+      value: true
+    customPlaceholder: "E.g., true "
+  - key: is_pagination
+    help: "If yes, you can provide the page size and start cursor. If no you will receive all the page content."
+    type: boolean
+    label: Enable Pagination
     options[2]{label,value}:
       Yes,true
       No,false
     required: false
-    placeholder: "E.g., true"
+    customHelp: "Enter \"true\" if you want to enable pagination else \"false\""
+    customPlaceholder: "E.g., true"
     defaultValue:
       label: No
       value: false
-    customInputLabel: "Enter \"true\" for search from the last row of the spreadsheet."
+  - key: page_location
+    help: Location of the datination page to be created.
+    type: boolean
+    label: Create page at
+    options[2]{label,value}:
+      Workspace,false
+      Parent Page,true
+    required: true
+    customPlaceholder: "E.g., true"
+    defaultValue:
+      label: Parent Page
+      value: true
+    customHelp: "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
 ```
 
 ## Dropdown Static
