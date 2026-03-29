@@ -18,6 +18,13 @@ The input fields, which are static, have fixed values. The depends on other feil
 ### String | Date | Number | HTML | Markdown Input Field Generation Rules:
 Generate a JSON object strictly following the rules below.
 
+#### When to Use
+- Use **string** when capturing plain text values such as names, titles, identifiers, or short descriptions.
+- Use **string** (not a date type) when capturing date, time, or date-time values that must follow a specific format.
+- Use **number** when capturing numeric values such as amounts, prices, counts, or quantities that may be used in calculations or comparisons.
+- Use **html** when the input requires rich text content with HTML tags and structured formatting.
+- Use **markdown** when the input requires lightweight formatted text using Markdown syntax (headings, lists, links, emphasis).
+
 #### 1. Key Rules
 key must be unique.
 key must not contain a dot (.).
@@ -326,6 +333,9 @@ A Dictionary (also called Map or Key-Value Pair) is a special input type in viaS
 
 ### Dictionary Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a dictionary.
+
+#### When to Use
+- Use a dictionary when users need to dynamically define custom key-value pairs and the structure of input data is variable or unknown in advance.
 #### 1. Key Rules
 - key must be unique.
 - key must not contain a dot (.).
@@ -638,6 +648,10 @@ This input type is ideal when:
 
 ### Boolean Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a boolean field.
+
+#### When to Use
+- Use a boolean when the decision has exactly two mutually exclusive outcomes (e.g. Yes/No, Enable/Disable, Basic/Advanced).
+- Each option corresponds to a clear system action or state and internally resolves to a true or false value.
 
 #### 1. Key Rules
 - key must be unique.
@@ -1021,53 +1035,207 @@ schema:
 A Static Dropdown input type is used when the user must select one value from a predefined, fixed list of options. It is suitable when all possible values are known in advance and should not change dynamically.
 
 ### Dropdown Static Input Field Generation Rules:
-When to Use
-Use a static dropdown when the user must select one value from a fixed, predefined list and all possible options are known at design time.
-Core Rules
-Create one input field with type: "dropdown".
-Add the new or updated field to the existing inputFields array.
-Only single selection is allowed.
-Key Rules
-key must be unique within inputFields.
-key must be a stable identifier (e.g. message_type, priority_level).
-Label Rules
-label must be a clean, human-readable description of what the user is selecting.
-It should describe the choice, not the technical value.
-Help Rules
-help must explain why the user is making this selection and how it affects behavior.
-Required Rules
-Set required: true if one option must be selected for the action to work.
-Otherwise set required: false.
+Generate a JSON object strictly following the rules below for a static dropdown field.
 
-Placeholder Rules
-placeholder should prompt selection (e.g. “Choose Message Type”).
-If no placeholder is needed, return an empty string "".
-Options Rules
-options must be a fixed array.
-Each option must include:
-label: user-facing name
-value: internal value sent to the API
-sample: example or short description (use empty string "" if not needed)
-Do not allow dynamic or user-generated options.
-Default Value Rules
-Set defaultValue only if a sensible default exists.
-Otherwise return an empty string "".
-Custom Input Rules
-Include customInputLabel and customPlaceholder only if manual entry is allowed.
-If manual input is not intended, return empty strings.
-Visibility Rule
-Include visibilityCondition only when the dropdown depends on another field.
-If always visible, return an empty string "".
-Output Rules
-Return only valid JSON.
-Do not add extra properties.
-Do not include explanations or comments.
+#### When to Use
+- Use a static dropdown when the user must select one value from a fixed, predefined list and all possible options are known at design time.
+#### 1. Core Rules
+- Create one input field with type: "dropdown".
+- Add the new or updated field to the existing inputFields array.
+- Only single selection is allowed.
+#### 2. Key Rules
+- key must be unique within inputFields.
+- key must not contain a dot (.).
+- key must be a stable identifier (e.g. message_type, priority_level).
+#### 3. Type Rule
+- type must always be "dropdown".
+#### 4. Label, Help Rules
+- label: Clean, human-readable description of what the user is selecting (e.g. "Message Type"). It should describe the choice, not the technical value.
+- help: Guidance text explaining why the user is making this selection and how it affects behavior.
+#### 5. Required Rule
+- Set required: true if one option must be selected for the action to work.
+- Otherwise set required: false.
+#### 6. Placeholder Rule
+- placeholder: Optional text shown in the dropdown before selection (e.g. "Choose Message Type").
+- Omit if not applicable.
+#### 7. Options Rules
+- options must be a fixed array. Do not allow dynamic or user-generated options.
+- Each option must include:
+  - label: user-facing display name (e.g. "High Priority")
+  - value: internal value sent to the API (string or number)
+- Each option may optionally include:
+  - sample: an example value or short description. Omit if not needed.
+  - extraValue: an extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type (string, number, boolean, object, array). Omit if not needed.
+#### 8. Default Value Rule
+- Set defaultValue only if a sensible default exists.
+- MANDATORY RULE: If provided, defaultValue must be an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
+- defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
+- Omit defaultValue entirely if there is no default.
+#### 9. Custom Input Rules
+- Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable.
+- Include customInputLabel only if manual input mode is intended. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID". Omit if not applicable.
+- Include customPlaceholder only if a placeholder is needed for manual input mode. Provide a relevant numeric or text example (e.g., "E.g., 15" if expecting an ID). Omit if not applicable.
+#### 10. Visibility Condition Rule
+- Include visibilityCondition only when the dropdown depends on another field.
+- Omit if always visible.
+#### 11. Output Constraint
+- Return only valid JSON.
+- Do not add extra properties.
+- Do not include explanations or comments.
 
+### Dropdown Static JSON Schema:
+```json
+{
+    "name": "generate_static_dropdown_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated static dropdown field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'message_type', 'priority_level'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "dropdown"
+                            ],
+                            "description": "Must be 'dropdown'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label explaining the choice (e.g. 'Message Type')."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Guidance text for the user."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Whether the selection is mandatory."
+                        },
+                        "placeholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Message Type'). Omit if not applicable."
+                        },
+                        "customHelp": {
+                            "type": "string",
+                            "description": "Optional custom help text for manual/dynamic input. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable."
+                        },
+                        "customInputLabel": {
+                            "type": "string",
+                            "description": "Optional label for the manual input mode. If the expected value is an ID, use a format like 'Enter ID' or 'Enter [Entity] ID'. Omit if not applicable."
+                        },
+                        "customPlaceholder": {
+                            "type": "string",
+                            "description": "Optional placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 15' if expecting an ID). Omit if not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                        },
+                        "options": {
+                            "type": "array",
+                            "description": "The fixed list of choices.",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "description": "The display name of the option (e.g. 'High Priority')."
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "number"
+                                        ],
+                                        "description": "The internal value sent to the API. Recommended to be string or number."
+                                    },
+                                    "sample": {
+                                        "type": "string",
+                                        "description": "An optional sample value or description. Omit if not needed."
+                                    },
+                                    "extraValue": {
+                                        "type": [
+                                            "string",
+                                            "number",
+                                            "boolean",
+                                            "object",
+                                            "array"
+                                        ],
+                                        "description": "An optional extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type. Omit if not needed."
+                                    }
+                                },
+                                "required": [
+                                    "label",
+                                    "value"
+                                ]
+                            }
+                        },
+                        "defaultValue": {
+                            "type": "object",
+                            "description": "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default.",
+                            "properties": {
+                                "label": {
+                                    "type": "string",
+                                    "description": "The display name of the default option."
+                                },
+                                "value": {
+                                    "type": [
+                                        "string",
+                                        "number"
+                                    ],
+                                    "description": "The internal value of the default option."
+                                },
+                                "sample": {
+                                    "type": "string",
+                                    "description": "An optional sample value for the default option. Omit if not needed."
+                                },
+                                "extraValue": {
+                                    "type": [
+                                        "string",
+                                        "number",
+                                        "boolean",
+                                        "object",
+                                        "array"
+                                    ],
+                                    "description": "An optional extra value for the default option. Omit if not needed."
+                                }
+                            },
+                            "required": [
+                                "label",
+                                "value"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "required",
+                        "options"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
 ### Dropdown Static TOON Schema:
 ```toon
-
 name: generate_static_dropdown_field
-strict: true
+strict: false
 schema:
   type: object
   properties:
@@ -1079,10 +1247,11 @@ schema:
         properties:
           key:
             type: string
-            description: "Unique identifier for the field (e.g. 'message_type', 'priority_level')."
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'message_type', 'priority_level'). The key MUST NOT contain a dot (.)."
           type:
             type: string
-            const: dropdown
+            enum[1]: dropdown
             description: Must be 'dropdown'.
           label:
             type: string
@@ -1095,19 +1264,19 @@ schema:
             description: Whether the selection is mandatory.
           placeholder:
             type: string
-            description: Placeholder text shown in the dropdown before selection (e.g. 'Choose Message Type').
+            description: Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Message Type'). Omit if not applicable.
+          customHelp:
+            type: string
+            description: "Optional custom help text for manual/dynamic input. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable."
           customInputLabel:
             type: string
-            description: Label for the manual input mode if user types a value instead of selecting.
+            description: "Optional label for the manual input mode. If the expected value is an ID, use a format like 'Enter ID' or 'Enter [Entity] ID'. Omit if not applicable."
           customPlaceholder:
             type: string
-            description: "Placeholder for the manual input mode (e.g. 'E.g., text')."
+            description: "Optional placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 15' if expecting an ID). Omit if not applicable."
           visibilityCondition:
             type: string
-            description: "A JavaScript condition for visibility. Return an empty string \"\" if always visible."
-          defaultValue:
-            type: string
-            description: "The default value to select initially. Return an empty string \"\" if none."
+            description: A JavaScript condition for visibility. Omit if always visible.
           options:
             type: array
             description: The fixed list of choices.
@@ -1118,19 +1287,251 @@ schema:
                   type: string
                   description: The display name of the option (e.g. 'High Priority').
                 value:
-                  type: string
-                  description: The internal value sent to the API (e.g. 'high').
+                  type[2]: string,number
+                  description: The internal value sent to the API. Recommended to be string or number.
                 sample:
                   type: string
-                  description: "An optional sample value or description. Return empty string \"\" if not needed."
-              required[3]: label,value,sample
-              additionalProperties: false
-        required[11]: key,type,label,help,required,placeholder,customInputLabel,customPlaceholder,visibilityCondition,defaultValue,options
-        additionalProperties: false
+                  description: An optional sample value or description. Omit if not needed.
+                extraValue:
+                  type[5]: string,number,boolean,object,array
+                  description: "An optional extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type. Omit if not needed."
+              required[2]: label,value
+          defaultValue:
+            type: object
+            description: "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default."
+            properties:
+              label:
+                type: string
+                description: The display name of the default option.
+              value:
+                type[2]: string,number
+                description: The internal value of the default option.
+              sample:
+                type: string
+                description: An optional sample value for the default option. Omit if not needed.
+              extraValue:
+                type[5]: string,number,boolean,object,array
+                description: An optional extra value for the default option. Omit if not needed.
+            required[2]: label,value
+        required[6]: key,type,label,help,required,options
   required[1]: inputFields
-  additionalProperties: false
-
 ```
+
+### Dropdown Static Examples:
+
+#### Dropdown Static JSON Example:
+```json
+[
+  {
+    "key": "message_type",
+    "help": "Select the type of message you want to send. Choose the appropriate option based on the media you are sending.",
+    "type": "dropdown",
+    "label": "Message Type",
+    "options": [
+      {
+        "label": "Text",
+        "value": "text"
+      },
+      {
+        "label": "Image or GIF",
+        "value": "image"
+      },
+      {
+        "label": "Audio",
+        "value": "audio"
+      },
+      {
+        "label": "Video",
+        "value": "video"
+      },
+      {
+        "label": "Sticker",
+        "value": "sticker"
+      },
+      {
+        "label": "Send Published Post",
+        "value": "media_share"
+      }
+    ],
+    "required": true,
+    "placeholder": "Choose Message Type",
+    "customInputLabel": "Enter Message Type",
+    "customPlaceholder": "E.g., text"
+  },
+  {
+    "key": "videoStatus",
+    "help": "Choose the video visibility status (public, private, unlisted).",
+    "type": "dropdown",
+    "label": "Video Status",
+    "options": [
+      {
+        "label": "Public",
+        "value": "public"
+      },
+      {
+        "label": "Private",
+        "value": "private"
+      },
+      {
+        "label": "Unlisted",
+        "value": "unlisted"
+      }
+    ],
+    "required": true,
+    "placeholder": "Choose visibility status",
+    "defaultValue": {
+      "label": "Public",
+      "value": "public"
+    }
+  },
+   {
+    "key": "categoryId",
+    "help": "Choose video category or enter the video category ID.",
+    "type": "dropdown",
+    "label": "Category",
+    "options":[
+            {
+                "label": "Film & Animation",
+                "value": "1",
+                "sample": "1"
+            },
+            {
+                "label": "Autos & Vehicles",
+                "value": "2",
+                "sample": "2"
+            },
+            {
+                "label": "Music",
+                "value": "10",
+                "sample": "10"
+            },
+            {
+                "label": "Pets & Animals",
+                "value": "15",
+                "sample": "15"
+            },
+            {
+                "label": "Sports",
+                "value": "17",
+                "sample": "17"
+            },
+            {
+                "label": "Travel & Events",
+                "value": "19",
+                "sample": "19"
+            },
+            {
+                "label": "Gaming",
+                "value": "20",
+                "sample": "20"
+            },
+            {
+                "label": "People & Blogs",
+                "value": "22",
+                "sample": "22"
+            },
+            {
+                "label": "Comedy",
+                "value": "23",
+                "sample": "23"
+            },
+            {
+                "label": "Entertainment",
+                "value": "24",
+                "sample": "24"
+            },
+            {
+                "label": "News & Politics",
+                "value": "25",
+                "sample": "25"
+            },
+            {
+                "label": "Howto & Style",
+                "value": "26",
+                "sample": "26"
+            },
+            {
+                "label": "Education",
+                "value": "27",
+                "sample": "27"
+            },
+            {
+                "label": "Science & Technology",
+                "value": "28",
+                "sample": "28"
+            },
+            {
+                "label": "Nonprofits & Activism",
+                "value": "29",
+                "sample": "29"
+            }
+        ],
+    "required": true,
+    "placeholder": "Choose Category",
+    "customInputLabel": "Enter the video category ID.",
+    "customPlaceholder": "E.g., 22",
+    "customHelp": "If you don't know the video category ID, you can choose the video category from the dropdown.Additionally you can get the category ID from the List Categories Action."
+  }
+  ]
+```
+#### Dropdown Static TOON Example:
+```toon
+[3]:
+  - key: message_type
+    help: Select the type of message you want to send. Choose the appropriate option based on the media you are sending.
+    type: dropdown
+    label: Message Type
+    options[6]{label,value}:
+      Text,text
+      Image or GIF,image
+      Audio,audio
+      Video,video
+      Sticker,sticker
+      Send Published Post,media_share
+    required: true
+    placeholder: Choose Message Type
+    customInputLabel: Enter Message Type
+    customPlaceholder: "E.g., text"
+  - key: videoStatus
+    help: "Choose the video visibility status (public, private, unlisted)."
+    type: dropdown
+    label: Video Status
+    options[3]{label,value}:
+      Public,public
+      Private,private
+      Unlisted,unlisted
+    required: true
+    placeholder: Choose visibility status
+    defaultValue:
+      label: Public
+      value: public
+  - key: categoryId
+    help: Choose video category or enter the video category ID.
+    type: dropdown
+    label: Category
+    options[15]{label,value,sample}:
+      Film & Animation,"1","1"
+      Autos & Vehicles,"2","2"
+      Music,"10","10"
+      Pets & Animals,"15","15"
+      Sports,"17","17"
+      Travel & Events,"19","19"
+      Gaming,"20","20"
+      People & Blogs,"22","22"
+      Comedy,"23","23"
+      Entertainment,"24","24"
+      News & Politics,"25","25"
+      Howto & Style,"26","26"
+      Education,"27","27"
+      Science & Technology,"28","28"
+      Nonprofits & Activism,"29","29"
+    required: true
+    placeholder: Choose Category
+    customInputLabel: Enter the video category ID.
+    customPlaceholder: "E.g., 22"
+    customHelp: "If you don't know the video category ID, you can choose the video category from the dropdown.Additionally you can get the category ID from the List Categories Action."
+```
+
 
 ## Multiselect Static
 
