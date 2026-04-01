@@ -212,7 +212,7 @@ schema:
     "placeholder": "E.g. recipient@example.com"
   },
   {
-    "key": "pageLimit",
+    "key": "page_limit",
     "help": "Default it will fetch data upto 100. The maximum value is 100.",
     "type": "number",
     "label": "Page Limit",
@@ -239,7 +239,7 @@ schema:
     "placeholder": "E.g. Option 1"
   },
   {
-    "key": "htmlBody",
+    "key": "html_body",
     "help": "Enter the body of the email. You can include HTML tags for formatting.",
     "type": "html",
     "label": "Message Body",
@@ -248,7 +248,7 @@ schema:
     "visibilityCondition": "context.inputData.messageType === 'html'"
   },
   {
-    "key": "fileContent",
+    "key": "file_content",
     "type": "markdown",
     "label": "File Content",
     "help": "Enter the content for the file. You can use Markdown syntax for formatting.",
@@ -290,7 +290,7 @@ schema:
     label: Recipient's Email
     required: true
     placeholder: E.g. recipient@example.com
-  - key: pageLimit
+  - key: page_limit
     help: Default it will fetch data upto 100. The maximum value is 100.
     type: number
     label: Page Limit
@@ -311,14 +311,14 @@ schema:
     label: Quick Reply Options
     required: true
     placeholder: E.g. Option 1
-  - key: htmlBody
+  - key: html_body
     help: Enter the body of the email. You can include HTML tags for formatting.
     type: html
     label: Message Body
     required: true
     placeholder: E.g. <p>Write your HTML email message here</p>
     visibilityCondition: context.inputData.messageType === 'html'
-  - key: fileContent
+  - key: file_content
     type: markdown
     label: File Content
     help: Enter the content for the file. You can use Markdown syntax for formatting.
@@ -1064,7 +1064,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
   - label: user-facing display name (e.g. "High Priority")
   - value: internal value sent to the API (string or number)
 - Each option may optionally include:
-  - sample: an example value or short description. Omit if not needed.
+  - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. "Film & Animation (1)"), while the value is mapped internally. Include sample whenever the value is not self-explanatory. Omit if not needed.
   - extraValue: an extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type (string, number, boolean, object, array). Omit if not needed.
 #### 8. Default Value Rule
 - Set defaultValue only if a sensible default exists.
@@ -1160,7 +1160,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                                     },
                                     "sample": {
                                         "type": "string",
-                                        "description": "An optional sample value or description. Omit if not needed."
+                                        "description": "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'Film & Animation (1)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
                                     },
                                     "extraValue": {
                                         "type": [
@@ -1196,7 +1196,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                                 },
                                 "sample": {
                                     "type": "string",
-                                    "description": "An optional sample value for the default option. Omit if not needed."
+                                    "description": "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
                                 },
                                 "extraValue": {
                                     "type": [
@@ -1291,7 +1291,7 @@ schema:
                   description: The internal value sent to the API. Recommended to be string or number.
                 sample:
                   type: string
-                  description: An optional sample value or description. Omit if not needed.
+                  description: "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'Film & Animation (1)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
                 extraValue:
                   type[5]: string,number,boolean,object,array
                   description: "An optional extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type. Omit if not needed."
@@ -1308,7 +1308,7 @@ schema:
                 description: The internal value of the default option.
               sample:
                 type: string
-                description: An optional sample value for the default option. Omit if not needed.
+                description: "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
               extraValue:
                 type[5]: string,number,boolean,object,array
                 description: An optional extra value for the default option. Omit if not needed.
@@ -1359,7 +1359,7 @@ schema:
     "customPlaceholder": "E.g., text"
   },
   {
-    "key": "videoStatus",
+    "key": "video_status",
     "help": "Choose the video visibility status (public, private, unlisted).",
     "type": "dropdown",
     "label": "Video Status",
@@ -1385,7 +1385,7 @@ schema:
     }
   },
    {
-    "key": "categoryId",
+    "key": "category_id",
     "help": "Choose video category or enter the video category ID.",
     "type": "dropdown",
     "label": "Category",
@@ -1492,7 +1492,7 @@ schema:
     placeholder: Choose Message Type
     customInputLabel: Enter Message Type
     customPlaceholder: "E.g., text"
-  - key: videoStatus
+  - key: video_status
     help: "Choose the video visibility status (public, private, unlisted)."
     type: dropdown
     label: Video Status
@@ -1505,7 +1505,7 @@ schema:
     defaultValue:
       label: Public
       value: public
-  - key: categoryId
+  - key: category_id
     help: Choose video category or enter the video category ID.
     type: dropdown
     label: Category
@@ -1540,8 +1540,371 @@ schema:
 A Static Multiselect input type is used when the user needs to select multiple values from a predefined list of options. It is suitable when all selectable values are known in advance and multiple selections are allowed.
 
 ### Multiselect Static Input Field Generation Rules:
+Generate a JSON object strictly following the rules below for a static multiselect field.
 
+#### When to Use
+- Use a static multiselect when the user needs to select one or more values from a fixed, predefined list and all possible options are known at design time.
+#### 1. Core Rules
+- Create one input field with type: "multiselect".
+- Add the new or updated field to the existing inputFields array.
+- Multiple selections are allowed.
+#### 2. Key Rules
+- key must be unique within inputFields.
+- key must not contain a dot (.).
+- key must be a stable identifier (e.g. search_by, output_response).
+#### 3. Type Rule
+- type must always be "multiselect".
+#### 4. Label, Help Rules
+- label: Clean, human-readable description of what the user is selecting (e.g. "Output Response"). It should describe the choice, not the technical value.
+- help: Guidance text explaining why the user is making this selection and how it affects behavior.
+#### 5. Required Rule
+- Set required: true if at least one option must be selected for the action to work.
+- Otherwise set required: false.
+#### 6. Placeholder Rule
+- placeholder: Optional text shown in the multiselect before selection (e.g. "Choose Return Type").
+- Omit if not applicable.
+#### 7. Options Rules
+- options must be a fixed array. Do not allow dynamic or user-generated options.
+- Each option must include:
+  - label: user-facing display name (e.g. "First Name")
+  - value: internal value sent to the API (string or number)
+- Each option may optionally include:
+  - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. "First Name (first_name)"), while the value is mapped internally. Include sample whenever the value is not self-explanatory. Omit if not needed.
+#### 8. Default Value Rule
+- Set defaultValue only if a sensible default exists.
+- MANDATORY RULE: If provided, defaultValue must be an array of objects where each object is an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
+- Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
+- Omit defaultValue entirely if there is no default.
+#### 9. Custom Input Rules
+- Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable.
+- Include customInputLabel only if manual input mode is intended. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array"). Omit if not applicable.
+- Include customPlaceholder only if a placeholder is needed for manual input mode. Provide a relevant array example (e.g., "E.g., [\"markdown\",\"block\"]" or "E.g., [\"first_name\",\"email\"]"). Omit if not applicable.
+#### 10. Visibility Condition Rule
+- Include visibilityCondition only when the multiselect depends on another field.
+- Omit if always visible.
+#### 11. Output Constraint
+- Return only valid JSON.
+- Do not add extra properties.
+- Do not include explanations or comments.
 
+### Multiselect Static JSON Schema:
+```json
+{
+    "name": "generate_multiselect_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated multiselect field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'search_by', 'output_response'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "multiselect"
+                            ],
+                            "description": "Must be 'multiselect'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label explaining the choice (e.g. 'Search By')."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Guidance text for the user."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Whether selecting at least one option is mandatory."
+                        },
+                        "placeholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text shown before selection. Omit if not applicable."
+                        },
+                        "customHelp": {
+                            "type": "string",
+                            "description": "Optional custom help text for manual/dynamic input. If expecting specific IDs, explain where the user can find them. Omit if not applicable."
+                        },
+                        "customInputLabel": {
+                            "type": "string",
+                            "description": "Optional label for the manual input mode (e.g., 'Enter fields in array'). Omit if not applicable."
+                        },
+                        "customPlaceholder": {
+                            "type": "string",
+                            "description": "Optional placeholder for the manual input mode. Provide a relevant array example (e.g., 'E.g., [\"markdown\",\"block\"]' or 'E.g., [\"first_name\",\"email\"]'). Omit if not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                        },
+                        "options": {
+                            "type": "array",
+                            "description": "The fixed list of available choices.",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "description": "The display name of the option (e.g. 'First Name')."
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "number"
+                                        ],
+                                        "description": "The internal value sent to the API. Recommended to be string or number."
+                                    },
+                                    "sample": {
+                                        "type": "string",
+                                        "description": "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'First Name (first_name)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                                    }
+                                },
+                                "required": [
+                                    "label",
+                                    "value"
+                                ]
+                            }
+                        },
+                        "defaultValue": {
+                            "type": "array",
+                            "description": "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default.",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "description": "The display name of the default option."
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "number"
+                                        ],
+                                        "description": "The internal value of the default option."
+                                    },
+                                    "sample": {
+                                        "type": "string",
+                                        "description": "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
+                                    }
+                                },
+                                "required": [
+                                    "label",
+                                    "value"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "required",
+                        "options"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
+### Multiselect Static TOON Schema:
+```toon
+name: generate_multiselect_field
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated multiselect field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'search_by', 'output_response'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: multiselect
+            description: Must be 'multiselect'.
+          label:
+            type: string
+            description: A human-readable label explaining the choice (e.g. 'Search By').
+          help:
+            type: string
+            description: Guidance text for the user.
+          required:
+            type: boolean
+            description: Whether selecting at least one option is mandatory.
+          placeholder:
+            type: string
+            description: Optional placeholder text shown before selection. Omit if not applicable.
+          customHelp:
+            type: string
+            description: "Optional custom help text for manual/dynamic input. If expecting specific IDs, explain where the user can find them. Omit if not applicable."
+          customInputLabel:
+            type: string
+            description: "Optional label for the manual input mode (e.g., 'Enter fields in array'). Omit if not applicable."
+          customPlaceholder:
+            type: string
+            description: "Optional placeholder for the manual input mode. Provide a relevant array example (e.g., 'E.g., [\"markdown\",\"block\"]' or 'E.g., [\"first_name\",\"email\"]'). Omit if not applicable."
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility. Omit if always visible.
+          options:
+            type: array
+            description: The fixed list of available choices.
+            items:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: The display name of the option (e.g. 'First Name').
+                value:
+                  type[2]: string,number
+                  description: The internal value sent to the API. Recommended to be string or number.
+                sample:
+                  type: string
+                  description: "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'First Name (first_name)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+              required[2]: label,value
+          defaultValue:
+            type: array
+            description: "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default."
+            items:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: The display name of the default option.
+                value:
+                  type[2]: string,number
+                  description: The internal value of the default option.
+                sample:
+                  type: string
+                  description: "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
+              required[2]: label,value
+        required[6]: key,type,label,help,required,options
+  required[1]: inputFields
+```
+
+### Multiselect Static JSON Example:
+```json
+[
+  {
+    "key": "output_response",
+    "help": "Choose response output possible markdown, notion blocks.",
+    "type": "multiselect",
+    "label": "Output Response",
+    "options": [
+      {
+        "label": "Markdown",
+        "value": "markdown",
+        "sample": "markdown"
+      },
+      {
+        "label": "Blocks",
+        "value": "blocks",
+        "sample": "blocks"
+      },
+      {
+        "label": "HTML",
+        "value": "html",
+        "sample": "html"
+      }
+    ],
+    "required": true,
+    "placeholder": "Choose Return Type",
+    "defaultValue": [
+      {
+        "label": "Markdown",
+        "value": "markdown",
+        "sample": "markdown"
+      }
+    ],
+    "customInputLabel": "Enter output responses to include in array.",
+    "customPlaceholder": "E.g., [\"markdown\",\"block\"]"
+  },
+  {
+    "key": "search_by",
+    "help": "Select fields to search from will return the result containing any of the matching fields",
+    "type": "multiselect",
+    "label": "Search By",
+    "options": [
+      {
+        "label": "ID",
+        "value": "id",
+        "sample": "id"
+      },
+      {
+        "label": "Phone",
+        "value": "phone",
+        "sample": "phone"
+      },
+      {
+        "label": "Email",
+        "value": "email",
+        "sample": "email"
+      },
+      {
+        "label": "First Name",
+        "value": "first_name",
+        "sample": "first_name"
+      }
+    ],
+    "required": true,
+    "customHelp": "You can enter the required fields ID in the array to search from",
+    "customPlaceholder": "E.g., [\"first_name\",\"email\"]",
+    "customInputLabel": "Enter fields ids in array",
+    "placeholder": "Choose Search Filelds"
+  }
+]
+```
+
+### Multiselect Static TOON Schema:
+```toon
+[2]:
+  - key: output_response
+    help: "Choose response output possible markdown, notion blocks."
+    type: multiselect
+    label: Output Response
+    options[3]{label,value,sample}:
+      Markdown,markdown,markdown
+      Blocks,blocks,blocks
+      HTML,html,html
+    required: true
+    placeholder: Choose Return Type
+    defaultValue[1]{label,value,sample}:
+      Markdown,markdown,markdown
+    customInputLabel: Enter output responses to include in array.
+    customPlaceholder: "E.g., [\"markdown\",\"block\"]"
+  - key: search_by
+    help: Select fields to search from will return the result containing any of the matching fields
+    type: multiselect
+    label: Search By
+    options[4]{label,value,sample}:
+      ID,id,id
+      Phone,phone,phone
+      Email,email,email
+      First Name,first_name,first_name
+    required: true
+    customHelp: You can enter the required fields ID in the array to search from
+    customPlaceholder: "E.g., [\"first_name\",\"email\"]"
+    customInputLabel: Enter fields ids in array
+    placeholder: Choose Search Filelds
+```
 
 # Dynamic Input Fields
 
