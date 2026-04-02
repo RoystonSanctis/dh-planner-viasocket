@@ -87,7 +87,7 @@ key must not contain a dot (.).
             },
             "help": {
                 "type": "string",
-                "description": "Guidance text explaining what the user should enter."
+                "description": "Guidance text explaining what the user should enter. It also supports markdown links for the reference."
             },
             "placeholder": {
                 "type": "string",
@@ -144,7 +144,7 @@ schema:
       description: "A clean, human-readable label."
     help:
       type: string
-      description: Guidance text explaining what the user should enter.
+      description: "Guidance text explaining what the user should enter. It also supports markdown links for the reference."
     placeholder:
       type: string
       description: An example value relevant to the purpose.
@@ -387,7 +387,7 @@ Return only valid JSON.
                         },
                         "help": {
                             "type": "string",
-                            "description": "Clear instructions for the user about what to input."
+                            "description": "Clear instructions for the user about what to input. It also supports markdown links for the reference."
                         },
                         "required": {
                             "type": "boolean",
@@ -494,7 +494,7 @@ schema:
             description: A user-friendly label derived from the fieldPurpose.
           help:
             type: string
-            description: Clear instructions for the user about what to input.
+            description: "Clear instructions for the user about what to input. It also supports markdown links for the reference."
           required:
             type: boolean
             description: Indicates if this dictionary field is mandatory.
@@ -725,7 +725,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         },
                         "help": {
                             "type": "string",
-                            "description": "Helper text explaining what enabling/disabling this does."
+                            "description": "Helper text explaining what enabling/disabling this does. It also supports markdown links for the reference."
                         },
                         "required": {
                             "type": "boolean",
@@ -829,7 +829,7 @@ schema:
             description: A human-readable label (e.g. 'Does your first row contain column name?').
           help:
             type: string
-            description: Helper text explaining what enabling/disabling this does.
+            description: "Helper text explaining what enabling/disabling this does. It also supports markdown links for the reference."
           required:
             type: boolean
             description: Whether the field is mandatory.
@@ -1115,7 +1115,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         },
                         "help": {
                             "type": "string",
-                            "description": "Guidance text for the user."
+                            "description": "Guidance text for the user. It also supports markdown links for the reference."
                         },
                         "required": {
                             "type": "boolean",
@@ -1258,7 +1258,7 @@ schema:
             description: A human-readable label explaining the choice (e.g. 'Message Type').
           help:
             type: string
-            description: Guidance text for the user.
+            description: "Guidance text for the user. It also supports markdown links for the reference."
           required:
             type: boolean
             description: Whether the selection is mandatory.
@@ -1619,7 +1619,7 @@ Generate a JSON object strictly following the rules below for a static multisele
                         },
                         "help": {
                             "type": "string",
-                            "description": "Guidance text for the user."
+                            "description": "Guidance text for the user. It also supports markdown links for the reference."
                         },
                         "required": {
                             "type": "boolean",
@@ -1745,7 +1745,7 @@ schema:
             description: A human-readable label explaining the choice (e.g. 'Search By').
           help:
             type: string
-            description: Guidance text for the user.
+            description: "Guidance text for the user. It also supports markdown links for the reference."
           required:
             type: boolean
             description: Whether selecting at least one option is mandatory.
@@ -1989,7 +1989,7 @@ Generate a JSON object strictly following the rules below for an AI field.
                         },
                         "help": {
                             "type": "string",
-                            "description": "Guidance text for the user. Can include markdown links."
+                            "description": "Guidance text for the user. It also supports markdown links for the reference."
                         },
                         "prompt": {
                             "type": "string",
@@ -2057,7 +2057,7 @@ schema:
             description: A human-readable label explaining the field.
           help:
             type: string
-            description: Guidance text for the user. Can include markdown links.
+            description: "Guidance text for the user. It also supports markdown links for the reference."
           prompt:
             type: string
             description: The system prompt or instructions sent to the AI. This tells the AI how to process the user's input and format the output (e.g. 'Convert the input into a JSON array...').
@@ -2129,7 +2129,204 @@ schema:
     visibilityCondition: context?.inputData?.page_content?.template_mode === 'none'
 ```
 
+## Help Static
+
+### Help Static Purpose:
+
+A Static Help field is used to display static instructional content, warnings, or detailed guides directly within the UI (typically presented as an info block). It does not natively accept user input but instead provides structured information using plain text, HTML, or Markdown to guide the user during setup or configuration.
+
+### Help Static Input Field Generation Rules:
+Generate a JSON object strictly following the rules below for a static help field.
+
+#### When to Use
+- Use a Static Help field when you need to provide detailed step-by-step instructions, display important information, or guide the user visually within the form.
+
+#### 1. Core Rules
+- Create one object with `type: "help"`.
+- Add the new or updated help field to the existing `inputFields` array.
+
+#### 2. Key Rules
+- `key` must be unique within `inputFields`.
+- `key` must not contain a dot (`.`).
+- `key` must be a stable identifier (e.g. `help_webhook`, `help_send_message`).
+
+#### 3. Type Rule
+- `type` must always be exactly `"help"`.
+
+#### 4. Help Content Rules
+- `help`: This property contains the actual instructional content.
+- It supports plain text, HTML tags (like `<ul>`, `<li>`, `<strong>`, `<br>`), and Markdown formatting (including links).
+- Ensure the content is clear and properly formatted for readability within the UI block.
+
+#### 5. Output Constraint
+- Return only valid JSON.
+- Do not add extra properties (e.g., no `label`, `required`, or `placeholder` as they do not apply to a help display block).
+- Do not include explanations or comments.
+
+### Help Static JSON Schema:
+```json
+{
+    "name": "generate_help_field",
+    "strict": true,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated help field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'help_webhook', 'help_send_message'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "help"
+                            ],
+                            "description": "Must be exactly 'help'."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "The instructional content to display to the user. This supports plain text, HTML (e.g., <ul>, <li>, <strong>), and Markdown format. It also supports markdown links for the reference."
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "help"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ],
+        "additionalProperties": false
+    }
+}
+```
+### Help Static TOON Schema:
+```toon
+name: generate_help_field
+strict: true
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated help field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'help_webhook', 'help_send_message'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: help
+            description: Must be exactly 'help'.
+          help:
+            type: string
+            description: "The instructional content to display to the user. This supports plain text, HTML (e.g., <ul>, <li>, <strong>), and Markdown format. It also supports markdown links for the reference."
+        required[3]: key,type,help
+        additionalProperties: false
+  required[1]: inputFields
+  additionalProperties: false
+```
+### Help Static Examples:
+#### Help Static JSON Example:
+```json
+[ 
+  {
+    "key": "help_webhook",
+    "help": "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",
+    "type": "help"
+  },
+{
+    "key": "help_send_message",
+    "help": "You can send a message on Instagram DM up to 24 hours after receiving a message from a user.<br> <br>A maximum of 3 buttons (URL and postback combined) are allowed in the button template message.",
+    "type": "help"
+  }
+]
+```
+#### Help Static TOON Example:
+```toon
+[2]{key,help,type}:
+  help_webhook,"<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",help
+  help_send_message,You can send a message on Instagram DM up to 24 hours after receiving a message from a user.<br> <br>A maximum of 3 buttons (URL and postback combined) are allowed in the button template message.,help
+```
+
+## Input Group Static
+
+### Input Group Static Purpose:
+
+### Input Group Static Input Field Generation Rules:
+
+### Input Group Static JSON Schema:
+### Input Group Static TOON Schema:
+
+### Input Group Static Examples:
+#### Input Group Static JSON Example:
+#### Input Group Static TOON Example:
+
 
 # Dynamic Input Fields
 
 ## Dropdown Dynamic
+
+### Dropdown Dynamic Purpose:
+
+### Dropdown Dynamic Input Field Generation Rules:
+
+### Dropdown Dynamic JSON Schema:
+### Dropdown Dynamic TOON Schema:
+
+### Dropdown Dynamic Examples:
+#### Dropdown Dynamic JSON Example:
+#### Dropdown Dynamic TOON Example:
+
+## Multi Select Dynamic
+
+### Multi Select Dynamic Purpose:
+
+### Multi Select Dynamic Input Field Generation Rules:
+
+### Multi Select Dynamic JSON Schema:
+### Multi Select Dynamic TOON Schema:
+
+### Multi Select Dynamic Examples:
+#### Multi Select Dynamic JSON Example:
+#### Multi Select Dynamic TOON Example:
+
+## Help Dynamic
+
+### Help Dynamic Purpose:
+
+### Help Dynamic Input Field Generation Rules:
+
+### Help Dynamic JSON Schema:
+### Help Dynamic TOON Schema:
+
+### Help Dynamic Examples:
+#### Help Dynamic JSON Example:
+#### Help Dynamic TOON Example:
+
+
+## Input Group Dynamic
+
+### Input Group Dynamic Purpose:
+
+### Input Group Dynamic Input Field Generation Rules:
+
+### Input Group Dynamic JSON Schema:
+### Input Group Dynamic TOON Schema:
+
+### Input Group Dynamic Examples:
+#### Input Group Dynamic JSON Example:
+#### Input Group Dynamic TOON Example:
