@@ -1906,6 +1906,230 @@ schema:
     placeholder: Choose Search Filelds
 ```
 
+## AI Field
+
+### AI Field Purpose:
+
+The AI Field provides customizable AI responses to automate processes based on structured prompts and dynamic data inputs. The user interacts with the AI only during setup configuration, allowing the AI to generate a structured response that is then used in the perform code.
+
+### AI Field Input Field Generation Rules:
+Generate a JSON object strictly following the rules below for an AI field.
+
+#### When to Use
+- Use an AI Field when you need an AI assistant to generate complex schemas or structured data from user inputs during configuration, which will subsequently be used in the perform code.
+
+#### 1. Core Rules
+- Create one input field with `type: "aifield"`.
+- Add the new or updated field to the existing `inputFields` array.
+
+#### 2. Key Rules
+- `key` must be unique within `inputFields`.
+- `key` must not contain a dot (`.`).
+- `key` must be a stable identifier (e.g. `filter_conditions`, `content_block`).
+
+#### 3. Type Rule
+- `type` must always be `"aifield"`.
+
+#### 4. Label & Help Rules
+- `label`: A human-readable display name explaining the field.
+- `help`: Instructional guidance text for the user on how to use this field. Can include markdown links.
+
+#### 5. Prompt Rule
+- `prompt`: The system prompt or instructions sent to the AI. This defines the AI's behavior, task, or role, telling it how to process the user's input and format the output (e.g. "Convert the input into a JSON array...").
+
+#### 6. Suggestion Generator Rule
+- `suggestionGenerator`: JavaScript code that provides dynamic context or fetches a schema (source of data) from which the AI will generate results.
+- **MANDATORY**: This key MUST be present in the JSON. If no dynamic data or contextual schema is needed, set its value to an empty string `""`.
+
+#### 7. Required Rule
+- Set `required: true` if providing input to this field is mandatory.
+- Otherwise set `required: false`.
+
+#### 8. Placeholder Rule
+- `placeholder`: Optional text showing an example input to guide the user. Can be an example query or expected value. Omit if not applicable.
+
+#### 9. Visibility Condition Rule
+- Include `visibilityCondition` only when the field depends on another field's state.
+- Omit this field entirely if always visible.
+
+#### 10. Output Constraint
+- Return only valid JSON.
+- Do not add extra properties not defined in the schema.
+- Do not include explanations or comments.
+
+### AI Field JSON Schema:
+```json
+{
+    "name": "generate_aifield",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated aifield.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'filter_conditions', 'content_block'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "aifield"
+                            ],
+                            "description": "Must be 'aifield'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label explaining the field."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Guidance text for the user. Can include markdown links."
+                        },
+                        "prompt": {
+                            "type": "string",
+                            "description": "The system prompt or instructions sent to the AI. This tells the AI how to process the user's input and format the output (e.g. 'Convert the input into a JSON array...')."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Whether providing input to this field is mandatory."
+                        },
+                        "placeholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text showing an example input. Can be prompt or value. Omit if not applicable."
+                        },
+                        "suggestionGenerator": {
+                            "type": "string",
+                            "description": "JavaScript code that fetches a schema or context to send to the AI. This key MUST be present in the JSON, but return an empty string \"\" if no dynamic suggestions/schema are needed."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit this field entirely if always visible."
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "prompt",
+                        "required",
+                        "suggestionGenerator"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
+
+### AI Field TOON Schema:
+```toon
+name: generate_aifield
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated aifield.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'filter_conditions', 'content_block'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: aifield
+            description: Must be 'aifield'.
+          label:
+            type: string
+            description: A human-readable label explaining the field.
+          help:
+            type: string
+            description: Guidance text for the user. Can include markdown links.
+          prompt:
+            type: string
+            description: The system prompt or instructions sent to the AI. This tells the AI how to process the user's input and format the output (e.g. 'Convert the input into a JSON array...').
+          required:
+            type: boolean
+            description: Whether providing input to this field is mandatory.
+          placeholder:
+            type: string
+            description: Optional placeholder text showing an example input. Can be prompt or value. Omit if not applicable.
+          suggestionGenerator:
+            type: string
+            description: "JavaScript code that fetches a schema or context to send to the AI. This key MUST be present in the JSON, but return an empty string \"\" if no dynamic suggestions/schema are needed."
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility. Omit this field entirely if always visible.
+        required[7]: key,type,label,help,prompt,required,suggestionGenerator
+  required[1]: inputFields
+```
+
+
+### AI Field Examples
+
+#### AI Field JSON Example:
+```json
+[
+  {
+    "key": "filter_conditions",
+    "help": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] } . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)",
+    "type": "aifield",
+    "label": "Filter Conditions",
+    "prompt": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }. I want the filter condition supports notion and can include complex OR and AND. In suggetions you will get the schema of the column title and fields accordingly design the filter based on the type. Note: Output is the json, don't give me like code return.",
+    "required": false,
+    "placeholder": "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }",
+    "suggestionGenerator": "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
+  },
+    {
+        "key": "content_block",
+        "help": "Give a prompt to generate child content to append to a container block as an array of block objects.[Learn More](https://developers.notion.com/reference/block)",
+        "type": "aifield",
+        "label": "Content Block",
+        "prompt": "Convert the input into a Notion **blocks JSON array**.  - Each item: `{ \"object\": \"block\", \"type\": \"<valid_notion_type>\", \"<type>\": { ... } }` - Use correct Notion block types, `rich_text` with `plain_text` for text. - Use `children` only for block types that support children. - For media (`image`, `file`, `video`, `audio`, `pdf`), use proper `file` / `external` / `file_upload` objects.  Return **only** the JSON array of block objects.",
+        "required": false,
+        "placeholder": "Add the text para and bulleted list below.",
+        "suggestionGenerator": "",
+        "visibilityCondition": "context?.inputData?.page_content?.template_mode === 'none'"
+      }
+]
+```
+
+#### AI Field TOON Example:
+```toon
+[2]:
+  - key: filter_conditions
+    help: "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] } . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)"
+    type: aifield
+    label: Filter Conditions
+    prompt: "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }. I want the filter condition supports notion and can include complex OR and AND. In suggetions you will get the schema of the column title and fields accordingly design the filter based on the type. Note: Output is the json, don't give me like code return."
+    required: false
+    placeholder: "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }"
+    suggestionGenerator: "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
+  - key: content_block
+    help: "Give a prompt to generate child content to append to a container block as an array of block objects.[Learn More](https://developers.notion.com/reference/block)"
+    type: aifield
+    label: Content Block
+    prompt: "Convert the input into a Notion **blocks JSON array**.  - Each item: `{ \"object\": \"block\", \"type\": \"<valid_notion_type>\", \"<type>\": { ... } }` - Use correct Notion block types, `rich_text` with `plain_text` for text. - Use `children` only for block types that support children. - For media (`image`, `file`, `video`, `audio`, `pdf`), use proper `file` / `external` / `file_upload` objects.  Return **only** the JSON array of block objects."
+    required: false
+    placeholder: Add the text para and bulleted list below.
+    suggestionGenerator: ""
+    visibilityCondition: context?.inputData?.page_content?.template_mode === 'none'
+```
+
+
 # Dynamic Input Fields
 
 ## Dropdown Dynamic
