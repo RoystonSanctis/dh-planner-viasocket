@@ -2898,15 +2898,186 @@ schema:
 
 ### Help Dynamic Purpose:
 
+A Dynamic Help field is used to generate and display real-time instructional content, validation messages, or warnings based on contextual API calls or internal logic. Unlike a Static Help field, it runs custom JavaScript to determine the content to show. This allows the plugin to react to user inputs dynamically to provide contextual assistance. 
+
+**Pro Tip:** You can use this method in plugin scenarios like:
+*   Checking authentication validity
+*   Verifying API credentials
+*   Ensuring resources (e.g., project ID, table columns) exist
+*   Alerting for unsupported settings
+
 ### Help Dynamic Input Field Generation Rules:
+Generate a JSON object strictly following the rules below for a dynamic help field.
+
+#### When to Use
+- Use a Dynamic Help field when the informative text or warning needs to be generated on-the-fly based on API responses or current user selections.
+
+#### 1. Core Rules
+- Create an object with `type: "help"`.
+- Add the field to the `inputFields` array.
+- A dynamic help field REQUIRES a `source` property containing executable JavaScript code.
+
+#### 2. Key Rules
+- `key` must be unique within `inputFields`.
+- `key` must not contain a dot (`.`).
+- `key` must be a stable identifier (e.g. `help_dynamic`, `help_page_status`).
+
+#### 3. Type Rule
+- `type` must be exactly `"help"`.
+
+#### 4. Source Code Rule
+- `source`: This property must contain the JavaScript code that executes to render the dynamic help.
+- **MANDATORY**: The code *must* return an object containing a `message` key (e.g., `return { message: 'Your text here' };`).
+- The `message` content supports plain text, HTML, and Markdown formatting.
+- *How to Use in viaSocket:* You can add this code directly in the plugin builder's "JavaScript API Call" area, or embed it in JSON using the `source` key (make sure to escape the code using EscapeJSON before pasting).
+
+#### 5. Label Rule
+- `label`: An optional human-readable label displayed above the help text block (e.g., "Available Columns"). Omit this field entirely if not needed.
+
+#### 6. Visibility Condition Rule
+- `visibilityCondition`: Include this optional JavaScript condition only if the help block should conditionally render. Omit if it should evaluate and display unconditionally.
+
+#### 7. Output Constraint
+- Return only valid JSON.
+- Do not add undocumented fields (e.g., do not add generic `help` or `placeholder` attributes as they do not apply to this specific dynamic help generation block).
 
 ### Help Dynamic JSON Schema:
+```json
+{
+    "name": "generate_dynamic_help_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated dynamic help field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'help_dynamic', 'help_page_status'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "help"
+                            ],
+                            "description": "Must be exactly 'help'."
+                        },
+                        "source": {
+                            "type": "string",
+                            "description": "JavaScript code that executes to render the dynamic help. MANDATORY RULE: The code must return an object containing a 'message' key (e.g., `return { message: 'Your text here' };`). The message can support markdown and HTML."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "Optional human-readable label displayed above the help text block. Omit this field entirely if not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "Optional JavaScript condition for visibility of the help block. Omit this field entirely if always visible."
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "source"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
 ### Help Dynamic TOON Schema:
+```toon
+name: generate_dynamic_help_field
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated dynamic help field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'help_dynamic', 'help_page_status'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: help
+            description: Must be exactly 'help'.
+          source:
+            type: string
+            description: "JavaScript code that executes to render the dynamic help. MANDATORY RULE: The code must return an object containing a 'message' key (e.g., `return { message: 'Your text here' };`). The message can support markdown and HTML."
+          label:
+            type: string
+            description: Optional human-readable label displayed above the help text block. Omit this field entirely if not applicable.
+          visibilityCondition:
+            type: string
+            description: Optional JavaScript condition for visibility of the help block. Omit this field entirely if always visible.
+        required[3]: key,type,source
+  required[1]: inputFields
+```
 
 ### Help Dynamic Examples:
 #### Help Dynamic JSON Example:
+```json
+[
+  {
+    "key": "help_page_status",
+    "type": "help",
+    "source": "const selectedPage = context?.inputData?.page_id;\n\n// Define required permissions at the beginning\nconst REQUIRED_PERMISSIONS = [\n  'MODERATE',\n  'ADVERTISE',\n  'MANAGE_LEAD_FORMS',\n  'MANAGE'\n];\n\nasync function checkPagePermissions() {\n  try {\n    const { accessToken, isPermission } = await getAccessToken(\n      selectedPage,\n      REQUIRED_PERMISSIONS\n    );\n\n    if (!accessToken) {\n      return {\n        message: \"Selected page not found or access token unavailable. Please reconnect and reselect the page.\"\n      };\n    }\n\n    if (!isPermission) {\n      return {\n        message: \"You don’t have permission to use this trigger. To proceed, you need to be an admin, editor, or have 'manage page' access. Please ask the page admin to grant you the necessary permissions.\"\n      };\n    }\n\n    return {\n      message: \"You will receive the lead data here whenever a new lead is generated.\"\n    };\n\n  } catch (error) {\n    return {\n      message: \"An error occurred while checking permissions. Please try again by updating the connections.\"\n    };\n  }\n}\n\n// Execute\nreturn await checkPagePermissions();"
+  },
+  {
+    "key": "dynamic_help_query",
+    "type": "help",
+    "label": "Available Columns",
+    "source": "async function convertToDesiredFormat() {\n    const URL = `https://table-api.viasocket.com/dbs/${context.authData.dbId}/${context?.inputData?.table}/field`;\n    const EXCLUDED_KEYS = [\"rowid\", \"autonumber\"];\n    try {\n        const response = await axios.get(URL);\n        const data = response.data.data.fields;\n        let markdownMessage = \"Available Columns in your selected table:\\n\";\n        let index = 1;\n        let fieldObjs = [];\n        Object.keys(data).forEach((key) => {\n            if (!EXCLUDED_KEYS.includes(key)) {\n                const field = data[key];\n                markdownMessage += `${index}. ${field.fieldName} (${field.fieldType})\\n`;\n                fieldObjs.push(field);\n                index++;\n            }\n        });\n\n        function exampleValue(field) {\n            if (/_id$/.test(field.fieldName) || field.fieldType.match(/(int|number|bigint)/i)) {\n                return 12345;\n            } else if (/status|type/i.test(field.fieldName)) {\n                return \"'Active'\";\n            } else if (field.fieldType.match(/(text|longtext|varchar)/i)) {\n                return \"'John Doe'\";\n            } else {\n                return \"'John Doe'\";\n            }\n        }\n\n        let example = '';\n        if (fieldObjs.length >= 2) {\n            example = `Example: ${fieldObjs[0].fieldName} is equal to ${exampleValue(fieldObjs[0])} and ${fieldObjs[1].fieldName} is equal to ${exampleValue(fieldObjs[1])}`;\n        } else if (fieldObjs.length === 1) {\n            example = `Example: ${fieldObjs[0].fieldName} is equal to ${exampleValue(fieldObjs[0])}`;\n        } else {\n            example = `No filterable columns available.`;\n        }\n\n        return { message: markdownMessage + '\\n' + example };\n    } catch (error) {\n        return { message: \"Could not fetch table columns.\" };\n    }\n}\n\nreturn convertToDesiredFormat();\n",
+    "visibilityCondition": "context.inputData.filter_mode === 'query' && context.inputData.table"
+  },
+  {
+    "key": "template_help",
+    "type": "help",
+    "label": "Template Preview",
+    "source": "async function getTemplateById({ wba_id, template_id }) {\n  const baseUrl = `https://graph.facebook.com/v23.0/${wba_id}/message_templates?fields=id,name,status,category,language,components&limit=100`;\n  let url = baseUrl;\n\n  try {\n    while (url) {\n      const response = await axios.get(url);\n\n      // Loop through each template and check the id\n      for (const template of response.data.data) {\n        if (template.id === template_id) {\n          let messageContent = '';\n          let headerType = '';\n\n          // Loop through all components and extract header type if available\n          template.components.forEach((component) => {\n            if (component.type === 'HEADER') {\n              if (component.format) {\n                headerType = `<div><b>Header Type: ${component.format}</b></div>`;\n              } else {\n                headerType = `<div><b>Header Type: TEXT</b></div>`;\n              }\n            }\n          });\n\n          // Add header type to the top if available\n          if (headerType) messageContent += headerType;\n\n          // Continue building message content\n          template.components.forEach((component) => {\n            if (component.type === 'BODY' && component.text) {\n              // Handle BODY text component\n              const bodyText = component.text.replace(/\\n/g, '<br>');\n              messageContent += `<p>${bodyText}</p>`;\n            } else if (component.type === 'HEADER' && component.format) {\n              if (['IMAGE', 'VIDEO', 'DOCUMENT'].includes(component.format)) {\n                const mediaUrl = component.example?.header_handle || '';\n                if (component.format === 'IMAGE') {\n                  messageContent += `<img src=\"${mediaUrl}\" alt=\"Header Image\" style=\"max-width: 100%;\"/><br>`;\n                } else if (component.format === 'VIDEO') {\n                  messageContent += `<video controls><source src=\"${mediaUrl}\" type=\"video/mp4\">Your browser does not support the video tag.</video><br>`;\n                } else if (component.format === 'DOCUMENT') {\n                  messageContent += `<a href=\"${mediaUrl}\" target=\"_blank\">Download Document</a><br>`;\n                }\n              }\n            } else if (component.type === 'BUTTONS' && Array.isArray(component.buttons)) {\n              // Buttons grouped and numbered per type\n              const urlButtons = component.buttons.filter(btn => btn.type === 'URL');\n              const quickReplyButtons = component.buttons.filter(btn => btn.type === 'QUICK_REPLY');\n              const phoneButtons = component.buttons.filter(btn => btn.type === 'PHONE_NUMBER');\n\n              if (urlButtons.length) {\n                messageContent += `<div><b>Custom Button:</b></div>`;\n                urlButtons.forEach((btn, idx) => {\n                  messageContent += `<div>${idx + 1}. Title: ${btn.text}, Value: ${btn.url}</div>`;\n                });\n              }\n              if (quickReplyButtons.length) {\n                messageContent += `<div><b>Quick Reply Button:</b></div>`;\n                quickReplyButtons.forEach((btn, idx) => {\n                  if (btn.payload) {\n                    messageContent += `<div>${idx + 1}. Title: ${btn.text}, Value: ${btn.payload}</div>`;\n                  } else {\n                    messageContent += `<div>${idx + 1}. Title: ${btn.text}</div>`;\n                  }\n                });\n              }\n              if (phoneButtons.length) {\n                messageContent += `<div><b>Phone Button:</b></div>`;\n                phoneButtons.forEach((btn, idx) => {\n                  messageContent += `<div>${idx + 1}. Title: ${btn.text}, Value: ${btn.phone_number}</div>`;\n                });\n              }\n            }\n          });\n\n          // Return the message content as a single HTML-formatted string\n          return { message: messageContent };\n        }\n      }\n\n      // Check if there are more pages\n      url = response.data.paging?.next || null;\n    }\n    return { message: 'Template not found.' };\n  } catch (error) {\n    return { message: error.message };\n  }\n}\n\n// Usage:\nconst result = await getTemplateById({\n  wba_id: context?.inputData?.wba_id,\n  template_id: context?.inputData?.message_template_id\n});\nreturn result;",
+    "visibilityCondition": "context?.inputData?.message_template_id"
+  },
+   {
+    "key": "eligibility_checks",
+    "type": "help",
+    "source": "const channelId = context.inputData.channelId;\n\n\nasync function checkYouTubeUploadEligibility(channelId = 'mine') {\n    try {\n        // if (!accessToken) {\n        //     return {\n        //         isEligibleForLongVideos: false,\n        //         canUpload: false,\n        //         warningMessage: 'Missing OAuth 2.0 access token. Cannot check YouTube channel eligibility.',\n        //         originalError: null\n        //     };\n        // }\n\n        // Use the channels.list endpoint to get channel status\n        // 'mine=true' retrieves the authenticated user's channel.\n        // 'part=status' is sufficient for longUploadsStatus.\n        const response = await axios.get(\n            `https://www.googleapis.com/youtube/v3/channels?part=status&mine=true`\n        );\n\n        if (response.status !== 200 || !response.data || response.data.items.length === 0) {\n            return {\n                isEligibleForLongVideos: false,\n                canUpload: false,\n                warningMessage: 'Could not retrieve YouTube channel information. Ensure the authenticated user has a YouTube channel.',\n                originalError: response.data\n            };\n        }\n\n        const channelStatus = response.data.items[0].status;\n        const longUploadsStatus = channelStatus.longUploadsStatus;\n\n        let isEligibleForLongVideos = false;\n        let canUpload = true; // Assume true unless specific checks fail\n        let warningMessage = null;\n\n        if (longUploadsStatus === 'allowed') {\n            isEligibleForLongVideos = true;\n        } else if (longUploadsStatus === 'eligible') {\n            isEligibleForLongVideos = false; // Not yet allowed, needs phone verification\n            warningMessage = 'Your YouTube channel is eligible for longer videos (>15 mins) but requires phone verification. Please verify your account in YouTube Studio to enable this feature.';\n            canUpload = false; // Prevent large file upload if this is a strict requirement\n        } else if (longUploadsStatus === 'disallowed') {\n            isEligibleForLongVideos = false;\n            warningMessage = 'Your YouTube channel is currently disallowed from uploading videos longer than 15 minutes due to policy violations or other restrictions. Please check your YouTube Studio settings.';\n            canUpload = false;\n        } else { // 'yetUnspecified' or any other unexpected value\n            isEligibleForLongVideos = false;\n            warningMessage = `Cannot determine channel's long video upload status (status: ${longUploadsStatus}). It might not be enabled or require further action.`;\n            canUpload = false;\n        }\n\n        // Additional check: daily upload limits are not directly exposed,\n        // but if the channel is not in good standing, general uploads might be affected.\n        // This is less common for *duration* but good to be aware of.\n        const uploadStatus = channelStatus.uploadStatus;\n        if (uploadStatus === 'disallowed') {\n             canUpload = false;\n             warningMessage = warningMessage ? warningMessage + ' Also, general video uploads appear to be disallowed for this channel.' : 'General video uploads appear to be disallowed for this channel.';\n        }\n\n\n        // GSuite administrator access / API access:\n        // If the API call above fails with a 403, it's often a permission issue.\n        // We'll catch it in the outer try/catch.\n\n        return { isEligibleForLongVideos, canUpload, warningMessage, originalError: null };\n\n    } catch (error) {\n        let errorMessage = 'An error occurred while checking YouTube channel eligibility.';\n        let canUpload = false;\n        let originalError = error;\n\n        if (error.response) {\n            // Google API error response structure\n            const status = error.response.status;\n            const errorData = error.response.data;\n\n            if (status === 401 || status === 403) {\n                // 401 Unauthorized: Access token invalid or expired.\n                // 403 Forbidden: Permissions issue, could be GSuite admin restrictions,\n                // insufficient scopes, or the account doesn't have a YouTube channel.\n                errorMessage = `Permission denied to access YouTube channel. Status: ${status}. This could be due to:\n                1. Invalid/expired access token.\n                2. Insufficient scopes (ensure 'https://www.googleapis.com/auth/youtube.upload' and 'https://www.googleapis.com/auth/youtube.readonly' are granted).\n                3. The GSuite administrator has restricted YouTube access or API access for this user.\n                4. The user does not have a YouTube channel created yet.`;\n                canUpload = false; // Definitely cannot proceed with upload\n            } else if (status === 429) {\n                // 429 Too Many Requests: API quota limit reached.\n                errorMessage = 'API Quota Exceeded for your Google Cloud Project. You have exhausted the daily limit for YouTube API calls. Please try again after 24 hours (midnight Pacific Time).';\n                canUpload = false;\n            } else {\n                errorMessage += ` API Error: ${status} - ${errorData.error?.message || JSON.stringify(errorData)}`;\n            }\n        } else if (error.request) {\n            // Network error\n            errorMessage = `No response received from YouTube API. Network issue or API endpoint unavailable: ${error.message}`;\n        } else {\n            // Other errors\n            errorMessage = `Unexpected error during YouTube API call: ${error.message}`;\n        }\n\n        console.error('YouTube Eligibility Check Error:', errorMessage, error);\n\n        return {\n            isEligibleForLongVideos: false,\n            canUpload: false,\n            warningMessage: errorMessage,\n            originalError: originalError\n        };\n    }\n}\n\ntry {\n    const eligibility = await checkYouTubeUploadEligibility();\n\n    if (!eligibility.canUpload) {\n\n        return {\n            message: eligibility.warningMessage\n        \n        };\n    }else{\n\n       return {\n            message: 'Your YouTube channel is eligible to upload YouTube videos'\n        \n        };\n    }\n} catch (error) {\n  return {\n            message: 'Please test the flow to check the YouTube video upload eligibility '\n        \n        };\n}"
+  }
+]
+```
 #### Help Dynamic TOON Example:
-
+```toon
+[4]:
+  - key: help_page_status
+    type: help
+    source: "const selectedPage = context?.inputData?.page_id;\n\n// Define required permissions at the beginning\nconst REQUIRED_PERMISSIONS = [\n  'MODERATE',\n  'ADVERTISE',\n  'MANAGE_LEAD_FORMS',\n  'MANAGE'\n];\n\nasync function checkPagePermissions() {\n  try {\n    const { accessToken, isPermission } = await getAccessToken(\n      selectedPage,\n      REQUIRED_PERMISSIONS\n    );\n\n    if (!accessToken) {\n      return {\n        message: \"Selected page not found or access token unavailable. Please reconnect and reselect the page.\"\n      };\n    }\n\n    if (!isPermission) {\n      return {\n        message: \"You don’t have permission to use this trigger. To proceed, you need to be an admin, editor, or have 'manage page' access. Please ask the page admin to grant you the necessary permissions.\"\n      };\n    }\n\n    return {\n      message: \"You will receive the lead data here whenever a new lead is generated.\"\n    };\n\n  } catch (error) {\n    return {\n      message: \"An error occurred while checking permissions. Please try again by updating the connections.\"\n    };\n  }\n}\n\n// Execute\nreturn await checkPagePermissions();"
+  - key: dynamic_help_query
+    type: help
+    label: Available Columns
+    source: "async function convertToDesiredFormat() {\n    const URL = `https://table-api.viasocket.com/dbs/${context.authData.dbId}/${context?.inputData?.table}/field`;\n    const EXCLUDED_KEYS = [\"rowid\", \"autonumber\"];\n    try {\n        const response = await axios.get(URL);\n        const data = response.data.data.fields;\n        let markdownMessage = \"Available Columns in your selected table:\\n\";\n        let index = 1;\n        let fieldObjs = [];\n        Object.keys(data).forEach((key) => {\n            if (!EXCLUDED_KEYS.includes(key)) {\n                const field = data[key];\n                markdownMessage += `${index}. ${field.fieldName} (${field.fieldType})\\n`;\n                fieldObjs.push(field);\n                index++;\n            }\n        });\n\n        function exampleValue(field) {\n            if (/_id$/.test(field.fieldName) || field.fieldType.match(/(int|number|bigint)/i)) {\n                return 12345;\n            } else if (/status|type/i.test(field.fieldName)) {\n                return \"'Active'\";\n            } else if (field.fieldType.match(/(text|longtext|varchar)/i)) {\n                return \"'John Doe'\";\n            } else {\n                return \"'John Doe'\";\n            }\n        }\n\n        let example = '';\n        if (fieldObjs.length >= 2) {\n            example = `Example: ${fieldObjs[0].fieldName} is equal to ${exampleValue(fieldObjs[0])} and ${fieldObjs[1].fieldName} is equal to ${exampleValue(fieldObjs[1])}`;\n        } else if (fieldObjs.length === 1) {\n            example = `Example: ${fieldObjs[0].fieldName} is equal to ${exampleValue(fieldObjs[0])}`;\n        } else {\n            example = `No filterable columns available.`;\n        }\n\n        return { message: markdownMessage + '\\n' + example };\n    } catch (error) {\n        return { message: \"Could not fetch table columns.\" };\n    }\n}\n\nreturn convertToDesiredFormat();\n"
+    visibilityCondition: context.inputData.filter_mode === 'query' && context.inputData.table
+  - key: template_help
+    type: help
+    label: Template Preview
+    source: "async function getTemplateById({ wba_id, template_id }) {\n  const baseUrl = `https://graph.facebook.com/v23.0/${wba_id}/message_templates?fields=id,name,status,category,language,components&limit=100`;\n  let url = baseUrl;\n\n  try {\n    while (url) {\n      const response = await axios.get(url);\n\n      // Loop through each template and check the id\n      for (const template of response.data.data) {\n        if (template.id === template_id) {\n          let messageContent = '';\n          let headerType = '';\n\n          // Loop through all components and extract header type if available\n          template.components.forEach((component) => {\n            if (component.type === 'HEADER') {\n              if (component.format) {\n                headerType = `<div><b>Header Type: ${component.format}</b></div>`;\n              } else {\n                headerType = `<div><b>Header Type: TEXT</b></div>`;\n              }\n            }\n          });\n\n          // Add header type to the top if available\n          if (headerType) messageContent += headerType;\n\n          // Continue building message content\n          template.components.forEach((component) => {\n            if (component.type === 'BODY' && component.text) {\n              // Handle BODY text component\n              const bodyText = component.text.replace(/\\n/g, '<br>');\n              messageContent += `<p>${bodyText}</p>`;\n            } else if (component.type === 'HEADER' && component.format) {\n              if (['IMAGE', 'VIDEO', 'DOCUMENT'].includes(component.format)) {\n                const mediaUrl = component.example?.header_handle || '';\n                if (component.format === 'IMAGE') {\n                  messageContent += `<img src=\"${mediaUrl}\" alt=\"Header Image\" style=\"max-width: 100%;\"/><br>`;\n                } else if (component.format === 'VIDEO') {\n                  messageContent += `<video controls><source src=\"${mediaUrl}\" type=\"video/mp4\">Your browser does not support the video tag.</video><br>`;\n                } else if (component.format === 'DOCUMENT') {\n                  messageContent += `<a href=\"${mediaUrl}\" target=\"_blank\">Download Document</a><br>`;\n                }\n              }\n            } else if (component.type === 'BUTTONS' && Array.isArray(component.buttons)) {\n              // Buttons grouped and numbered per type\n              const urlButtons = component.buttons.filter(btn => btn.type === 'URL');\n              const quickReplyButtons = component.buttons.filter(btn => btn.type === 'QUICK_REPLY');\n              const phoneButtons = component.buttons.filter(btn => btn.type === 'PHONE_NUMBER');\n\n              if (urlButtons.length) {\n                messageContent += `<div><b>Custom Button:</b></div>`;\n                urlButtons.forEach((btn, idx) => {\n                  messageContent += `<div>${idx + 1}. Title: ${btn.text}, Value: ${btn.url}</div>`;\n                });\n              }\n              if (quickReplyButtons.length) {\n                messageContent += `<div><b>Quick Reply Button:</b></div>`;\n                quickReplyButtons.forEach((btn, idx) => {\n                  if (btn.payload) {\n                    messageContent += `<div>${idx + 1}. Title: ${btn.text}, Value: ${btn.payload}</div>`;\n                  } else {\n                    messageContent += `<div>${idx + 1}. Title: ${btn.text}</div>`;\n                  }\n                });\n              }\n              if (phoneButtons.length) {\n                messageContent += `<div><b>Phone Button:</b></div>`;\n                phoneButtons.forEach((btn, idx) => {\n                  messageContent += `<div>${idx + 1}. Title: ${btn.text}, Value: ${btn.phone_number}</div>`;\n                });\n              }\n            }\n          });\n\n          // Return the message content as a single HTML-formatted string\n          return { message: messageContent };\n        }\n      }\n\n      // Check if there are more pages\n      url = response.data.paging?.next || null;\n    }\n    return { message: 'Template not found.' };\n  } catch (error) {\n    return { message: error.message };\n  }\n}\n\n// Usage:\nconst result = await getTemplateById({\n  wba_id: context?.inputData?.wba_id,\n  template_id: context?.inputData?.message_template_id\n});\nreturn result;"
+    visibilityCondition: context?.inputData?.message_template_id
+  - key: eligibility_checks
+    type: help
+    source: "const channelId = context.inputData.channelId;\n\n\nasync function checkYouTubeUploadEligibility(channelId = 'mine') {\n    try {\n        // if (!accessToken) {\n        //     return {\n        //         isEligibleForLongVideos: false,\n        //         canUpload: false,\n        //         warningMessage: 'Missing OAuth 2.0 access token. Cannot check YouTube channel eligibility.',\n        //         originalError: null\n        //     };\n        // }\n\n        // Use the channels.list endpoint to get channel status\n        // 'mine=true' retrieves the authenticated user's channel.\n        // 'part=status' is sufficient for longUploadsStatus.\n        const response = await axios.get(\n            `https://www.googleapis.com/youtube/v3/channels?part=status&mine=true`\n        );\n\n        if (response.status !== 200 || !response.data || response.data.items.length === 0) {\n            return {\n                isEligibleForLongVideos: false,\n                canUpload: false,\n                warningMessage: 'Could not retrieve YouTube channel information. Ensure the authenticated user has a YouTube channel.',\n                originalError: response.data\n            };\n        }\n\n        const channelStatus = response.data.items[0].status;\n        const longUploadsStatus = channelStatus.longUploadsStatus;\n\n        let isEligibleForLongVideos = false;\n        let canUpload = true; // Assume true unless specific checks fail\n        let warningMessage = null;\n\n        if (longUploadsStatus === 'allowed') {\n            isEligibleForLongVideos = true;\n        } else if (longUploadsStatus === 'eligible') {\n            isEligibleForLongVideos = false; // Not yet allowed, needs phone verification\n            warningMessage = 'Your YouTube channel is eligible for longer videos (>15 mins) but requires phone verification. Please verify your account in YouTube Studio to enable this feature.';\n            canUpload = false; // Prevent large file upload if this is a strict requirement\n        } else if (longUploadsStatus === 'disallowed') {\n            isEligibleForLongVideos = false;\n            warningMessage = 'Your YouTube channel is currently disallowed from uploading videos longer than 15 minutes due to policy violations or other restrictions. Please check your YouTube Studio settings.';\n            canUpload = false;\n        } else { // 'yetUnspecified' or any other unexpected value\n            isEligibleForLongVideos = false;\n            warningMessage = `Cannot determine channel's long video upload status (status: ${longUploadsStatus}). It might not be enabled or require further action.`;\n            canUpload = false;\n        }\n\n        // Additional check: daily upload limits are not directly exposed,\n        // but if the channel is not in good standing, general uploads might be affected.\n        // This is less common for *duration* but good to be aware of.\n        const uploadStatus = channelStatus.uploadStatus;\n        if (uploadStatus === 'disallowed') {\n             canUpload = false;\n             warningMessage = warningMessage ? warningMessage + ' Also, general video uploads appear to be disallowed for this channel.' : 'General video uploads appear to be disallowed for this channel.';\n        }\n\n\n        // GSuite administrator access / API access:\n        // If the API call above fails with a 403, it's often a permission issue.\n        // We'll catch it in the outer try/catch.\n\n        return { isEligibleForLongVideos, canUpload, warningMessage, originalError: null };\n\n    } catch (error) {\n        let errorMessage = 'An error occurred while checking YouTube channel eligibility.';\n        let canUpload = false;\n        let originalError = error;\n\n        if (error.response) {\n            // Google API error response structure\n            const status = error.response.status;\n            const errorData = error.response.data;\n\n            if (status === 401 || status === 403) {\n                // 401 Unauthorized: Access token invalid or expired.\n                // 403 Forbidden: Permissions issue, could be GSuite admin restrictions,\n                // insufficient scopes, or the account doesn't have a YouTube channel.\n                errorMessage = `Permission denied to access YouTube channel. Status: ${status}. This could be due to:\n                1. Invalid/expired access token.\n                2. Insufficient scopes (ensure 'https://www.googleapis.com/auth/youtube.upload' and 'https://www.googleapis.com/auth/youtube.readonly' are granted).\n                3. The GSuite administrator has restricted YouTube access or API access for this user.\n                4. The user does not have a YouTube channel created yet.`;\n                canUpload = false; // Definitely cannot proceed with upload\n            } else if (status === 429) {\n                // 429 Too Many Requests: API quota limit reached.\n                errorMessage = 'API Quota Exceeded for your Google Cloud Project. You have exhausted the daily limit for YouTube API calls. Please try again after 24 hours (midnight Pacific Time).';\n                canUpload = false;\n            } else {\n                errorMessage += ` API Error: ${status} - ${errorData.error?.message || JSON.stringify(errorData)}`;\n            }\n        } else if (error.request) {\n            // Network error\n            errorMessage = `No response received from YouTube API. Network issue or API endpoint unavailable: ${error.message}`;\n        } else {\n            // Other errors\n            errorMessage = `Unexpected error during YouTube API call: ${error.message}`;\n        }\n\n        console.error('YouTube Eligibility Check Error:', errorMessage, error);\n\n        return {\n            isEligibleForLongVideos: false,\n            canUpload: false,\n            warningMessage: errorMessage,\n            originalError: originalError\n        };\n    }\n}\n\ntry {\n    const eligibility = await checkYouTubeUploadEligibility();\n\n    if (!eligibility.canUpload) {\n\n        return {\n            message: eligibility.warningMessage\n        \n        };\n    }else{\n\n       return {\n            message: 'Your YouTube channel is eligible to upload YouTube videos'\n        \n        };\n    }\n} catch (error) {\n  return {\n            message: 'Please test the flow to check the YouTube video upload eligibility '\n        \n        };\n}"
+```
 
 ## Input Group Dynamic
 
