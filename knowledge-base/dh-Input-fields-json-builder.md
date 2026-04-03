@@ -2266,14 +2266,604 @@ schema:
 
 ### Input Group Static Purpose:
 
+An Input Group Static field is used to logically group related input fields together under a single label and optional help text. It helps organize complex forms and, by leveraging the `whereClause` feature, can uniquely display nested dropdown and multiselect fields inline as a readable sentence.
+
 ### Input Group Static Input Field Generation Rules:
+Generate a JSON object strictly following the rules below for an input group.
+
+#### When to Use
+- Use an Input Group when you need to bundle related fields for better logical organization (e.g., "Search Filters", "Pagination Settings").
+- Use an Input Group with `whereClause: true` when you want to create an interactive conversational UI block ("readable sentence layout").
+
+#### 1. Core Rules
+- Create an object with `type: "input groups"`.
+- Add the new or updated group to the existing `inputFields` array.
+- The group must contain a `fields` array.
+
+#### 2. Key Rules
+- `key` must be unique within `inputFields`.
+- `key` must not contain a dot (`.`).
+- `key` must be a stable identifier describing the group.
+
+#### 3. Type Rule
+- `type` must be exactly `"input groups"`.
+
+#### 4. Label & Help Rules
+- `label`: A human-readable display name summarizing the group (e.g., "Search Filter").
+- `help`: Guidance text explaining the entire group's purpose. Can be an empty string if no guidance is needed.
+
+#### 5. Where Clause Rule
+- `whereClause`: A boolean flag (`true`/`false`).
+- Set `whereClause: true` to display the contained items inline, creating a readable sentence out of dropdown choices.
+- **MANDATORY**: If `whereClause: true`, the nested `fields` array MUST ONLY contain `dropdown` or `multiselect` types.
+- Omit `whereClause` entirely if not applicable.
+
+#### 6. Fields Array Rules
+- `fields`: A required array where each element is a complete, independently valid input field object.
+- Elements in `fields` must fully adhere to their designated `type` rules (e.g., `string`, `dropdown`, `boolean`, `aifield`, `help`, or nested `input groups`).
+- You must generate the complete schema for each nested item.
+
+#### 7. Visibility Condition Rule
+- Include `visibilityCondition` only when the entire group's visibility depends on another field.
+- Omit if the group is unconditionally visible.
+
+#### 8. Output Constraint
+- Return only valid JSON.
+- Never add undocumented fields.
 
 ### Input Group Static JSON Schema:
+```json
+{
+    "name": "generate_input_group_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated input group field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the group (e.g. 'search_filter', 'settings'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "input groups"
+                            ],
+                            "description": "Must be exactly 'input groups'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label explaining the entire group (e.g. 'Search Filter')."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Guidance text for the user regarding this entire group. Can be an empty string."
+                        },
+                        "whereClause": {
+                            "type": "boolean",
+                            "description": "If true, transforms the input group into a readable sentence layout in the UI. Omit this field entirely if false or not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility of the entire group. Omit if always visible."
+                        },
+                        "fields": {
+                            "type": "array",
+                            "description": "The array of fields contained within this group. MANDATORY RULE: If 'whereClause' is true, this array MUST ONLY contain fields where the 'type' is 'dropdown' or 'multiselect'.",
+                            "items": {
+                                "type": "object",
+                                "description": "A complete field object (can be string, number, boolean, dropdown, multiselect, aifield, help, or a nested input group). The AI must generate the full, valid structure for whichever type it chooses based on the standard rules for that type.",
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "pattern": "^[^.]*$"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "string",
+                                            "number",
+                                            "boolean",
+                                            "dropdown",
+                                            "multiselect",
+                                            "aifield",
+                                            "help",
+                                            "input groups"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "key",
+                                    "type"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "fields"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
 ### Input Group Static TOON Schema:
-
+```toon
+name: generate_input_group_field
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated input group field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the group (e.g. 'search_filter', 'settings'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: input groups
+            description: Must be exactly 'input groups'.
+          label:
+            type: string
+            description: A human-readable label explaining the entire group (e.g. 'Search Filter').
+          help:
+            type: string
+            description: Guidance text for the user regarding this entire group. Can be an empty string.
+          whereClause:
+            type: boolean
+            description: "If true, transforms the input group into a readable sentence layout in the UI. Omit this field entirely if false or not applicable."
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility of the entire group. Omit if always visible.
+          fields:
+            type: array
+            description: "The array of fields contained within this group. MANDATORY RULE: If 'whereClause' is true, this array MUST ONLY contain fields where the 'type' is 'dropdown' or 'multiselect'."
+            items:
+              type: object
+              description: "A complete field object (can be string, number, boolean, dropdown, multiselect, aifield, help, or a nested input group). The AI must generate the full, valid structure for whichever type it chooses based on the standard rules for that type."
+              properties:
+                key:
+                  type: string
+                  pattern: "^[^.]*$"
+                type:
+                  type: string
+                  enum[8]: string,number,boolean,dropdown,multiselect,aifield,help,input groups
+              required[2]: key,type
+        required[5]: key,type,label,help,fields
+  required[1]: inputFields
+```
 ### Input Group Static Examples:
 #### Input Group Static JSON Example:
+```json
+[
+  {
+    "key": "paging",
+    "help": "Enter the pagination settings.",
+    "type": "input groups",
+    "label": "Paging",
+    "fields": [
+      {
+        "key": "pageLimit",
+        "help": "Default it will fetch data upto 100. The maximum value is 100.",
+        "type": "dropdown",
+        "label": "Page Limit",
+        "options": [
+          {
+            "label": "Default",
+            "value": 100,
+            "sample": "100"
+          }
+        ],
+        "customHelp": "Accepted integer from 1 to 100",
+        "placeholder": "Enter Page Limit",
+        "defaultValue": {
+          "label": "Default",
+          "value": 100,
+          "sample": "100"
+        },
+        "customPlaceholder": "Eg. 10"
+      },
+      {
+        "key": "filter_properties",
+        "help": "Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.",
+        "type": "multiselect",
+        "label": "Filter Properties",
+        "required": false,
+        "customHelp": "Enter Array of Property Name.",
+        "placeholder": "Choose Property",
+        "optionsGenerator": "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n",
+        "customPlaceholder": "Eg. ['title','status']"
+      },
+      {
+        "key": "start_cursor",
+        "help": "A next_cursor value returned in a previous response. Treat this as an opaque value.  Defaults to undefined, which returns results from the beginning of the list.",
+        "type": "string",
+        "label": "Start Cursor",
+        "required": false,
+        "placeholder": "E.g. 13fe3a00-095c-81a5-b0dd-dd6ce042ebd3"
+      }
+    ]
+  },
+  {
+    "key": "search_filter",
+    "help": "Filter configuration to return the sheet rows based on the condition met.",
+    "type": "input groups",
+    "label": "Search Filter",
+    "visibilityCondition": "context?.inputData?.sheet_Id",
+    "fields": [
+      {
+        "key": "column_key",
+        "help": "Determines how the data columns are labelled.",
+        "type": "boolean",
+        "label": "Does your first row contain column name?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
+        "placeholder": "Choose Option",
+        "defaultValue": {
+          "label": "Yes",
+          "value": true
+        },
+        "customPlaceholder": "E.g., true "
+      },
+      {
+        "key": "search_filter_type",
+        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns.",
+        "type": "boolean",
+        "label": "Search Filter Type",
+        "options": [
+          {
+            "label": "Basic",
+            "value": true
+          },
+          {
+            "label": "Advance",
+            "value": false
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
+        "placeholder": "Choose Option",
+        "defaultValue": {
+          "label": "Basic",
+          "value": true
+        },
+        "customPlaceholder": "E.g., true "
+      },
+      {
+        "key": "lookupColumn",
+        "help": "Select the column to search in, based on header names.",
+        "type": "dropdown",
+        "label": "Lookup Column",
+        "required": true,
+        "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
+        "placeholder": "Choose Column",
+        "customInputLabel": "Enter Column Name",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "customPlaceholder": "E.g., Name or A",
+        "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
+      },
+      {
+        "key": "lookupValue",
+        "help": "Enter the value to search for in the specified columns. The value is case sensitive.",
+        "type": "string",
+        "label": "Lookup Value",
+        "required": true,
+        "placeholder": "E.g., John",
+        "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
+      },
+      {
+        "key": "ai_search",
+        "help": "Enter the prompt condition including the column names and values to return the rows which match the condition.",
+        "type": "aifield",
+        "label": "Advance Filter Condition Prompt",
+        "prompt": "Give me the if js code including the sheet columns. I will provide the sample google sheet data to understand the column names and the structure of the data. The user will provide the search condition. Example: If user gives the prompt: Check whether a sheet row's 'Status' column equals 'Done'.The output: String((row['Status'] || '').trim()).toLowerCase() === 'done'; When using path in the condition wrap with '' Example: (String((row['Email'] || '').trim()).toLowerCase() === '${context.req.body.email}'). Note: The sheet can have the column name or column letters. If you can see the key name as a column name, not letters, then don't guess the column letter.",
+        "required": true,
+        "placeholder": "E.g., Email is email@domain.com or phone is..",
+        "suggestionGenerator": "async function fetchSheetData() {\n    try {\n        // 1. INPUTS & SETUP\n      const spreadsheetId = context?.inputData?.spreadsheet_Id;\n        const targetSheetId = context?.inputData?.sheet_Id; \n        const useColumnKey =context?.inputData?.search_filter?.column_key  ?? true; // Default to true if undefined\n        const limit = 5; // <-- SET YOUR LIMIT HERE\n\n        const reqHeaders = {\n            'Content-Type': 'application/json'\n        };\n\n        // 2. FETCH METADATA\n        const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(title,sheetId,gridProperties.columnCount)`;\n        const metaResponse = await axios.get(metaUrl, { headers: reqHeaders });\n        \n        const targetSheet = metaResponse.data.sheets?.find(s => s.properties.sheetId == targetSheetId);\n        if (!targetSheet) {\n            return { success: false, message: `Sheet with ID \"${targetSheetId}\" not found.` };\n        }\n        \n        const actualSheetName = targetSheet.properties.title;\n        const totalGridColumns = targetSheet.properties.gridProperties?.columnCount || 26; \n\n        // 3. FETCH VALUES (OPTIMIZED WITH RANGE)\n        // If we use column keys (headers), we need 1 extra row to fetch the headers themselves.\n        const rowsToFetch = useColumnKey ? limit + 1 : limit;\n        \n        // Construct A1 Notation (e.g., \"Sheet1!1:6\")\n        const encodedSheetName = encodeURIComponent(actualSheetName);\n        const range = `${encodedSheetName}!1:${rowsToFetch}`;\n        \n        const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`;\n        const response = await axios.get(url, { headers: reqHeaders });\n        const values = response.data.values || [];\n\n        if (values.length === 0) {\n            return { success: true, data: [], message: \"Sheet is empty.\" };\n        }\n\n        // Helper: Convert index to Column Letter\n        function getColumnLetter(index) {\n            let letter = '';\n            let temp = index;\n            while (temp >= 0) {\n                letter = String.fromCharCode(65 + (temp % 26)) + letter;\n                temp = Math.floor(temp / 26) - 1;\n            }\n            return letter;\n        }\n\n        let finalKeys = [];\n        let rowsToProcess = [];\n        let startRowIndex = 0;\n\n        // 4. DETERMINE KEYS & DATA RANGE\n        if (useColumnKey) {\n            // --- SCENARIO A: Row 1 is Headers ---\n            const headerRow = values[0] || [];\n            if (headerRow.length === 0) {\n                 return { success: false, message: \"Headers are missing in Row 1.\" };\n            }\n\n            const headerCounts = {};\n            headerRow.forEach(h => {\n                const name = h ? h.toString().trim() : \"\";\n                if (name) headerCounts[name] = (headerCounts[name] || 0) + 1;\n            });\n\n            finalKeys = headerRow.map((h, index) => {\n                const rawName = h ? h.toString().trim() : `Column_${index}`;\n                if (headerCounts[rawName] > 1) {\n                    return `${rawName}--${getColumnLetter(index)}`;\n                }\n                return rawName;\n            });\n\n            // Skip headers, start data from Row 2\n            rowsToProcess = values.slice(1);\n            startRowIndex = 2; \n\n        } else {\n            // --- SCENARIO B: Column Letters ---\n            for(let i=0; i < totalGridColumns; i++) {\n                finalKeys.push(getColumnLetter(i));\n            }\n\n            // Process ALL fetched rows, start data from Row 1\n            rowsToProcess = values;\n            startRowIndex = 1;\n        }\n\n        // 5. MAP DATA\n        const formattedData = rowsToProcess.map((row, index) => {\n            let rowObject = {\n                \"_rowNumber\": startRowIndex + index \n            };\n\n            // Map data to the determined keys\n            finalKeys.forEach((key, colIndex) => {\n                rowObject[key] = row[colIndex] !== undefined ? row[colIndex] : \"\";\n            });\n\n            return rowObject;\n        });\n\n        return formattedData;\n\n    } catch (error) {\n        return { success: false, error: error.message || error }; \n    }\n}\n\nreturn await fetchSheetData();",
+        "visibilityCondition": "!context?.inputData?.search_filter?.search_filter_type"
+      },
+      {
+        "key": "help_basic_filter",
+        "help": "The result rows returned will be the exact match(case sensitive) of the Lookup Value.",
+        "type": "help",
+        "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
+      }
+    ]
+  },
+  {
+    "key": "sorting",
+    "help": "",
+    "type": "input groups",
+    "label": "Sorting AND LIMIT",
+    "visibilityCondition": "",
+    "fields": [
+      {
+        "key": "row_count",
+        "help": "Enter the number of rows you want to retrieve. If not specified, will return all the available matching rows.",
+        "type": "number",
+        "label": "Row Count",
+        "required": false,
+        "placeholder": "E.g., 10"
+
+      },
+      {
+        "key": "is_last_row",
+        "help": "Search from the last row of the spreadsheet up. Select “Yes” to enable.",
+        "type": "boolean",
+        "label": "Search from last row",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter \"true\" for search from the last row of the spreadsheet.",
+        "placeholder": "E.g., true",
+        "defaultValue": {
+          "label": "No",
+          "value": false
+        }
+      },
+      {
+        "key": "returnColumn",
+        "help": "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns.",
+        "type": "multiselect",
+        "label": "Return Columns",
+        "required": false,
+        "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
+        "placeholder": "Choose Columns",
+        "customInputLabel": "Enter Column Name in Array.",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "customPlaceholder": "E.g., [\"Name\"]or [\"A\"]",
+        "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
+      }
+    ]
+  },
+  {
+    "key": "settings",
+    "type": "input groups",
+    "label": "Trigger Comment",
+    "whereClause": true,
+    "fields": [
+      {
+        "key": "comment",
+        "help": "Choose when to receive incoming comments.",
+        "type": "dropdown",
+        "label": "When commented on",
+        "options": [
+          {
+            "label": "a specific media",
+            "value": "a specific media"
+          },
+          {
+            "label": "any media",
+            "value": "any media"
+          },
+          {
+            "label": "next media",
+            "value": "next media"
+          }
+        ],
+        "required": true,
+        "placeholder": "Choose Option",
+        "customInputLabel": "Enter when to receive incoming comments.",
+        "customPlaceholder": "E.g. a specific media"
+      },
+      {
+        "key": "mediaId",
+        "help": "Choose media or enter media Id.",
+        "type": "dropdown",
+        "label": "Media",
+        "required": true,
+        "placeholder": "Choose Media",
+        "customInputLabel": "Enter media Id.",
+        "optionsGenerator": "// Initialize the variables\nlet limit = 100;\n\n// First code to get user data\nconst pUrl = `https://graph.instagram.com/v23.0/me?fields=user_id,username,name`;\n\nlet userData;\n\ntry {\n  const userResponse = await axios.get(pUrl);\n  userData = userResponse.data;  // Store the response data\n  const userId = userData.user_id;  // Replace with the Instagram user ID\n\n  // Build the base URL for the media endpoint\n  let mUrl = `https://graph.instagram.com/${userId}/media?fields=id,media_type,caption&limit=${limit}`;\n\n  const response = await axios.get(mUrl);\n\n  // Process the response data and truncate captions\n  const processedData = response.data.data.map(media => {\n    // Check if caption exists and truncate it, else use media_type\n    const truncatedCaption = media.caption \n      ? media.caption.length > 100 \n        ? media.caption.substring(0, 100) + '...' \n        : media.caption \n      : media.media_type;  // If no caption, return media_type instead\n\n    return {\n      sample: media.id +\"-\"+ media.media_type,  // Sample ID\n      value: media.id,   // Value (same as sample ID)\n      label: truncatedCaption  // Truncated caption or media_type\n    };\n  });\n\n  return processedData;\n\n} catch (error) {\n  throw error;\n}",
+        "customPlaceholder": "e.g. 18062960995844908",
+        "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' || context?.inputData?.settings?.comment === 'next media'"
+      }
+    ]
+  }
+]
+```
 #### Input Group Static TOON Example:
+```toon
+[4]:
+  - key: paging
+    help: Enter the pagination settings.
+    type: input groups
+    label: Paging
+    fields[3]:
+      - key: pageLimit
+        help: Default it will fetch data upto 100. The maximum value is 100.
+        type: dropdown
+        label: Page Limit
+        options[1]{label,value,sample}:
+          Default,100,"100"
+        customHelp: Accepted integer from 1 to 100
+        placeholder: Enter Page Limit
+        defaultValue:
+          label: Default
+          value: 100
+          sample: "100"
+        customPlaceholder: Eg. 10
+      - key: filter_properties
+        help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
+        type: multiselect
+        label: Filter Properties
+        required: false
+        customHelp: Enter Array of Property Name.
+        placeholder: Choose Property
+        optionsGenerator: "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n"
+        customPlaceholder: "Eg. ['title','status']"
+      - key: start_cursor
+        help: "A next_cursor value returned in a previous response. Treat this as an opaque value.  Defaults to undefined, which returns results from the beginning of the list."
+        type: string
+        label: Start Cursor
+        required: false
+        placeholder: E.g. 13fe3a00-095c-81a5-b0dd-dd6ce042ebd3
+  - key: search_filter
+    help: Filter configuration to return the sheet rows based on the condition met.
+    type: input groups
+    label: Search Filter
+    visibilityCondition: context?.inputData?.sheet_Id
+    fields[6]:
+      - key: column_key
+        help: Determines how the data columns are labelled.
+        type: boolean
+        label: Does your first row contain column name?
+        options[2]{label,value}:
+          Yes,true
+          No,false
+        required: true
+        customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
+        placeholder: Choose Option
+        defaultValue:
+          label: Yes
+          value: true
+        customPlaceholder: "E.g., true "
+      - key: search_filter_type
+        help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns."
+        type: boolean
+        label: Search Filter Type
+        options[2]{label,value}:
+          Basic,true
+          Advance,false
+        required: true
+        customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
+        placeholder: Choose Option
+        defaultValue:
+          label: Basic
+          value: true
+        customPlaceholder: "E.g., true "
+      - key: lookupColumn
+        help: "Select the column to search in, based on header names."
+        type: dropdown
+        label: Lookup Column
+        required: true
+        customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
+        placeholder: Choose Column
+        customInputLabel: Enter Column Name
+        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+        customPlaceholder: "E.g., Name or A"
+        visibilityCondition: context?.inputData?.search_filter?.search_filter_type
+      - key: lookupValue
+        help: Enter the value to search for in the specified columns. The value is case sensitive.
+        type: string
+        label: Lookup Value
+        required: true
+        placeholder: "E.g., John"
+        visibilityCondition: context?.inputData?.search_filter?.search_filter_type
+      - key: ai_search
+        help: Enter the prompt condition including the column names and values to return the rows which match the condition.
+        type: aifield
+        label: Advance Filter Condition Prompt
+        prompt: "Give me the if js code including the sheet columns. I will provide the sample google sheet data to understand the column names and the structure of the data. The user will provide the search condition. Example: If user gives the prompt: Check whether a sheet row's 'Status' column equals 'Done'.The output: String((row['Status'] || '').trim()).toLowerCase() === 'done'; When using path in the condition wrap with '' Example: (String((row['Email'] || '').trim()).toLowerCase() === '${context.req.body.email}'). Note: The sheet can have the column name or column letters. If you can see the key name as a column name, not letters, then don't guess the column letter."
+        required: true
+        placeholder: "E.g., Email is email@domain.com or phone is.."
+        suggestionGenerator: "async function fetchSheetData() {\n    try {\n        // 1. INPUTS & SETUP\n      const spreadsheetId = context?.inputData?.spreadsheet_Id;\n        const targetSheetId = context?.inputData?.sheet_Id; \n        const useColumnKey =context?.inputData?.search_filter?.column_key  ?? true; // Default to true if undefined\n        const limit = 5; // <-- SET YOUR LIMIT HERE\n\n        const reqHeaders = {\n            'Content-Type': 'application/json'\n        };\n\n        // 2. FETCH METADATA\n        const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(title,sheetId,gridProperties.columnCount)`;\n        const metaResponse = await axios.get(metaUrl, { headers: reqHeaders });\n        \n        const targetSheet = metaResponse.data.sheets?.find(s => s.properties.sheetId == targetSheetId);\n        if (!targetSheet) {\n            return { success: false, message: `Sheet with ID \"${targetSheetId}\" not found.` };\n        }\n        \n        const actualSheetName = targetSheet.properties.title;\n        const totalGridColumns = targetSheet.properties.gridProperties?.columnCount || 26; \n\n        // 3. FETCH VALUES (OPTIMIZED WITH RANGE)\n        // If we use column keys (headers), we need 1 extra row to fetch the headers themselves.\n        const rowsToFetch = useColumnKey ? limit + 1 : limit;\n        \n        // Construct A1 Notation (e.g., \"Sheet1!1:6\")\n        const encodedSheetName = encodeURIComponent(actualSheetName);\n        const range = `${encodedSheetName}!1:${rowsToFetch}`;\n        \n        const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`;\n        const response = await axios.get(url, { headers: reqHeaders });\n        const values = response.data.values || [];\n\n        if (values.length === 0) {\n            return { success: true, data: [], message: \"Sheet is empty.\" };\n        }\n\n        // Helper: Convert index to Column Letter\n        function getColumnLetter(index) {\n            let letter = '';\n            let temp = index;\n            while (temp >= 0) {\n                letter = String.fromCharCode(65 + (temp % 26)) + letter;\n                temp = Math.floor(temp / 26) - 1;\n            }\n            return letter;\n        }\n\n        let finalKeys = [];\n        let rowsToProcess = [];\n        let startRowIndex = 0;\n\n        // 4. DETERMINE KEYS & DATA RANGE\n        if (useColumnKey) {\n            // --- SCENARIO A: Row 1 is Headers ---\n            const headerRow = values[0] || [];\n            if (headerRow.length === 0) {\n                 return { success: false, message: \"Headers are missing in Row 1.\" };\n            }\n\n            const headerCounts = {};\n            headerRow.forEach(h => {\n                const name = h ? h.toString().trim() : \"\";\n                if (name) headerCounts[name] = (headerCounts[name] || 0) + 1;\n            });\n\n            finalKeys = headerRow.map((h, index) => {\n                const rawName = h ? h.toString().trim() : `Column_${index}`;\n                if (headerCounts[rawName] > 1) {\n                    return `${rawName}--${getColumnLetter(index)}`;\n                }\n                return rawName;\n            });\n\n            // Skip headers, start data from Row 2\n            rowsToProcess = values.slice(1);\n            startRowIndex = 2; \n\n        } else {\n            // --- SCENARIO B: Column Letters ---\n            for(let i=0; i < totalGridColumns; i++) {\n                finalKeys.push(getColumnLetter(i));\n            }\n\n            // Process ALL fetched rows, start data from Row 1\n            rowsToProcess = values;\n            startRowIndex = 1;\n        }\n\n        // 5. MAP DATA\n        const formattedData = rowsToProcess.map((row, index) => {\n            let rowObject = {\n                \"_rowNumber\": startRowIndex + index \n            };\n\n            // Map data to the determined keys\n            finalKeys.forEach((key, colIndex) => {\n                rowObject[key] = row[colIndex] !== undefined ? row[colIndex] : \"\";\n            });\n\n            return rowObject;\n        });\n\n        return formattedData;\n\n    } catch (error) {\n        return { success: false, error: error.message || error }; \n    }\n}\n\nreturn await fetchSheetData();"
+        visibilityCondition: !context?.inputData?.search_filter?.search_filter_type
+      - key: help_basic_filter
+        help: The result rows returned will be the exact match(case sensitive) of the Lookup Value.
+        type: help
+        visibilityCondition: context?.inputData?.search_filter?.search_filter_type
+  - key: sorting
+    help: ""
+    type: input groups
+    label: Sorting AND LIMIT
+    visibilityCondition: ""
+    fields[3]:
+      - key: row_count
+        help: "Enter the number of rows you want to retrieve. If not specified, will return all the available matching rows."
+        type: number
+        label: Row Count
+        required: false
+        placeholder: "E.g., 10"
+      - key: is_last_row
+        help: Search from the last row of the spreadsheet up. Select “Yes” to enable.
+        type: boolean
+        label: Search from last row
+        options[2]{label,value}:
+          Yes,true
+          No,false
+        required: true
+        customHelp: "Enter \"true\" for search from the last row of the spreadsheet."
+        placeholder: "E.g., true"
+        defaultValue:
+          label: No
+          value: false
+      - key: returnColumn
+        help: "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns."
+        type: multiselect
+        label: Return Columns
+        required: false
+        customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
+        placeholder: Choose Columns
+        customInputLabel: Enter Column Name in Array.
+        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+        customPlaceholder: "E.g., [\"Name\"]or [\"A\"]"
+        visibilityCondition: context?.inputData?.search_filter?.search_filter_type
+  - key: settings
+    type: input groups
+    label: Trigger Comment
+    whereClause: true
+    fields[2]:
+      - key: comment
+        help: Choose when to receive incoming comments.
+        type: dropdown
+        label: When commented on
+        options[3]{label,value}:
+          a specific media,a specific media
+          any media,any media
+          next media,next media
+        required: true
+        placeholder: Choose Option
+        customInputLabel: Enter when to receive incoming comments.
+        customPlaceholder: E.g. a specific media
+      - key: mediaId
+        help: Choose media or enter media Id.
+        type: dropdown
+        label: Media
+        required: true
+        placeholder: Choose Media
+        customInputLabel: Enter media Id.
+        optionsGenerator: "// Initialize the variables\nlet limit = 100;\n\n// First code to get user data\nconst pUrl = `https://graph.instagram.com/v23.0/me?fields=user_id,username,name`;\n\nlet userData;\n\ntry {\n  const userResponse = await axios.get(pUrl);\n  userData = userResponse.data;  // Store the response data\n  const userId = userData.user_id;  // Replace with the Instagram user ID\n\n  // Build the base URL for the media endpoint\n  let mUrl = `https://graph.instagram.com/${userId}/media?fields=id,media_type,caption&limit=${limit}`;\n\n  const response = await axios.get(mUrl);\n\n  // Process the response data and truncate captions\n  const processedData = response.data.data.map(media => {\n    // Check if caption exists and truncate it, else use media_type\n    const truncatedCaption = media.caption \n      ? media.caption.length > 100 \n        ? media.caption.substring(0, 100) + '...' \n        : media.caption \n      : media.media_type;  // If no caption, return media_type instead\n\n    return {\n      sample: media.id +\"-\"+ media.media_type,  // Sample ID\n      value: media.id,   // Value (same as sample ID)\n      label: truncatedCaption  // Truncated caption or media_type\n    };\n  });\n\n  return processedData;\n\n} catch (error) {\n  throw error;\n}"
+        customPlaceholder: e.g. 18062960995844908
+        visibilityCondition: context?.inputData?.settings?.comment === 'a specific media' || context?.inputData?.settings?.comment === 'next media'
+```
 
 
 # Dynamic Input Fields
