@@ -2140,6 +2140,7 @@ Generate a JSON object strictly following the rules below for a static help fiel
 
 #### When to Use
 - Use a Static Help field when you need to provide detailed step-by-step instructions, display important information, or guide the user visually within the form.
+- Use it in manual triggers to define step-by-step instructions for copying a webhook link from viaSocket and pasting it into the SaaS platform.
 
 #### 1. Core Rules
 - Create one object with `type: "help"`.
@@ -2158,16 +2159,20 @@ Generate a JSON object strictly following the rules below for a static help fiel
 - It supports plain text, HTML tags (like `<ul>`, `<li>`, `<strong>`, `<br>`), and Markdown formatting (including links).
 - Ensure the content is clear and properly formatted for readability within the UI block.
 
-#### 5. Output Constraint
+#### 5. Visibility Condition Rule
+- Include `visibilityCondition` only when the help block depends on another field's state.
+- Omit this field entirely if always visible.
+
+#### 6. Output Constraint
 - Return only valid JSON.
-- Do not add extra properties (e.g., no `label`, `required`, or `placeholder` as they do not apply to a help display block).
+- Do not add extra properties not defined in the schema (e.g., no `label`, `required`, or `placeholder` as they do not apply to a help display block).
 - Do not include explanations or comments.
 
 ### Help Static JSON Schema:
 ```json
 {
     "name": "generate_help_field",
-    "strict": true,
+    "strict": false,
     "schema": {
         "type": "object",
         "properties": {
@@ -2192,28 +2197,30 @@ Generate a JSON object strictly following the rules below for a static help fiel
                         "help": {
                             "type": "string",
                             "description": "The instructional content to display to the user. This supports plain text, HTML (e.g., <ul>, <li>, <strong>), and Markdown format. It also supports markdown links for the reference."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility of the help block. Omit if always visible."
                         }
                     },
                     "required": [
                         "key",
                         "type",
                         "help"
-                    ],
-                    "additionalProperties": false
+                    ]
                 }
             }
         },
         "required": [
             "inputFields"
-        ],
-        "additionalProperties": false
+        ]
     }
 }
 ```
 ### Help Static TOON Schema:
 ```toon
 name: generate_help_field
-strict: true
+strict: false
 schema:
   type: object
   properties:
@@ -2234,10 +2241,11 @@ schema:
           help:
             type: string
             description: "The instructional content to display to the user. This supports plain text, HTML (e.g., <ul>, <li>, <strong>), and Markdown format. It also supports markdown links for the reference."
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility of the help block. Omit if always visible.
         required[3]: key,type,help
-        additionalProperties: false
   required[1]: inputFields
-  additionalProperties: false
 ```
 ### Help Static Examples:
 #### Help Static JSON Example:
@@ -2248,18 +2256,24 @@ schema:
     "help": "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",
     "type": "help"
   },
-{
+  {
     "key": "help_send_message",
     "help": "You can send a message on Instagram DM up to 24 hours after receiving a message from a user.<br> <br>A maximum of 3 buttons (URL and postback combined) are allowed in the button template message.",
-    "type": "help"
+    "type": "help",
+    "visibilityCondition": "context?.inputData?.message_type === 'button_template'"
   }
 ]
 ```
 #### Help Static TOON Example:
 ```toon
-[2]{key,help,type}:
-  help_webhook,"<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",help
-  help_send_message,You can send a message on Instagram DM up to 24 hours after receiving a message from a user.<br> <br>A maximum of 3 buttons (URL and postback combined) are allowed in the button template message.,help
+[2]:
+  - key: help_webhook
+    help: "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>"
+    type: help
+  - key: help_send_message
+    help: You can send a message on Instagram DM up to 24 hours after receiving a message from a user.<br> <br>A maximum of 3 buttons (URL and postback combined) are allowed in the button template message.
+    type: help
+    visibilityCondition: context?.inputData?.message_type === 'button_template'
 ```
 
 ## Input Group Static
@@ -2871,15 +2885,593 @@ schema:
 ## Dropdown Dynamic
 
 ### Dropdown Dynamic Purpose:
+The Dropdown Dynamic field allows users to select from a dynamically generated list of options. These options are usually fetched via an API call or calculated by custom logic at runtime. This is highly effective for paginated lists, searchable item lists, or data retrieved directly from external integrations. 
+You can use **Reusable Components** inside the `optionsGenerator` to securely fetch data. This hides sensitive logic like API tokens and reduces duplicate code by allowing you to share the same retrieval logic across multiple dropdowns if needed.
 
 ### Dropdown Dynamic Input Field Generation Rules:
+When creating a dynamic dropdown field, adhere to the strict structure outlined in the JSON/TOON schemas format.
+- Set `type: "dropdown"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
+- In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
+- Ensure that properties related to dynamic behavior, like `canPaginate` and `enableSearchApi`, are configured correctly based on whether the endpoint supports pagination offsets or search query parameters.
+- **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (`[{label, value}]` or `{data: [], offset: ...}`).
 
 ### Dropdown Dynamic JSON Schema:
+```json
+{
+    "name": "generate_dynamic_dropdown_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated dynamic dropdown field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'spreadsheet_id', 'data_source_id'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "dropdown"
+                            ],
+                            "description": "Must be exactly 'dropdown'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label explaining the choice (e.g. 'Spreadsheet')."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Guidance text for the user. Explain what the dropdown is for."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Whether the selection is mandatory."
+                        },
+                        "placeholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Spreadsheet'). Omit if not applicable."
+                        },
+                        "optionsGenerator": {
+                            "type": "string",
+                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Option Properties: Objects must contain 'label' (string, display name), 'value' (string/number, internal API value). Optional: 'sample' (string, MUST be identical to value, shown in UI brackets), 'extraValue' (any JSON type, hidden data for scripts/visibility).\n2. Standard Format: Return `[{label, value, ...}]` if 'canPaginate' is false.\n3. Pagination Format: Return `{ data: [{label, value, ...}], offset: string|number }` if 'canPaginate' is true.\n4. UI Messages/Warnings: If no options are available, or to show an info box, return a message (supports markdown). Example A (Only message): `return { message: 'No options found' }`. Example B (Static option + message): `return { data: [{label: 'All Lead Gen Form', value: '0'}], offset: null, message: 'No forms found. Create one [here](link).' }`.\n5. Global Variables: Use `__searchText` if 'enableSearchApi' is true. Access pagination tokens via `context?.paginateData?.['your_field_key']`.If it is inside input group then input group key is included like `context?.paginateData?.['input_group_key.your_field_key']`. Additionally path supports in nested input groups,the input group keys added in the path in order."
+                        },
+                        "canPaginate": {
+                            "type": "boolean",
+                            "description": "Set to true if the list API supports pagination/loading more. If true, the optionsGenerator must return {data: [], offset: string|number}."
+                        },
+                        "enableSearchApi": {
+                            "type": "boolean",
+                            "description": "Set to true if the list API supports a search query. If true, the optionsGenerator should utilize the `__searchText` variable."
+                        },
+                        "customPlaceholder": {
+                            "type": "string",
+                            "description": "Compulsory placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 229a83a6-ccba-80f4...')."
+                        },
+                        "customInputLabel": {
+                            "type": "string",
+                            "description": "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Spreadsheet ID'). Include only if a short label fits; if a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+                        },
+                        "customHelp": {
+                            "type": "string",
+                            "description": "Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly where the user can find the ID (e.g., in a URL). Supports markdown links [Link](https://...). Omit if not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                        },
+                        "defaultValue": {
+                            "type": "object",
+                            "description": "The default object to select initially. Omit this field entirely if there is no default.",
+                            "properties": {
+                                "label": {
+                                    "type": "string",
+                                    "description": "The display name of the default option."
+                                },
+                                "value": {
+                                    "type": [
+                                        "string",
+                                        "number"
+                                    ],
+                                    "description": "The internal value of the default option."
+                                },
+                                "sample": {
+                                    "type": "string",
+                                    "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g., 'Film & Animation (1)'), while the value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                                },
+                                "extraValue": {
+                                    "type": [
+                                        "string",
+                                        "number",
+                                        "boolean",
+                                        "object",
+                                        "array"
+                                    ],
+                                    "description": "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
+                                }
+                            },
+                            "required": [
+                                "label",
+                                "value"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "required",
+                        "optionsGenerator",
+                        "customPlaceholder"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
 ### Dropdown Dynamic TOON Schema:
+```toon
+name: generate_dynamic_dropdown_field
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated dynamic dropdown field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'spreadsheet_id', 'data_source_id'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: dropdown
+            description: Must be exactly 'dropdown'.
+          label:
+            type: string
+            description: A human-readable label explaining the choice (e.g. 'Spreadsheet').
+          help:
+            type: string
+            description: Guidance text for the user. Explain what the dropdown is for.
+          required:
+            type: boolean
+            description: Whether the selection is mandatory.
+          placeholder:
+            type: string
+            description: Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Spreadsheet'). Omit if not applicable.
+          optionsGenerator:
+            type: string
+            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Option Properties: Objects must contain 'label' (string, display name), 'value' (string/number, internal API value). Optional: 'sample' (string, MUST be identical to value, shown in UI brackets), 'extraValue' (any JSON type, hidden data for scripts/visibility).\n2. Standard Format: Return `[{label, value, ...}]` if 'canPaginate' is false.\n3. Pagination Format: Return `{ data: [{label, value, ...}], offset: string|number }` if 'canPaginate' is true.\n4. UI Messages/Warnings: If no options are available, or to show an info box, return a message (supports markdown). Example A (Only message): `return { message: 'No options found' }`. Example B (Static option + message): `return { data: [{label: 'All Lead Gen Form', value: '0'}], offset: null, message: 'No forms found. Create one [here](link).' }`.\n5. Global Variables: Use `__searchText` if 'enableSearchApi' is true. Access pagination tokens via `context?.paginateData?.['your_field_key']`.If it is inside input group then input group key is included like `context?.paginateData?.['input_group_key.your_field_key']`. Additionally path supports in nested input groups,the input group keys added in the path in order."
+          canPaginate:
+            type: boolean
+            description: "Set to true if the list API supports pagination/loading more. If true, the optionsGenerator must return {data: [], offset: string|number}."
+          enableSearchApi:
+            type: boolean
+            description: "Set to true if the list API supports a search query. If true, the optionsGenerator should utilize the `__searchText` variable."
+          customPlaceholder:
+            type: string
+            description: "Compulsory placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 229a83a6-ccba-80f4...')."
+          customInputLabel:
+            type: string
+            description: "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Spreadsheet ID'). Include only if a short label fits; if a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+          customHelp:
+            type: string
+            description: "Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly where the user can find the ID (e.g., in a URL). Supports markdown links [Link](https://...). Omit if not applicable."
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility. Omit if always visible.
+          defaultValue:
+            type: object
+            description: The default object to select initially. Omit this field entirely if there is no default.
+            properties:
+              label:
+                type: string
+                description: The display name of the default option.
+              value:
+                type[2]: string,number
+                description: The internal value of the default option.
+              sample:
+                type: string
+                description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g., 'Film & Animation (1)'), while the value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+              extraValue:
+                type[5]: string,number,boolean,object,array
+                description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
+            required[2]: label,value
+        required[7]: key,type,label,help,required,optionsGenerator,customPlaceholder
+  required[1]: inputFields
+```
 
 ### Dropdown Dynamic Examples:
 #### Dropdown Dynamic JSON Example:
+```json
+[
+  {
+    "key": "data_source_id",
+    "help": "If you don’t see your expected Data Source, please check that it is shared with the same integration that you’re using to authenticate with. Update the connection and grant the page access or give the access in notion UI under integrations.",
+    "type": "dropdown",
+    "label": "Data Source",
+    "required": true,
+    "customHelp": "You can get the data source id from the action list data source or from the find data source by title action. ",
+    "canPaginate": true,
+    "placeholder": "Choose Data Source",
+    "enableSearchApi": true,
+    "customInputLabel": "Enter Data Source ID.",
+    "optionsGenerator": "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  throw e;\n}",
+    "customPlaceholder": "E.g., 229a83a6-ccba-80f4-a654-000b91179e35"
+  },
+  {
+    "key": "spreadsheet_id",
+    "help": "Select or enter the ID of the spreadsheet .",
+    "type": "dropdown",
+    "label": "Spreadsheet",
+    "required": true,
+    "customHelp": "You will find the Spreadsheet ID on the spreadsheet URL https://docs.google.com/spreadsheets/d/{spreadsheet_Id}/ or you can use the action like search spreadsheet or list spreadsheet.",
+    "canPaginate": true,
+    "placeholder": "Choose Spreadsheet ID",
+    "enableSearchApi": true,
+    "customInputLabel": "Enter Spreadsheet ID",
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}",
+    "customPlaceholder": "E.g., 1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
+  },
+  {
+    "key": "sheet_id",
+    "help": "Select the Sheet or Enter Sheet ID.",
+    "type": "dropdown",
+    "label": "Sheet",
+    "required": true,
+    "customHelp": "You will find the sheet ID on the spreadsheet URL gid=, or you can use the action like search sheet or list sheet.",
+    "canPaginate": false,
+    "placeholder": "Choose Sheet",
+    "enableSearchApi": false,
+    "customInputLabel": "Enter Sheet ID",
+    "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}",
+    "customPlaceholder": "E.g., 38470421"
+  },
+  {
+  "key": "channel_id",
+  "help": "Select the channel to send the message.",
+  "type": "dropdown",
+  "label": "Channel",
+  "required": true,
+  "canPaginate": true,
+  "optionsGenerator": "try {\n function convertToDesiredFormat(allChannels) {\n return allChannels\n ?.map(channel => ({\n label: channel.name,\n sample: channel.id,\n value: channel.id\n }))\n .sort((a, b) => a.label.localeCompare(b.label));\n }\n\n function replaceEqualsWithPercent3D(inputString) {\n return inputString.replace(/=/g, '');\n }\n\n let response = await axios.get(\n 'https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=999'\n );\n\n let channelArray = response?.data?.channels || [];\n\n while (response?.data?.response_metadata?.next_cursor) {\n const next_cursor = replaceEqualsWithPercent3D(response.data.response_metadata.next_cursor);\n\n response = await axios.get(\n https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&cursor=${next_cursor}&limit=999\n );\n\n channelArray = [...channelArray, ...(response?.data?.channels || [])];\n }\n\n return convertToDesiredFormat(channelArray);\n\n} catch (error) {\n switch (error?.response?.status) {\n case 401:\n if (error?.response?.data?.error === 'token_revoked') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'Token has been revoked. Please check your credentials and try again.'\n };\n }\n break;\n case 429:\n if (error?.response?.data?.error === 'ratelimited') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'You have made too many requests in a short period. Please wait before trying again.'\n };\n }\n break;\n default:\n throw error;\n }\n}"
+},
+ {
+    "key": "page_id",
+    "help": "Select the Facebook page.",
+    "type": "dropdown",
+    "label": "Page",
+    "required": true,
+    "canPaginate": true,
+    "placeholder": "Select the Facebook page",
+    "customInputLabel": "Enter Page ID",
+    "optionsGenerator": "async function fetchPagesWithPagination(context) {\n  // Get the offset (next page cursor) from context if it exists\n  const offset = context?.paginateData?.['page_id'];\n\n  const limit = 100;\n\n  // Build the API URL\n  let url = `https://graph.facebook.com/me/accounts?limit=${limit}`;\n  if (offset) {\n    url += `&after=${offset}`;\n  }\n\n  const config = {\n    method: 'get',\n    url: url\n  };\n\n  try {\n    const res = await axios.request(config);\n    const responseData = res.data;\n\n    // Check if there's any data\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        message: \"No pages found. Make sure manage access is given. Update the connection and select page to give access for the automation.\"\n      };\n    }\n    else if ((!responseData.data || responseData.data.length === 0) && offset){\n return {\n  message: \"All Pages fetched successfully..\"\n }\n   }\n\n    // Transform data into dropdown format\n    const data = responseData.data.map(account => ({\n      label: account.name,\n      value: account.id,\n      sample: account.id\n    }));\n\n    // Prepare response with current page data and next offset (if any)\n    const result = {\n      data: data\n    };\n\n    // Check if there's a next page\n    if (responseData.paging && responseData.paging.cursors && responseData.paging.cursors.after) {\n      result.offset = responseData.data.length < limit ? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    // Handle specific error cases if needed\n    if (error.response?.status === 400 || error.response?.status === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect.\" };\n    }\n\n    return { message: \"Enter page ID. E.g. 516470358708231\" };\n  }\n}\n\n// Call the function (assuming context is available in your environment)\nconst result = await fetchPagesWithPagination(context);\nreturn result;",
+    "customPlaceholder": "E.g. 516470358708231"
+  },
+  {
+    "key": "form_id",
+    "help": "Select the lead form associated with the page.",
+    "type": "dropdown",
+    "label": "Lead Form",
+    "required": true,
+    "canPaginate": true,
+    "placeholder": "Choose Lead Form",
+    "customInputLabel": "Enter Lead Form ID",
+    "optionsGenerator": "async function fetchLeadFormsWithPagination(context) {\n  const selectedPage = context?.inputData?.page_id;\n  const offset = context?.paginateData?.['form_id'];\n  const limit = 100; // Max supported for leadgen_forms endpoint\n\n  if (!selectedPage) {\n    return { message: \"Please select a Facebook Page first.\" };\n  }\n\n  try {\n    // Get page access token using the provided getAccessToken function (empty permissions)\n    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);\n\n    if (!accessToken || !isPermission) {\n      return { message: \"Unable to get access to the selected Page. Please reconnect or check permissions.\" };\n    }\n\n    // Build the API URL for leadgen_forms with pagination\n    let url = `https://graph.facebook.com/v24.0/${selectedPage}/leadgen_forms`;\n    url += `?limit=${limit}&access_token=${accessToken}`;\n    if (offset) {\n      url += `&after=${offset}`;\n    }\n\n    const response = await axios.get(url);\n    const responseData = response.data;\n\n    // If no forms returned and this is the first request\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        data: [{ label: 'All Leadgen Forms', value: '0' }],\n        offset: null,\n        message: \"No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page.\"\n      };\n    }\n\n    // If no more forms on subsequent pages\n    if (!responseData.data || responseData.data.length === 0) {\n      return {\n        message: \"All Lead Forms fetched successfully.\"\n      };\n    }\n\n    // Transform forms into dropdown options\n    const data = responseData.data.map(form => ({\n      label: form.name,\n      value: form.id,\n      sample: form.id\n    }));\n\n    // Always include \"All Leadgen Forms\" as first option (only on first page)\n    if (!offset) {\n      data.unshift({ label: 'All Leadgen Forms', value: '0' });\n    }\n\n    // Prepare result\n    const result = { data };\n\n    // Add offset if there's a next page\n    if (responseData.paging?.cursors?.after) {\n      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    console.error(\"Error fetching lead forms:\", error);\n\n    // Specific OAuth/token errors\n    if (error.response?.data?.error?.code === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect your Facebook account.\" };\n    }\n\n    // Permission or page access issue\n    if (error.response?.status === 400 || error.response?.status === 403) {\n      return { message: \"Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted.\" };\n    }\n\n    // Fallback: return only \"All\" option\n    return {\n      data: [{ label: 'All Leadgen Forms', value: '0' }],\n       offset: null,\n      message: error?.message || \"Could not load forms. Using 'All Leadgen Forms' as default.\"\n    };\n  }\n}\n\n// Execute and return\nreturn await fetchLeadFormsWithPagination(context);",
+    "customPlaceholder": "E.g. 1161533432455827",
+    "visibilityCondition": "context?.inputData?.page_id"
+  }
+]
+```
 #### Dropdown Dynamic TOON Example:
+```toon
+[6]:
+  - key: data_source_id
+    help: "If you don’t see your expected Data Source, please check that it is shared with the same integration that you’re using to authenticate with. Update the connection and grant the page access or give the access in notion UI under integrations."
+    type: dropdown
+    label: Data Source
+    required: true
+    customHelp: "You can get the data source id from the action list data source or from the find data source by title action. "
+    canPaginate: true
+    placeholder: Choose Data Source
+    enableSearchApi: true
+    customInputLabel: Enter Data Source ID.
+    optionsGenerator: "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  throw e;\n}"
+    customPlaceholder: "E.g., 229a83a6-ccba-80f4-a654-000b91179e35"
+  - key: spreadsheet_id
+    help: Select or enter the ID of the spreadsheet .
+    type: dropdown
+    label: Spreadsheet
+    required: true
+    customHelp: "You will find the Spreadsheet ID on the spreadsheet URL https://docs.google.com/spreadsheets/d/{spreadsheet_Id}/ or you can use the action like search spreadsheet or list spreadsheet."
+    canPaginate: true
+    placeholder: Choose Spreadsheet ID
+    enableSearchApi: true
+    customInputLabel: Enter Spreadsheet ID
+    optionsGenerator: "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
+    customPlaceholder: "E.g., 1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
+  - key: sheet_id
+    help: Select the Sheet or Enter Sheet ID.
+    type: dropdown
+    label: Sheet
+    required: true
+    customHelp: "You will find the sheet ID on the spreadsheet URL gid=, or you can use the action like search sheet or list sheet."
+    canPaginate: false
+    placeholder: Choose Sheet
+    enableSearchApi: false
+    customInputLabel: Enter Sheet ID
+    optionsGenerator: "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}"
+    customPlaceholder: "E.g., 38470421"
+  - key: channel_id
+    help: Select the channel to send the message.
+    type: dropdown
+    label: Channel
+    required: true
+    canPaginate: true
+    optionsGenerator: "try {\n function convertToDesiredFormat(allChannels) {\n return allChannels\n ?.map(channel => ({\n label: channel.name,\n sample: channel.id,\n value: channel.id\n }))\n .sort((a, b) => a.label.localeCompare(b.label));\n }\n\n function replaceEqualsWithPercent3D(inputString) {\n return inputString.replace(/=/g, '');\n }\n\n let response = await axios.get(\n 'https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=999'\n );\n\n let channelArray = response?.data?.channels || [];\n\n while (response?.data?.response_metadata?.next_cursor) {\n const next_cursor = replaceEqualsWithPercent3D(response.data.response_metadata.next_cursor);\n\n response = await axios.get(\n https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&cursor=${next_cursor}&limit=999\n );\n\n channelArray = [...channelArray, ...(response?.data?.channels || [])];\n }\n\n return convertToDesiredFormat(channelArray);\n\n} catch (error) {\n switch (error?.response?.status) {\n case 401:\n if (error?.response?.data?.error === 'token_revoked') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'Token has been revoked. Please check your credentials and try again.'\n };\n }\n break;\n case 429:\n if (error?.response?.data?.error === 'ratelimited') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'You have made too many requests in a short period. Please wait before trying again.'\n };\n }\n break;\n default:\n throw error;\n }\n}"
+  - key: page_id
+    help: Select the Facebook page.
+    type: dropdown
+    label: Page
+    required: true
+    canPaginate: true
+    placeholder: Select the Facebook page
+    customInputLabel: Enter Page ID
+    optionsGenerator: "async function fetchPagesWithPagination(context) {\n  // Get the offset (next page cursor) from context if it exists\n  const offset = context?.paginateData?.['page_id'];\n\n  const limit = 100;\n\n  // Build the API URL\n  let url = `https://graph.facebook.com/me/accounts?limit=${limit}`;\n  if (offset) {\n    url += `&after=${offset}`;\n  }\n\n  const config = {\n    method: 'get',\n    url: url\n  };\n\n  try {\n    const res = await axios.request(config);\n    const responseData = res.data;\n\n    // Check if there's any data\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        message: \"No pages found. Make sure manage access is given. Update the connection and select page to give access for the automation.\"\n      };\n    }\n    else if ((!responseData.data || responseData.data.length === 0) && offset){\n return {\n  message: \"All Pages fetched successfully..\"\n }\n   }\n\n    // Transform data into dropdown format\n    const data = responseData.data.map(account => ({\n      label: account.name,\n      value: account.id,\n      sample: account.id\n    }));\n\n    // Prepare response with current page data and next offset (if any)\n    const result = {\n      data: data\n    };\n\n    // Check if there's a next page\n    if (responseData.paging && responseData.paging.cursors && responseData.paging.cursors.after) {\n      result.offset = responseData.data.length < limit ? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    // Handle specific error cases if needed\n    if (error.response?.status === 400 || error.response?.status === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect.\" };\n    }\n\n    return { message: \"Enter page ID. E.g. 516470358708231\" };\n  }\n}\n\n// Call the function (assuming context is available in your environment)\nconst result = await fetchPagesWithPagination(context);\nreturn result;"
+    customPlaceholder: E.g. 516470358708231
+  - key: form_id
+    help: Select the lead form associated with the page.
+    type: dropdown
+    label: Lead Form
+    required: true
+    canPaginate: true
+    placeholder: Choose Lead Form
+    customInputLabel: Enter Lead Form ID
+    optionsGenerator: "async function fetchLeadFormsWithPagination(context) {\n  const selectedPage = context?.inputData?.page_id;\n  const offset = context?.paginateData?.['form_id'];\n  const limit = 100; // Max supported for leadgen_forms endpoint\n\n  if (!selectedPage) {\n    return { message: \"Please select a Facebook Page first.\" };\n  }\n\n  try {\n    // Get page access token using the provided getAccessToken function (empty permissions)\n    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);\n\n    if (!accessToken || !isPermission) {\n      return { message: \"Unable to get access to the selected Page. Please reconnect or check permissions.\" };\n    }\n\n    // Build the API URL for leadgen_forms with pagination\n    let url = `https://graph.facebook.com/v24.0/${selectedPage}/leadgen_forms`;\n    url += `?limit=${limit}&access_token=${accessToken}`;\n    if (offset) {\n      url += `&after=${offset}`;\n    }\n\n    const response = await axios.get(url);\n    const responseData = response.data;\n\n    // If no forms returned and this is the first request\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        data: [{ label: 'All Leadgen Forms', value: '0' }],\n        offset: null,\n        message: \"No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page.\"\n      };\n    }\n\n    // If no more forms on subsequent pages\n    if (!responseData.data || responseData.data.length === 0) {\n      return {\n        message: \"All Lead Forms fetched successfully.\"\n      };\n    }\n\n    // Transform forms into dropdown options\n    const data = responseData.data.map(form => ({\n      label: form.name,\n      value: form.id,\n      sample: form.id\n    }));\n\n    // Always include \"All Leadgen Forms\" as first option (only on first page)\n    if (!offset) {\n      data.unshift({ label: 'All Leadgen Forms', value: '0' });\n    }\n\n    // Prepare result\n    const result = { data };\n\n    // Add offset if there's a next page\n    if (responseData.paging?.cursors?.after) {\n      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    console.error(\"Error fetching lead forms:\", error);\n\n    // Specific OAuth/token errors\n    if (error.response?.data?.error?.code === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect your Facebook account.\" };\n    }\n\n    // Permission or page access issue\n    if (error.response?.status === 400 || error.response?.status === 403) {\n      return { message: \"Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted.\" };\n    }\n\n    // Fallback: return only \"All\" option\n    return {\n      data: [{ label: 'All Leadgen Forms', value: '0' }],\n       offset: null,\n      message: error?.message || \"Could not load forms. Using 'All Leadgen Forms' as default.\"\n    };\n  }\n}\n\n// Execute and return\nreturn await fetchLeadFormsWithPagination(context);"
+    customPlaceholder: E.g. 1161533432455827
+    visibilityCondition: context?.inputData?.page_id
+```
+### Reusable Component In Dropdown Dynamic:
+
+#### Reusable Component In Dropdown Dynamic Purpose:
+
+Reusable components let you write sensitive or reusable logic (like API calls or JS functions) once and use them anywhere JS code is allowed — such as inside `optionsGenerator`.
+They help keep your plugin code cleaner, safer, and easier to maintain.
+
+> [!NOTE]  
+> Components only work in fields where custom JS is allowed — not in static fields.
+
+**Why Use Reusable Components?**
+- **Hide sensitive logic:** Keep tokens, headers, or secure calculations hidden.
+- **Reuse common logic:** Use the same component across multiple fields (e.g., multiple dropdowns, API config).
+- **Reduce duplicate code:** Simplify maintenance.
+
+#### Reusable Component In Dropdown Dynamic Code Rules:
+
+**Reusable Components fields:**
+- **Component Name:** must be unique (cannot change once component is being used).
+- **Parameters:** Add inputs your logic needs (e.g., `id`, `token`, `search`).
+- **Component Code:** Write your JavaScript code here.
+
+**Component Code Rules:**
+- Must be a valid JavaScript function.
+- Can use `async/await` for API calls.
+- **Returns:** `[{label, value}]` (Standard) or `{data: [...], offset, message}` (Paginated). Fields support `sample`/`extraValue`. Globals: `__searchText`, `context?.paginateData`.
+- Can use `try/catch` for error handling.
+- Can use external libraries like `axios`. But Import is not allowed. You can use `axios` directly.
+
+Below are supported libraries to directly use:
+- `form-data` as `FormData`
+- `https`
+- `crypto`
+- `setTimeout`
+- `axios`
+- `jsonwebtoken` as `jwt`
+- `lodash` as `_`
+- `node-fetch` as `fetch`
+- `cheerio`
+- `moment`
+- `fetch`
+- `Buffer`
+- `atob`
+- `XMLParser`
+- `XMLBuilder`
+- `XMLValidator`
+
+**Use the component inside dropdown dynamic field:**
+- Inside the dropdown's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
+- Output the final results using the `return` keyword (e.g., `return await fetchSpreadsheets(...)`).
+- This keeps your dynamic dropdown logic clean, hidden, and reusable.
+
+#### Reusable Component In Dropdown Dynamic Example Code and Usage:
+
+##### Example 1: Facebook Lead Form Dropdown Dynamic
+
+- **Component Name:** `fetchLeadForms`
+- **Parameters:** `selectedPage` (string, required), `offset` (string, optional), `limit` (number, optional)
+- **Component Code:**
+```javascript
+  if (!selectedPage) {
+    return { message: "Please select a Facebook Page first." };
+  }
+
+  try {
+    // Get page access token using the provided getAccessToken function (empty permissions)
+    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);
+
+    if (!accessToken || !isPermission) {
+      return { message: "Unable to get access to the selected Page. Please reconnect or check permissions." };
+    }
+
+    // Build the API URL for leadgen_forms with pagination
+    let url = `https://graph.facebook.com/v24.0/${selectedPage}/leadgen_forms`;
+    url += `?limit=${limit}&access_token=${accessToken}`;
+    if (offset) {
+      url += `&after=${offset}`;
+    }
+
+    const response = await axios.get(url);
+    const responseData = response.data;
+
+    // If no forms returned and this is the first request
+    if ((!responseData.data || responseData.data.length === 0) && !offset) {
+      return {
+        data: [{ label: 'All Leadgen Forms', value: '0' }],
+        offset: null,
+        message: "No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page."
+      };
+    }
+
+    // If no more forms on subsequent pages
+    if (!responseData.data || responseData.data.length === 0) {
+      return {
+        message: "All Lead Forms fetched successfully."
+      };
+    }
+
+    // Transform forms into dropdown options
+    const data = responseData.data.map(form => ({
+      label: form.name,
+      value: form.id,
+      sample: form.id
+    }));
+
+    // Always include "All Leadgen Forms" as first option (only on first page)
+    if (!offset) {
+      data.unshift({ label: 'All Leadgen Forms', value: '0' });
+    }
+
+    // Prepare result
+    const result = { data };
+
+    // Add offset if there's a next page
+    if (responseData.paging?.cursors?.after) {
+      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error("Error fetching lead forms:", error);
+
+    // Specific OAuth/token errors
+    if (error.response?.data?.error?.code === 190) {
+      return { message: "Invalid or expired access token. Please reconnect your Facebook account." };
+    }
+
+    // Permission or page access issue
+    if (error.response?.status === 400 || error.response?.status === 403) {
+      return { message: "Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted." };
+    }
+
+    // Fallback: return only "All" option
+    return {
+      data: [{ label: 'All Leadgen Forms', value: '0' }],
+       offset: null,
+      message: error?.message || "Could not load forms. Using 'All Leadgen Forms' as default."
+    };
+  }
+```
+Usage in the dropdown dynamic field:
+```json
+{
+ "optionsGenerator": "try{\n  const selectedPage = context?.inputData?.selectedPage;\nconst offset = context?.paginateData?.['page_id'];\nconst limit = context?.inputData?.limit;\nreturn await fetchLeadForms(selectedPage, offset, limit);\n}catch(e){\nthrow e;\n}"
+}
+```
+##### Example 2: Google Sheet Spreadsheet Dropdown Dynamic
+
+- **Component Name:** `fetchSpreadsheets`
+- **Parameters:** `pageToken` (string, optional), `searchText` (string, optional), `pageSize` (number, optional)
+- **Component Code:**
+```javascript
+ try {
+    // Base query: only Google Sheets, not trashed
+    let query = "trashed = false and mimeType = 'application/vnd.google-apps.spreadsheet'";
+
+    // Apply search filter
+    if (searchText) {
+      query += ` and name contains '${searchText.replace(/'/g, "\\'")}'`;
+    }
+
+    const params = {
+      q: query,
+      orderBy: "modifiedTime desc",
+      pageSize: pageSize,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+      fields: "nextPageToken, files(id, name)"
+    };
+
+    // Pagination only when NOT searching
+    if (!searchText && pageToken) {
+      params.pageToken = pageToken;
+    }
+
+    const response = await axios.get(
+      "https://www.googleapis.com/drive/v3/files",
+      { params }
+    );
+
+    // No data on first load
+    if (
+      response.data.files &&
+      response.data.files.length === 0 &&
+      !pageToken
+    ) {
+      return {
+        data:[],
+        offset: null,
+        message: "No active spreadsheets found in your Google Drive."
+      };
+    }
+    else if (
+      response.data.files &&
+      response.data.files.length === 0 &&
+     searchText
+    ) {
+      return {        
+        data:[],
+        offset: pageToken || null,
+        message: "No Search File Present. Choose from the options."
+      };
+    }
+
+    const files = response.data.files || [];
+
+    return {
+      data: files.map(file => ({
+        label: file.name,
+        value: file.id,
+        sample: file.id
+      })),
+      offset: !searchText
+        ? response.data.nextPageToken || null
+        : pageToken || null
+    };
+
+  } catch (error) {
+    throw error;
+  }
+```
+Usage in the dropdown dynamic field:
+```json
+{
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
+}
+```
 
 ## Multi Select Dynamic
 
