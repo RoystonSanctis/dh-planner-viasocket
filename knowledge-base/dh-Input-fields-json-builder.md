@@ -2091,7 +2091,8 @@ schema:
     "prompt": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }. I want the filter condition supports notion and can include complex OR and AND. In suggetions you will get the schema of the column title and fields accordingly design the filter based on the type. Note: Output is the json, don't give me like code return.",
     "required": false,
     "placeholder": "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }",
-    "suggestionGenerator": "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
+    "suggestionGenerator": "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;",
+    "visibilityCondition": "context?.inputData?.data_source_id"
   },
     {
         "key": "content_block",
@@ -2118,6 +2119,7 @@ schema:
     required: false
     placeholder: "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }"
     suggestionGenerator: "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
+    visibilityCondition: context?.inputData?.data_source_id
   - key: content_block
     help: "Give a prompt to generate child content to append to a container block as an array of block objects.[Learn More](https://developers.notion.com/reference/block)"
     type: aifield
@@ -3273,7 +3275,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - Can use `try/catch` for error handling.
 - Can use external libraries like `axios`. But Import is not allowed. You can use `axios` directly.
 
-Below are supported libraries to directly use:
+**Below are supported libraries to use directly in component code:**
 - `form-data` as `FormData`
 - `https`
 - `crypto`
@@ -3291,7 +3293,7 @@ Below are supported libraries to directly use:
 - `XMLBuilder`
 - `XMLValidator`
 
-**Use the component inside dropdown dynamic field:**
+**Rules for using the component inside a dynamic dropdown's `optionsGenerator`:**
 - Inside the dropdown's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
 - Output the final results using the `return` keyword (e.g., `return await fetchSpreadsheets(...)`).
 - This keeps your dynamic dropdown logic clean, hidden, and reusable.
@@ -3385,7 +3387,7 @@ Below are supported libraries to directly use:
     };
   }
 ```
-Usage in the dropdown dynamic field:
+Usage inside a dynamic dropdown's `optionsGenerator`:
 ```json
 {
  "optionsGenerator": "try{\n  const selectedPage = context?.inputData?.selectedPage;\nconst offset = context?.paginateData?.['page_id'];\nconst limit = context?.inputData?.limit;\nreturn await fetchLeadForms(selectedPage, offset, limit);\n}catch(e){\nthrow e;\n}"
@@ -3466,7 +3468,7 @@ Usage in the dropdown dynamic field:
     throw error;
   }
 ```
-Usage in the dropdown dynamic field:
+Usage inside a dynamic dropdown's `optionsGenerator`:
 ```json
 {
     "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
@@ -3476,15 +3478,454 @@ Usage in the dropdown dynamic field:
 ## Multi Select Dynamic
 
 ### Multi Select Dynamic Purpose:
+The Multi Select Dynamic field allows users to select multiple options from a dynamically generated list. These options are typically fetched via an API call or returned by custom logic at runtime. This is highly effective when users need to pick multiple items simultaneously, such as filtering by multiple properties or selecting several columns to return.
+Just like the Dropdown Dynamic field, you can use **Reusable Components** inside the `optionsGenerator` to securely execute API calls and handle options generation logic cleanly, improving maintainability and code reuse.
 
 ### Multi Select Dynamic Input Field Generation Rules:
+When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
+- Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
+- In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`.
+- A proper manual input option should be carefully configured. Include `customPlaceholder` (mandatory) that illustrates how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). Optionally provide `customInputLabel` and `customHelp` to guide the user in array input formatting.
+- **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
 ### Multi Select Dynamic JSON Schema:
+```json
+{
+    "name": "generate_dynamic_multiselect_field",
+    "strict": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "inputFields": {
+                "type": "array",
+                "description": "The array of input fields including the newly created or updated dynamic multiselect field.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "pattern": "^[^.]*$",
+                            "description": "Unique identifier for the field (e.g. 'filter_properties', 'return_column'). The key MUST NOT contain a dot (.)."
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "multiselect"
+                            ],
+                            "description": "Must be exactly 'multiselect'."
+                        },
+                        "label": {
+                            "type": "string",
+                            "description": "A human-readable label explaining the choice (e.g. 'Filter Properties')."
+                        },
+                        "help": {
+                            "type": "string",
+                            "description": "Guidance text for the user. Explain what the multiselect is for."
+                        },
+                        "required": {
+                            "type": "boolean",
+                            "description": "Whether selecting at least one option is mandatory."
+                        },
+                        "placeholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text shown before selection (e.g. 'Choose Columns'). Omit if not applicable."
+                        },
+                        "optionsGenerator": {
+                            "type": "string",
+                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
+                        },
+                        "customPlaceholder": {
+                            "type": "string",
+                            "description": "Compulsory placeholder for the manual input mode. Provide a relevant array example in string format (e.g., 'E.g., [\"Name\"]' or 'E.g., [\"title\", \"status\"]')."
+                        },
+                        "customInputLabel": {
+                            "type": "string",
+                            "description": "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Column Name in Array'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+                        },
+                        "customHelp": {
+                            "type": "string",
+                            "description": "Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly what array format is expected. Supports markdown links. Omit if not applicable."
+                        },
+                        "visibilityCondition": {
+                            "type": "string",
+                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                        },
+                        "defaultValue": {
+                            "type": "array",
+                            "description": "The default array of objects to select initially. Omit this field entirely if there is no default.",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "description": "The display name of the default option."
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "number"
+                                        ],
+                                        "description": "The internal value of the default option."
+                                    },
+                                    "sample": {
+                                        "type": "string",
+                                        "description": "Optional string. MUST always be identical to the option's value. Omit if not needed."
+                                    }
+                                },
+                                "required": [
+                                    "label",
+                                    "value"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "key",
+                        "type",
+                        "label",
+                        "help",
+                        "required",
+                        "optionsGenerator",
+                        "customPlaceholder"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "inputFields"
+        ]
+    }
+}
+```
 ### Multi Select Dynamic TOON Schema:
-
+```toon
+name: generate_dynamic_multiselect_field
+strict: false
+schema:
+  type: object
+  properties:
+    inputFields:
+      type: array
+      description: The array of input fields including the newly created or updated dynamic multiselect field.
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            pattern: "^[^.]*$"
+            description: "Unique identifier for the field (e.g. 'filter_properties', 'return_column'). The key MUST NOT contain a dot (.)."
+          type:
+            type: string
+            enum[1]: multiselect
+            description: Must be exactly 'multiselect'.
+          label:
+            type: string
+            description: A human-readable label explaining the choice (e.g. 'Filter Properties').
+          help:
+            type: string
+            description: Guidance text for the user. Explain what the multiselect is for.
+          required:
+            type: boolean
+            description: Whether selecting at least one option is mandatory.
+          placeholder:
+            type: string
+            description: Optional placeholder text shown before selection (e.g. 'Choose Columns'). Omit if not applicable.
+          optionsGenerator:
+            type: string
+            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
+          customPlaceholder:
+            type: string
+            description: "Compulsory placeholder for the manual input mode. Provide a relevant array example in string format (e.g., 'E.g., [\"Name\"]' or 'E.g., [\"title\", \"status\"]')."
+          customInputLabel:
+            type: string
+            description: "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Column Name in Array'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+          customHelp:
+            type: string
+            description: Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly what array format is expected. Supports markdown links. Omit if not applicable.
+          visibilityCondition:
+            type: string
+            description: A JavaScript condition for visibility. Omit if always visible.
+          defaultValue:
+            type: array
+            description: The default array of objects to select initially. Omit this field entirely if there is no default.
+            items:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: The display name of the default option.
+                value:
+                  type[2]: string,number
+                  description: The internal value of the default option.
+                sample:
+                  type: string
+                  description: Optional string. MUST always be identical to the option's value. Omit if not needed.
+              required[2]: label,value
+        required[7]: key,type,label,help,required,optionsGenerator,customPlaceholder
+  required[1]: inputFields
+  ```
 ### Multi Select Dynamic Examples:
 #### Multi Select Dynamic JSON Example:
+```json
+[
+   {
+        "key": "filter_properties",
+        "help": "Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.",
+        "type": "multiselect",
+        "label": "Filter Properties",
+        "required": false,
+        "customHelp": "Enter Array of Property Name.",
+        "placeholder": "Choose Property",
+        "optionsGenerator": "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n",
+        "customPlaceholder": "Eg. ['title','status']"
+      },
+         {
+        "key": "return_column",
+        "help": "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns.",
+        "type": "multiselect",
+        "label": "Return Columns",
+        "required": false,
+        "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
+        "placeholder": "Choose Columns",
+        "customInputLabel": "Enter Column Name in Array.",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "customPlaceholder": "E.g., [\"Name\"]or [\"A\"]"
+      },
+       {
+        "key": "filter_properties",
+        "help": "Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.",
+        "type": "multiselect",
+        "label": "Filter Properties",
+        "required": false,
+        "customHelp": "Enter an array of Property Name.",
+        "placeholder": "Choose Property",
+        "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}",
+        "customPlaceholder": "Eg. ['title','status']"
+      }
+]
+```
 #### Multi Select Dynamic TOON Example:
+```toon
+[3]:
+  - key: filter_properties
+    help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
+    type: multiselect
+    label: Filter Properties
+    required: false
+    customHelp: Enter Array of Property Name.
+    placeholder: Choose Property
+    optionsGenerator: "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n"
+    customPlaceholder: "Eg. ['title','status']"
+  - key: return_column
+    help: "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns."
+    type: multiselect
+    label: Return Columns
+    required: false
+    customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
+    placeholder: Choose Columns
+    customInputLabel: Enter Column Name in Array.
+    optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+    customPlaceholder: "E.g., [\"Name\"]or [\"A\"]"
+  - key: filter_properties
+    help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
+    type: multiselect
+    label: Filter Properties
+    required: false
+    customHelp: Enter an array of Property Name.
+    placeholder: Choose Property
+    optionsGenerator: "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}"
+    customPlaceholder: "Eg. ['title','status']"
+```
+
+### Reusable Component In Multi Select Dynamic:
+
+#### Reusable Component In Multi Select Dynamic Purpose:
+
+Reusable components let you write sensitive or reusable logic (like API calls or JS functions) once and use them anywhere JS code is allowed — such as inside `optionsGenerator`.
+They help keep your plugin code cleaner, safer, and easier to maintain.
+
+> [!NOTE]  
+> Components only work in fields where custom JS is allowed — not in static fields.
+
+**Why Use Reusable Components?**
+- **Hide sensitive logic:** Keep tokens, headers, or secure calculations hidden.
+- **Reuse common logic:** Use the same component across multiple fields (e.g., multiple multiselects, API config).
+- **Reduce duplicate code:** Simplify maintenance when fetching common arrays (like columns, properties, tags).
+
+#### Reusable Component In Multi Select Dynamic Code Rules:
+
+**Reusable Components fields:**
+- **Component Name:** must be unique (cannot change once component is being used).
+- **Parameters:** Add inputs your logic needs (e.g., `sheetId`, `dataSourceId`).
+- **Component Code:** Write your JavaScript code here.
+
+**Component Code Rules:**
+- Must be a valid JavaScript function.
+- Can use `async/await` for API calls.
+- **Returns:** MUST return an array of objects `[{label, value}]`. Fields support `sample`.
+- Can use `try/catch` for error handling.
+- Can use external libraries like `axios`. But Import is not allowed. You can use it directly.
+
+**Below are supported libraries to use directly in component code:**
+- `form-data` as `FormData`
+- `https`
+- `crypto`
+- `setTimeout`
+- `axios`
+- `jsonwebtoken` as `jwt`
+- `lodash` as `_`
+- `node-fetch` as `fetch`
+- `cheerio`
+- `moment`
+- `fetch`
+- `Buffer`
+- `atob`
+- `XMLParser`
+- `XMLBuilder`
+- `XMLValidator`
+
+**Rules for using the component inside a dynamic multiselect's `optionsGenerator`:**
+- Inside the multiselect's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
+- Output the final results using the `return` keyword (e.g., `return await fetchSheetColumns(...)`).
+- This keeps your dynamic multiselect logic clean, hidden, and reusable.
+
+#### Reusable Component In Multi Select Dynamic Example Code and Usage:
+
+##### Example 1: Google Sheets Column Multi Select Dynamic
+
+- **Component Name:** `fetchSheetColumns`
+- **Parameters:** `spreadSheet_id` (string, required), `targetSheetId` (string, required), `column_key` (boolean, required)
+- **Component Code:**
+```javascript
+function getColumnLetter(index) {
+  let letter = '';
+  let temp = index;
+  while (temp >= 0) {
+    letter = String.fromCharCode(65 + (temp % 26)) + letter;
+    temp = Math.floor(temp / 26) - 1;
+  }
+  return letter;
+}
+
+try {
+  // 1. Get Metadata
+  const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadSheet_id}`;
+  const params = { fields: 'sheets.properties(title,sheetId,gridProperties.columnCount)' };
+  const metaResponse = await axios.get(metaUrl, { params });
+  
+  const sheets = metaResponse.data.sheets || [];
+  const targetSheet = sheets.find(s => s.properties.sheetId == targetSheetId);
+
+  if (!targetSheet) return { message: `Sheet with ID "${targetSheetId}" not found.` };
+
+  const sheetName = targetSheet.properties.title;
+  const columnCount = targetSheet.properties.gridProperties?.columnCount || 26;
+
+  // 2. SCENARIO A: Standard Columns
+  if (!column_key) {
+    const result = [];
+    for (let i = 0; i < columnCount; i++) {
+      const letter = getColumnLetter(i);
+      result.push({ label: `Column ${letter}`, value: letter, sample: letter });
+    }
+    return result;
+  }
+
+  // 3. SCENARIO B: Headers from Row 1
+  const valuesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadSheet_id}/values/${encodeURIComponent(sheetName + '!1:1')}`;
+  const valuesResponse = await axios.get(valuesUrl);
+  const headerRow = valuesResponse.data.values?.[0] || [];
+
+  if (headerRow.length === 0) return { message: "Empty headers found. Please make sure the first row contains header names and then refresh the dropdown" };
+
+  // --- CHANGED LOGIC START ---
+  
+  // Step 1: Count occurrences of every header first
+  const headerCounts = {};
+  headerRow.forEach(cell => {
+    const name = cell?.toString().trim();
+    if (name) {
+      headerCounts[name] = (headerCounts[name] || 0) + 1;
+    }
+  });
+
+  const result = [];
+
+  // Step 2: Build the result, checking the counts we just made
+  headerRow.forEach((cell, i) => {
+    const rawHeader = cell?.toString().trim();
+    if (!rawHeader) return; 
+
+    const columnLetter = getColumnLetter(i);
+    let finalValue = rawHeader;
+
+    // IF the header appears more than once total, append suffix to ALL instances
+    if (headerCounts[rawHeader] > 1) {
+       finalValue = `${rawHeader}--${columnLetter}`;
+    }
+
+    result.push({
+      label: rawHeader,
+      value: finalValue,
+      sample: `Column ${columnLetter}`
+    });
+  });
+  // --- CHANGED LOGIC END ---
+
+  if (result.length === 0) return { message: "No valid headers found." };
+
+  return result;
+
+} catch (error) {
+  if (error.response) return { message: 'Google Sheets API Error', status: error.response.status, details: error.response.data };
+  return { message: 'Unexpected error.', error: error.message };
+}
+```
+Usage inside a dynamic multiselect's `optionsGenerator`:
+```json
+{
+    "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+}
+```
+##### Example 2: Notion Data Source Property Multi Select Dynamic
+
+- **Component Name:** `fetchDatasourceProperties`
+- **Parameters:** `data_source_id` (string, required)
+- **Component Code:**
+```javascript
+const returnDropdown = (array) => {
+    const a = array.map((key) => {
+        return {
+            label: key?.name,
+            sample: key?.type,
+            value: key?.name
+        };
+    });
+    return a;
+};
+
+try{
+    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${data_source_id}`;
+const response = await axios.get(columnsApiUrl, {                 headers: {
+            'Notion-Version': '2025-09-03', // Use the current API version
+        }  } 
+);
+//   return response.data
+const arr = response.data.properties;
+const first = Object.values(arr);
+
+return returnDropdown(first);
+}catch(error) {
+        throw {
+            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'
+        };
+    }
+```
+Usage inside a dynamic multiselect's `optionsGenerator`:
+```json
+{
+    "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}"
+}
 
 ## Help Dynamic
 
