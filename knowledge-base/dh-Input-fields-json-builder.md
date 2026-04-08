@@ -4124,3 +4124,53 @@ schema:
 ### Input Group Dynamic Examples:
 #### Input Group Dynamic JSON Example:
 #### Input Group Dynamic TOON Example:
+
+# Special Note:
+## Visibility Condition Rules:
+
+When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed.
+
+Here are the various patterns you should use based on what field type it depends on:
+
+1. **Depending on a Multiselect Field:**
+   - **A. Any option selected:** To check if *any* option is selected in a multiselect field:
+     ```javascript
+     Array.isArray(context?.inputData?.multiselect_static_required) && context.inputData.multiselect_static_required.length > 0
+     ```
+   - **B. Specific option selected:** To check if a *specific* option is selected:
+     ```javascript
+     context?.inputData?.multiselect_static_required?.includes('A')
+     ```
+
+2. **Depending on a String or Dropdown Field (Exact Match):**
+   - **A. Check if a specific value is selected:**
+     ```javascript
+     context?.inputData?.message_type === 'text'
+     ```
+   - **B. Check against multiple possible values (using logical OR `||`):**
+     ```javascript
+     context?.inputData?.settings?.comment === 'a specific media' || context?.inputData?.settings?.comment === 'next media'
+     ```
+
+3. **Depending on a Boolean Field:**
+   - **A. Check if true:** 
+     ```javascript
+     context?.inputData?.search_filter?.search_filter_type
+     ```
+   - **B. Check if false (using negation `!`):**
+     ```javascript
+     !context?.inputData?.search_filter?.search_filter_type
+     ```
+
+4. **Depending on Field Presence (Is it filled?):**
+   - Just map to the field's path to check if a value is present (truthy):
+     ```javascript
+     context?.inputData?.sheet_Id
+     ```
+
+5. **Depending on Fields inside an Input Group:**
+   - When a field depends on another field that is nested inside an input group, include the input group's key in the path:
+     ```javascript
+     context?.inputData?.search_filter?.column_key
+     ```
+     *(Here `search_filter` is the `key` of the input group, and `column_key` is the `key` of the specific field inside it).*
