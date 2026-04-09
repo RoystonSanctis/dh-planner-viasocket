@@ -1064,7 +1064,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
   - label: user-facing display name (e.g. "High Priority")
   - value: internal value sent to the API (string or number)
 - Each option may optionally include:
-  - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. "Film & Animation (1)"), while the value is mapped internally. Include sample whenever the value is not self-explanatory. Omit if not needed.
+  - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
   - extraValue: an extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type (string, number, boolean, object, array). Omit if not needed.
 #### 8. Default Value Rule
 - Set defaultValue only if a sensible default exists.
@@ -1160,7 +1160,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                                     },
                                     "sample": {
                                         "type": "string",
-                                        "description": "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'Film & Animation (1)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                                        "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                                     },
                                     "extraValue": {
                                         "type": [
@@ -1196,7 +1196,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                                 },
                                 "sample": {
                                     "type": "string",
-                                    "description": "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
+                                    "description": "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                                 },
                                 "extraValue": {
                                     "type": [
@@ -1211,7 +1211,8 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                             },
                             "required": [
                                 "label",
-                                "value"
+                                "value",
+                                "sample"
                             ]
                         }
                     },
@@ -1291,11 +1292,11 @@ schema:
                   description: The internal value sent to the API. Recommended to be string or number.
                 sample:
                   type: string
-                  description: "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'Film & Animation (1)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                  description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                 extraValue:
                   type[5]: string,number,boolean,object,array
                   description: "An optional extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type. Omit if not needed."
-              required[2]: label,value
+              required[3]: label,value,sample
           defaultValue:
             type: object
             description: "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default."
@@ -1308,11 +1309,11 @@ schema:
                 description: The internal value of the default option.
               sample:
                 type: string
-                description: "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
+                description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               extraValue:
                 type[5]: string,number,boolean,object,array
                 description: An optional extra value for the default option. Omit if not needed.
-            required[2]: label,value
+            required[3]: label,value,sample
         required[6]: key,type,label,help,required,options
   required[1]: inputFields
 ```
@@ -1569,7 +1570,7 @@ Generate a JSON object strictly following the rules below for a static multisele
   - label: user-facing display name (e.g. "First Name")
   - value: internal value sent to the API (string or number)
 - Each option may optionally include:
-  - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. "First Name (first_name)"), while the value is mapped internally. Include sample whenever the value is not self-explanatory. Omit if not needed.
+  - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
 #### 8. Default Value Rule
 - Set defaultValue only if a sensible default exists.
 - MANDATORY RULE: If provided, defaultValue must be an array of objects where each object is an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
@@ -1664,12 +1665,13 @@ Generate a JSON object strictly following the rules below for a static multisele
                                     },
                                     "sample": {
                                         "type": "string",
-                                        "description": "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'First Name (first_name)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                                        "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                                     }
                                 },
                                 "required": [
                                     "label",
-                                    "value"
+                                    "value",
+                                    "sample"
                                 ]
                             }
                         },
@@ -1692,12 +1694,13 @@ Generate a JSON object strictly following the rules below for a static multisele
                                     },
                                     "sample": {
                                         "type": "string",
-                                        "description": "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
+                                        "description": "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                                     }
                                 },
                                 "required": [
                                     "label",
-                                    "value"
+                                    "value",
+                                    "sample"
                                 ]
                             }
                         }
@@ -1778,8 +1781,8 @@ schema:
                   description: The internal value sent to the API. Recommended to be string or number.
                 sample:
                   type: string
-                  description: "Must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g. 'First Name (first_name)'), while value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
-              required[2]: label,value
+                  description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
+              required[3]: label,value,sample
           defaultValue:
             type: array
             description: "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default."
@@ -1794,8 +1797,8 @@ schema:
                   description: The internal value of the default option.
                 sample:
                   type: string
-                  description: "Must always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets, while value is mapped internally. Omit if not needed."
-              required[2]: label,value
+                  description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
+              required[3]: label,value,sample
         required[6]: key,type,label,help,required,options
   required[1]: inputFields
 ```
@@ -2895,7 +2898,7 @@ When creating a dynamic dropdown field, adhere to the strict structure outlined 
 - Set `type: "dropdown"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
 - Ensure that properties related to dynamic behavior, like `canPaginate` and `enableSearchApi`, are configured correctly based on whether the endpoint supports pagination offsets or search query parameters.
-- **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (`[{label, value}]` or `{data: [], offset: ...}`).
+- **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (e.g., `[{label, value, sample}]` or `{data: [{label, value, sample}], offset: ...}`). MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 
 ### Dropdown Dynamic JSON Schema:
 ```json
@@ -2984,7 +2987,7 @@ When creating a dynamic dropdown field, adhere to the strict structure outlined 
                                 },
                                 "sample": {
                                     "type": "string",
-                                    "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g., 'Film & Animation (1)'), while the value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                                    "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                                 },
                                 "extraValue": {
                                     "type": [
@@ -2999,7 +3002,8 @@ When creating a dynamic dropdown field, adhere to the strict structure outlined 
                             },
                             "required": [
                                 "label",
-                                "value"
+                                "value",
+                                "sample"
                             ]
                         }
                     },
@@ -3087,11 +3091,11 @@ schema:
                 description: The internal value of the default option.
               sample:
                 type: string
-                description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets (e.g., 'Film & Animation (1)'), while the value is mapped internally. Include when the value is not self-explanatory. Omit if not needed."
+                description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               extraValue:
                 type[5]: string,number,boolean,object,array
                 description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
-            required[2]: label,value
+            required[3]: label,value,sample
         required[7]: key,type,label,help,required,optionsGenerator,customPlaceholder
   required[1]: inputFields
 ```
@@ -3484,7 +3488,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 ### Multi Select Dynamic Input Field Generation Rules:
 When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
-- In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`.
+- In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 - A proper manual input option should be carefully configured. Include `customPlaceholder` (mandatory) that illustrates how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). Optionally provide `customInputLabel` and `customHelp` to guide the user in array input formatting.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
@@ -3532,7 +3536,7 @@ When creating a dynamic multiselect field, adhere to the strict structure outlin
                         },
                         "optionsGenerator": {
                             "type": "string",
-                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
+                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
                         },
                         "customPlaceholder": {
                             "type": "string",
@@ -3569,12 +3573,13 @@ When creating a dynamic multiselect field, adhere to the strict structure outlin
                                     },
                                     "sample": {
                                         "type": "string",
-                                        "description": "Optional string. MUST always be identical to the option's value. Omit if not needed."
+                                        "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
                                     }
                                 },
                                 "required": [
                                     "label",
-                                    "value"
+                                    "value",
+                                    "sample"
                                 ]
                             }
                         }
@@ -3632,7 +3637,7 @@ schema:
             description: Optional placeholder text shown before selection (e.g. 'Choose Columns'). Omit if not applicable.
           optionsGenerator:
             type: string
-            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
+            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
           customPlaceholder:
             type: string
             description: "Compulsory placeholder for the manual input mode. Provide a relevant array example in string format (e.g., 'E.g., [\"Name\"]' or 'E.g., [\"title\", \"status\"]')."
@@ -3659,8 +3664,8 @@ schema:
                   description: The internal value of the default option.
                 sample:
                   type: string
-                  description: Optional string. MUST always be identical to the option's value. Omit if not needed.
-              required[2]: label,value
+                  description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
+              required[3]: label,value,sample
         required[7]: key,type,label,help,required,optionsGenerator,customPlaceholder
   required[1]: inputFields
   ```
@@ -4285,6 +4290,22 @@ schema:
     visibilityCondition: context?.inputData?.agent_extraValue === 'variables' || context?.inputData?.agent_extraValue === 'variables_vision'
 ```
 # Special Note:
+
+## Static Input Group: `whereClause` Feature (Special Layout)
+The `whereClause` feature allows you to display an input group as a readable sentence instead of separate fields. It transforms input groups into sentence-based configurations, improving UX and making workflows feel more natural by reducing confusion in complex actions.
+
+**Key Characteristics & Limitations:**
+- **Availability:** Only available within **Static Input Groups**.
+- **Supported Fields:** When `whereClause` is enabled (`"whereClause": true`), the group can ONLY contain `dropdown` and `multiselect` fields. Text, number, and other field types are strictly restricted.
+- **Rendering Behavior:** Instead of stacking fields normally, fields are arranged inline to form a clean, sentence-like structure where values are selected directly within the sentence. Flow side (end users) will see this sentence structure without the Edit mode.
+
+**Example Use Case (Instagram Trigger New Comment):**
+Instead of showing stacked disconnected fields (*Select Media, Select Type*), you can construct a readable sentence using dropdowns:
+*"When commented on `[dropdown: specific media]` Media `[dropdown: choose media]`"*
+## AI Reference: Dropdown & Multiselect Special Cases:
+When generating Dropdown and Multiselect input fields (both Static and Dynamic):
+1. **The `sample` attribute**: The `sample` string must **always** be identical to the option's `value`. MANDATORY RULE: If the value is an ID, the `sample` MUST be included. If the `label` and `sample` are exactly the same, then NO `sample` is needed. Omit otherwise.
+2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This is particularly useful for driving complex visibility conditions or dynamic `fieldsGenerator` logic, which can easily evaluate this hidden state via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
 ## Visibility Condition Rules:
 
 When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed.
