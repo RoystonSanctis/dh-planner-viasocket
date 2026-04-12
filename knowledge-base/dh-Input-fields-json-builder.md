@@ -1,6 +1,6 @@
 # DH Input Fields Knowledge Base
 
-This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON.
+This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases.
 
 # Static Input Fields
 
@@ -4289,6 +4289,7 @@ schema:
     fieldsGenerator: "async function generateAgentVariables() {\n    const agentId = context?.inputData?.agent;\n    try {\n        const response = await axios.get('https://db.gtwy.ai/api/embed/getAgents');\n        const agents = response?.data.data || [];\n        const selectedAgent = agents.find(agent => agent?._id === agentId);\n\n        if (!selectedAgent) {\n            return {message:`No Variables were found for the Selected AI Agent.`}\n        }\n        const variables = selectedAgent?.variables_state || {};\n        if (Object.keys(variables).length==0) {\n            return {message:`No Variables were found for the Selected AI Agent.`}\n        }\n        const fields = Object.entries(variables).map(([key, value]) => ({\n            key: key,\n            label: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '),\n            type: 'string',\n            required: value === 'required',\n            placeholder: `Enter ${key.replace(/_/g, ' ')}`\n        }));\n\n        return fields;\n    } catch (error) {\n        throw error\n    }\n}\n\nreturn await generateAgentVariables();"
     visibilityCondition: context?.inputData?.agent_extraValue === 'variables' || context?.inputData?.agent_extraValue === 'variables_vision'
 ```
+
 # Special Note:
 
 ## Static Input Group: `whereClause` Feature (Special Layout)
@@ -4302,7 +4303,7 @@ The `whereClause` feature allows you to display an input group as a readable sen
 **Example Use Case (Instagram Trigger New Comment):**
 Instead of showing stacked disconnected fields (*Select Media, Select Type*), you can construct a readable sentence using dropdowns:
 *"When commented on `[dropdown: specific media]` Media `[dropdown: choose media]`"*
-## AI Reference: Dropdown & Multiselect Special Cases:
+## Dropdown & Multiselect Special Cases:
 When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 1. **The `sample` attribute**: The `sample` string must **always** be identical to the option's `value`. MANDATORY RULE: If the value is an ID, the `sample` MUST be included. If the `label` and `sample` are exactly the same, then NO `sample` is needed. Omit otherwise.
 2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This is particularly useful for driving complex visibility conditions or dynamic `fieldsGenerator` logic, which can easily evaluate this hidden state via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
