@@ -33,7 +33,9 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 - New lead in CRM → every 10 min
 - New order → every 15 min
 
-### Scheduled Trigger Perform Code Rules:
+### Scheduled Trigger Perform Code
+
+#### Scheduled Trigger Perform Code Rules:
 
 **Best Practice Algorithm:**
 Always check if the API natively supports filtering by a start date (e.g., `created_at_min`), updated date, or returning specific output item keys. **If the API supports these native query parameters, use them!** It is the most optimized approach. If the API does *not* support it natively, you must handle the logic on the client side: filtering the latest/updated items, filtering the fields, and sorting the results.
@@ -63,9 +65,9 @@ If enabled and the API supports pagination, use the global variable `context?.pa
 > [!WARNING]
 > Re-assigning `0` or `null` will reset pagination completely back to the start.
 
-### Scheduled Trigger Perform Code Pseudo Code:
+#### Scheduled Trigger Perform Code Pseudo Code:
 
-#### 1. Fetching New Items from an API with pagination
+##### 1. Fetching New Items from an API with pagination
 ```javascript
 async function fetchItems() {
     try {
@@ -137,7 +139,7 @@ async function fetchItems() {
 return await fetchItems();
 ```
 
-#### 2. Fetching Updated Items from an API with pagination
+##### 2. Fetching Updated Items from an API with pagination
 
 ```javascript
 async function fetchUpdatedItems() {
@@ -217,7 +219,7 @@ async function fetchUpdatedItems() {
 return await fetchUpdatedItems();
 ```
 
-#### 3. Fetching items with client-side field filtering and page-number pagination
+##### 3. Fetching items with client-side field filtering and page-number pagination
 ```javascript
 async function fetchItemsWithClientFiltering() {
     try {
@@ -292,7 +294,7 @@ async function fetchItemsWithClientFiltering() {
 return await fetchItemsWithClientFiltering();
 ```
 
-#### 4. Fetching items utilizing Native API query parameters (Most Optimized)
+##### 4. Fetching items utilizing Native API query parameters (Most Optimized)
 ```javascript
 async function fetchItemsOptimized() {
     try {
@@ -350,9 +352,9 @@ async function fetchItemsOptimized() {
 return await fetchItemsOptimized();
 ```
 
-### Scheduled Trigger Perform Code Example Code:
+#### Scheduled Trigger Perform Code Example Code:
 
-#### Example 1: Fetching new items from an API with pagination
+##### Example 1: Fetching new items from an API with pagination
 - **Service:** Notion
 - **Trigger:** New Data Source Item Created
 - **Trigger Type:** Scheduled Trigger
@@ -410,7 +412,7 @@ async function newdatasourceItem() {
 return await newdatasourceItem();
 ```
 
-#### Example 2: Fetching updated items from an API with pagination
+##### Example 2: Fetching updated items from an API with pagination
 - **Service:** Notion
 - **Trigger:** Updated Data Source Item
 - **Trigger Type:** Scheduled Trigger
@@ -477,7 +479,7 @@ async function updatedatasourceItem() {
 
 return await updatedatasourceItem();
 ```
-#### Example 3: Fetching items with client-side field filtering and page-number pagination
+##### Example 3: Fetching items with client-side field filtering and page-number pagination
 - **Service:** Veeqo
 - **Trigger:** New Order Created
 - **Trigger Type:** Scheduled Trigger
@@ -549,7 +551,7 @@ try {
 }
 ```
 
-#### Example 4: Using Native API Date Filtering
+##### Example 4: Using Native API Date Filtering
 - **Service:** Veeqo
 - **Trigger:** New Order Created
 - **Trigger Type:** Scheduled Trigger
@@ -594,9 +596,20 @@ try {
 }
 ```
 
-### Sample Code:
+### Schedule Trigger Sample Code:
+
+#### Schedule Trigger Sample Code Rules:
+
+#### Schedule Trigger Sample Pseudo Code:
+
 ```javascript
+
 ```
+#### Schedule Trigger Sample Example Code:
+```javascript
+
+```
+
 ## Manual Trigger
 
 # Actions
