@@ -1,3 +1,9 @@
+---
+type: page
+title: "Perform Code Knowledge Base"
+description: "This document contains knowledge, snippets, and best practices for writing robust JavaScript perform code for viaSock..."
+published: false
+---
 # Perform Code Knowledge Base
 
 This document contains knowledge, snippets, and best practices for writing robust JavaScript perform code for viaSocket plug actions.

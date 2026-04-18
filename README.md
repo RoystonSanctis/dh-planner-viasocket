@@ -1,3 +1,9 @@
+---
+type: page
+title: "DH-Planner — viaSocket Plug Creation System"
+description: "This repository contains the **system prompt instructions** used by the DH-Planner AI agent system on [viaSocket](htt..."
+published: false
+---
 # DH-Planner — viaSocket Plug Creation System
 
 This repository contains the **system prompt instructions** used by the DH-Planner AI agent system on [viaSocket](https://viasocket.com) to create and manage **plug integrations**.
