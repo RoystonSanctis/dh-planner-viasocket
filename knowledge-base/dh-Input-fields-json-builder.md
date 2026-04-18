@@ -1,8 +1,8 @@
 ---
 type: page
 title: "DH Input Fields Knowledge Base"
-description: "This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actio..."
-published: false
+description: "This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases."
+published: true
 ---
 # DH Input Fields Knowledge Base
 
