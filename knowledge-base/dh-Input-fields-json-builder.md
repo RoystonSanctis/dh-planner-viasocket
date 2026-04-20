@@ -4,6 +4,123 @@ title: "DH Input Fields Knowledge Base"
 description: "This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases."
 published: true
 ---
+# DH Input Fields Knowledge Base Page Index
+
+- [DH Input Fields Knowledge Base](#dh-input-fields-knowledge-base)
+- [Static Input Fields](#static-input-fields)
+  - [String | Date | Number | HTML | Markdown](#string-date-number-html-markdown)
+    - [String | Date | Number | HTML | Markdown Purpose:](#string-date-number-html-markdown-purpose)
+    - [String | Date | Number | HTML | Markdown Input Field Generation Rules:](#string-date-number-html-markdown-input-field-generation-rules)
+    - [String | Date | Number | HTML | Markdown JSON Schema:](#string-date-number-html-markdown-json-schema)
+    - [String | Date | Number | HTML | Markdown TOON Schema:](#string-date-number-html-markdown-toon-schema)
+    - [String | Date | Number | HTML | Markdown Examples:](#string-date-number-html-markdown-examples)
+      - [String | Date | Number | HTML | Markdown JSON Example:](#string-date-number-html-markdown-json-example)
+      - [String | Date | Number | HTML | Markdown TOON Example:](#string-date-number-html-markdown-toon-example)
+  - [Dictionary](#dictionary)
+    - [Dictionary Purpose:](#dictionary-purpose)
+    - [Dictionary Input Field Generation Rules:](#dictionary-input-field-generation-rules)
+    - [Dictionary Input Field JSON Schema:](#dictionary-input-field-json-schema)
+    - [Dictionary TOON Schema:](#dictionary-toon-schema)
+    - [Dictionary Examples:](#dictionary-examples)
+      - [Dictionary JSON Example:](#dictionary-json-example)
+      - [Dictionary TOON Example:](#dictionary-toon-example)
+  - [Boolean](#boolean)
+    - [Boolean Purpose:](#boolean-purpose)
+    - [Boolean Input Field Generation Rules:](#boolean-input-field-generation-rules)
+    - [Boolean JSON Schema:](#boolean-json-schema)
+    - [Boolean TOON Schema:](#boolean-toon-schema)
+    - [Boolean Examples:](#boolean-examples)
+      - [Boolean JSON Example:](#boolean-json-example)
+      - [Boolean TOON Example:](#boolean-toon-example)
+  - [Dropdown Static](#dropdown-static)
+    - [Dropdown Static Purpose:](#dropdown-static-purpose)
+    - [Dropdown Static Input Field Generation Rules:](#dropdown-static-input-field-generation-rules)
+    - [Dropdown Static JSON Schema:](#dropdown-static-json-schema)
+    - [Dropdown Static TOON Schema:](#dropdown-static-toon-schema)
+    - [Dropdown Static Examples:](#dropdown-static-examples)
+      - [Dropdown Static JSON Example:](#dropdown-static-json-example)
+      - [Dropdown Static TOON Example:](#dropdown-static-toon-example)
+  - [Multiselect Static](#multiselect-static)
+    - [Multiselect Static Purpose:](#multiselect-static-purpose)
+    - [Multiselect Static Input Field Generation Rules:](#multiselect-static-input-field-generation-rules)
+    - [Multiselect Static JSON Schema:](#multiselect-static-json-schema)
+    - [Multiselect Static TOON Schema:](#multiselect-static-toon-schema)
+    - [Multiselect Static JSON Example:](#multiselect-static-json-example)
+    - [Multiselect Static TOON Schema:](#multiselect-static-toon-schema)
+  - [AI Field](#ai-field)
+    - [AI Field Purpose:](#ai-field-purpose)
+    - [AI Field Input Field Generation Rules:](#ai-field-input-field-generation-rules)
+    - [AI Field JSON Schema:](#ai-field-json-schema)
+    - [AI Field TOON Schema:](#ai-field-toon-schema)
+    - [AI Field Examples](#ai-field-examples)
+      - [AI Field JSON Example:](#ai-field-json-example)
+      - [AI Field TOON Example:](#ai-field-toon-example)
+  - [Help Static](#help-static)
+    - [Help Static Purpose:](#help-static-purpose)
+    - [Help Static Input Field Generation Rules:](#help-static-input-field-generation-rules)
+    - [Help Static JSON Schema:](#help-static-json-schema)
+    - [Help Static TOON Schema:](#help-static-toon-schema)
+    - [Help Static Examples:](#help-static-examples)
+      - [Help Static JSON Example:](#help-static-json-example)
+      - [Help Static TOON Example:](#help-static-toon-example)
+  - [Input Group Static](#input-group-static)
+    - [Input Group Static Purpose:](#input-group-static-purpose)
+    - [Input Group Static Input Field Generation Rules:](#input-group-static-input-field-generation-rules)
+    - [Input Group Static JSON Schema:](#input-group-static-json-schema)
+    - [Input Group Static TOON Schema:](#input-group-static-toon-schema)
+    - [Input Group Static Examples:](#input-group-static-examples)
+      - [Input Group Static JSON Example:](#input-group-static-json-example)
+      - [Input Group Static TOON Example:](#input-group-static-toon-example)
+- [Dynamic Input Fields](#dynamic-input-fields)
+  - [Dropdown Dynamic](#dropdown-dynamic)
+    - [Dropdown Dynamic Purpose:](#dropdown-dynamic-purpose)
+    - [Dropdown Dynamic Input Field Generation Rules:](#dropdown-dynamic-input-field-generation-rules)
+    - [Dropdown Dynamic JSON Schema:](#dropdown-dynamic-json-schema)
+    - [Dropdown Dynamic TOON Schema:](#dropdown-dynamic-toon-schema)
+    - [Dropdown Dynamic Examples:](#dropdown-dynamic-examples)
+      - [Dropdown Dynamic JSON Example:](#dropdown-dynamic-json-example)
+      - [Dropdown Dynamic TOON Example:](#dropdown-dynamic-toon-example)
+    - [Reusable Component In Dropdown Dynamic:](#reusable-component-in-dropdown-dynamic)
+      - [Reusable Component In Dropdown Dynamic Purpose:](#reusable-component-in-dropdown-dynamic-purpose)
+      - [Reusable Component In Dropdown Dynamic Code Rules:](#reusable-component-in-dropdown-dynamic-code-rules)
+      - [Reusable Component In Dropdown Dynamic Example Code and Usage:](#reusable-component-in-dropdown-dynamic-example-code-and-usage)
+        - [Example 1: Facebook Lead Form Dropdown Dynamic](#example-1-facebook-lead-form-dropdown-dynamic)
+        - [Example 2: Google Sheet Spreadsheet Dropdown Dynamic](#example-2-google-sheet-spreadsheet-dropdown-dynamic)
+  - [Multi Select Dynamic](#multi-select-dynamic)
+    - [Multi Select Dynamic Purpose:](#multi-select-dynamic-purpose)
+    - [Multi Select Dynamic Input Field Generation Rules:](#multi-select-dynamic-input-field-generation-rules)
+    - [Multi Select Dynamic JSON Schema:](#multi-select-dynamic-json-schema)
+    - [Multi Select Dynamic TOON Schema:](#multi-select-dynamic-toon-schema)
+    - [Multi Select Dynamic Examples:](#multi-select-dynamic-examples)
+      - [Multi Select Dynamic JSON Example:](#multi-select-dynamic-json-example)
+      - [Multi Select Dynamic TOON Example:](#multi-select-dynamic-toon-example)
+    - [Reusable Component In Multi Select Dynamic:](#reusable-component-in-multi-select-dynamic)
+      - [Reusable Component In Multi Select Dynamic Purpose:](#reusable-component-in-multi-select-dynamic-purpose)
+      - [Reusable Component In Multi Select Dynamic Code Rules:](#reusable-component-in-multi-select-dynamic-code-rules)
+      - [Reusable Component In Multi Select Dynamic Example Code and Usage:](#reusable-component-in-multi-select-dynamic-example-code-and-usage)
+        - [Example 1: Google Sheets Column Multi Select Dynamic](#example-1-google-sheets-column-multi-select-dynamic)
+        - [Example 2: Notion Data Source Property Multi Select Dynamic](#example-2-notion-data-source-property-multi-select-dynamic)
+  - [Help Dynamic](#help-dynamic)
+    - [Help Dynamic Purpose:](#help-dynamic-purpose)
+    - [Help Dynamic Input Field Generation Rules:](#help-dynamic-input-field-generation-rules)
+    - [Help Dynamic JSON Schema:](#help-dynamic-json-schema)
+    - [Help Dynamic TOON Schema:](#help-dynamic-toon-schema)
+    - [Help Dynamic Examples:](#help-dynamic-examples)
+      - [Help Dynamic JSON Example:](#help-dynamic-json-example)
+      - [Help Dynamic TOON Example:](#help-dynamic-toon-example)
+  - [Input Group Dynamic](#input-group-dynamic)
+    - [Input Group Dynamic Purpose:](#input-group-dynamic-purpose)
+    - [Input Group Dynamic Input Field Generation Rules:](#input-group-dynamic-input-field-generation-rules)
+    - [Input Group Dynamic JSON Schema:](#input-group-dynamic-json-schema)
+    - [Input Group Dynamic TOON Schema:](#input-group-dynamic-toon-schema)
+    - [Input Group Dynamic Examples:](#input-group-dynamic-examples)
+      - [Input Group Dynamic JSON Example:](#input-group-dynamic-json-example)
+      - [Input Group Dynamic TOON Example:](#input-group-dynamic-toon-example)
+- [Special Note:](#special-note)
+  - [Static Input Group: `whereClause` Feature (Special Layout)](#static-input-group-whereclause-feature-special-layout)
+  - [Dropdown & Multiselect Special Cases:](#dropdown-multiselect-special-cases)
+  - [Visibility Condition Rules:](#visibility-condition-rules)
+
 # DH Input Fields Knowledge Base
 
 This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases.
@@ -24,48 +141,48 @@ The input fields, which are static, have fixed values. The depends on other feil
 ### String | Date | Number | HTML | Markdown Input Field Generation Rules:
 Generate a JSON object strictly following the rules below.
 
-#### When to Use
+**When to Use**
 - Use **string** when capturing plain text values such as names, titles, identifiers, or short descriptions.
 - Use **string** (not a date type) when capturing date, time, or date-time values that must follow a specific format.
 - Use **number** when capturing numeric values such as amounts, prices, counts, or quantities that may be used in calculations or comparisons.
 - Use **html** when the input requires rich text content with HTML tags and structured formatting.
 - Use **markdown** when the input requires lightweight formatted text using Markdown syntax (headings, lists, links, emphasis).
 
-#### 1. Key Rules
-key must be unique.
-key must not contain a dot (.).
+**1. Key Rules**
+- key must be unique.
+- key must not contain a dot (.).
 
-#### 2. Type Selection
+**2. Type Selection**
 - If fieldPurpose contains date, time, DOB → type: "string"
 - If it contains amount, price, count, quantity, number → type: "number"
 - If the field supports HTML → type: "html"
 - If the field supports Markdown → type: "markdown"
 - Otherwise → type: "string"
 
-#### 3. Label, Help, Placeholder
+**3. Label, Help, Placeholder**
 - label: Clean, human-readable version of fieldPurpose
 - help: Clearly explain what the user should enter
 - placeholder: Provide a realistic example relevant to the purpose
 
-#### 4. Required Rule
+**4. Required Rule**
 - Set required: true if fieldPurpose implies mandatory input
- (e.g. name, email, amount, date)
+- (e.g. name, email, amount, date)
 - Otherwise set required: false
 
-#### 5. Visibility Condition Rule
+**5. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
 - Do not include this key otherwise
 
-#### 6. List Rule
+**6. List Rule**
 - Set list: true if the user preconfigures multiple values as an array during setup
 - Set list: false if the value is single or needs to be dynamic later
- (comma-separated input allowed)
+- (comma-separated input allowed)
 
-#### 7. Limit Rule
+**7. Limit Rule**
 - Set limit to a number representing the maximum number of list entries allowed.
 - Include limit only if list is true. Omit this key otherwise.
 
-#### 8. Output Constraint
+**8. Output Constraint**
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
@@ -340,21 +457,21 @@ A Dictionary (also called Map or Key-Value Pair) is a special input type in viaS
 ### Dictionary Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a dictionary.
 
-#### When to Use
+**When to Use**
 - Use a dictionary when users need to dynamically define custom key-value pairs and the structure of input data is variable or unknown in advance.
-#### 1. Key Rules
+**1. Key Rules**
 - key must be unique.
 - key must not contain a dot (.).
-#### 2. Label Rules
+**2. Label Rules**
 - label must be a clean, human-readable version of fieldPurpose.
-#### 3. Help Rules
+**3. Help Rules**
 - help must clearly explain what key-value pairs the user should enter.
-#### 4. Required Rules
+**4. Required Rules**
 - Set required: true only if fieldPurpose implies mandatory input. 
 - Otherwise, set required: false.
-#### 5. Type Rule
+**5. Type Rule**
 - type must always be "dictionary".
-#### 6. Template Rules
+**6. Template Rules**
 - The dictionary must follow this fixed template:
 **key**
 type: "string"
@@ -365,7 +482,7 @@ placeholder: "Enter value"
 
 Do not modify template structure or data types.
 Do not add extra properties.
-#### 7. Output Rules
+**7. Output Rules**
 Return only valid JSON.
 
 ### Dictionary Input Field JSON Schema:
@@ -655,47 +772,47 @@ This input type is ideal when:
 ### Boolean Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a boolean field.
 
-#### When to Use
+**When to Use**
 - Use a boolean when the decision has exactly two mutually exclusive outcomes (e.g. Yes/No, Enable/Disable, Basic/Advanced).
 - Each option corresponds to a clear system action or state and internally resolves to a true or false value.
 
-#### 1. Key Rules
+**1. Key Rules**
 - key must be unique.
 - key must not contain a dot (.).
 
-#### 2. Type Rule
+**2. Type Rule**
 - type must always be "boolean".
 
-#### 3. Label, Help Rules
+**3. Label, Help Rules**
 - label: Clean, human-readable question or description of the toggle (e.g. "Does your first row contain column name?")
 - help: Clearly explain what happens when the user enables or disables this option
 
-#### 4. Required Rule
+**4. Required Rule**
 - Set required: true if the field implies a mandatory decision
-  (e.g. toggling a core feature on/off)
+- (e.g. toggling a core feature on/off)
 - Otherwise set required: false
 
-#### 5. Options Rule
+**5. Options Rule**
 - options must always contain exactly two items: one with value: true and one with value: false
 - Each option must include:
   - label: user-facing display text (e.g. "Yes", "No", "Enable", "Disable", "Basic", "Advanced")
   - value: the actual boolean value (true or false)
 - The true-value option must appear first, followed by the false-value option
 
-#### 6. Default Value Rule
+**6. Default Value Rule**
 - Set defaultValue only if a sensible default exists
 - defaultValue must be an object with label and value matching one of the options
 - Omit defaultValue entirely if there is no default
 
-#### 7. Custom Input Rules
+**7. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
 - Include customPlaceholder only if a placeholder is needed for manual input (e.g. "E.g., true"). Omit if not applicable
 
-#### 8. Visibility Condition Rule
+**8. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
 - Do not include this key otherwise
 
-#### 9. Output Constraint
+**9. Output Constraint**
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
@@ -1043,28 +1160,28 @@ A Static Dropdown input type is used when the user must select one value from a 
 ### Dropdown Static Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a static dropdown field.
 
-#### When to Use
+**When to Use**
 - Use a static dropdown when the user must select one value from a fixed, predefined list and all possible options are known at design time.
-#### 1. Core Rules
+**1. Core Rules**
 - Create one input field with type: "dropdown".
 - Add the new or updated field to the existing inputFields array.
 - Only single selection is allowed.
-#### 2. Key Rules
+**2. Key Rules**
 - key must be unique within inputFields.
 - key must not contain a dot (.).
 - key must be a stable identifier (e.g. message_type, priority_level).
-#### 3. Type Rule
+**3. Type Rule**
 - type must always be "dropdown".
-#### 4. Label, Help Rules
+**4. Label, Help Rules**
 - label: Clean, human-readable description of what the user is selecting (e.g. "Message Type"). It should describe the choice, not the technical value.
 - help: Guidance text explaining why the user is making this selection and how it affects behavior.
-#### 5. Required Rule
+**5. Required Rule**
 - Set required: true if one option must be selected for the action to work.
 - Otherwise set required: false.
-#### 6. Placeholder Rule
+**6. Placeholder Rule**
 - placeholder: Optional text shown in the dropdown before selection (e.g. "Choose Message Type").
 - Omit if not applicable.
-#### 7. Options Rules
+**7. Options Rules**
 - options must be a fixed array. Do not allow dynamic or user-generated options.
 - Each option must include:
   - label: user-facing display name (e.g. "High Priority")
@@ -1072,19 +1189,19 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - Each option may optionally include:
   - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
   - extraValue: an extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type (string, number, boolean, object, array). Omit if not needed.
-#### 8. Default Value Rule
+**8. Default Value Rule**
 - Set defaultValue only if a sensible default exists.
 - MANDATORY RULE: If provided, defaultValue must be an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
 - defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
 - Omit defaultValue entirely if there is no default.
-#### 9. Custom Input Rules
+**9. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable.
 - Include customInputLabel only if manual input mode is intended. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID". Omit if not applicable.
 - Include customPlaceholder only if a placeholder is needed for manual input mode. Provide a relevant numeric or text example (e.g., "E.g., 15" if expecting an ID). Omit if not applicable.
-#### 10. Visibility Condition Rule
+**10. Visibility Condition Rule**
 - Include visibilityCondition only when the dropdown depends on another field.
 - Omit if always visible.
-#### 11. Output Constraint
+**11. Output Constraint**
 - Return only valid JSON.
 - Do not add extra properties.
 - Do not include explanations or comments.
@@ -1549,47 +1666,47 @@ A Static Multiselect input type is used when the user needs to select multiple v
 ### Multiselect Static Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a static multiselect field.
 
-#### When to Use
+**When to Use**
 - Use a static multiselect when the user needs to select one or more values from a fixed, predefined list and all possible options are known at design time.
-#### 1. Core Rules
+**1. Core Rules**
 - Create one input field with type: "multiselect".
 - Add the new or updated field to the existing inputFields array.
 - Multiple selections are allowed.
-#### 2. Key Rules
+**2. Key Rules**
 - key must be unique within inputFields.
 - key must not contain a dot (.).
 - key must be a stable identifier (e.g. search_by, output_response).
-#### 3. Type Rule
+**3. Type Rule**
 - type must always be "multiselect".
-#### 4. Label, Help Rules
+**4. Label, Help Rules**
 - label: Clean, human-readable description of what the user is selecting (e.g. "Output Response"). It should describe the choice, not the technical value.
 - help: Guidance text explaining why the user is making this selection and how it affects behavior.
-#### 5. Required Rule
+**5. Required Rule**
 - Set required: true if at least one option must be selected for the action to work.
 - Otherwise set required: false.
-#### 6. Placeholder Rule
+**6. Placeholder Rule**
 - placeholder: Optional text shown in the multiselect before selection (e.g. "Choose Return Type").
 - Omit if not applicable.
-#### 7. Options Rules
+**7. Options Rules**
 - options must be a fixed array. Do not allow dynamic or user-generated options.
 - Each option must include:
   - label: user-facing display name (e.g. "First Name")
   - value: internal value sent to the API (string or number)
 - Each option may optionally include:
   - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
-#### 8. Default Value Rule
+**8. Default Value Rule**
 - Set defaultValue only if a sensible default exists.
 - MANDATORY RULE: If provided, defaultValue must be an array of objects where each object is an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
 - Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
 - Omit defaultValue entirely if there is no default.
-#### 9. Custom Input Rules
+**9. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable.
 - Include customInputLabel only if manual input mode is intended. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array"). Omit if not applicable.
 - Include customPlaceholder only if a placeholder is needed for manual input mode. Provide a relevant array example (e.g., "E.g., [\"markdown\",\"block\"]" or "E.g., [\"first_name\",\"email\"]"). Omit if not applicable.
-#### 10. Visibility Condition Rule
+**10. Visibility Condition Rule**
 - Include visibilityCondition only when the multiselect depends on another field.
 - Omit if always visible.
-#### 11. Output Constraint
+**11. Output Constraint**
 - Return only valid JSON.
 - Do not add extra properties.
 - Do not include explanations or comments.
@@ -1924,44 +2041,44 @@ The AI Field provides customizable AI responses to automate processes based on s
 ### AI Field Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for an AI field.
 
-#### When to Use
+**When to Use**
 - Use an AI Field when you need an AI assistant to generate complex schemas or structured data from user inputs during configuration, which will subsequently be used in the perform code.
 
-#### 1. Core Rules
+**1. Core Rules**
 - Create one input field with `type: "aifield"`.
 - Add the new or updated field to the existing `inputFields` array.
 
-#### 2. Key Rules
+**2. Key Rules**
 - `key` must be unique within `inputFields`.
 - `key` must not contain a dot (`.`).
 - `key` must be a stable identifier (e.g. `filter_conditions`, `content_block`).
 
-#### 3. Type Rule
+**3. Type Rule**
 - `type` must always be `"aifield"`.
 
-#### 4. Label & Help Rules
+**4. Label & Help Rules**
 - `label`: A human-readable display name explaining the field.
 - `help`: Instructional guidance text for the user on how to use this field. Can include markdown links.
 
-#### 5. Prompt Rule
+**5. Prompt Rule**
 - `prompt`: The system prompt or instructions sent to the AI. This defines the AI's behavior, task, or role, telling it how to process the user's input and format the output (e.g. "Convert the input into a JSON array...").
 
-#### 6. Suggestion Generator Rule
+**6. Suggestion Generator Rule**
 - `suggestionGenerator`: JavaScript code that provides dynamic context or fetches a schema (source of data) from which the AI will generate results.
 - **MANDATORY**: This key MUST be present in the JSON. If no dynamic data or contextual schema is needed, set its value to an empty string `""`.
 
-#### 7. Required Rule
+**7. Required Rule**
 - Set `required: true` if providing input to this field is mandatory.
 - Otherwise set `required: false`.
 
-#### 8. Placeholder Rule
+**8. Placeholder Rule**
 - `placeholder`: Optional text showing an example input to guide the user. Can be an example query or expected value. Omit if not applicable.
 
-#### 9. Visibility Condition Rule
+**9. Visibility Condition Rule**
 - Include `visibilityCondition` only when the field depends on another field's state.
 - Omit this field entirely if always visible.
 
-#### 10. Output Constraint
+**10. Output Constraint**
 - Return only valid JSON.
 - Do not add extra properties not defined in the schema.
 - Do not include explanations or comments.
@@ -2149,32 +2266,32 @@ A Static Help field is used to display static instructional content, warnings, o
 ### Help Static Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a static help field.
 
-#### When to Use
+**When to Use**
 - Use a Static Help field when you need to provide detailed step-by-step instructions, display important information, or guide the user visually within the form.
 - Use it in manual triggers to define step-by-step instructions for copying a webhook link from viaSocket and pasting it into the SaaS platform.
 
-#### 1. Core Rules
+**1. Core Rules**
 - Create one object with `type: "help"`.
 - Add the new or updated help field to the existing `inputFields` array.
 
-#### 2. Key Rules
+**2. Key Rules**
 - `key` must be unique within `inputFields`.
 - `key` must not contain a dot (`.`).
 - `key` must be a stable identifier (e.g. `help_webhook`, `help_send_message`).
 
-#### 3. Type Rule
+**3. Type Rule**
 - `type` must always be exactly `"help"`.
 
-#### 4. Help Content Rules
+**4. Help Content Rules**
 - `help`: This property contains the actual instructional content.
 - It supports plain text, HTML tags (like `<ul>`, `<li>`, `<strong>`, `<br>`), and Markdown formatting (including links).
 - Ensure the content is clear and properly formatted for readability within the UI block.
 
-#### 5. Visibility Condition Rule
+**5. Visibility Condition Rule**
 - Include `visibilityCondition` only when the help block depends on another field's state.
 - Omit this field entirely if always visible.
 
-#### 6. Output Constraint
+**6. Output Constraint**
 - Return only valid JSON.
 - Do not add extra properties not defined in the schema (e.g., no `label`, `required`, or `placeholder` as they do not apply to a help display block).
 - Do not include explanations or comments.
@@ -2296,43 +2413,43 @@ An Input Group Static field is used to logically group related input fields toge
 ### Input Group Static Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for an input group.
 
-#### When to Use
+**When to Use**
 - Use an Input Group when you need to bundle related fields for better logical organization (e.g., "Search Filters", "Pagination Settings").
 - Use an Input Group with `whereClause: true` when you want to create an interactive conversational UI block ("readable sentence layout").
 
-#### 1. Core Rules
+**1. Core Rules**
 - Create an object with `type: "input groups"`.
 - Add the new or updated group to the existing `inputFields` array.
 - The group must contain a `fields` array.
 
-#### 2. Key Rules
+**2. Key Rules**
 - `key` must be unique within `inputFields`.
 - `key` must not contain a dot (`.`).
 - `key` must be a stable identifier describing the group.
 
-#### 3. Type Rule
+**3. Type Rule**
 - `type` must be exactly `"input groups"`.
 
-#### 4. Label & Help Rules
+**4. Label & Help Rules**
 - `label`: A human-readable display name summarizing the group (e.g., "Search Filter").
 - `help`: Guidance text explaining the entire group's purpose. Can be an empty string if no guidance is needed.
 
-#### 5. Where Clause Rule
+**5. Where Clause Rule**
 - `whereClause`: A boolean flag (`true`/`false`).
 - Set `whereClause: true` to display the contained items inline, creating a readable sentence out of dropdown choices.
 - **MANDATORY**: If `whereClause: true`, the nested `fields` array MUST ONLY contain `dropdown` or `multiselect` types.
 - Omit `whereClause` entirely if not applicable.
 
-#### 6. Fields Array Rules
+**6. Fields Array Rules**
 - `fields`: A required array where each element is a complete, independently valid input field object.
 - Elements in `fields` must fully adhere to their designated `type` rules (e.g., `string`, `dropdown`, `boolean`, `aifield`, `help`, or nested `input groups`).
 - You must generate the complete schema for each nested item.
 
-#### 7. Visibility Condition Rule
+**7. Visibility Condition Rule**
 - Include `visibilityCondition` only when the entire group's visibility depends on another field.
 - Omit if the group is unconditionally visible.
 
-#### 8. Output Constraint
+**8. Output Constraint**
 - Return only valid JSON.
 - Never add undocumented fields.
 
@@ -2900,7 +3017,7 @@ The Dropdown Dynamic field allows users to select from a dynamically generated l
 You can use **Reusable Components** inside the `optionsGenerator` to securely fetch data. This hides sensitive logic like API tokens and reduces duplicate code by allowing you to share the same retrieval logic across multiple dropdowns if needed.
 
 ### Dropdown Dynamic Input Field Generation Rules:
-When creating a dynamic dropdown field, adhere to the strict structure outlined in the JSON/TOON schemas format.
+- When creating a dynamic dropdown field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "dropdown"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
 - Ensure that properties related to dynamic behavior, like `canPaginate` and `enableSearchApi`, are configured correctly based on whether the endpoint supports pagination offsets or search query parameters.
@@ -3492,7 +3609,7 @@ The Multi Select Dynamic field allows users to select multiple options from a dy
 Just like the Dropdown Dynamic field, you can use **Reusable Components** inside the `optionsGenerator` to securely execute API calls and handle options generation logic cleanly, improving maintainability and code reuse.
 
 ### Multi Select Dynamic Input Field Generation Rules:
-When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
+- When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 - A proper manual input option should be carefully configured. Include `customPlaceholder` (mandatory) that illustrates how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). Optionally provide `customInputLabel` and `customHelp` to guide the user in array input formatting.
@@ -3953,35 +4070,35 @@ A Dynamic Help field is used to generate and display real-time instructional con
 ### Help Dynamic Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a dynamic help field.
 
-#### When to Use
+**When to Use**
 - Use a Dynamic Help field when the informative text or warning needs to be generated on-the-fly based on API responses or current user selections.
 
-#### 1. Core Rules
+**1. Core Rules**
 - Create an object with `type: "help"`.
 - Add the field to the `inputFields` array.
 - A dynamic help field REQUIRES a `source` property containing executable JavaScript code.
 
-#### 2. Key Rules
+**2. Key Rules**
 - `key` must be unique within `inputFields`.
 - `key` must not contain a dot (`.`).
 - `key` must be a stable identifier (e.g. `help_dynamic`, `help_page_status`).
 
-#### 3. Type Rule
+**3. Type Rule**
 - `type` must be exactly `"help"`.
 
-#### 4. Source Code Rule
+**4. Source Code Rule**
 - `source`: This property must contain the JavaScript code that executes to render the dynamic help.
 - **MANDATORY**: The code *must* return an object containing a `message` key (e.g., `return { message: 'Your text here' };`).
 - The `message` content supports plain text, HTML, and Markdown formatting.
 - *How to Use in viaSocket:* You can add this code directly in the plugin builder's "JavaScript API Call" area, or embed it in JSON using the `source` key (make sure to escape the code using EscapeJSON before pasting).
 
-#### 5. Label Rule
+**5. Label Rule**
 - `label`: An optional human-readable label displayed above the help text block (e.g., "Available Columns"). Omit this field entirely if not needed.
 
-#### 6. Visibility Condition Rule
+**6. Visibility Condition Rule**
 - `visibilityCondition`: Include this optional JavaScript condition only if the help block should conditionally render. Omit if it should evaluate and display unconditionally.
 
-#### 7. Output Constraint
+**7. Output Constraint**
 - Return only valid JSON.
 - Do not add undocumented fields (e.g., do not add generic `help` or `placeholder` attributes as they do not apply to this specific dynamic help generation block).
 
@@ -4129,7 +4246,7 @@ schema:
 The Input Group Dynamic field is designed to dynamically render an entire group of fields based on the user's prior selections or external data schemas. Instead of hardcoding every possible parameter, you can execute JavaScript at runtime to fetch a schema (like a Notion database structure or Google Sheet columns) and dynamically return an array of new fields appropriately patterned on that data (creating text strings, multiselects, dropdowns, etc., customized to the user's setup).
 
 ### Input Group Dynamic Input Field Generation Rules:
-When creating a dynamic input group field, ensure you correctly construct the field structure following the JSON/TOON schemas format.
+- When creating a dynamic input group field, ensure you correctly construct the field structure following the JSON/TOON schemas format.
 - Set `type: "input groups"` and define the essential top-level fields such as `key`, `label`, `help`, and `required`.
 - Write the `fieldsGenerator` JavaScript code to formulate the child fields.
 - **Rules for `fieldsGenerator`:**
