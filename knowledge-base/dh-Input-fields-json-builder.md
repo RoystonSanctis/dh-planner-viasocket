@@ -9,18 +9,113 @@ published: true
 - [DH Input Fields Knowledge Base](#dh-input-fields-knowledge-base)
 - [Static Input Fields](#static-input-fields)
   - [String | Date | Number | HTML | Markdown](#string-date-number-html-markdown)
+    - [String | Date | Number | HTML | Markdown Purpose:](#string-date-number-html-markdown-purpose)
+    - [String | Date | Number | HTML | Markdown Input Field Generation Rules:](#string-date-number-html-markdown-input-field-generation-rules)
+    - [String | Date | Number | HTML | Markdown JSON Schema:](#string-date-number-html-markdown-json-schema)
+    - [String | Date | Number | HTML | Markdown TOON Schema:](#string-date-number-html-markdown-toon-schema)
+    - [String | Date | Number | HTML | Markdown Examples:](#string-date-number-html-markdown-examples)
+      - [String | Date | Number | HTML | Markdown JSON Example:](#string-date-number-html-markdown-json-example)
+      - [String | Date | Number | HTML | Markdown TOON Example:](#string-date-number-html-markdown-toon-example)
   - [Dictionary](#dictionary)
+    - [Dictionary Purpose:](#dictionary-purpose)
+    - [Dictionary Input Field Generation Rules:](#dictionary-input-field-generation-rules)
+    - [Dictionary Input Field JSON Schema:](#dictionary-input-field-json-schema)
+    - [Dictionary TOON Schema:](#dictionary-toon-schema)
+    - [Dictionary Examples:](#dictionary-examples)
+      - [Dictionary JSON Example:](#dictionary-json-example)
+      - [Dictionary TOON Example:](#dictionary-toon-example)
   - [Boolean](#boolean)
+    - [Boolean Purpose:](#boolean-purpose)
+    - [Boolean Input Field Generation Rules:](#boolean-input-field-generation-rules)
+    - [Boolean JSON Schema:](#boolean-json-schema)
+    - [Boolean TOON Schema:](#boolean-toon-schema)
+    - [Boolean Examples:](#boolean-examples)
+      - [Boolean JSON Example:](#boolean-json-example)
+      - [Boolean TOON Example:](#boolean-toon-example)
   - [Dropdown Static](#dropdown-static)
+    - [Dropdown Static Purpose:](#dropdown-static-purpose)
+    - [Dropdown Static Input Field Generation Rules:](#dropdown-static-input-field-generation-rules)
+    - [Dropdown Static JSON Schema:](#dropdown-static-json-schema)
+    - [Dropdown Static TOON Schema:](#dropdown-static-toon-schema)
+    - [Dropdown Static Examples:](#dropdown-static-examples)
+      - [Dropdown Static JSON Example:](#dropdown-static-json-example)
+      - [Dropdown Static TOON Example:](#dropdown-static-toon-example)
   - [Multiselect Static](#multiselect-static)
+    - [Multiselect Static Purpose:](#multiselect-static-purpose)
+    - [Multiselect Static Input Field Generation Rules:](#multiselect-static-input-field-generation-rules)
+    - [Multiselect Static JSON Schema:](#multiselect-static-json-schema)
+    - [Multiselect Static TOON Schema:](#multiselect-static-toon-schema)
+    - [Multiselect Static JSON Example:](#multiselect-static-json-example)
+    - [Multiselect Static TOON Schema:](#multiselect-static-toon-schema)
   - [AI Field](#ai-field)
+    - [AI Field Purpose:](#ai-field-purpose)
+    - [AI Field Input Field Generation Rules:](#ai-field-input-field-generation-rules)
+    - [AI Field JSON Schema:](#ai-field-json-schema)
+    - [AI Field TOON Schema:](#ai-field-toon-schema)
+    - [AI Field Examples](#ai-field-examples)
+      - [AI Field JSON Example:](#ai-field-json-example)
+      - [AI Field TOON Example:](#ai-field-toon-example)
   - [Help Static](#help-static)
+    - [Help Static Purpose:](#help-static-purpose)
+    - [Help Static Input Field Generation Rules:](#help-static-input-field-generation-rules)
+    - [Help Static JSON Schema:](#help-static-json-schema)
+    - [Help Static TOON Schema:](#help-static-toon-schema)
+    - [Help Static Examples:](#help-static-examples)
+      - [Help Static JSON Example:](#help-static-json-example)
+      - [Help Static TOON Example:](#help-static-toon-example)
   - [Input Group Static](#input-group-static)
+    - [Input Group Static Purpose:](#input-group-static-purpose)
+    - [Input Group Static Input Field Generation Rules:](#input-group-static-input-field-generation-rules)
+    - [Input Group Static JSON Schema:](#input-group-static-json-schema)
+    - [Input Group Static TOON Schema:](#input-group-static-toon-schema)
+    - [Input Group Static Examples:](#input-group-static-examples)
+      - [Input Group Static JSON Example:](#input-group-static-json-example)
+      - [Input Group Static TOON Example:](#input-group-static-toon-example)
 - [Dynamic Input Fields](#dynamic-input-fields)
   - [Dropdown Dynamic](#dropdown-dynamic)
+    - [Dropdown Dynamic Purpose:](#dropdown-dynamic-purpose)
+    - [Dropdown Dynamic Input Field Generation Rules:](#dropdown-dynamic-input-field-generation-rules)
+    - [Dropdown Dynamic JSON Schema:](#dropdown-dynamic-json-schema)
+    - [Dropdown Dynamic TOON Schema:](#dropdown-dynamic-toon-schema)
+    - [Dropdown Dynamic Examples:](#dropdown-dynamic-examples)
+      - [Dropdown Dynamic JSON Example:](#dropdown-dynamic-json-example)
+      - [Dropdown Dynamic TOON Example:](#dropdown-dynamic-toon-example)
+    - [Reusable Component In Dropdown Dynamic:](#reusable-component-in-dropdown-dynamic)
+      - [Reusable Component In Dropdown Dynamic Purpose:](#reusable-component-in-dropdown-dynamic-purpose)
+      - [Reusable Component In Dropdown Dynamic Code Rules:](#reusable-component-in-dropdown-dynamic-code-rules)
+      - [Reusable Component In Dropdown Dynamic Example Code and Usage:](#reusable-component-in-dropdown-dynamic-example-code-and-usage)
+        - [Example 1: Facebook Lead Form Dropdown Dynamic](#example-1-facebook-lead-form-dropdown-dynamic)
+        - [Example 2: Google Sheet Spreadsheet Dropdown Dynamic](#example-2-google-sheet-spreadsheet-dropdown-dynamic)
   - [Multi Select Dynamic](#multi-select-dynamic)
+    - [Multi Select Dynamic Purpose:](#multi-select-dynamic-purpose)
+    - [Multi Select Dynamic Input Field Generation Rules:](#multi-select-dynamic-input-field-generation-rules)
+    - [Multi Select Dynamic JSON Schema:](#multi-select-dynamic-json-schema)
+    - [Multi Select Dynamic TOON Schema:](#multi-select-dynamic-toon-schema)
+    - [Multi Select Dynamic Examples:](#multi-select-dynamic-examples)
+      - [Multi Select Dynamic JSON Example:](#multi-select-dynamic-json-example)
+      - [Multi Select Dynamic TOON Example:](#multi-select-dynamic-toon-example)
+    - [Reusable Component In Multi Select Dynamic:](#reusable-component-in-multi-select-dynamic)
+      - [Reusable Component In Multi Select Dynamic Purpose:](#reusable-component-in-multi-select-dynamic-purpose)
+      - [Reusable Component In Multi Select Dynamic Code Rules:](#reusable-component-in-multi-select-dynamic-code-rules)
+      - [Reusable Component In Multi Select Dynamic Example Code and Usage:](#reusable-component-in-multi-select-dynamic-example-code-and-usage)
+        - [Example 1: Google Sheets Column Multi Select Dynamic](#example-1-google-sheets-column-multi-select-dynamic)
+        - [Example 2: Notion Data Source Property Multi Select Dynamic](#example-2-notion-data-source-property-multi-select-dynamic)
   - [Help Dynamic](#help-dynamic)
+    - [Help Dynamic Purpose:](#help-dynamic-purpose)
+    - [Help Dynamic Input Field Generation Rules:](#help-dynamic-input-field-generation-rules)
+    - [Help Dynamic JSON Schema:](#help-dynamic-json-schema)
+    - [Help Dynamic TOON Schema:](#help-dynamic-toon-schema)
+    - [Help Dynamic Examples:](#help-dynamic-examples)
+      - [Help Dynamic JSON Example:](#help-dynamic-json-example)
+      - [Help Dynamic TOON Example:](#help-dynamic-toon-example)
   - [Input Group Dynamic](#input-group-dynamic)
+    - [Input Group Dynamic Purpose:](#input-group-dynamic-purpose)
+    - [Input Group Dynamic Input Field Generation Rules:](#input-group-dynamic-input-field-generation-rules)
+    - [Input Group Dynamic JSON Schema:](#input-group-dynamic-json-schema)
+    - [Input Group Dynamic TOON Schema:](#input-group-dynamic-toon-schema)
+    - [Input Group Dynamic Examples:](#input-group-dynamic-examples)
+      - [Input Group Dynamic JSON Example:](#input-group-dynamic-json-example)
+      - [Input Group Dynamic TOON Example:](#input-group-dynamic-toon-example)
 - [Special Note:](#special-note)
   - [Static Input Group: `whereClause` Feature (Special Layout)](#static-input-group-whereclause-feature-special-layout)
   - [Dropdown & Multiselect Special Cases:](#dropdown-multiselect-special-cases)
@@ -4155,7 +4250,8 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
 - Set `type: "input groups"` and define the essential top-level fields such as `key`, `label`, `help`, and `required`.
 - Write the `fieldsGenerator` JavaScript code to formulate the child fields.
 - **Rules for `fieldsGenerator`:**
-  - **Standard Return:** You **MUST** return an array of fully valid, complete field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', required: true }]`). The generated fields can be `string`, `number`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, or even nested input groups.
+  - **Standard Return:** You **MUST** return an array of fully valid, complete field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', required: true }]`). The generated fields can be `string`, `number`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, `html`, `markdown`, or even nested input groups. It supports both static and dynamic fields.
+  - **Key Normalization:** While generating the fields, the `key` MUST be normalized so that it cannot contain a full stop (`.`). For example, if column names are decided to be the key and they might contain a dot, you must predict this possibility and normalize it (e.g., by replacing dots with underscores). This is the best practice. Refer to examples in the `fieldsGenerator`.
   - **Error/Empty Return:** If dependencies are missing or no fields can be generated, return an object containing a message (e.g., `return { message: 'Please select a data source first.' };`). This functions as a warning box in the UI.
   - **Context Access:** Utilize `context?.inputData?.['other_field_key']` to pass previous user inputs directly into the generator.
 - **Reference the schema and examples:** Carefully check the **Input Group Dynamic JSON/TOON Schema** and look at the **Input Group Dynamic Examples** to see how the code queries APIs and maps the results into complex field definitions based on properties or types.
@@ -4200,7 +4296,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
                         },
                         "fieldsGenerator": {
                             "type": "string",
-                            "description": "JavaScript code that dynamically generates the nested fields. MANDATORY RULES:\n1. Standard Return: MUST return an array of complete, valid field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', ...}]`). The generated fields can be string, number, boolean, dropdown, multiselect, aifield, help, or nested input groups.\n2. Error/Empty Return: If dependencies are missing or no fields can be generated, return an object with a message (e.g., `return { message: 'Please select a data source first.' };`). This will render as a warning box in the UI.\n3. Context Access: You can use `context?.inputData?.['other_field_key']` to build logic dependent on previous user inputs."
+                            "description": "JavaScript code that dynamically generates the nested fields. MANDATORY RULES:\n1. Standard Return: MUST return an array of complete, valid field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', ...}]`). The generated fields can be string, number, boolean, dropdown, multiselect, aifield, help, html, markdown, or nested input groups. It supports both static and dynamic fields.\n2. Key Normalization: Always normalize generated field keys to ensure they do not contain a full stop (.). E.g., if using column names as keys, replace dots with underscores.\n3. Error/Empty Return: If dependencies are missing or no fields can be generated, return an object with a message (e.g., `return { message: 'Please select a data source first.' };`). This will render as a warning box in the UI.\n4. Context Access: You can use `context?.inputData?.['other_field_key']` to build logic dependent on previous user inputs."
                         },
                         "visibilityCondition": {
                             "type": "string",
@@ -4255,7 +4351,7 @@ schema:
             description: Whether interacting with this input group is mandatory.
           fieldsGenerator:
             type: string
-            description: "JavaScript code that dynamically generates the nested fields. MANDATORY RULES:\n1. Standard Return: MUST return an array of complete, valid field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', ...}]`). The generated fields can be string, number, boolean, dropdown, multiselect, aifield, help, or nested input groups.\n2. Error/Empty Return: If dependencies are missing or no fields can be generated, return an object with a message (e.g., `return { message: 'Please select a data source first.' };`). This will render as a warning box in the UI.\n3. Context Access: You can use `context?.inputData?.['other_field_key']` to build logic dependent on previous user inputs."
+            description: "JavaScript code that dynamically generates the nested fields. MANDATORY RULES:\n1. Standard Return: MUST return an array of complete, valid field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', ...}]`). The generated fields can be string, number, boolean, dropdown, multiselect, aifield, help, html, markdown, or nested input groups. It supports both static and dynamic fields.\n2. Key Normalization: Always normalize generated field keys to ensure they do not contain a full stop (.). E.g., if using column names as keys, replace dots with underscores.\n3. Error/Empty Return: If dependencies are missing or no fields can be generated, return an object with a message (e.g., `return { message: 'Please select a data source first.' };`). This will render as a warning box in the UI.\n4. Context Access: You can use `context?.inputData?.['other_field_key']` to build logic dependent on previous user inputs."
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility of the entire dynamic group. Omit if always visible.

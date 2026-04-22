@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - '*.md'
       - '**/*.md'
       - docstar.json
 jobs:
