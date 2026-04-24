@@ -6,120 +6,120 @@ published: true
 ---
 # DH Input Fields Knowledge Base Page Index
 
-- [DH Input Fields Knowledge Base](#dh-input-fields-knowledge-base)
-- [Static Input Fields](#static-input-fields)
-  - [String | Date | Number | HTML | Markdown](#string-date-number-html-markdown)
-    - [String | Date | Number | HTML | Markdown Purpose:](#string-date-number-html-markdown-purpose)
-    - [String | Date | Number | HTML | Markdown Input Field Generation Rules:](#string-date-number-html-markdown-input-field-generation-rules)
-    - [String | Date | Number | HTML | Markdown JSON Schema:](#string-date-number-html-markdown-json-schema)
-    - [String | Date | Number | HTML | Markdown TOON Schema:](#string-date-number-html-markdown-toon-schema)
-    - [String | Date | Number | HTML | Markdown Examples:](#string-date-number-html-markdown-examples)
-      - [String | Date | Number | HTML | Markdown JSON Example:](#string-date-number-html-markdown-json-example)
-      - [String | Date | Number | HTML | Markdown TOON Example:](#string-date-number-html-markdown-toon-example)
-  - [Dictionary](#dictionary)
-    - [Dictionary Purpose:](#dictionary-purpose)
-    - [Dictionary Input Field Generation Rules:](#dictionary-input-field-generation-rules)
-    - [Dictionary Input Field JSON Schema:](#dictionary-input-field-json-schema)
-    - [Dictionary TOON Schema:](#dictionary-toon-schema)
-    - [Dictionary Examples:](#dictionary-examples)
-      - [Dictionary JSON Example:](#dictionary-json-example)
-      - [Dictionary TOON Example:](#dictionary-toon-example)
-  - [Boolean](#boolean)
-    - [Boolean Purpose:](#boolean-purpose)
-    - [Boolean Input Field Generation Rules:](#boolean-input-field-generation-rules)
-    - [Boolean JSON Schema:](#boolean-json-schema)
-    - [Boolean TOON Schema:](#boolean-toon-schema)
-    - [Boolean Examples:](#boolean-examples)
-      - [Boolean JSON Example:](#boolean-json-example)
-      - [Boolean TOON Example:](#boolean-toon-example)
-  - [Dropdown Static](#dropdown-static)
-    - [Dropdown Static Purpose:](#dropdown-static-purpose)
-    - [Dropdown Static Input Field Generation Rules:](#dropdown-static-input-field-generation-rules)
-    - [Dropdown Static JSON Schema:](#dropdown-static-json-schema)
-    - [Dropdown Static TOON Schema:](#dropdown-static-toon-schema)
-    - [Dropdown Static Examples:](#dropdown-static-examples)
-      - [Dropdown Static JSON Example:](#dropdown-static-json-example)
-      - [Dropdown Static TOON Example:](#dropdown-static-toon-example)
-  - [Multiselect Static](#multiselect-static)
-    - [Multiselect Static Purpose:](#multiselect-static-purpose)
-    - [Multiselect Static Input Field Generation Rules:](#multiselect-static-input-field-generation-rules)
-    - [Multiselect Static JSON Schema:](#multiselect-static-json-schema)
-    - [Multiselect Static TOON Schema:](#multiselect-static-toon-schema)
-    - [Multiselect Static JSON Example:](#multiselect-static-json-example)
-    - [Multiselect Static TOON Schema:](#multiselect-static-toon-schema)
-  - [AI Field](#ai-field)
-    - [AI Field Purpose:](#ai-field-purpose)
-    - [AI Field Input Field Generation Rules:](#ai-field-input-field-generation-rules)
-    - [AI Field JSON Schema:](#ai-field-json-schema)
-    - [AI Field TOON Schema:](#ai-field-toon-schema)
-    - [AI Field Examples](#ai-field-examples)
-      - [AI Field JSON Example:](#ai-field-json-example)
-      - [AI Field TOON Example:](#ai-field-toon-example)
-  - [Help Static](#help-static)
-    - [Help Static Purpose:](#help-static-purpose)
-    - [Help Static Input Field Generation Rules:](#help-static-input-field-generation-rules)
-    - [Help Static JSON Schema:](#help-static-json-schema)
-    - [Help Static TOON Schema:](#help-static-toon-schema)
-    - [Help Static Examples:](#help-static-examples)
-      - [Help Static JSON Example:](#help-static-json-example)
-      - [Help Static TOON Example:](#help-static-toon-example)
-  - [Input Group Static](#input-group-static)
-    - [Input Group Static Purpose:](#input-group-static-purpose)
-    - [Input Group Static Input Field Generation Rules:](#input-group-static-input-field-generation-rules)
-    - [Input Group Static JSON Schema:](#input-group-static-json-schema)
-    - [Input Group Static TOON Schema:](#input-group-static-toon-schema)
-    - [Input Group Static Examples:](#input-group-static-examples)
-      - [Input Group Static JSON Example:](#input-group-static-json-example)
-      - [Input Group Static TOON Example:](#input-group-static-toon-example)
-- [Dynamic Input Fields](#dynamic-input-fields)
-  - [Dropdown Dynamic](#dropdown-dynamic)
-    - [Dropdown Dynamic Purpose:](#dropdown-dynamic-purpose)
-    - [Dropdown Dynamic Input Field Generation Rules:](#dropdown-dynamic-input-field-generation-rules)
-    - [Dropdown Dynamic JSON Schema:](#dropdown-dynamic-json-schema)
-    - [Dropdown Dynamic TOON Schema:](#dropdown-dynamic-toon-schema)
-    - [Dropdown Dynamic Examples:](#dropdown-dynamic-examples)
-      - [Dropdown Dynamic JSON Example:](#dropdown-dynamic-json-example)
-      - [Dropdown Dynamic TOON Example:](#dropdown-dynamic-toon-example)
-    - [Reusable Component In Dropdown Dynamic:](#reusable-component-in-dropdown-dynamic)
-      - [Reusable Component In Dropdown Dynamic Purpose:](#reusable-component-in-dropdown-dynamic-purpose)
-      - [Reusable Component In Dropdown Dynamic Code Rules:](#reusable-component-in-dropdown-dynamic-code-rules)
-      - [Reusable Component In Dropdown Dynamic Example Code and Usage:](#reusable-component-in-dropdown-dynamic-example-code-and-usage)
-        - [Example 1: Facebook Lead Form Dropdown Dynamic](#example-1-facebook-lead-form-dropdown-dynamic)
-        - [Example 2: Google Sheet Spreadsheet Dropdown Dynamic](#example-2-google-sheet-spreadsheet-dropdown-dynamic)
-  - [Multi Select Dynamic](#multi-select-dynamic)
-    - [Multi Select Dynamic Purpose:](#multi-select-dynamic-purpose)
-    - [Multi Select Dynamic Input Field Generation Rules:](#multi-select-dynamic-input-field-generation-rules)
-    - [Multi Select Dynamic JSON Schema:](#multi-select-dynamic-json-schema)
-    - [Multi Select Dynamic TOON Schema:](#multi-select-dynamic-toon-schema)
-    - [Multi Select Dynamic Examples:](#multi-select-dynamic-examples)
-      - [Multi Select Dynamic JSON Example:](#multi-select-dynamic-json-example)
-      - [Multi Select Dynamic TOON Example:](#multi-select-dynamic-toon-example)
-    - [Reusable Component In Multi Select Dynamic:](#reusable-component-in-multi-select-dynamic)
-      - [Reusable Component In Multi Select Dynamic Purpose:](#reusable-component-in-multi-select-dynamic-purpose)
-      - [Reusable Component In Multi Select Dynamic Code Rules:](#reusable-component-in-multi-select-dynamic-code-rules)
-      - [Reusable Component In Multi Select Dynamic Example Code and Usage:](#reusable-component-in-multi-select-dynamic-example-code-and-usage)
-        - [Example 1: Google Sheets Column Multi Select Dynamic](#example-1-google-sheets-column-multi-select-dynamic)
-        - [Example 2: Notion Data Source Property Multi Select Dynamic](#example-2-notion-data-source-property-multi-select-dynamic)
-  - [Help Dynamic](#help-dynamic)
-    - [Help Dynamic Purpose:](#help-dynamic-purpose)
-    - [Help Dynamic Input Field Generation Rules:](#help-dynamic-input-field-generation-rules)
-    - [Help Dynamic JSON Schema:](#help-dynamic-json-schema)
-    - [Help Dynamic TOON Schema:](#help-dynamic-toon-schema)
-    - [Help Dynamic Examples:](#help-dynamic-examples)
-      - [Help Dynamic JSON Example:](#help-dynamic-json-example)
-      - [Help Dynamic TOON Example:](#help-dynamic-toon-example)
-  - [Input Group Dynamic](#input-group-dynamic)
-    - [Input Group Dynamic Purpose:](#input-group-dynamic-purpose)
-    - [Input Group Dynamic Input Field Generation Rules:](#input-group-dynamic-input-field-generation-rules)
-    - [Input Group Dynamic JSON Schema:](#input-group-dynamic-json-schema)
-    - [Input Group Dynamic TOON Schema:](#input-group-dynamic-toon-schema)
-    - [Input Group Dynamic Examples:](#input-group-dynamic-examples)
-      - [Input Group Dynamic JSON Example:](#input-group-dynamic-json-example)
-      - [Input Group Dynamic TOON Example:](#input-group-dynamic-toon-example)
-- [Special Note:](#special-note)
-  - [Static Input Group: `whereClause` Feature (Special Layout)](#static-input-group-whereclause-feature-special-layout)
-  - [Dropdown & Multiselect Special Cases:](#dropdown-multiselect-special-cases)
-  - [Visibility Condition Rules:](#visibility-condition-rules)
+- DH Input Fields Knowledge Base
+- Static Input Fields
+  - String | Date | Number | HTML | Markdown
+    - String | Date | Number | HTML | Markdown Purpose:
+    - String | Date | Number | HTML | Markdown Input Field Generation Rules:
+    - String | Date | Number | HTML | Markdown JSON Schema:
+    - String | Date | Number | HTML | Markdown TOON Schema:
+    - String | Date | Number | HTML | Markdown Examples:
+      - String | Date | Number | HTML | Markdown JSON Example:
+      - String | Date | Number | HTML | Markdown TOON Example:
+  - Dictionary
+    - Dictionary Purpose:
+    - Dictionary Input Field Generation Rules:
+    - Dictionary Input Field JSON Schema:
+    - Dictionary TOON Schema:
+    - Dictionary Examples:
+      - Dictionary JSON Example:
+      - Dictionary TOON Example:
+  - Boolean
+    - Boolean Purpose:
+    - Boolean Input Field Generation Rules:
+    - Boolean JSON Schema:
+    - Boolean TOON Schema:
+    - Boolean Examples:
+      - Boolean JSON Example:
+      - Boolean TOON Example:
+  - Dropdown Static
+    - Dropdown Static Purpose:
+    - Dropdown Static Input Field Generation Rules:
+    - Dropdown Static JSON Schema:
+    - Dropdown Static TOON Schema:
+    - Dropdown Static Examples:
+      - Dropdown Static JSON Example:
+      - Dropdown Static TOON Example:
+  - Multiselect Static
+    - Multiselect Static Purpose:
+    - Multiselect Static Input Field Generation Rules:
+    - Multiselect Static JSON Schema:
+    - Multiselect Static TOON Schema:
+    - Multiselect Static JSON Example:
+    - Multiselect Static TOON Schema:
+  - AI Field
+    - AI Field Purpose:
+    - AI Field Input Field Generation Rules:
+    - AI Field JSON Schema:
+    - AI Field TOON Schema:
+    - AI Field Examples
+      - AI Field JSON Example:
+      - AI Field TOON Example:
+  - Help Static
+    - Help Static Purpose:
+    - Help Static Input Field Generation Rules:
+    - Help Static JSON Schema:
+    - Help Static TOON Schema:
+    - Help Static Examples:
+      - Help Static JSON Example:
+      - Help Static TOON Example:
+  - Input Group Static
+    - Input Group Static Purpose:
+    - Input Group Static Input Field Generation Rules:
+    - Input Group Static JSON Schema:
+    - Input Group Static TOON Schema:
+    - Input Group Static Examples:
+      - Input Group Static JSON Example:
+      - Input Group Static TOON Example:
+- Dynamic Input Fields
+  - Dropdown Dynamic
+    - Dropdown Dynamic Purpose:
+    - Dropdown Dynamic Input Field Generation Rules:
+    - Dropdown Dynamic JSON Schema:
+    - Dropdown Dynamic TOON Schema:
+    - Dropdown Dynamic Examples:
+      - Dropdown Dynamic JSON Example:
+      - Dropdown Dynamic TOON Example:
+    - Reusable Component In Dropdown Dynamic:
+      - Reusable Component In Dropdown Dynamic Purpose:
+      - Reusable Component In Dropdown Dynamic Code Rules:
+      - Reusable Component In Dropdown Dynamic Example Code and Usage:
+        - Example 1: Facebook Lead Form Dropdown Dynamic
+        - Example 2: Google Sheet Spreadsheet Dropdown Dynamic
+  - Multi Select Dynamic
+    - Multi Select Dynamic Purpose:
+    - Multi Select Dynamic Input Field Generation Rules:
+    - Multi Select Dynamic JSON Schema:
+    - Multi Select Dynamic TOON Schema:
+    - Multi Select Dynamic Examples:
+      - Multi Select Dynamic JSON Example:
+      - Multi Select Dynamic TOON Example:
+    - Reusable Component In Multi Select Dynamic:
+      - Reusable Component In Multi Select Dynamic Purpose:
+      - Reusable Component In Multi Select Dynamic Code Rules:
+      - Reusable Component In Multi Select Dynamic Example Code and Usage:
+        - Example 1: Google Sheets Column Multi Select Dynamic
+        - Example 2: Notion Data Source Property Multi Select Dynamic
+  - Help Dynamic
+    - Help Dynamic Purpose:
+    - Help Dynamic Input Field Generation Rules:
+    - Help Dynamic JSON Schema:
+    - Help Dynamic TOON Schema:
+    - Help Dynamic Examples:
+      - Help Dynamic JSON Example:
+      - Help Dynamic TOON Example:
+  - Input Group Dynamic
+    - Input Group Dynamic Purpose:
+    - Input Group Dynamic Input Field Generation Rules:
+    - Input Group Dynamic JSON Schema:
+    - Input Group Dynamic TOON Schema:
+    - Input Group Dynamic Examples:
+      - Input Group Dynamic JSON Example:
+      - Input Group Dynamic TOON Example:
+- Special Note:
+  - Static Input Group: `whereClause` Feature (Special Layout)
+  - Dropdown & Multiselect Special Cases:
+  - Visibility Condition Rules:
 
 # DH Input Fields Knowledge Base
 
@@ -4371,13 +4371,13 @@ schema:
     "required": true,
     "fieldsGenerator": "try {\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context?.inputData?.data_source_id}`;\n    const response = await axios.get(columnsApiUrl, {  \n        headers: { \"Notion-Version\": \"2025-09-03\" }\n    });\n\n    // Get the selected fields from input\n    const selectedFields = context?.inputData?.choose_fields || [];\n\n    const returnDropdown = (array) => {\n        return array.slice(0, 10).map((key) => ({\n            label: key?.name,\n            value: key?.name\n        }));\n    };\n\n    const returnPersonDropdown = (array) => {\n        return array.map((key) => ({\n            label: key?.name, \n            sample: key?.id,\n            value: key?.id\n        }));\n    };\n\n    async function getPersonsOnly() {\n        const url = \"https://api.notion.com/v1/users?page_size=50\";\n        const response = await fetch(url, {\n            method: \"GET\",\n            headers: { \"Notion-Version\": \"2025-09-03\" }\n        });\n\n        if (!response.ok) {\n            throw new Error(`Error fetching users: ${response.status} ${response.statusText}`);\n        }\n\n        const data = await response.json();\n        const persons = data.results.filter(user => user.type === \"person\");\n        return returnPersonDropdown(persons);\n    }\n\n    const usersList = await getPersonsOnly();\n\n    const returnUpdateData = (array) => {\n        return array\n            .filter((key) => \n                !['rollup','created_by', 'created_time', 'last_edited_by', 'last_edited_time','files','unique_id','formula','button','place','verification'].includes(key.type) \n                && (selectedFields.length === 0 || selectedFields.includes(key.name)) // Filter by selected fields\n            )\n            .map((key) => {\n                let helpText = \"\";\n                let placeholderHint = `Enter ${key.name}`;\n                \n                if (key.type === 'relation') {\n                    helpText = \"Provide page ID(s) and separate by comma for multiple IDs.\";\n                    placeholderHint = \"Eg. 13fe3a00-095c-8028-a32f-c122e54f492d , 13fe3a00-095c-80c5-b026-eb65d1a741b1\";\n                } else if (key.type === 'select') {\n                    helpText = \"Select one option from the dropdown or map custom input\";\n                    placeholderHint = `Select ${key.name}`;\n                } else if (key.type === 'multi_select') {\n                    helpText = \"Enter multiple options by separating them with array.\";\n                    placeholderHint = `Choose ${key.name}`;\n                } else if (key.type === 'date') {\n                    helpText = `Enter ${key.name} in ISO date format, e.g., '2025-01-14' or '2025-01-14T11:15:47+05:30'. For passing start date and end date, pass two dates by comma separated. Eg. '2025-01-14T11:15:47+05:30 , 2025-01-16T12:00:00+05:30'`;\n                    placeholderHint = \"Eg. 2025-01-14T11:15:47+05:30\"; \n                } else if (key.type === 'people') {\n                    helpText = `Choose ${key.name}`;\n                    placeholderHint = `Choose ${key.name}`;\n                } else if (key.type === 'number') {\n                    helpText = \"Enter a valid number.\";\n                    placeholderHint = \"Enter number\";\n                } else if (key.type === 'checkbox') {\n                    helpText = \"Select true or false.\";\n                } else if (key.type === 'email') {\n                    helpText = `Enter a valid email address for ${key.name}.`;\n                    placeholderHint = \"Eg. email@domain.com\";\n                } else if (key.type === 'phone_number') {\n                    helpText = `Enter a valid phone number for ${key.name}.`;\n                    placeholderHint = \"Eg. +919535420XXX\"; \n                } else if (key.type === 'url') {\n                    helpText = `Enter a valid URL for ${key.name}.`;\n                    placeholderHint = \"Eg. https://example.com\";\n                } else if (key.type === 'status') {\n                    helpText = `Select a ${key.name} from the dropdown options.`;\n                    placeholderHint = `Choose ${key.name}`;\n                } else {\n                    helpText = `Enter ${key.name} in text format.`;\n                }\n\n            if (key.type === 'select') {\n    const dynamicKey = key.name + \":@:\" + key.type;\n\n    return {\n        key: dynamicKey,\n        label: key.name,\n        type: 'dropdown',\n        required: false,\n        help: helpText,\n        customPlaceholder: \" \",\n        placeholder: placeholderHint,\n        canPaginate: true,\n        optionsGenerator: `\n            // Dynamic offset key\n            const offsetKey = \"dynamic_field.${dynamicKey}\";\n            const offset = Number(context?.paginateData?.[offsetKey] || 0);\n            const LIMIT = 20;\n\n            // Pagination helper\n            const paginate = (arr, offset = 0, limit = 20) => {\n                const slice = arr.slice(offset, offset + limit);\n                const nextOffset = offset + limit < arr.length ? offset + limit : null;\n                return { data: slice, offset: nextOffset };\n            };\n\n            try {\n                const url = \\`https://api.notion.com/v1/data_sources/\\${context?.inputData?.data_source_id}\\`;\n                const response = await axios.get(url, {\n                    headers: { \"Notion-Version\": \"2025-09-03\" }\n                });\n\n                // Force selected field = current field\n                const selectedFields = [\"${key.name}\"];\n                const selectedFieldName = selectedFields[0];\n\n                const properties = response.data.properties;\n                const fieldsArray = Object.values(properties);\n                const field = fieldsArray.find(f => f.name === selectedFieldName);\n\n                if (!field) throw new Error(\"Field not found in Notion properties.\");\n\n                // Fetch options\n                let options = [];\n                if (field.type === \"select\") options = field.select.options;\n                if (field.type === \"multi_select\") options = field.multi_select.options;\n                if (field.type === \"status\") options = field.status.options;\n\n                if (!options.length) {\n                    return { data: [], offset: null };\n                }\n\n                const mapped = options.map(opt => ({\n                    label: opt.name,\n                    value: opt.name\n                }));\n\n                return paginate(mapped, offset, LIMIT);\n\n            } catch (err) {\n                throw err?.response?.data || err;\n            }\n        `\n    };\n}\n                else if (key.type === 'number') {\n                    return {\n                        key: key.name + \":@:\" + key.type,\n                        label: key.name,\n                        type: 'number',\n                        required: false,\n                        help: helpText,\n                        placeholder: placeholderHint\n                    };\n                } else if (key.type === 'multi_select') {\n                    return {\n                        key: key.name + \":@:\" + key.type,\n                        label: key.name,\n                        type: 'multiselect',\n                        required: false,\n                        help: helpText,\n                        customPlaceholder: \"Eg. [\\\"Tag 1\\\",\\\"Tag 2\\\"]\",\n                        placeholder: placeholderHint,\n                        options: returnDropdown(key?.multi_select?.options)\n                    };\n                } else if (key.type === 'people') {\n                    return {\n                        key: key.name + \":@:\" + key.type,\n                        label: key.name,\n                        type: 'multiselect',\n                        required: false,\n                        help: helpText,\n                        customPlaceholder: \"Eg. [\\\"29109834-e6a6-4847-b627-368817cf83fa\\\",\\\"1edd872b-594c-8165-89a5-000280c9e8d0\\\"]\",\n                        customInputLabel: \"Enter the people ID as an array\",\n                        placeholder: placeholderHint,\n                        options: usersList\n                    };\n                } else if (key.type === 'status') {\n                    return {\n                        key: key.name + \":@:\" + key.type,\n                        label: key.name,\n                        type: 'dropdown',\n                        required: false,\n                        help: helpText,\n                        customPlaceholder: `Enter ${key.name}`,\n                        placeholder: placeholderHint,\n                        children: returnDropdown(key?.status?.options)\n                    };\n                } else if (key.type === 'checkbox') {\n                    return {\n                        key: key.name + \":@:\" + key.type,\n                        label: key.name,\n                        type: 'boolean',\n                        required: false,\n                        help: helpText,\n                        options: [\n                            { label: 'True', value: true },\n                            { label: 'False', value: false }\n                        ]\n                    };\n                } else {\n                    return {\n                        key: key.name + \":@:\" + key.type,\n                        label: key.name,\n                        type: 'string',\n                        required: false,\n                        help: helpText,\n                        placeholder: placeholderHint\n                    };\n                }\n            });\n    };\n\n    const arr = response.data.properties;\n    const first = Object.values(arr);\n    return returnUpdateData(first);\n\n} catch (error) {\n  const apiError = error?.response?.data || error;\n  throw apiError;\n}"
   },
-  {
+    {
     "key": "column_name",
     "help": "Enter the Column Values.",
     "type": "input groups",
     "label": "Column Values",
     "required": true,
-    "fieldsGenerator": "const column_key = context?.inputData?.column_key ?? false;\nconst selectedColumns = context.inputData.column_selected || [];\n\nif (selectedColumns.length === 0) {\n  return { message: \"Please reselect columns. No columns were selected.\" };\n}\n\nfunction getColumnLetter(index) {\n  let letter = '';\n  let temp = index;\n  while (temp >= 0) {\n    letter = String.fromCharCode(65 + (temp % 26)) + letter;\n    temp = Math.floor(temp / 26) - 1;\n  }\n  return letter || 'A';\n}\n\nconst inputFields = selectedColumns.map(selected => {\n  let columnName, columnLetter, key, label, help, placeholder;\n\n  if (column_key) {\n    const parts = selected.split('--');\n    if (parts.length !== 2) return null;\n\n    const sanitizedHeader = parts[0]; // e.g., \"Header_6.\"\n    const index = parseInt(parts[1], 10);\n    if (isNaN(index)) return null;\n\n    columnLetter = getColumnLetter(index);\n\n    // For display: replace underscores with spaces, but keep dots intact\n    const displayName = sanitizedHeader.replace(/_/g, ' ').trim(); // \"Header 6.\"\n\n    // For key: ensure dot is replaced with underscore (safe for object keys)\n    const safeKeyName = sanitizedHeader.replace(/\\./g, '_'); // \"Header_6_\"\n\n    key = `${safeKeyName}--${columnLetter}`;           // e.g., \"Header_6_--F\"\n    label = `${displayName} (Column ${columnLetter})`; // e.g., \"Header 6. (Column F)\"\n    help = `Enter value for ${displayName}`;\n\n    columnName = displayName; // optional, for consistency\n     placeholder = 'map data or enter value'\n\n  } else {\n    columnLetter = selected.trim().toUpperCase();\n    if (!/^[A-Z]+$/.test(columnLetter)) return null;\n\n    key = `${columnLetter}--${columnLetter}`;\n    label = `Column ${columnLetter}`;\n    help = `Enter value for Column ${columnLetter}`;\n   placeholder = 'map data or enter value'\n  }\n\n  return {\n    key,\n    label,\n    type: 'string',\n    required: true,\n    help,\n    placeholder\n  };\n}).filter(Boolean);\n\nif (inputFields.length === 0) {\n  return { message: \"No valid columns selected. Please reselect columns.\" };\n}\n\nreturn inputFields;"
+    "fieldsGenerator": "const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nconst sheetIdentifier = context?.inputData?.grid_Id;\nconst column_key = context?.inputData?.column_key ?? true;\nconst selectedColumns = context.inputData.column_selected || [];\n \nif (selectedColumns.length === 0) {\n  return { message: \"Please reselect columns. No columns were selected.\" };\n}\n\nfunction getColumnLetter(index) {\n  let letter = '';\n  let temp = index;\n  while (temp >= 0) {\n    letter = String.fromCharCode(65 + (temp % 26)) + letter;\n    temp = Math.floor(temp / 26) - 1;\n  }\n  return letter || 'A';\n}\n\nlet inputFields = [];\n\nif (!column_key) {\n  // ==================== LETTER MODE (column_key = false) ====================\n  inputFields = selectedColumns.map(selected => {\n    const columnLetter = selected.trim().toUpperCase();\n    if (!/^[A-Z]+$/.test(columnLetter)) return null;\n    return {\n      key: columnLetter,\n      label: `Column ${columnLetter}`,\n      type: 'string',\n      required: true,\n      help: `Enter value for Column ${columnLetter}`,\n      placeholder: `Map data or enter value`\n    };\n  });\n} else {\n  // ==================== NAME MODE (column_key = true) ====================\n  const allColumns = await fetchSheetColumns(spreadsheet_Id, sheetIdentifier, true);\n\n  // Count name occurrences for duplicate detection\n  const nameCount = {};\n  allColumns.forEach(col => {\n    nameCount[col.label] = (nameCount[col.label] || 0) + 1;\n  });\n\n  inputFields = selectedColumns.map(selectedValue => {\n    // Find the matching column object\n    const matchedCol = allColumns.find(col => col.value === selectedValue);\n    if (!matchedCol) return null;\n\n    const originalLabel = matchedCol.label;\n    const isDuplicate = nameCount[originalLabel] > 1;\n\n    // === Correct way to get column letter ===\n    let columnLetter = 'A';\n    let columnIndex = -1;\n\n    if (selectedValue.includes('--')) {\n      // Case: duplicate column → value = \"Status--D\"\n      const parts = selectedValue.split('--');\n      columnLetter = parts[1].trim().toUpperCase();\n    } else {\n      // Case: unique column → value = \"Name\"\n      // Find its actual position in the sheet\n      columnIndex = allColumns.findIndex(col => col.value === selectedValue);\n      columnLetter = getColumnLetter(columnIndex);\n    }\n\n    let key, label;\n\n    if (isDuplicate) {\n      // Duplicate → key = \"Label_With_No_Dots--D\"\n      // Only replace dots (.) with underscores (_)\n      const safeName = originalLabel.replace(/\\./g, '_');\n\n      key = `${safeName}--${columnLetter}`;\n      label = `${originalLabel} (Column ${columnLetter})`;\n    } else {\n      // Unique → key = cleaned name (only replace dots with underscores)\n      key = originalLabel.replace(/\\./g, '_');\n      label = originalLabel;\n    }\n\n    return {\n      key,\n      label,\n      type: 'string',\n      required: true,\n      help: `Enter value for ${originalLabel}`,\n      placeholder: `Map data or enter value`\n    };\n  });\n}\n\ninputFields = inputFields.filter(Boolean);\n\nif (inputFields.length === 0) {\n  return { message: \"No valid columns selected. Please reselect columns.\" };\n}\n\nreturn inputFields;"
   },
   {
     "key": "dynamic_agent_variables",
@@ -4404,7 +4404,7 @@ schema:
     type: input groups
     label: Column Values
     required: true
-    fieldsGenerator: "const column_key = context?.inputData?.column_key ?? false;\nconst selectedColumns = context.inputData.column_selected || [];\n\nif (selectedColumns.length === 0) {\n  return { message: \"Please reselect columns. No columns were selected.\" };\n}\n\nfunction getColumnLetter(index) {\n  let letter = '';\n  let temp = index;\n  while (temp >= 0) {\n    letter = String.fromCharCode(65 + (temp % 26)) + letter;\n    temp = Math.floor(temp / 26) - 1;\n  }\n  return letter || 'A';\n}\n\nconst inputFields = selectedColumns.map(selected => {\n  let columnName, columnLetter, key, label, help, placeholder;\n\n  if (column_key) {\n    const parts = selected.split('--');\n    if (parts.length !== 2) return null;\n\n    const sanitizedHeader = parts[0]; // e.g., \"Header_6.\"\n    const index = parseInt(parts[1], 10);\n    if (isNaN(index)) return null;\n\n    columnLetter = getColumnLetter(index);\n\n    // For display: replace underscores with spaces, but keep dots intact\n    const displayName = sanitizedHeader.replace(/_/g, ' ').trim(); // \"Header 6.\"\n\n    // For key: ensure dot is replaced with underscore (safe for object keys)\n    const safeKeyName = sanitizedHeader.replace(/\\./g, '_'); // \"Header_6_\"\n\n    key = `${safeKeyName}--${columnLetter}`;           // e.g., \"Header_6_--F\"\n    label = `${displayName} (Column ${columnLetter})`; // e.g., \"Header 6. (Column F)\"\n    help = `Enter value for ${displayName}`;\n\n    columnName = displayName; // optional, for consistency\n     placeholder = 'map data or enter value'\n\n  } else {\n    columnLetter = selected.trim().toUpperCase();\n    if (!/^[A-Z]+$/.test(columnLetter)) return null;\n\n    key = `${columnLetter}--${columnLetter}`;\n    label = `Column ${columnLetter}`;\n    help = `Enter value for Column ${columnLetter}`;\n   placeholder = 'map data or enter value'\n  }\n\n  return {\n    key,\n    label,\n    type: 'string',\n    required: true,\n    help,\n    placeholder\n  };\n}).filter(Boolean);\n\nif (inputFields.length === 0) {\n  return { message: \"No valid columns selected. Please reselect columns.\" };\n}\n\nreturn inputFields;"
+    fieldsGenerator: "const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nconst sheetIdentifier = context?.inputData?.grid_Id;\nconst column_key = context?.inputData?.column_key ?? true;\nconst selectedColumns = context.inputData.column_selected || [];\n \nif (selectedColumns.length === 0) {\n  return { message: \"Please reselect columns. No columns were selected.\" };\n}\n\nfunction getColumnLetter(index) {\n  let letter = '';\n  let temp = index;\n  while (temp >= 0) {\n    letter = String.fromCharCode(65 + (temp % 26)) + letter;\n    temp = Math.floor(temp / 26) - 1;\n  }\n  return letter || 'A';\n}\n\nlet inputFields = [];\n\nif (!column_key) {\n  // ==================== LETTER MODE (column_key = false) ====================\n  inputFields = selectedColumns.map(selected => {\n    const columnLetter = selected.trim().toUpperCase();\n    if (!/^[A-Z]+$/.test(columnLetter)) return null;\n    return {\n      key: columnLetter,\n      label: `Column ${columnLetter}`,\n      type: 'string',\n      required: true,\n      help: `Enter value for Column ${columnLetter}`,\n      placeholder: `Map data or enter value`\n    };\n  });\n} else {\n  // ==================== NAME MODE (column_key = true) ====================\n  const allColumns = await fetchSheetColumns(spreadsheet_Id, sheetIdentifier, true);\n\n  // Count name occurrences for duplicate detection\n  const nameCount = {};\n  allColumns.forEach(col => {\n    nameCount[col.label] = (nameCount[col.label] || 0) + 1;\n  });\n\n  inputFields = selectedColumns.map(selectedValue => {\n    // Find the matching column object\n    const matchedCol = allColumns.find(col => col.value === selectedValue);\n    if (!matchedCol) return null;\n\n    const originalLabel = matchedCol.label;\n    const isDuplicate = nameCount[originalLabel] > 1;\n\n    // === Correct way to get column letter ===\n    let columnLetter = 'A';\n    let columnIndex = -1;\n\n    if (selectedValue.includes('--')) {\n      // Case: duplicate column → value = \"Status--D\"\n      const parts = selectedValue.split('--');\n      columnLetter = parts[1].trim().toUpperCase();\n    } else {\n      // Case: unique column → value = \"Name\"\n      // Find its actual position in the sheet\n      columnIndex = allColumns.findIndex(col => col.value === selectedValue);\n      columnLetter = getColumnLetter(columnIndex);\n    }\n\n    let key, label;\n\n    if (isDuplicate) {\n      // Duplicate → key = \"Label_With_No_Dots--D\"\n      // Only replace dots (.) with underscores (_)\n      const safeName = originalLabel.replace(/\\./g, '_');\n\n      key = `${safeName}--${columnLetter}`;\n      label = `${originalLabel} (Column ${columnLetter})`;\n    } else {\n      // Unique → key = cleaned name (only replace dots with underscores)\n      key = originalLabel.replace(/\\./g, '_');\n      label = originalLabel;\n    }\n\n    return {\n      key,\n      label,\n      type: 'string',\n      required: true,\n      help: `Enter value for ${originalLabel}`,\n      placeholder: `Map data or enter value`\n    };\n  });\n}\n\ninputFields = inputFields.filter(Boolean);\n\nif (inputFields.length === 0) {\n  return { message: \"No valid columns selected. Please reselect columns.\" };\n}\n\nreturn inputFields;"
   - key: dynamic_agent_variables
     help: Fill in the required variables for the selected AI Agent
     type: input groups

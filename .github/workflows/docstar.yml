@@ -64,44 +64,45 @@ jobs:
                   content: null
                 }' > /tmp/file_obj.json
             else
-              CONTENT=$(jq -Rs . < "$FILE")
-
-              jq -n \
+              jq -Rs \
                 --arg path "$FILE" \
                 --arg status "$STATUS" \
-                --argjson content "$CONTENT" \
                 '{
                   path: $path,
                   status: $status,
-                  content: $content
-                }' > /tmp/file_obj.json
+                  content: .
+                }' < "$FILE" > /tmp/file_obj.json
             fi
 
-            jq ". + [$(cat /tmp/file_obj.json)]" /tmp/files.json > /tmp/files_new.json
+            jq -s '.[0] + [.[1]]' /tmp/files.json /tmp/file_obj.json > /tmp/files_new.json
             mv /tmp/files_new.json /tmp/files.json
 
           done <<< "$CHANGED"
 
 
-          FILES_JSON=$(cat /tmp/files.json)
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg branch "${{ github.ref_name }}" \
+            --arg commit "${{ github.sha }}" \
+            --arg collection "$DOCSTAR_COLLECTION_ID" \
+            --slurpfile files /tmp/files.json \
+            '{
+              repository: $repo,
+              branch: $branch,
+              commit: $commit,
+              collectionId: $collection,
+              files: $files[0]
+            }' > /tmp/payload.json
 
 
-          echo "Final Payload:"
-
-          echo "$FILES_JSON"
+          echo "Final Payload created at /tmp/payload.json"
 
 
           RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
             -X POST https://api.docstar.io/import/github \
             -H "Authorization: Bearer $DOCSTAR_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"repository\": \"${{ github.repository }}\",
-              \"branch\": \"${{ github.ref_name }}\",
-              \"commit\": \"${{ github.sha }}\",
-              \"collectionId\": \"$DOCSTAR_COLLECTION_ID\",
-              \"files\": $FILES_JSON
-            }")
+            -d @/tmp/payload.json)
 
           echo "$RESPONSE"
 
