@@ -117,9 +117,9 @@ published: true
       - Input Group Dynamic JSON Example:
       - Input Group Dynamic TOON Example:
 - Special Note:
-  - Static Input Group: `whereClause` Feature (Special Layout)
-  - Dropdown & Multiselect Special Cases:
-  - Visibility Condition Rules:
+  - Special Note: Static Input Group: `whereClause` Feature (Special Layout)
+  - Special Note: Dropdown & Multiselect Special Cases:
+  - Special Note: Visibility Condition Rules:
 
 # DH Input Fields Knowledge Base
 
@@ -131,7 +131,7 @@ The input fields, which are static, have fixed values. The depends on other feil
 
 ## String | Date | Number | HTML | Markdown
 
-### String | Date | Number | HTML | Markdown Purpose:
+**String | Date | Number | HTML | Markdown Purpose:**
 - A String is a basic input type used to capture plain text values such as names, titles, identifiers, or short descriptions. It is suitable when the input is textual and does not require numeric calculation or formatting.
 - A Date input type is used to capture calendar-based values such as dates, times, or date-time combinations. It ensures the input follows a valid date or time format.
 - A Number input type is used to capture numeric values such as amounts, prices, counts, quantities, or any value that may be used in calculations or comparisons.
@@ -451,7 +451,7 @@ schema:
 
 ## Dictionary
 
-### Dictionary Purpose:
+**Dictionary Purpose:**
 A Dictionary (also called Map or Key-Value Pair) is a special input type in viaSocket that lets users dynamically define custom pairs of keys and values. This provides high flexibility when the structure of input data is variable or unknown in advance.
 
 ### Dictionary Input Field Generation Rules:
@@ -759,7 +759,7 @@ schema:
 
 ## Boolean
 
-### Boolean Purpose:
+**Boolean Purpose:**
 A Boolean input type is used to represent a binary configuration choice where each option maps directly to a `true` or `false` value in the system. While it appears as a simple yes/no decision to the user, it often controls feature toggles, behavioral modes, or execution paths in the underlying logic.
 
 This input type is ideal when:
@@ -1153,7 +1153,7 @@ schema:
 
 ## Dropdown Static
 
-### Dropdown Static Purpose:
+**Dropdown Static Purpose:**
 
 A Static Dropdown input type is used when the user must select one value from a predefined, fixed list of options. It is suitable when all possible values are known in advance and should not change dynamically.
 
@@ -1659,7 +1659,7 @@ schema:
 
 ## Multiselect Static
 
-### Multiselect Static Purpose:
+**Multiselect Static Purpose:**
 
 A Static Multiselect input type is used when the user needs to select multiple values from a predefined list of options. It is suitable when all selectable values are known in advance and multiple selections are allowed.
 
@@ -2034,7 +2034,7 @@ schema:
 
 ## AI Field
 
-### AI Field Purpose:
+**AI Field Purpose:**
 
 The AI Field provides customizable AI responses to automate processes based on structured prompts and dynamic data inputs. The user interacts with the AI only during setup configuration, allowing the AI to generate a structured response that is then used in the perform code.
 
@@ -2259,7 +2259,7 @@ schema:
 
 ## Help Static
 
-### Help Static Purpose:
+**Help Static Purpose:**
 
 A Static Help field is used to display static instructional content, warnings, or detailed guides directly within the UI (typically presented as an info block). It does not natively accept user input but instead provides structured information using plain text, HTML, or Markdown to guide the user during setup or configuration.
 
@@ -2406,7 +2406,7 @@ schema:
 
 ## Input Group Static
 
-### Input Group Static Purpose:
+**Input Group Static Purpose:**
 
 An Input Group Static field is used to logically group related input fields together under a single label and optional help text. It helps organize complex forms and, by leveraging the `whereClause` feature, can uniquely display nested dropdown and multiselect fields inline as a readable sentence.
 
@@ -3012,7 +3012,7 @@ schema:
 
 ## Dropdown Dynamic
 
-### Dropdown Dynamic Purpose:
+**Dropdown Dynamic Purpose:**
 The Dropdown Dynamic field allows users to select from a dynamically generated list of options. These options are usually fetched via an API call or calculated by custom logic at runtime. This is highly effective for paginated lists, searchable item lists, or data retrieved directly from external integrations. 
 You can use **Reusable Components** inside the `optionsGenerator` to securely fetch data. This hides sensitive logic like API tokens and reduces duplicate code by allowing you to share the same retrieval logic across multiple dropdowns if needed.
 
@@ -3375,7 +3375,7 @@ schema:
 ```
 ### Reusable Component In Dropdown Dynamic:
 
-#### Reusable Component In Dropdown Dynamic Purpose:
+**Reusable Component In Dropdown Dynamic Purpose:**
 
 Reusable components let you write sensitive or reusable logic (like API calls or JS functions) once and use them anywhere JS code is allowed — such as inside `optionsGenerator`.
 They help keep your plugin code cleaner, safer, and easier to maintain.
@@ -3604,7 +3604,7 @@ Usage inside a dynamic dropdown's `optionsGenerator`:
 
 ## Multi Select Dynamic
 
-### Multi Select Dynamic Purpose:
+**Multi Select Dynamic Purpose:**
 The Multi Select Dynamic field allows users to select multiple options from a dynamically generated list. These options are typically fetched via an API call or returned by custom logic at runtime. This is highly effective when users need to pick multiple items simultaneously, such as filtering by multiple properties or selecting several columns to return.
 Just like the Dropdown Dynamic field, you can use **Reusable Components** inside the `optionsGenerator` to securely execute API calls and handle options generation logic cleanly, improving maintainability and code reuse.
 
@@ -3867,7 +3867,7 @@ schema:
 
 ### Reusable Component In Multi Select Dynamic:
 
-#### Reusable Component In Multi Select Dynamic Purpose:
+**Reusable Component In Multi Select Dynamic Purpose:**
 
 Reusable components let you write sensitive or reusable logic (like API calls or JS functions) once and use them anywhere JS code is allowed — such as inside `optionsGenerator`.
 They help keep your plugin code cleaner, safer, and easier to maintain.
@@ -4057,7 +4057,7 @@ Usage inside a dynamic multiselect's `optionsGenerator`:
 ```
 ## Help Dynamic
 
-### Help Dynamic Purpose:
+**Help Dynamic Purpose:**
 
 A Dynamic Help field is used to generate and display real-time instructional content, validation messages, or warnings based on contextual API calls or internal logic. Unlike a Static Help field, it runs custom JavaScript to determine the content to show. This allows the plugin to react to user inputs dynamically to provide contextual assistance. 
 
@@ -4242,7 +4242,7 @@ schema:
 
 ## Input Group Dynamic
 
-### Input Group Dynamic Purpose:
+**Input Group Dynamic Purpose:**
 The Input Group Dynamic field is designed to dynamically render an entire group of fields based on the user's prior selections or external data schemas. Instead of hardcoding every possible parameter, you can execute JavaScript at runtime to fetch a schema (like a Notion database structure or Google Sheet columns) and dynamically return an array of new fields appropriately patterned on that data (creating text strings, multiselects, dropdowns, etc., customized to the user's setup).
 
 ### Input Group Dynamic Input Field Generation Rules:
@@ -4416,7 +4416,7 @@ schema:
 
 # Special Note:
 
-## Static Input Group: `whereClause` Feature (Special Layout)
+## Special Note: Static Input Group: `whereClause` Feature (Special Layout)
 The `whereClause` feature allows you to display an input group as a readable sentence instead of separate fields. It transforms input groups into sentence-based configurations, improving UX and making workflows feel more natural by reducing confusion in complex actions.
 
 **Key Characteristics & Limitations:**
@@ -4431,7 +4431,7 @@ Instead of showing stacked disconnected fields (*Select Media, Select Type*), yo
 When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 1. **The `sample` attribute**: The `sample` string must **always** be identical to the option's `value`. MANDATORY RULE: If the value is an ID, the `sample` MUST be included. If the `label` and `sample` are exactly the same, then NO `sample` is needed. Omit otherwise.
 2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This is particularly useful for driving complex visibility conditions or dynamic `fieldsGenerator` logic, which can easily evaluate this hidden state via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
-## Visibility Condition Rules:
+## Special Note: Visibility Condition Rules:
 
 When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed.
 

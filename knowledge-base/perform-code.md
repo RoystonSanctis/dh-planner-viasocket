@@ -364,6 +364,7 @@ return await fetchItemsOptimized();
 - **Service:** Notion
 - **Trigger:** New Data Source Item Created
 - **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
 
 ```javascript
 async function newdatasourceItem() {
@@ -422,6 +423,7 @@ return await newdatasourceItem();
 - **Service:** Notion
 - **Trigger:** Updated Data Source Item
 - **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
 
 ```javascript
 async function updatedatasourceItem() {
@@ -489,6 +491,7 @@ return await updatedatasourceItem();
 - **Service:** Veeqo
 - **Trigger:** New Order Created
 - **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
 
 ```javascript
 try {
@@ -561,6 +564,7 @@ try {
 - **Service:** Veeqo
 - **Trigger:** New Order Created
 - **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
 
 ```javascript
 try {
@@ -606,16 +610,244 @@ try {
 
 #### Schedule Trigger Sample Code Rules:
 
+Always follow these rules while creating a sample code for the Schedule Trigger:
+1. Get the latest 1 item or any one item.
+2. If an item exists, return it with the help text
+3. If no items exist, fetch the schema to dynamically build the fallback
+4. Map the exact schema properties to empty/default values
+5. Return the dynamic fallback item with an exact matching structure
+
 #### Schedule Trigger Sample Pseudo Code:
 
+**Fetch the latest 1 item or any item or fallback structure**
 ```javascript
+try {
+  // 1. Fetch exactly 1 latest item from the API
+  const response = await httpRequest({
+    method: "GET", // or POST depending on the API
+    url: "https://api.service.com/endpoint",
+    params: {
+      limit: 1,           // Request only 1 item
+      sort: "descending"  // Get the latest item
+    }
+  });
 
+  const items = response?.data?.items || [];
+
+  // 2. If an item exists, return it with the help text
+  if (items.length > 0) {
+    return {
+      viasocket_help: "This is the latest item data available in the selected resource. Save the Trigger and publish to get the new item created in the selected resource.",
+      ...items[0]
+    };
+  }
+
+  // 3. If no items exist, build a fallback
+
+  // --- Option A: Dynamic fallback using schema (when API provides a schema endpoint) ---
+  const schemaResponse = await httpRequest({
+    method: "GET",
+    url: "https://api.service.com/schema-endpoint"
+  });
+
+  const schema = schemaResponse?.data;
+  const dummyProperties = {};
+
+  // 4. Map the exact schema properties to empty/default values
+  for (const [key, propConfig] of Object.entries(schema.properties)) {
+    const type = propConfig.type;
+
+    if (['array', 'list', 'multi_select'].includes(type)) {
+      dummyProperties[key] = [];
+    } else if (type === 'boolean') {
+      dummyProperties[key] = false;
+    } else if (type === 'number') {
+      dummyProperties[key] = 0;
+    } else {
+      dummyProperties[key] = ""; // Default for strings, objects, or nulls
+    }
+  }
+
+  // 5. Return the dynamic fallback item with an exact matching structure
+  return {
+    viasocket_help: "This data is only a sample of the original data. If you want to see the original data, then you have to save the trigger, publish the flow and perform the given action.",
+    id: "dummy-record-id",
+    created_time: new Date().toISOString(),
+    properties: dummyProperties
+  };
+
+  // --- Option B: Hardcoded fallback (when API has no schema endpoint) ---
+  // return {
+  //   viasocket_help: "This data is only a sample of the original data. If you want to see the original data, then you have to perform the given action.",
+  //   id: 123456789,
+  //   title: "Sample Item",
+  //   status: "active",
+  //   created_at: new Date().toISOString()
+  // };
+
+} catch (error) {
+  throw error;
+}
 ```
+
 #### Schedule Trigger Sample Example Code:
+
+**Example 1: Fetching only the latest item from the data source or fallback with schema**
+- **Service:** Notion
+- **Trigger:** New Data Source Item Created
+- **Trigger Type:** Scheduled Trigger
+- **Code:** Sample Code
+
 ```javascript
+// 1. Query the Data Source for an item
+let queryConfig = {
+  method: 'post',
+  maxBodyLength: Infinity,
+  url: `https://api.notion.com/v1/data_sources/${context?.inputData?.data_source_id}/query`,
+  headers: {
+    "Notion-Version": "2026-03-11"
+  },
+  data: {
+    page_size: 1
+  }
+};
 
+const response = await axios.request(queryConfig);
+
+// 2. If an item exists, return it with the help text
+if (response.data.results && response.data.results.length > 0) {
+  const result = response.data.results[0];
+  
+  return {
+    viasocket_help: "This is the latest item data available in the selected notion data source. Save the Trigger and publish to get the new item created in the selected data source.",
+    ...result
+  };
+} 
+
+// 3. If no items exist, fetch the schema to dynamically build the fallback
+let schemaConfig = {
+  method: 'get',
+  maxBodyLength: Infinity,
+  url: `https://api.notion.com/v1/data_sources/${context?.inputData?.data_source_id}`,
+  headers: {
+    "Notion-Version": "2026-03-11"
+  }
+};
+
+const schemaResponse = await axios.request(schemaConfig);
+const dataSourceSchema = schemaResponse.data;
+
+const dummyProperties = {};
+
+// 4. Map the exact schema properties to empty/default values
+for (const [key, propConfig] of Object.entries(dataSourceSchema.properties)) {
+  const type = propConfig.type;
+  let emptyValue = null;
+  
+  // Assign appropriate empty data types based on the Notion property type
+  if (['title', 'rich_text', 'relation', 'people', 'files', 'multi_select'].includes(type)) {
+    emptyValue = [];
+  } else if (type === 'checkbox') {
+    emptyValue = false;
+  } else if (type === 'formula') {
+    emptyValue = { type: "string", string: "" }; 
+  } else if (type === 'rollup') {
+    emptyValue = { type: "number", number: 0 };
+  }
+  
+  dummyProperties[key] = {
+    id: propConfig.id,
+    type: type,
+    [type]: emptyValue
+  };
+}
+
+// 5. Construct and return the dynamic fallback item with an exact matching structure
+return {
+  viasocket_help: "This data is only a sample of the original data. If you want to see the original data, then you have to save the trigger, publish the flow and perform the given action.",
+  object: "page",
+  id: "dummy-page-id",
+  created_time: new Date().toISOString(),
+  last_edited_time: new Date().toISOString(),
+  created_by: {
+    object: "user",
+    id: "dummy-user-id"
+  },
+  last_edited_by: {
+    object: "user",
+    id: "dummy-user-id"
+  },
+  cover: null,
+  icon: null,
+  parent: {
+    type: "data_source_id",
+    data_source_id: context?.inputData?.data_source_id,
+    database_id: dataSourceSchema.id || context?.inputData?.data_source_id
+  },
+  in_trash: false,
+  is_archived: false,
+  is_locked: false,
+  properties: dummyProperties,
+  url: "https://www.notion.so/dummy-page-id",
+  public_url: null
+};
 ```
+**Example 2: Fetching only the latest sheet from the Google Sheets or fallback with schema**
+- **Service:** Google Sheets
+- **Trigger:** New Worksheet Added to Spreadsheet
+- **Trigger Type:** Scheduled Trigger
+- **Code:** Sample Code
 
+```javascript
+const spreadsheetId = context?.inputData?.spreadSheet_id;
+
+try {
+  // Use the Google Sheets API to get the tabs within the specific spreadsheet
+  const response = await axios.get(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`,
+    {
+      params: {
+        // Request only the properties of the sheets to keep the payload efficient
+        fields: "sheets(properties(sheetId,title,index,sheetType,gridProperties))"
+      }
+    }
+  );
+
+  let sheets = response.data.sheets || [];
+
+  if (sheets.length > 0) {
+    // Sort by index descending to get the "latest" (right-most) tab
+    sheets.sort((a, b) => b.properties.index - a.properties.index);
+    
+    // Extract the properties of that latest sheet
+    const latestSheet = sheets[0].properties;
+
+    // Create a new object with the specific "viasocket_help" message for REAL data
+    const resultWithHelp = {
+      viasocket_help: "This is the worksheet present in the selected Google Spreadsheet. Save the trigger and publish the flow to receive the new worksheets.",
+      ...latestSheet
+    };
+
+    return resultWithHelp;
+  } else {
+    // Return Hardcoded DUMMY Sample Data if NO sheet is found
+    return {
+      "viasockethelp": "This data is only a sample of the original data. If you want to see the original data, then you have to perform the given action.",
+      "sheetId": 123456789,
+      "title": "Sample Worksheet",
+      "index": 2,
+      "sheetType": "GRID",
+      "gridProperties": {
+        "rowCount": 1000,
+        "columnCount": 26
+      }
+    };
+  }
+
+} catch (error) {
+  throw error;
+}
+```
 ## Manual Trigger
 
 # Actions
