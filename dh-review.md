@@ -17,6 +17,10 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **[DH Input Fields Knowledge Base](knowledge-base/dh-Input-fields-json-builder.md)**
 - **[Perform Code Knowledge Base](knowledge-base/perform-code.md)**
 
+**Instructions for Querying the Knowledge Base:**
+1. First query "Page Index", this will fetch all the page index hierarchy structure, which can be used to exactly query and get an exact result.
+2. Once you know the Page Index, you can focus every time on the exact query headings.
+
 # Review Checklist
 
 ## 1. Perform API & Generators JS Code
@@ -57,15 +61,15 @@ async function <functionName>() {
 ## 2. Input Fields
 Each input field must strictly adhere to the structure, formats, and validation rules specified in the **DH Input Fields Knowledge Base** for its given type.
 
+**Review Process for Input Fields:**
+- **Schema Validation**: When reviewing each field type, query the knowledge base for the "TOON Schema" of that specific type (found via the "Page Index"). You must strictly follow the TOON Schema and ensure that all required fields specified in the schema are always present in the input JSON.
+- **Examples**: If required for further clarification, fetch the Examples for that field type from the knowledge base.
+- **Special Notes**: Check the "Page Index" to see if there are any "Special Note:" sections relevant to the specific field type being reviewed, and ensure those rules are applied.
+
 **Field Guidelines:**
 - **Clean Labels**: Labels must be clean and generic (e.g., "Select Board", NOT "Select Trello Board").
 - **Exclusions**: Do not include Auth fields. Ignore Headers. Validate ONLY `inputFields` (ignore auto-generated `steps`/`blocks`).
 - **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help.
-
-**Allowed Optional Keys**
-The following keys are optional and must NOT be flagged as schema violations when used properly:
-- **UI/UX**: `visibilityCondition`, `help`, `defaultValue`
-- **Custom Input**: `customInputLabel`, `customPlaceholder`, `customHelp`
 
 # Output Format
 Always return output **strictly as a single JSON object**. Do not add conversational text or markdown labels before the JSON. Reviews and issues should be short, simple, and easy to understand.
