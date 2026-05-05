@@ -218,7 +218,7 @@ Generate a JSON object strictly following the rules below.
             },
             "required": {
                 "type": "boolean",
-                "description": "True if the field implies mandatory input."
+                "description": "True if the field implies mandatory input. It is an optional field; if not present, it is treated as optional."
             },
             "list": {
                 "type": "boolean",
@@ -241,8 +241,7 @@ Generate a JSON object strictly following the rules below.
             "key",
             "type",
             "label",
-            "help",
-            "required"
+            "help"
         ]
     }
 }
@@ -273,7 +272,7 @@ schema:
       description: An example value relevant to the purpose.
     required:
       type: boolean
-      description: True if the field implies mandatory input.
+      description: True if the field implies mandatory input. It is an optional field; if not present, it is treated as optional.
     list:
       type: boolean
       description: Whether this field accepts an array of values. Only applicable for 'string' and 'number' types.
@@ -286,7 +285,7 @@ schema:
     defaultValue:
       type: string
       description: The default value. Omit if none.
-  required[5]: key,type,label,help,required
+  required[4]: key,type,label,help
 ```
 
 ### String | Date | Number | HTML | Markdown Examples:
@@ -514,7 +513,7 @@ Return only valid JSON.
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Indicates if this dictionary field is mandatory."
+                            "description": "Indicates if this dictionary field is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "type": {
                             "type": "string",
@@ -581,7 +580,6 @@ Return only valid JSON.
                         "key",
                         "label",
                         "help",
-                        "required",
                         "type",
                         "template"
                     ]
@@ -620,7 +618,7 @@ schema:
             description: "Clear instructions for the user about what to input. It also supports markdown links for the reference."
           required:
             type: boolean
-            description: Indicates if this dictionary field is mandatory.
+            description: Indicates if this dictionary field is mandatory. It is an optional field; if not present, it is treated as optional.
           type:
             type: string
             enum[1]: dictionary
@@ -654,7 +652,7 @@ schema:
                     description: Placeholder text for the value.
                 required[2]: type,placeholder
             required[2]: key,value
-        required[6]: key,label,help,required,type,template
+        required[5]: key,label,help,type,template
   required[1]: inputFields
 ```
 
@@ -852,7 +850,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether the field is mandatory."
+                            "description": "Whether the field is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "options": {
                             "type": "array",
@@ -913,7 +911,6 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         "type",
                         "label",
                         "help",
-                        "required",
                         "options"
                     ]
                 }
@@ -955,7 +952,7 @@ schema:
             description: "Helper text explaining what enabling/disabling this does. It also supports markdown links for the reference."
           required:
             type: boolean
-            description: Whether the field is mandatory.
+            description: Whether the field is mandatory. It is an optional field; if not present, it is treated as optional.
           options:
             type: array
             minItems: 2
@@ -991,7 +988,7 @@ schema:
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility. Omit if always visible.
-        required[6]: key,type,label,help,required,options
+        required[5]: key,type,label,help,options
   required[1]: inputFields
 ```
 
@@ -1242,7 +1239,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether the selection is mandatory."
+                            "description": "Whether the selection is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "placeholder": {
                             "type": "string",
@@ -1344,7 +1341,6 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         "type",
                         "label",
                         "help",
-                        "required",
                         "options"
                     ]
                 }
@@ -1385,7 +1381,7 @@ schema:
             description: "Guidance text for the user. It also supports markdown links for the reference."
           required:
             type: boolean
-            description: Whether the selection is mandatory.
+            description: Whether the selection is mandatory. It is an optional field; if not present, it is treated as optional.
           placeholder:
             type: string
             description: Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Message Type'). Omit if not applicable.
@@ -1437,7 +1433,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: An optional extra value for the default option. Omit if not needed.
             required[3]: label,value,sample
-        required[6]: key,type,label,help,required,options
+        required[5]: key,type,label,help,options
   required[1]: inputFields
 ```
 
@@ -1747,7 +1743,7 @@ Generate a JSON object strictly following the rules below for a static multisele
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether selecting at least one option is mandatory."
+                            "description": "Whether selecting at least one option is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "placeholder": {
                             "type": "string",
@@ -1833,7 +1829,6 @@ Generate a JSON object strictly following the rules below for a static multisele
                         "type",
                         "label",
                         "help",
-                        "required",
                         "options"
                     ]
                 }
@@ -1874,7 +1869,7 @@ schema:
             description: "Guidance text for the user. It also supports markdown links for the reference."
           required:
             type: boolean
-            description: Whether selecting at least one option is mandatory.
+            description: Whether selecting at least one option is mandatory. It is an optional field; if not present, it is treated as optional.
           placeholder:
             type: string
             description: Optional placeholder text shown before selection. Omit if not applicable.
@@ -1922,7 +1917,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[6]: key,type,label,help,required,options
+        required[5]: key,type,label,help,options
   required[1]: inputFields
 ```
 
@@ -2123,7 +2118,7 @@ Generate a JSON object strictly following the rules below for an AI field.
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether providing input to this field is mandatory."
+                            "description": "Whether providing input to this field is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "placeholder": {
                             "type": "string",
@@ -2144,7 +2139,6 @@ Generate a JSON object strictly following the rules below for an AI field.
                         "label",
                         "help",
                         "prompt",
-                        "required",
                         "suggestionGenerator"
                     ]
                 }
@@ -2189,7 +2183,7 @@ schema:
             description: The system prompt or instructions sent to the AI. This tells the AI how to process the user's input and format the output (e.g. 'Convert the input into a JSON array...').
           required:
             type: boolean
-            description: Whether providing input to this field is mandatory.
+            description: Whether providing input to this field is mandatory. It is an optional field; if not present, it is treated as optional.
           placeholder:
             type: string
             description: Optional placeholder text showing an example input. Can be prompt or value. Omit if not applicable.
@@ -2199,7 +2193,7 @@ schema:
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility. Omit this field entirely if always visible.
-        required[7]: key,type,label,help,prompt,required,suggestionGenerator
+        required[6]: key,type,label,help,prompt,suggestionGenerator
   required[1]: inputFields
 ```
 
@@ -3059,7 +3053,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether the selection is mandatory."
+                            "description": "Whether the selection is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "placeholder": {
                             "type": "string",
@@ -3135,7 +3129,6 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         "type",
                         "label",
                         "help",
-                        "required",
                         "optionsGenerator",
                         "customPlaceholder"
                     ]
@@ -3177,7 +3170,7 @@ schema:
             description: Guidance text for the user. Explain what the dropdown is for.
           required:
             type: boolean
-            description: Whether the selection is mandatory.
+            description: Whether the selection is mandatory. It is an optional field; if not present, it is treated as optional.
           placeholder:
             type: string
             description: Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Spreadsheet'). Omit if not applicable.
@@ -3219,7 +3212,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
             required[3]: label,value,sample
-        required[7]: key,type,label,help,required,optionsGenerator,customPlaceholder
+        required[6]: key,type,label,help,optionsGenerator,customPlaceholder
   required[1]: inputFields
 ```
 
@@ -3651,7 +3644,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether selecting at least one option is mandatory."
+                            "description": "Whether selecting at least one option is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "placeholder": {
                             "type": "string",
@@ -3712,7 +3705,6 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         "type",
                         "label",
                         "help",
-                        "required",
                         "optionsGenerator",
                         "customPlaceholder"
                     ]
@@ -3754,7 +3746,7 @@ schema:
             description: Guidance text for the user. Explain what the multiselect is for.
           required:
             type: boolean
-            description: Whether selecting at least one option is mandatory.
+            description: Whether selecting at least one option is mandatory. It is an optional field; if not present, it is treated as optional.
           placeholder:
             type: string
             description: Optional placeholder text shown before selection (e.g. 'Choose Columns'). Omit if not applicable.
@@ -3789,7 +3781,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[7]: key,type,label,help,required,optionsGenerator,customPlaceholder
+        required[6]: key,type,label,help,optionsGenerator,customPlaceholder
   required[1]: inputFields
   ```
 ### Multi Select Dynamic Examples:
@@ -4292,7 +4284,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
                         },
                         "required": {
                             "type": "boolean",
-                            "description": "Whether interacting with this input group is mandatory."
+                            "description": "Whether interacting with this input group is mandatory. It is an optional field; if not present, it is treated as optional."
                         },
                         "fieldsGenerator": {
                             "type": "string",
@@ -4307,7 +4299,6 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
                         "key",
                         "type",
                         "label",
-                        "required",
                         "fieldsGenerator"
                     ]
                 }
@@ -4348,14 +4339,14 @@ schema:
             description: Optional guidance text for the user regarding this entire group. Omit this field entirely if not applicable.
           required:
             type: boolean
-            description: Whether interacting with this input group is mandatory.
+            description: Whether interacting with this input group is mandatory. It is an optional field; if not present, it is treated as optional.
           fieldsGenerator:
             type: string
             description: "JavaScript code that dynamically generates the nested fields. MANDATORY RULES:\n1. Standard Return: MUST return an array of complete, valid field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', ...}]`). The generated fields can be string, number, boolean, dropdown, multiselect, aifield, help, html, markdown, or nested input groups. It supports both static and dynamic fields.\n2. Key Normalization: Always normalize generated field keys to ensure they do not contain a full stop (.). E.g., if using column names as keys, replace dots with underscores.\n3. Error/Empty Return: If dependencies are missing or no fields can be generated, return an object with a message (e.g., `return { message: 'Please select a data source first.' };`). This will render as a warning box in the UI.\n4. Context Access: You can use `context?.inputData?.['other_field_key']` to build logic dependent on previous user inputs."
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility of the entire dynamic group. Omit if always visible.
-        required[5]: key,type,label,required,fieldsGenerator
+        required[4]: key,type,label,fieldsGenerator
   required[1]: inputFields
 ```
 
@@ -4433,7 +4424,7 @@ When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This is particularly useful for driving complex visibility conditions or dynamic `fieldsGenerator` logic, which can easily evaluate this hidden state via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
 ## Special Note: Visibility Condition Rules:
 
-When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed.
+When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed. **Any valid JavaScript condition is supported, including complex calculations, array methods (like `.includes()`), and dynamic key value checks.**
 
 Here are the various patterns you should use based on what field type it depends on:
 
@@ -4452,7 +4443,11 @@ Here are the various patterns you should use based on what field type it depends
      ```javascript
      context?.inputData?.message_type === 'text'
      ```
-   - **B. Check against multiple possible values (using logical OR `||`):**
+   - **B. Check against multiple possible values (using array `.includes()`):**
+     ```javascript
+     ['IMAGE','VIDEO','CAROUSEL'].includes(context?.inputData?.media_type)
+     ```
+   - **C. Check against multiple possible values (using logical OR `||`):**
      ```javascript
      context?.inputData?.settings?.comment === 'a specific media' || context?.inputData?.settings?.comment === 'next media'
      ```
@@ -4491,3 +4486,13 @@ Here are the various patterns you should use based on what field type it depends
      context?.inputData?.input_group_static?.Dropdown_static_all_values_extraValue
      ```
      *(The dropdown can be inside nested input groups, and the `input_group_keys` are added in order).*
+
+7. **Complex Conditions, Key Values, and Calculations:**
+   - Any valid JavaScript expression is supported, including checking specific object keys or performing calculations:
+     ```javascript
+     (context?.inputData?.price * context?.inputData?.quantity) > 100
+     ```
+   - Checking object key values:
+     ```javascript
+     Object.keys(context?.inputData?.custom_metadata || {}).includes('special_key')
+     ```
