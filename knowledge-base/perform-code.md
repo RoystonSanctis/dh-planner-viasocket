@@ -4,6 +4,53 @@ title: "Perform Code Knowledge Base"
 description: "This document contains knowledge, snippets, and best practices for writing robust JavaScript perform code for viaSocket plug actions."
 published: true
 ---
+# Perform Code Knowledge Base Page Index
+
+- Perform Code Knowledge Base
+- Trigger
+  - Trigger Code Generation Rules:
+  - Instant Trigger
+    - Instant Trigger Perform Code Rules:
+    - Instant Trigger Sample Code Pseudo Code:
+  - Scheduled Trigger
+    - Scheduled Trigger Perform Code Rules:
+    - Scheduled Trigger Perform Code Pseudo Code:
+    - Scheduled Trigger Sample Code Rules:
+    - Scheduled Trigger Sample Code Pseudo Code:
+    - Scheduled Trigger Perform Code Example:
+    - Scheduled Trigger Sample Code Example:
+  - Manual Trigger
+    - Manual Trigger Perform Code Rules:
+    - Manual Trigger Perform Code Pseudo Code:
+    - Manual Trigger Sample Code Pseudo Code:
+- Actions
+  - Action Perform Code Rules:
+  - GET
+    - GET Perform Code Rules:
+    - GET Perform Code Pseudo Code:
+  - LIST
+    - LIST Perform Code Rules:
+    - LIST Perform Code Pseudo Code:
+  - FIND/SEARCH
+    - FIND/SEARCH Perform Code Rules:
+    - FIND/SEARCH Perform Code Pseudo Code:
+  - CREATE
+    - CREATE Perform Code Rules:
+    - CREATE Perform Code Pseudo Code:
+  - UPDATE
+    - UPDATE Perform Code Rules:
+    - UPDATE Perform Code Pseudo Code:
+  - FIND OR CREATE
+    - FIND OR CREATE Perform Code Rules:
+    - FIND OR CREATE Perform Code Pseudo Code:
+  - DELETE
+    - DELETE Perform Code Rules:
+    - DELETE Perform Code Pseudo Code:
+- Special Note:
+  - Special Note - API Request Error Handling:
+  - Special Note - Success Code Handling:
+  - Special Note - Final Code Review:
+
 # Perform Code Knowledge Base
 
 This document contains knowledge, snippets, and best practices for writing robust JavaScript perform code for viaSocket plug actions.
@@ -13,6 +60,67 @@ This document contains knowledge, snippets, and best practices for writing robus
 ## Trigger Code Generation Rules:
 
 ## Instant Trigger
+
+**What it does**
+Fires in real-time when an event occurs in the external service via a webhook. The external service pushes data directly to viaSocket the moment something happens.
+
+**Simple understanding**
+- Real-time, event-driven updates.
+- The external service sends data to viaSocket via a webhook URL.
+- Example: New form submission → Webhook fires → Workflow runs immediately.
+
+**When to use**
+- When the external service supports webhooks subscription/unsubscription.
+- When real-time, immediate data processing is required.
+
+### Instant Trigger Perform Code Rules:
+- Instant Triggers typically do **not** require perform code since the webhook handles data delivery.
+- A **Sample Code** block is required to fetch test/sample data for the trigger configuration UI.
+- The sample code should fetch the **most recent 1 item** from the API to provide the user with a realistic data preview.
+- If no data exists, the sample code should return a **hardcoded fallback object** representing the expected schema.
+
+### Instant Trigger Sample Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read input data from UI form
+    const resourceId = context.inputData.<resource_key>;
+
+    // Step 2: Fetch the most recent 1 item from the API
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource_endpoint>`,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${context.authData.<auth_key>}`,
+        'Content-Type': 'application/json'
+      },
+      queryParams: {
+        limit: 1,
+        sort: 'created_at:desc' // Sort by most recent
+      }
+    });
+
+    // Step 3: Return sample data or fallback
+    const results = response.data?.results || response.data || [];
+
+    if (results.length > 0) {
+      return results;
+    }
+
+    // Step 4: Fallback — return hardcoded schema sample
+    return [{
+      id: 'sample_id_123',
+      name: 'Sample Record',
+      created_at: new Date().toISOString(),
+      // ... include all expected fields with sample values
+    }];
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
 
 ## Scheduled Trigger
 
@@ -850,4 +958,446 @@ try {
 ```
 ## Manual Trigger
 
+**What it does**
+Fires in real-time when an event occurs in the external service via a webhook. The external service pushes data directly to viaSocket the moment something happens.
+
+**Simple understanding**
+- Real-time, event-driven updates.
+- The external service sends data to viaSocket via a webhook URL.
+- Example: New form submission → Webhook fires → Workflow runs immediately.
+
+**When to use**
+- When the external service supports webhooks that can be copied from the UI and pasted in the trigger configuration of the external service.
+- When real-time, immediate data processing is required.
+
+### Manual Trigger Perform Code Rules:
+- Manual Triggers use a **direct API call** pattern.
+- No scheduling logic, no `__executionStartTime__`, no pagination state.
+
+### Manual Trigger Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read input data from UI form
+    const inputValue = context.inputData.<input_key>;
+    const resourceId = context.inputData.<resource_key>;
+
+    // Step 2: Make the API request
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<endpoint>`,
+      method: 'GET', // or POST depending on the action
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      queryParams: {
+        // Map input data to query params if needed
+      }
+    });
+
+    // Step 3: Return the response
+    return response.data;
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+### Manual Trigger Sample Code Pseudo Code:
+```
+async (context) => {
+  try {
+ // Actual Trigger Sample Schema
+    return [{ id: 'sample_id', name: 'Sample', created_at: new Date().toISOString() }];
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
 # Actions
+
+Actions perform operations on external services. Each action category has specific perform code patterns.
+
+## Action Perform Code Rules:
+- All action perform code must be wrapped in `async (context) => { try { ... } catch (error) { throw error; } }`.
+- Read all user inputs from `context.inputData.<key>`.
+- Use `context.httpRequest.makeRequest()` for all HTTP requests.
+- Auth tokens come from `context.authData.<auth_key>`.
+- Always return the meaningful part of the API response (not the raw HTTP response wrapper).
+- Handle errors gracefully — provide actionable error messages when possible.
+
+## GET
+
+### GET Perform Code Rules:
+- Use `GET` HTTP method with the record ID in the URL path.
+- Return the single record object directly.
+- Handle 404 (record not found) with a clear error message.
+
+### GET Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read the record ID from input
+    const recordId = context.inputData.<record_id_key>;
+
+    // Step 2: Make GET request
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource>/${recordId}`,
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // Step 3: Return the record
+    return response.data;
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+## LIST
+
+### LIST Perform Code Rules:
+- Use `GET` HTTP method with query parameters for pagination and filtering.
+- Support pagination via cursor tokens, page numbers, or offset values.
+- Read pagination inputs from `context.inputData` (e.g., `page_limit`, `start_cursor`).
+- Return an array of records.
+- If no results, return an empty array `[]`.
+
+### LIST Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read pagination and filter inputs
+    const pageLimit = context.inputData.page_limit || 100;
+    const startCursor = context.inputData.start_cursor || undefined;
+
+    // Step 2: Build query params
+    const queryParams = {
+      limit: pageLimit,
+    };
+    if (startCursor) queryParams.start_cursor = startCursor;
+
+    // Step 3: Make GET request
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource>`,
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      queryParams
+    });
+
+    // Step 4: Return results array
+    return response.data?.results || response.data || [];
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+## FIND/SEARCH
+
+### FIND/SEARCH Perform Code Rules:
+- Use `GET` or `POST` HTTP method depending on the API's search endpoint.
+- Support both Basic (single field exact match) and Advanced (multi-field query) modes.
+- Read the search mode from a Boolean input field.
+- For Basic mode: filter by a single column/field with an exact match value.
+- For Advanced mode: pass a structured filter/query object (often AI-generated).
+- Apply client-side filtering if the API does not support native search.
+- Return matching records as an array.
+
+### FIND/SEARCH Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read search inputs
+    const resourceId = context.inputData.<resource_key>;
+    const isBasicMode = context.inputData.filter_type; // Boolean: true = Basic, false = Advanced
+    const lookupColumn = context.inputData.lookup_column;
+    const lookupValue = context.inputData.lookup_value;
+    const advancedFilter = context.inputData.advanced_filter; // AI-generated filter object
+    const resultLimit = context.inputData.row_count || 10;
+
+    let results = [];
+
+    if (isBasicMode) {
+      // Step 2a: Basic mode — fetch and filter client-side (if API lacks native search)
+      const response = await context.httpRequest.makeRequest({
+        url: `<api_base_url>/<resource>/${resourceId}`,
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const allRecords = response.data?.results || response.data || [];
+
+      // Client-side exact match filter
+      results = allRecords.filter(record => {
+        const fieldValue = record[lookupColumn];
+        return String(fieldValue) === String(lookupValue);
+      });
+
+    } else {
+      // Step 2b: Advanced mode — pass structured filter to API
+      const filterObject = typeof advancedFilter === 'string' ? JSON.parse(advancedFilter) : advancedFilter;
+
+      const response = await context.httpRequest.makeRequest({
+        url: `<api_base_url>/<resource>/${resourceId}/query`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: { filter: filterObject }
+      });
+
+      results = response.data?.results || response.data || [];
+    }
+
+    // Step 3: Apply result limit
+    return results.slice(0, resultLimit);
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+## CREATE
+
+### CREATE Perform Code Rules:
+- Use `POST` HTTP method to create new records.
+- Map input fields from `context.inputData.<key>` to the API payload structure.
+- For dynamic input groups (schema-based fields), iterate over the input keys and build the payload object.
+- Normalize keys if they were modified during input field generation (e.g., dots replaced with underscores).
+- Return the newly created record.
+
+### CREATE Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read input data
+    const parentResourceId = context.inputData.<parent_key>;
+
+    // Step 2: Build the payload from dynamic input fields
+    const payload = {};
+    // Map each input field to the API's expected structure
+    // Example: context.inputData.field_name → payload.properties.field_name.value
+    const fieldKeys = Object.keys(context.inputData).filter(key => {
+      // Filter out non-payload keys (resource selectors, config toggles)
+      return !['<parent_key>', '<config_keys>'].includes(key);
+    });
+
+    for (const key of fieldKeys) {
+      const value = context.inputData[key];
+      if (value !== undefined && value !== '' && value !== null) {
+        // Reverse key normalization if needed (e.g., underscores back to dots)
+        const originalKey = key.replace(/_/g, '.');
+        payload[originalKey] = value;
+      }
+    }
+
+    // Step 3: Make POST request
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource>/${parentResourceId}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: payload
+    });
+
+    // Step 4: Return the created record
+    return response.data;
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+## UPDATE
+
+### UPDATE Perform Code Rules:
+- Use `PUT`, `PATCH`, or `POST` HTTP method depending on the API.
+- Include the record ID in the URL path.
+- Only send fields that the user has provided values for (partial update).
+- Skip empty, undefined, or null values unless explicitly intended.
+- Return the updated record.
+
+### UPDATE Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read the record ID and parent resource
+    const parentResourceId = context.inputData.<parent_key>;
+    const recordId = context.inputData.<record_id_key>;
+
+    // Step 2: Build partial update payload (only non-empty fields)
+    const payload = {};
+    const fieldKeys = Object.keys(context.inputData).filter(key => {
+      return !['<parent_key>', '<record_id_key>', '<config_keys>'].includes(key);
+    });
+
+    for (const key of fieldKeys) {
+      const value = context.inputData[key];
+      if (value !== undefined && value !== '' && value !== null) {
+        payload[key] = value;
+      }
+    }
+
+    // Step 3: Make PATCH/PUT request
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource>/${parentResourceId}/<records>/${recordId}`,
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: payload
+    });
+
+    // Step 4: Return the updated record
+    return response.data;
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+## FIND OR CREATE
+
+### FIND OR CREATE Perform Code Rules:
+- Combine a **search request** followed by a **conditional create request**.
+- First, execute the search logic (same as FIND/SEARCH).
+- If results are found, return the first matching record.
+- If no results are found AND the user opted into "Create if not found", execute the create logic (same as CREATE).
+- Return the found or newly created record with a flag indicating which action was taken.
+
+### FIND OR CREATE Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read search inputs
+    const resourceId = context.inputData.<resource_key>;
+    const lookupColumn = context.inputData.lookup_column;
+    const lookupValue = context.inputData.lookup_value;
+    const createIfNotFound = context.inputData.create_if_not_found;
+
+    // Step 2: Search for existing record
+    const searchResponse = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource>/${resourceId}/query`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        filter: { property: lookupColumn, value: lookupValue }
+      }
+    });
+
+    const results = searchResponse.data?.results || searchResponse.data || [];
+
+    // Step 3: If found, return the first match
+    if (results.length > 0) {
+      return { ...results[0], __action_taken: 'found' };
+    }
+
+    // Step 4: If not found and create enabled, create new record
+    if (createIfNotFound) {
+      const createPayload = {};
+      // Build payload from create-specific input fields
+      const createKeys = Object.keys(context.inputData).filter(key => {
+        return !['<resource_key>', 'lookup_column', 'lookup_value', 'create_if_not_found', '<config_keys>'].includes(key);
+      });
+
+      for (const key of createKeys) {
+        const value = context.inputData[key];
+        if (value !== undefined && value !== '' && value !== null) {
+          createPayload[key] = value;
+        }
+      }
+
+      const createResponse = await context.httpRequest.makeRequest({
+        url: `<api_base_url>/<resource>/${resourceId}`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: createPayload
+      });
+
+      return { ...createResponse.data, __action_taken: 'created' };
+    }
+
+    // Step 5: Not found and create not enabled
+    return { message: 'No matching record found.', __action_taken: 'not_found' };
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+## DELETE
+
+### DELETE Perform Code Rules:
+- Use `DELETE` HTTP method with the record ID in the URL path.
+- Some services use `PATCH` or `POST` for archiving instead of hard deletion. Use the appropriate method.
+- Return a confirmation object with the deleted record's ID.
+- Handle 404 (already deleted) gracefully.
+
+### DELETE Perform Code Pseudo Code:
+```
+async (context) => {
+  try {
+    // Step 1: Read the record ID
+    const parentResourceId = context.inputData.<parent_key>;
+    const recordId = context.inputData.<record_id_key>;
+
+    // Step 2: Make DELETE request
+    const response = await context.httpRequest.makeRequest({
+      url: `<api_base_url>/<resource>/${parentResourceId}/<records>/${recordId}`,
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // Step 3: Return confirmation
+    return response.data || { id: recordId, deleted: true };
+
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+# Special Note:
+
+## Special Note - API Request Error Handling:
+
+- Use try-catch blocks to handle errors gracefully.
+- Provide meaningful error messages to the user.
+- Always in catch block, catch the error and throw it. Do not return the error.
+- Some of the services return error with response 200. Those need to be thrown in the -try block of the perform code and caught there and thrown. This is to avoid the false error in the viaSocket UI for the user.
+- viaSocket will identify the error based on the final response code return.
+- Don't modify the error message in the catch block. Just throw the error. Let the viaSocket handle the error message.
+
+## Special Note - Success Code Handling:
+
+- Return the data as it is. Don't modify it.
+- Don't add any additional fields to the response. Just return the data.
+- The actual data of the response is in the `data` property of the response object. Which looks like `{ data: { ... } }`. So, return `response.data`.
+
+## Special Note - Final Code Review:
+- Don't use any console.log() in the perform code.
+- Don't modify the error response. Just throw the error.
+- No need to use the authentication configuration in the perform code. It will be handled by viaSocket. The authentication can be passed through header, query parameter or body, these are aleady configured in backend while the API call is made. Can include the additional header/query parameter/body if needed for the API call.

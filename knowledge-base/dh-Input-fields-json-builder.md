@@ -120,6 +120,7 @@ published: true
   - Special Note: Static Input Group: `whereClause` Feature (Special Layout)
   - Special Note: Dropdown & Multiselect Special Cases:
   - Special Note: Visibility Condition Rules:
+  - Special Note: `list` and `limit` usage in the text and number field types
 
 # DH Input Fields Knowledge Base
 
@@ -175,12 +176,15 @@ Generate a JSON object strictly following the rules below.
 
 **6. List Rule**
 - Set list: true if the user preconfigures multiple values as an array during setup
-- Set list: false if the value is single or needs to be dynamic later
-- (comma-separated input allowed)
+- Set list: false if the value is single or needs to be dynamic later (comma-separated input allowed or multiple values allowed as an array)
+  - Example : `[ "Option 1", "Option 2", "Option 3" ]` or `Option 1, Option 2, Option 3`
 
 **7. Limit Rule**
 - Set limit to a number representing the maximum number of list entries allowed.
 - Include limit only if list is true. Omit this key otherwise.
+
+> [!NOTE]
+> Refer to -> **Special Note: `list` and `limit` usage in the text and number field types**.
 
 **8. Output Constraint**
 - Return only valid JSON
@@ -4496,3 +4500,21 @@ Here are the various patterns you should use based on what field type it depends
      ```javascript
      Object.keys(context?.inputData?.custom_metadata || {}).includes('special_key')
      ```
+## Special Note: `list` and `limit` usage in the text and number field types:
+- The `list` key is only applicable to 'string' and 'number' type fields.
+- The `limit` key is only applicable if `list` is true.
+
+**When to use `list:true`:**
+- Set `list: true` if the user preconfigures multiple values as an array during setup.
+- Example: In a trigger, if the user wants to receive new items that matches multiple statuses, then the user can preconfigure the statuses as an array. In that case, the `list:true` should be set.
+
+**When to use `limit:number`:**
+- When the user preconfigures multiple values as an array during setup and the user wants to limit the number of values to be processed. In that case, the `limit:number` should be set.
+- Example: In a trigger, if the user wants to receive new items that matches multiple statuses and the user wants to limit the number of values to be processed to 5, then the `list:true` and `limit:5` should be set.
+
+**When to use `list:false` (or neither `list:true` nor `limit:number`):**
+- Set `list: false` if the value is single or needs to be dynamic later (comma-separated input allowed or multiple values allowed as an array).
+  - Example : `[ "Option 1", "Option 2", "Option 3" ]` or `Option 1, Option 2, Option 3`
+- When the user wants to process only a single value.
+- When the data is dynamically passed in the field where can suggest user to input as the comma seperated values in the field or the data is passed as the array in the field.
+  
