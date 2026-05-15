@@ -87,14 +87,13 @@ async (context) => {
     const resourceId = context.inputData.<resource_key>;
 
     // Step 2: Fetch the most recent 1 item from the API
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<resource_endpoint>`,
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${context.authData.<auth_key>}`,
         'Content-Type': 'application/json'
       },
-      queryParams: {
+      params: {
         limit: 1,
         sort: 'created_at:desc' // Sort by most recent
       }
@@ -215,7 +214,7 @@ async function fetchItems() {
         };
 
         // 4. Execute API call
-        const response = await httpRequest(requestConfig);
+        const response = await axios(requestConfig);
 
         const allItems = response?.data?.items || [];
 
@@ -292,7 +291,7 @@ async function fetchUpdatedItems() {
         };
 
         // 4. Execute API call
-        const response = await httpRequest(requestConfig);
+        const response = await axios(requestConfig);
 
         const allItems = response?.data?.items || [];
 
@@ -348,7 +347,7 @@ async function fetchItemsWithClientFiltering() {
         let currentPage = context?.paginationData || 1;
 
         // 3. API Request
-        const res = await httpRequest({
+        const res = await axios({
             method: "GET",
             url: "https://api.service.com/items",
             params: {
@@ -438,7 +437,7 @@ async function fetchItemsOptimized() {
         }
 
         // 5. Single API Request
-        const res = await httpRequest({
+        const res = await axios({
             method: "GET",
             url: "https://api.service.com/items",
             params: requestParams
@@ -731,7 +730,7 @@ Always follow these rules while creating a sample code for the Schedule Trigger:
 ```javascript
 try {
   // 1. Fetch exactly 1 latest item from the API
-  const response = await httpRequest({
+  const response = await axios({
     method: "GET", // or POST depending on the API
     url: "https://api.service.com/endpoint",
     params: {
@@ -753,7 +752,7 @@ try {
   // 3. If no items exist, build a fallback
 
   // --- Option A: Dynamic fallback using schema (when API provides a schema endpoint) ---
-  const schemaResponse = await httpRequest({
+  const schemaResponse = await axios({
     method: "GET",
     url: "https://api.service.com/schema-endpoint"
   });
@@ -971,7 +970,7 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 - When real-time, immediate data processing is required.
 
 ### Manual Trigger Perform Code Rules:
-- Manual Triggers use a **direct API call** pattern.
+- Manual Triggers has **no API call** supports Perform code (Optional: Modify data before sending it to the workflow).
 - No scheduling logic, no `__executionStartTime__`, no pagination state.
 
 ### Manual Trigger Perform Code Pseudo Code:
@@ -983,13 +982,13 @@ async (context) => {
     const resourceId = context.inputData.<resource_key>;
 
     // Step 2: Make the API request
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<endpoint>`,
       method: 'GET', // or POST depending on the action
       headers: {
         'Content-Type': 'application/json'
       },
-      queryParams: {
+      params: {
         // Map input data to query params if needed
       }
     });
@@ -1023,7 +1022,7 @@ Actions perform operations on external services. Each action category has specif
 ## Action Perform Code Rules:
 - All action perform code must be wrapped in `async (context) => { try { ... } catch (error) { throw error; } }`.
 - Read all user inputs from `context.inputData.<key>`.
-- Use `context.httpRequest.makeRequest()` for all HTTP requests.
+- Use `axios()` for all HTTP requests.
 - Auth tokens come from `context.authData.<auth_key>`.
 - Always return the meaningful part of the API response (not the raw HTTP response wrapper).
 - Handle errors gracefully — provide actionable error messages when possible.
@@ -1033,7 +1032,7 @@ Actions perform operations on external services. Each action category has specif
 ### GET Perform Code Rules:
 - Use `GET` HTTP method with the record ID in the URL path.
 - Return the single record object directly.
-- Handle 404 (record not found) with a clear error message.
+- Handle 404 (record not found) with a clear error message only if the service does not return the data properly. If the user provides invalid id then it will return 404, which is expected behavior.
 
 ### GET Perform Code Pseudo Code:
 ```
@@ -1043,7 +1042,7 @@ async (context) => {
     const recordId = context.inputData.<record_id_key>;
 
     // Step 2: Make GET request
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<resource>/${recordId}`,
       method: 'GET',
       headers: {
@@ -1068,6 +1067,7 @@ async (context) => {
 - Read pagination inputs from `context.inputData` (e.g., `page_limit`, `start_cursor`).
 - Return an array of records.
 - If no results, return an empty array `[]`.
+- If the API does not provide the proper structure then the format should be `{success: true/false, data:[], pagination:{...}}`. `pagination` object can contain information like `{has_more: true, next_cursor: 'cursor', page_number: 1, has_previous: false, previous_cursor: null, has_next: true}`. If the sevice only provide only array of records in response then the response can be modified to fit the format. `success` key should be added as boolean to the response object.
 
 ### LIST Perform Code Pseudo Code:
 ```
@@ -1078,19 +1078,19 @@ async (context) => {
     const startCursor = context.inputData.start_cursor || undefined;
 
     // Step 2: Build query params
-    const queryParams = {
+    const params = {
       limit: pageLimit,
     };
-    if (startCursor) queryParams.start_cursor = startCursor;
+    if (startCursor) params.start_cursor = startCursor;
 
     // Step 3: Make GET request
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<resource>`,
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       },
-      queryParams
+      params
     });
 
     // Step 4: Return results array
@@ -1129,7 +1129,7 @@ async (context) => {
 
     if (isBasicMode) {
       // Step 2a: Basic mode — fetch and filter client-side (if API lacks native search)
-      const response = await context.httpRequest.makeRequest({
+      const response = await axios({
         url: `<api_base_url>/<resource>/${resourceId}`,
         method: 'GET',
         headers: {
@@ -1149,13 +1149,13 @@ async (context) => {
       // Step 2b: Advanced mode — pass structured filter to API
       const filterObject = typeof advancedFilter === 'string' ? JSON.parse(advancedFilter) : advancedFilter;
 
-      const response = await context.httpRequest.makeRequest({
+      const response = await axios({
         url: `<api_base_url>/<resource>/${resourceId}/query`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: { filter: filterObject }
+        data: { filter: filterObject }
       });
 
       results = response.data?.results || response.data || [];
@@ -1205,13 +1205,13 @@ async (context) => {
     }
 
     // Step 3: Make POST request
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<resource>/${parentResourceId}`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: payload
+      data: payload
     });
 
     // Step 4: Return the created record
@@ -1254,13 +1254,13 @@ async (context) => {
     }
 
     // Step 3: Make PATCH/PUT request
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<resource>/${parentResourceId}/<records>/${recordId}`,
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: payload
+      data: payload
     });
 
     // Step 4: Return the updated record
@@ -1292,13 +1292,13 @@ async (context) => {
     const createIfNotFound = context.inputData.create_if_not_found;
 
     // Step 2: Search for existing record
-    const searchResponse = await context.httpRequest.makeRequest({
+    const searchResponse = await axios({
       url: `<api_base_url>/<resource>/${resourceId}/query`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: {
+      data: {
         filter: { property: lookupColumn, value: lookupValue }
       }
     });
@@ -1325,13 +1325,13 @@ async (context) => {
         }
       }
 
-      const createResponse = await context.httpRequest.makeRequest({
+      const createResponse = await axios({
         url: `<api_base_url>/<resource>/${resourceId}`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: createPayload
+        data: createPayload
       });
 
       return { ...createResponse.data, __action_taken: 'created' };
@@ -1363,7 +1363,7 @@ async (context) => {
     const recordId = context.inputData.<record_id_key>;
 
     // Step 2: Make DELETE request
-    const response = await context.httpRequest.makeRequest({
+    const response = await axios({
       url: `<api_base_url>/<resource>/${parentResourceId}/<records>/${recordId}`,
       method: 'DELETE',
       headers: {
