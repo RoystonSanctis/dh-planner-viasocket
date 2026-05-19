@@ -91,6 +91,9 @@ jobs:
               branch: $branch,
               commit: $commit,
               collectionId: $collection,
+              publish: true,
+              overwrite: true,
+              replace: true,
               files: $files[0]
             }' > /tmp/payload.json
 

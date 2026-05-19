@@ -9,7 +9,6 @@ published: true
 - DH Input Fields Knowledge Base
 - Static Input Fields
   - String | Date | Number | HTML | Markdown
-    - String | Date | Number | HTML | Markdown Purpose:
     - String | Date | Number | HTML | Markdown Input Field Generation Rules:
     - String | Date | Number | HTML | Markdown JSON Schema:
     - String | Date | Number | HTML | Markdown TOON Schema:
@@ -17,7 +16,6 @@ published: true
       - String | Date | Number | HTML | Markdown JSON Example:
       - String | Date | Number | HTML | Markdown TOON Example:
   - Dictionary
-    - Dictionary Purpose:
     - Dictionary Input Field Generation Rules:
     - Dictionary Input Field JSON Schema:
     - Dictionary TOON Schema:
@@ -25,7 +23,6 @@ published: true
       - Dictionary JSON Example:
       - Dictionary TOON Example:
   - Boolean
-    - Boolean Purpose:
     - Boolean Input Field Generation Rules:
     - Boolean JSON Schema:
     - Boolean TOON Schema:
@@ -33,7 +30,6 @@ published: true
       - Boolean JSON Example:
       - Boolean TOON Example:
   - Dropdown Static
-    - Dropdown Static Purpose:
     - Dropdown Static Input Field Generation Rules:
     - Dropdown Static JSON Schema:
     - Dropdown Static TOON Schema:
@@ -41,14 +37,12 @@ published: true
       - Dropdown Static JSON Example:
       - Dropdown Static TOON Example:
   - Multiselect Static
-    - Multiselect Static Purpose:
     - Multiselect Static Input Field Generation Rules:
     - Multiselect Static JSON Schema:
     - Multiselect Static TOON Schema:
     - Multiselect Static JSON Example:
-    - Multiselect Static TOON Schema:
+    - Multiselect Static TOON Example:
   - AI Field
-    - AI Field Purpose:
     - AI Field Input Field Generation Rules:
     - AI Field JSON Schema:
     - AI Field TOON Schema:
@@ -56,7 +50,6 @@ published: true
       - AI Field JSON Example:
       - AI Field TOON Example:
   - Help Static
-    - Help Static Purpose:
     - Help Static Input Field Generation Rules:
     - Help Static JSON Schema:
     - Help Static TOON Schema:
@@ -64,7 +57,6 @@ published: true
       - Help Static JSON Example:
       - Help Static TOON Example:
   - Input Group Static
-    - Input Group Static Purpose:
     - Input Group Static Input Field Generation Rules:
     - Input Group Static JSON Schema:
     - Input Group Static TOON Schema:
@@ -73,7 +65,6 @@ published: true
       - Input Group Static TOON Example:
 - Dynamic Input Fields
   - Dropdown Dynamic
-    - Dropdown Dynamic Purpose:
     - Dropdown Dynamic Input Field Generation Rules:
     - Dropdown Dynamic JSON Schema:
     - Dropdown Dynamic TOON Schema:
@@ -81,13 +72,11 @@ published: true
       - Dropdown Dynamic JSON Example:
       - Dropdown Dynamic TOON Example:
     - Reusable Component In Dropdown Dynamic:
-      - Reusable Component In Dropdown Dynamic Purpose:
       - Reusable Component In Dropdown Dynamic Code Rules:
       - Reusable Component In Dropdown Dynamic Example Code and Usage:
         - Example 1: Facebook Lead Form Dropdown Dynamic
         - Example 2: Google Sheet Spreadsheet Dropdown Dynamic
   - Multi Select Dynamic
-    - Multi Select Dynamic Purpose:
     - Multi Select Dynamic Input Field Generation Rules:
     - Multi Select Dynamic JSON Schema:
     - Multi Select Dynamic TOON Schema:
@@ -95,13 +84,11 @@ published: true
       - Multi Select Dynamic JSON Example:
       - Multi Select Dynamic TOON Example:
     - Reusable Component In Multi Select Dynamic:
-      - Reusable Component In Multi Select Dynamic Purpose:
       - Reusable Component In Multi Select Dynamic Code Rules:
       - Reusable Component In Multi Select Dynamic Example Code and Usage:
         - Example 1: Google Sheets Column Multi Select Dynamic
         - Example 2: Notion Data Source Property Multi Select Dynamic
   - Help Dynamic
-    - Help Dynamic Purpose:
     - Help Dynamic Input Field Generation Rules:
     - Help Dynamic JSON Schema:
     - Help Dynamic TOON Schema:
@@ -109,7 +96,6 @@ published: true
       - Help Dynamic JSON Example:
       - Help Dynamic TOON Example:
   - Input Group Dynamic
-    - Input Group Dynamic Purpose:
     - Input Group Dynamic Input Field Generation Rules:
     - Input Group Dynamic JSON Schema:
     - Input Group Dynamic TOON Schema:
@@ -118,9 +104,15 @@ published: true
       - Input Group Dynamic TOON Example:
 - Special Note:
   - Special Note: Static Input Group: `whereClause` Feature (Special Layout)
-  - Special Note: Dropdown & Multiselect Special Cases:
+  - Special Note: Dropdown & Multiselect:
   - Special Note: Visibility Condition Rules:
-  - Special Note: `list` and `limit` usage in the text and number field types
+  - Special Note: `list` and `limit` usage in the text and number field types:
+  - Special Note: `required` key in the input fields
+  - Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]
+    - Understanding `dependsOn` vs `visibilityCondition`
+    - `dependsOn` vs `visibilityCondition` Examples:
+      - Example 1: Generic Example (Static Fields & Input Groups)
+      - Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
 
 # DH Input Fields Knowledge Base
 
@@ -1998,7 +1990,7 @@ schema:
 ]
 ```
 
-### Multiselect Static TOON Schema:
+### Multiselect Static TOON Example:
 ```toon
 [2]:
   - key: output_response
@@ -4422,7 +4414,7 @@ The `whereClause` feature allows you to display an input group as a readable sen
 **Example Use Case (Instagram Trigger New Comment):**
 Instead of showing stacked disconnected fields (*Select Media, Select Type*), you can construct a readable sentence using dropdowns:
 *"When commented on `[dropdown: specific media]` Media `[dropdown: choose media]`"*
-## Dropdown & Multiselect Special Cases:
+## Special Note: Dropdown & Multiselect:
 When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 1. **The `sample` attribute**: The `sample` string must **always** be identical to the option's `value`. MANDATORY RULE: If the value is an ID, the `sample` MUST be included. If the `label` and `sample` are exactly the same, then NO `sample` is needed. Omit otherwise.
 2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This is particularly useful for driving complex visibility conditions or dynamic `fieldsGenerator` logic, which can easily evaluate this hidden state via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
@@ -4517,4 +4509,164 @@ Here are the various patterns you should use based on what field type it depends
   - Example : `[ "Option 1", "Option 2", "Option 3" ]` or `Option 1, Option 2, Option 3`
 - When the user wants to process only a single value.
 - When the data is dynamically passed in the field where can suggest user to input as the comma seperated values in the field or the data is passed as the array in the field.
-  
+## Special Note: `required` key in the input fields
+- `required` true = Field is required
+- `required` false = Field is optional
+- Default value: `required: false`
+- If `required: true` and the field is empty, the workflow will not run, and the UI will show an error message with the field name.
+> [!NOTE]
+> **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
+## Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]
+
+When working with the final JSON structure for input fields, you may encounter three main keys: `steps`, `blocks`, and `inputFields`.
+
+- **`steps`**: Contains an array of field keys. Fields at the top level are inside the `root` array. If fields are inside an input group, they are organized under dedicated input group keys.
+- **`blocks`**: A flattened object of all fields where each field includes a `dependsOn` array containing its dependent field keys.
+- **`inputFields`**: The raw JSON fields with properly nested JSON objects that represent the actual UI structure.
+
+**Important Rule:** Do NOT generate the auto-generated keys `steps` and `blocks`. Your goal is **always** to generate and output the `inputFields` array format.
+
+### Understanding `dependsOn` vs `visibilityCondition`
+
+It is crucial to understand the difference between `dependsOn` and `visibilityCondition`:
+
+- **`dependsOn` (Auto-Generated Dependency)**
+  - This array is populated **automatically** by the system.
+  - It identifies fields that are structurally required for a dynamic field to function.
+  - It is added *only* if the path of a previous field is explicitly used inside the `"optionsGenerator"` (for Dropdowns and Multiselects), `"fieldsGenerator"` (for Input Groups), or `"suggestionGenerator"` (for AI Fields).
+  - Example: To fetch a list of Subsheets, the user must first select a Spreadsheet. Since the Spreadsheet ID is mapped inside the Subsheet's `optionsGenerator`, the system automatically adds the Spreadsheet key to the Subsheet's `dependsOn` array. Without the parent value, the current field cannot execute its logic.
+  - Static fields (which do not have generator code) will always have an empty `dependsOn` array.
+
+- **`visibilityCondition` (Conditional Rendering)**
+  - This is a special key used purely to control the visibility of fields (both static and dynamic) based on conditions met by previous inputs.
+  - Using a field's path inside a `visibilityCondition` **does NOT** add it to the `dependsOn` array.
+  - It provides the power to conditionally show or hide static fields, even though static fields have an empty `dependsOn` array.
+
+### `dependsOn` vs `visibilityCondition` Examples:
+
+#### Example 1: Generic Example (Static Fields & Input Groups)
+
+This example shows how standard fields and nested input groups are structured. Notice that since there are no generator codes used, the `dependsOn` arrays are empty.
+
+```json
+{
+  "steps": {
+    "root": [
+      "first_name",
+      "address"
+    ],
+    "address": [
+      "address.city"
+    ]
+  },
+  "blocks": {
+    "first_name": {
+      "key": "first_name",
+      "type": "string",
+      "label": "First Name",
+      "required": true,
+      "dependsOn": []
+    },
+    "address": {
+      "key": "address",
+      "type": "input groups",
+      "label": "Address",
+      "required": false,
+      "dependsOn": []
+    },
+    "address.city": {
+      "key": "address.city",
+      "type": "string",
+      "label": "City",
+      "required": false,
+      "dependsOn": []
+    }
+  },
+  "inputFields": [
+    {
+      "key": "first_name",
+      "type": "string",
+      "label": "First Name",
+      "required": true
+    },
+    {
+      "key": "address",
+      "type": "input groups",
+      "label": "Address",
+      "fields": [
+        {
+          "key": "city",
+          "type": "string",
+          "label": "City",
+          "required": false
+        }
+      ],
+      "required": false
+    }
+  ]
+}
+```
+
+#### Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
+
+The following example illustrates how `dependsOn` is populated for dynamic fields (`subsheet`) while remaining empty for fields that only use `visibilityCondition` (`cell_value`).
+
+```json
+{
+  "steps": {
+    "root": [
+      "spreadsheet",
+      "subsheet",
+      "cell_value"
+    ]
+  },
+  "blocks": {
+    "spreadsheet": {
+      "key": "spreadsheet",
+      "type": "dropdown",
+      "label": "Spreadsheet",
+      "required": true,
+      "dependsOn": []
+    },
+    "subsheet": {
+      "key": "subsheet",
+      "type": "dropdown",
+      "label": "Subsheet",
+      "required": true,
+      "dependsOn": [
+        "spreadsheet"
+      ]
+    },
+    "cell_value": {
+      "key": "cell_value",
+      "type": "string",
+      "label": "Cell Value",
+      "required": false,
+      "dependsOn": []
+    }
+  },
+  "inputFields": [
+    {
+      "key": "spreadsheet",
+      "type": "dropdown",
+      "label": "Spreadsheet",
+      "required": true,
+      "optionsGenerator": "return await fetchSpreadsheets();"
+    },
+    {
+      "key": "subsheet",
+      "type": "dropdown",
+      "label": "Subsheet",
+      "required": true,
+      "optionsGenerator": "const spreadsheetId = context?.inputData?.spreadsheet;\nreturn await fetchSubsheets(spreadsheetId);"
+    },
+    {
+      "key": "cell_value",
+      "type": "string",
+      "label": "Cell Value",
+      "required": false,
+      "visibilityCondition": "context?.inputData?.subsheet"
+    }
+  ]
+}
+```
