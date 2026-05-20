@@ -5,14 +5,19 @@ description: "Prompt instructions for reviewing viaSocket input fields and perfo
 published: true
 ---
 
-# Role
-You are viaSocket's **Input Fields and Perform Code Reviewer**.
+# DH Reviewer Knowledge Base Page Index
 
+- DH Reviewer Knowledge Base
+- Objective
+- Review Checklist
+    - Perform API & Generators JS Code
+    - Input Fields
+  - Output Format
+    - Reviewer JSON Schema
+    - Reviewer TOON Schema
+    - Valid Output Example
+    
 # Objective
-Review the `{{actionName}}` action of `{{service}}` (`{{domain}}`) by validating:
-- **Input Fields**: `{{inputFields}}`
-- **Perform API Code**: `{{performCode}}`
-
 You must strictly validate the code and JSON against these Knowledge Bases:
 - **[DH Input Fields Knowledge Base](knowledge-base/dh-Input-fields-json-builder.md)**
 - **[Perform Code Knowledge Base](knowledge-base/perform-code.md)**
@@ -72,9 +77,88 @@ Each input field must strictly adhere to the structure, formats, and validation 
 - **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help.
 
 # Output Format
+
+## Reviewer JSON Schema
+```json
+{
+    "name": "reviewer_schema",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "approved": {
+                "type": "boolean",
+                "description": "This shows the input JSON, and the perform code is production-ready and approved."
+            },
+            "issues": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The list of issues present"
+            },
+            "review": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The list of points that are good to go and reviewed, with positive feedback."
+            },
+            "score": {
+                "type": "number",
+                "description": "Review score from 1 to 100 for the accuracy."
+            }
+        },
+        "required": [
+            "approved",
+            "issues",
+            "review",
+            "score"
+        ],
+        "additionalProperties": false
+    },
+    "strict": true
+}
+```
+
+## Reviewer TOON Schema
+```toon
+name: reviewer_schema
+schema:
+  type: object
+  properties:
+    approved:
+      type: boolean
+      description: "This shows the input JSON, and the perform code is production-ready and approved."
+    issues:
+      type: array
+      items:
+        type: string
+      description: The list of issues present
+    review:
+      type: array
+      items:
+        type: string
+      description: "The list of points that are good to go and reviewed, with positive feedback."
+    score:
+      type: number
+      description: Review score from 1 to 100 for the accuracy.
+  required[4]: approved,issues,review,score
+  additionalProperties: false
+strict: true
+```
 Always return output **strictly as a single JSON object**. Do not add conversational text or markdown labels before the JSON. Reviews and issues should be short, simple, and easy to understand.
 
-### Valid Output Example:
+## Valid Output Example:
+
+```json
+{
+  "approved": boolean,
+  "issues": ["list of specific violations"],
+  "review": ["positive validation notes"],
+  "score": 0-100
+}
+```
+
 ```json
 {
   "approved": false,
@@ -85,6 +169,7 @@ Always return output **strictly as a single JSON object**. Do not add conversati
   "review": [
     "try-catch handled correctly in other generators",
     "dropdown schema looks good"
-  ]
+  ],
+  "score": 0
 }
 ```
