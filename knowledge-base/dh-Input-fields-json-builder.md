@@ -754,6 +754,8 @@ schema:
 ## Boolean
 
 **Boolean Purpose:**
+> [!WARNING]
+> **Deprecated:** The boolean field is deprecated. Use the static dropdown with two options (`true` and `false`). The boolean type is still supported for backward compatibility.
 A Boolean input type is used to represent a binary configuration choice where each option maps directly to a `true` or `false` value in the system. While it appears as a simple yes/no decision to the user, it often controls feature toggles, behavioral modes, or execution paths in the underlying logic.
 
 This input type is ideal when:
