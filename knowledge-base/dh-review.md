@@ -1,7 +1,7 @@
 ---
 type: page
 title: "DH Reviewer"
-description: "Prompt instructions for reviewing viaSocket input fields and perform API code."
+description: "Knowledge base for final review of perform code and input fields of viaSocket actions."
 published: true
 ---
 

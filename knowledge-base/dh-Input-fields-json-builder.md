@@ -2427,7 +2427,8 @@ Generate a JSON object strictly following the rules below for an input group.
 **5. Where Clause Rule**
 - `whereClause`: A boolean flag (`true`/`false`).
 - Set `whereClause: true` to display the contained items inline, creating a readable sentence out of dropdown choices.
-- **MANDATORY**: If `whereClause: true`, the nested `fields` array MUST ONLY contain `dropdown` or `multiselect` types.
+- **Recommendation**: When `whereClause: true`, it is recommended to use `dropdown` or `multiselect` fields for optimal sentence UI. Other field types are allowed but may not render inline.
+- **Label & Help**: `label` and `help` are not mandatory in the input group field type when `whereClause` is enabled.
 - Omit `whereClause` entirely if not applicable.
 
 **6. Fields Array Rules**
@@ -2487,7 +2488,7 @@ Generate a JSON object strictly following the rules below for an input group.
                         },
                         "fields": {
                             "type": "array",
-                            "description": "The array of fields contained within this group. MANDATORY RULE: If 'whereClause' is true, this array MUST ONLY contain fields where the 'type' is 'dropdown' or 'multiselect'.",
+                            "description": "The array of fields contained within this group. 'whereClause' enables a UI sentence layout, recommended fields are 'dropdown' and 'multiselect', other field types can be used.",
                             "items": {
                                 "type": "object",
                                 "description": "A complete field object (can be string, number, boolean, dropdown, multiselect, aifield, help, or a nested input group). The AI must generate the full, valid structure for whichever type it chooses based on the standard rules for that type.",
@@ -2785,10 +2786,11 @@ schema:
       }
     ]
   },
+  [
   {
     "key": "settings",
     "type": "input groups",
-    "label": "Trigger Comment",
+    "label": "",
     "whereClause": true,
     "fields": [
       {
@@ -2821,14 +2823,26 @@ schema:
         "type": "dropdown",
         "label": "Media",
         "required": true,
+        "customHelp": "You can choose he media from the dropdown or can also find the media ID from the List Media aciton.",
+        "canPaginate": true,
         "placeholder": "Choose Media",
-        "customInputLabel": "Enter media Id.",
-        "optionsGenerator": "// Initialize the variables\nlet limit = 100;\n\n// First code to get user data\nconst pUrl = `https://graph.instagram.com/v23.0/me?fields=user_id,username,name`;\n\nlet userData;\n\ntry {\n  const userResponse = await axios.get(pUrl);\n  userData = userResponse.data;  // Store the response data\n  const userId = userData.user_id;  // Replace with the Instagram user ID\n\n  // Build the base URL for the media endpoint\n  let mUrl = `https://graph.instagram.com/${userId}/media?fields=id,media_type,caption&limit=${limit}`;\n\n  const response = await axios.get(mUrl);\n\n  // Process the response data and truncate captions\n  const processedData = response.data.data.map(media => {\n    // Check if caption exists and truncate it, else use media_type\n    const truncatedCaption = media.caption \n      ? media.caption.length > 100 \n        ? media.caption.substring(0, 100) + '...' \n        : media.caption \n      : media.media_type;  // If no caption, return media_type instead\n\n    return {\n      sample: media.id +\"-\"+ media.media_type,  // Sample ID\n      value: media.id,   // Value (same as sample ID)\n      label: truncatedCaption  // Truncated caption or media_type\n    };\n  });\n\n  return processedData;\n\n} catch (error) {\n  throw error;\n}",
+        "customInputLabel": "Enter media ID.",
+        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  throw e;\n}",
         "customPlaceholder": "e.g. 18062960995844908",
-        "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' || context?.inputData?.settings?.comment === 'next media'"
+        "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' "
+      },
+      {
+        "key": "media_start_date",
+        "help": "Choose the date after which the new comment recived should be received.",
+        "type": "string",
+        "label": "posted after date",
+        "required": true,
+        "placeholder": "E.g., 2026-03-17T01:49:34+0000",
+        "visibilityCondition": "context?.inputData?.settings?.comment === 'next media'"
       }
     ]
   }
+]
 ]
 ```
 #### Input Group Static TOON Example:
@@ -2968,33 +2982,6 @@ schema:
         optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
         customPlaceholder: "E.g., [\"Name\"]or [\"A\"]"
         visibilityCondition: context?.inputData?.search_filter?.search_filter_type
-  - key: settings
-    type: input groups
-    label: Trigger Comment
-    whereClause: true
-    fields[2]:
-      - key: comment
-        help: Choose when to receive incoming comments.
-        type: dropdown
-        label: When commented on
-        options[3]{label,value}:
-          a specific media,a specific media
-          any media,any media
-          next media,next media
-        required: true
-        placeholder: Choose Option
-        customInputLabel: Enter when to receive incoming comments.
-        customPlaceholder: E.g. a specific media
-      - key: mediaId
-        help: Choose media or enter media Id.
-        type: dropdown
-        label: Media
-        required: true
-        placeholder: Choose Media
-        customInputLabel: Enter media Id.
-        optionsGenerator: "// Initialize the variables\nlet limit = 100;\n\n// First code to get user data\nconst pUrl = `https://graph.instagram.com/v23.0/me?fields=user_id,username,name`;\n\nlet userData;\n\ntry {\n  const userResponse = await axios.get(pUrl);\n  userData = userResponse.data;  // Store the response data\n  const userId = userData.user_id;  // Replace with the Instagram user ID\n\n  // Build the base URL for the media endpoint\n  let mUrl = `https://graph.instagram.com/${userId}/media?fields=id,media_type,caption&limit=${limit}`;\n\n  const response = await axios.get(mUrl);\n\n  // Process the response data and truncate captions\n  const processedData = response.data.data.map(media => {\n    // Check if caption exists and truncate it, else use media_type\n    const truncatedCaption = media.caption \n      ? media.caption.length > 100 \n        ? media.caption.substring(0, 100) + '...' \n        : media.caption \n      : media.media_type;  // If no caption, return media_type instead\n\n    return {\n      sample: media.id +\"-\"+ media.media_type,  // Sample ID\n      value: media.id,   // Value (same as sample ID)\n      label: truncatedCaption  // Truncated caption or media_type\n    };\n  });\n\n  return processedData;\n\n} catch (error) {\n  throw error;\n}"
-        customPlaceholder: e.g. 18062960995844908
-        visibilityCondition: context?.inputData?.settings?.comment === 'a specific media' || context?.inputData?.settings?.comment === 'next media'
 ```
 
 
@@ -4416,7 +4403,41 @@ The `whereClause` feature allows you to display an input group as a readable sen
 
 **Key Characteristics & Limitations:**
 - **Availability:** Only available within **Static Input Groups**.
-- **Supported Fields:** When `whereClause` is enabled (`"whereClause": true`), the group can ONLY contain `dropdown` and `multiselect` fields. Text, number, and other field types are strictly restricted.
+- **Recommended Fields:** When `whereClause` is enabled (`"whereClause": true`), it is recommended to use `dropdown` and `multiselect` fields for the best sentence UI. Other field types are allowed but may not render inline as a sentence.
+- **Example:**
+```json
+[
+  {
+    "key": "settings",
+    "type": "input groups",
+    "whereClause": true,
+    "fields": [
+      {
+        "key": "comment",
+        "type": "dropdown",
+        "label": "When commented on",
+        "options": [
+          {"label": "a specific media", "value": "a specific media"},
+          {"label": "any media", "value": "any media"},
+          {"label": "next media", "value": "next media"}
+        ]
+      },
+      {
+        "key": "mediaId",
+        "type": "dropdown",
+        "label": "Media",
+        "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media'"
+      },
+      {
+        "key": "media_start_date",
+        "type": "string",
+        "label": "posted after date",
+        "visibilityCondition": "context?.inputData?.settings?.comment === 'next media'"
+      }
+    ]
+  }
+]
+```
 - **Rendering Behavior:** Instead of stacking fields normally, fields are arranged inline to form a clean, sentence-like structure where values are selected directly within the sentence. Flow side (end users) will see this sentence structure without the Edit mode.
 
 **Example Use Case (Instagram Trigger New Comment):**

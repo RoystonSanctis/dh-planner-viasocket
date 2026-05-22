@@ -1,10 +1,3 @@
----
-type: page
-title: "DH Reviewer"
-description: "Prompt instructions for reviewing viaSocket input fields and perform API code."
-published: true
----
-
 # Role
 You are viaSocket's **Input Fields and Perform Code Reviewer**.
 
