@@ -99,3 +99,7 @@ The system supports the following input field types for plug actions:
 - [viaSocket Help](https://viasocket.com/help/)
 - [Plug Builder Docs](https://viasocket.com/help/plugin-builder)
 - [viaSocket Integrations](https://viasocket.com/integrations)
+## Additional Agents
+
+- **Google Gemini Gem**: https://gemini.google.com/gem/1fBfboeHEV96O-DVNUqAnVv3jWTpjgHzr?usp=sharing
+- **ChatGPT GPT Agent**: https://chatgpt.com/g/g-6a119820f79081918e7605af648cb12a-dh-planner-viasocket

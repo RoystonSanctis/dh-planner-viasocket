@@ -1026,6 +1026,12 @@ Actions perform operations on external services. Each action category has specif
 - Auth tokens come from `context.authData.<auth_key>`.
 - Always return the meaningful part of the API response (not the raw HTTP response wrapper).
 - Handle errors gracefully — provide actionable error messages when possible.
+- **Required Field Validation**: For every input field defined with `required: true` in the input fields JSON, the perform code **must** validate the value at the top of the function — before making any API call. If the value is missing, empty, `null`, or `undefined`, throw an error immediately. Example:
+  ```javascript
+  if (!context.inputData.date) {
+    throw new Error('Date is required.');
+  }
+  ```
 
 ## GET
 
@@ -1401,3 +1407,4 @@ async (context) => {
 - Don't use any console.log() in the perform code.
 - Don't modify the error response. Just throw the error.
 - No need to use the authentication configuration in the perform code. It will be handled by viaSocket. The authentication can be passed through header, query parameter or body, these are aleady configured in backend while the API call is made. Can include the additional header/query parameter/body if needed for the API call.
+- **Required Field Validation**: Always throw an error before the API call if a required input field is missing. Do not silently pass `undefined` or `null` to the API for required fields.

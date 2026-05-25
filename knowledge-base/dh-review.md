@@ -51,6 +51,8 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **Payload Mapping**: Ensure `context.inputData.<key>` is correctly mapped to the API payload.
 - **No Auth**: Ensure absolutely **no authentication logic** is present.
 - **Endpoint**: Ensure the final endpoint correctly matches the provided cURL.
+- **API Rate Limiting**: If the code calls an API inside a loop, it must handle the API rate limit of the service (e.g., add delays, retry logic, or respect rate limit headers).
+- **Required Field Validation**: For every input field marked `required: true` in the input fields JSON, the perform code **must** throw an error at the top of the function (before the API call) if that field's value is missing, empty, or `null`. Example: `if (!context.inputData.date) { throw new Error('Date is required.'); }`
 
 **Required Structure:**
 ```javascript
