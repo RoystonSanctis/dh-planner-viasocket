@@ -102,7 +102,7 @@ jobs:
 
 
           RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
-            -X POST https://api.docstar.io/import/github \
+            -X POST https://api.docstar.io/import/github?debugLogs=true \
             -H "Authorization: Bearer $DOCSTAR_API_KEY" \
             -H "Content-Type: application/json" \
             -d @/tmp/payload.json)
