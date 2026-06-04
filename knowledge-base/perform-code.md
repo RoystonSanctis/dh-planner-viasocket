@@ -10,14 +10,19 @@ published: true
 - Trigger
   - Trigger Code Generation Rules:
   - Instant Trigger
-    - Instant Trigger Perform Code Rules:
-    - Instant Trigger Sample Code Pseudo Code:
+    - Instant Trigger Code Generation Rules:
+      - Instant Trigger Subscribe Code Rules:
+      - Instant Trigger Sample Code:
+      - Instant Trigger Perform Code (Modify data before send to flow) Rules:
+      - Instant Trigger Unsubscribe Code Rules:
+      - Instant Trigger Transfer Code Rules:
   - Scheduled Trigger
-    - Scheduled Trigger Perform Code Rules:
-    - Scheduled Trigger Perform Code Pseudo Code:
-    - Scheduled Trigger Sample Code Rules:
-    - Scheduled Trigger Sample Code Pseudo Code:
-    - Scheduled Trigger Perform Code Example:
+    - Scheduled Trigger Code Generation Rules:
+      - Scheduled Trigger Perform Code Rules:
+      - Scheduled Trigger Perform Code Pseudo Code:
+      - Scheduled Trigger Sample Code Rules:
+      - Scheduled Trigger Sample Code Pseudo Code:
+      - Scheduled Trigger Perform Code Example:
     - Scheduled Trigger Sample Code Example:
   - Manual Trigger
     - Manual Trigger Perform Code Rules:
@@ -67,19 +72,67 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 **Simple understanding**
 - Real-time, event-driven updates.
 - The external service sends data to viaSocket via a webhook URL.
+- **Note:** Users will not see the webhook link in the UI; internally, the viaSocket flow URL is automatically sent to the external service during the subscription process.
 - Example: New form submission → Webhook fires → Workflow runs immediately.
 
 **When to use**
 - When the external service supports webhooks subscription/unsubscription.
 - When real-time, immediate data processing is required.
 
-### Instant Trigger Perform Code Rules:
-- Instant Triggers typically do **not** require perform code since the webhook handles data delivery.
-- A **Sample Code** block is required to fetch test/sample data for the trigger configuration UI.
-- The sample code should fetch the **most recent 1 item** from the API to provide the user with a realistic data preview.
-- If no data exists, the sample code should return a **hardcoded fallback object** representing the expected schema.
+## Instant Trigger Code Generation Rules:
+The instant trigger contains the following code blocks:
+- `Subscribe Code`
+- `Sample Code`
+- `Perform Code`
+- `Unsubscribe Code`
+- `Transfer Code`
 
-### Instant Trigger Sample Code Pseudo Code:
+### Instant Trigger Subscribe Code Rules:
+The following internal variables can be used in the subscribe code:
+- `context?.inputData?.hookUrl`: The viaSocket hook URL. This is always required to tell the external service where to send events.
+- `context?.inputData`: Contains the input JSON fields. Used when the subscription requires additional configurations in the API request body.
+- `_scriptId`: The unique ID of the script. Used only when the external service requires a unique key to identify the webhook.
+
+**Example:**
+
+```javascript
+async (context) => {
+  try {
+    // Step 1: Construct the payload with the viaSocket hook URL and required event parameters
+    const data = {
+      hookUrl: context?.inputData?.hookUrl, // Required: Tells the external service where to send events
+      event: "<event_name>", // e.g., "course.completed" or mapped from context.inputData.event
+      // ... map any other required fields from context.inputData here
+    };
+
+    // Step 2: Configure the API request to the external service's webhook subscription endpoint
+    const config = {
+      method: "post",
+      url: "<api_base_url>/<webhook_subscription_endpoint>",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data,
+    };
+
+    // Step 3: Execute the request
+    const response = await axios.request(config);
+
+    // Step 4: Return the response so viaSocket can store any returned subscription IDs (needed for unsubscription)
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+### Instant Trigger Sample Code:
+
+**Note:**
+A **Sample Code** block is required to fetch test/sample data for the trigger configuration UI.
+The sample code should fetch the **most recent 1 item** from the API to provide the user with a realistic data preview.
+If no data exists, the sample code should return a **hardcoded fallback object** representing the expected schema.
+
 ```
 async (context) => {
   try {
@@ -120,6 +173,39 @@ async (context) => {
 }
 ```
 
+### Instant Trigger Perform Code (Modify data before send to flow) Rules:
+
+**Simple understanding**
+- The Perform Code block is used to modify the data before sending it to the flow. It is not used all the time, if the webhook is well structured and has enough data for you to use, you can skip this block.
+
+**When to use**
+- When the webhook data is not in the format you need for your flow. Example: 
+
+A. Webhook sends the data where it contains only ID. Now need to fetch the full data from the API using the ID, then return the full data to the flow.
+B. The webhook sends array data format. Where it contain the ID now need to fetch each ID full data and return it to the flow as an array
+C. Webhook data contains nested object format. Now need to flatten the nested object and return it to the flow as a flat object.
+
+> [!NOTE]
+> **Note the return structure support object and array of objects. When sent array of object the flow will automatically iterate through the array and execute the next steps for each item in the array.**
+
+**How it works**
+1. The Perform Code block receives the data from the webhook.
+2. It modifies the data in the format you need.
+3. It returns the modified data to the flow.
+
+> [!NOTE]
+> **When user cliks test button on the UI the sample code executes and the response of the sample code will be the input of the perform code, if perform code present then perform code process and sends data to the flow. If no perform code present then the sample code response will be the input of the next steps in the flow.** 
+
+**Example A:**
+
+```javascript
+
+```
+
+
+### Instant Trigger Unsubscribe Code Rules:
+
+### Instant Trigger Transfer Code Rules:
 
 ## Scheduled Trigger
 
@@ -146,7 +232,7 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 - New lead in CRM → every 10 min
 - New order → every 15 min
 
-### Scheduled Trigger Perform Code
+## Scheduled Trigger Code Generation Rules:
 
 #### Scheduled Trigger Perform Code Rules:
 

@@ -107,12 +107,13 @@ published: true
   - Special Note: Dropdown & Multiselect:
   - Special Note: Visibility Condition Rules:
   - Special Note: `list` and `limit` usage in the text and number field types:
-  - Special Note: `required` key in the input fields
+  
   - Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]
     - Understanding `dependsOn` vs `visibilityCondition`
     - `dependsOn` vs `visibilityCondition` Examples:
       - Example 1: Generic Example (Static Fields & Input Groups)
       - Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
+  - Special Note: `required` key in the input fields
 
 # DH Input Fields Knowledge Base
 
@@ -4539,13 +4540,7 @@ Here are the various patterns you should use based on what field type it depends
   - Example : `[ "Option 1", "Option 2", "Option 3" ]` or `Option 1, Option 2, Option 3`
 - When the user wants to process only a single value.
 - When the data is dynamically passed in the field where can suggest user to input as the comma seperated values in the field or the data is passed as the array in the field.
-## Special Note: `required` key in the input fields
-- `required` true = Field is required
-- `required` false = Field is optional
-- Default value: `required: false`
-- If `required: true` and the field is empty, the workflow will not run, and the UI will show an error message with the field name.
-> [!NOTE]
-> **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
+
 ## Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]
 
 When working with the final JSON structure for input fields, you may encounter three main keys: `steps`, `blocks`, and `inputFields`.
@@ -4700,3 +4695,13 @@ The following example illustrates how `dependsOn` is populated for dynamic field
   ]
 }
 ```
+## Special Note: `required` key in the input fields
+- `required` true = Field is required
+- `required` false = Field is optional
+- Default value: `required: false`
+- If `required: true` and the field is empty, the workflow will not run, and the UI will show an error message with the field name.
+- **Dependent Required Fields:** If an optional parent field is selected/provided, and it reveals a dependent child field that is required for that specific selection, the child field **MUST** be marked as `required: true`. Additionally, the **perform code** must explicitly evaluate and enforce this requirement, throwing an error if the parent is provided but the required child field is missing.
+> [!NOTE]
+> **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
+
+
