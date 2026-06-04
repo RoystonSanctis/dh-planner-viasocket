@@ -1227,7 +1227,7 @@ if (!context?.inputData?.record_id) {
 }
 ```
 
-#### Action Perform Code Pseudo Code (Patterns):
+#### Action Perform Code Patterns:
 
 ##### 1. Read Data from an API (GET Family)
 
