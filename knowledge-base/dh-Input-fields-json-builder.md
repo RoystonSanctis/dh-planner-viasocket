@@ -4464,7 +4464,9 @@ Here are the various patterns you should use based on what field type it depends
      ```javascript
      context?.inputData?.multiselect_static_required?.includes('A')
      ```
-
+     ```javascript
+     context?.inputData?.multiselect_static_required?.some((option) => option === 'B')
+     ```
 2. **Depending on a String or Dropdown Field (Exact Match):**
    - **A. Check if a specific value is selected:**
      ```javascript

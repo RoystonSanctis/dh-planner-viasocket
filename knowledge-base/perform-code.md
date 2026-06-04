@@ -16,18 +16,19 @@ published: true
       - Instant Trigger Perform Code (Modify data before send to flow) Rules:
       - Instant Trigger Unsubscribe Code Rules:
       - Instant Trigger Transfer Code Rules:
+      - Instant Trigger Transfer Code Patterns:
   - Scheduled Trigger
     - Scheduled Trigger Code Generation Rules:
       - Scheduled Trigger Perform Code Rules:
-      - Scheduled Trigger Perform Code Pseudo Code:
+      - Scheduled Trigger Perform Code Patterns:
       - Scheduled Trigger Sample Code Rules:
-      - Scheduled Trigger Sample Code Pseudo Code:
-      - Scheduled Trigger Perform Code Example:
-    - Scheduled Trigger Sample Code Example:
+      - Scheduled Trigger Sample Code Patterns:
+      - Scheduled Trigger Transfer Code Rules:
+      - Scheduled Trigger Transfer Code Patterns:
   - Manual Trigger
     - Manual Trigger Perform Code Rules:
-    - Manual Trigger Perform Code Pseudo Code:
-    - Manual Trigger Sample Code Pseudo Code:
+    - Manual Trigger Perform Code Patterns:
+    - Manual Trigger Sample Code Patterns:
 - Actions
   - Action Perform Code Rules:
   - GET
@@ -204,8 +205,68 @@ C. Webhook data contains nested object format. Now need to flatten the nested ob
 
 
 ### Instant Trigger Unsubscribe Code Rules:
+The following internal variables can be used in the **Unsubscribe** code:
+- `context?.inputData?.performsubscribe`: The response received from the .
+- `context?.inputData`: The data entered by the user in the trigger UI.
 
 ### Instant Trigger Transfer Code Rules:
+
+- **Purpose**: Used to transfer historical data to the flow after the trigger is published.
+- **Pagination**: The GET List endpoint must have pagination enabled.
+- **Input Path**: The global path used for the pagination input is `context?.inputData?.transferOption?.offset`.
+- **Custom Input Fields**: The user defined input fields in the UI will be available in the `context?.inputData` object.
+- The Transfer code will be only used in case of the **New Event** Trigger **NOT** for **Update Event** Trigger.
+- **Output Structure**: The response must contain a maximum of 200 items per page and follow this format: `{ data, offset, uniqueIdentifier }`.
+  - `data`: An array containing the actual records.
+  - `offset`: The next pagination token.
+  - `uniqueIdentifier`: The key name containing the unique value for each record.
+
+
+
+### Instant Trigger Transfer Code Patterns:
+
+**1. Generic historical data retrieval with pagination**
+```javascript
+  try {
+    // Step 1: Extract the pagination offset/token from the global transfer input path
+    const offset = context?.inputData?.transferOption?.offset || null;
+
+    // Step 2: Set up request parameters and pagination payload
+    const requestParams = {
+      limit: 100 // Maximum 200 items per page
+    };
+
+    // If offset exists from the previous run, apply it to fetch the next page
+    if (offset) {
+      requestParams.cursor = offset; // Adjust the parameter key (e.g., 'offset', 'page', 'starting_after') as per API
+    }
+
+    // Step 3: Configure and execute the API call
+    const config = {
+      method: "GET", // Use GET or POST depending on the API design
+      url: "<api_base_url>/<endpoint>",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      params: requestParams // Use 'data' instead of 'params' if method is POST
+    };
+
+    const response = await axios.request(config);
+    
+    // Step 4: Extract items and identify the next offset/token
+    const items = response.data?.results || response.data || [];
+    const nextOffset = response.data?.next_cursor || null; // Update key based on API response structure (e.g., 'next_page_token')
+
+    // Step 5: Return structured response containing data, offset, and uniqueIdentifier
+    return {
+      data: items,                  // Array of records
+      offset: nextOffset,           // Next pagination offset/token (null if pagination is complete)
+      uniqueIdentifier: "id"        // The field name representing a unique value for each record
+    };
+  } catch (error) {
+    throw error;
+  }
+```
 
 ## Scheduled Trigger
 
@@ -232,9 +293,9 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 - New lead in CRM → every 10 min
 - New order → every 15 min
 
-## Scheduled Trigger Code Generation Rules:
+### Scheduled Trigger Code Generation Rules:
 
-#### Scheduled Trigger Perform Code Rules:
+### Scheduled Trigger Perform Code Rules:
 
 **Best Practice Algorithm:**
 Always check if the API natively supports filtering by a start date (e.g., `created_at_min`), updated date, or returning specific output item keys. **If the API supports these native query parameters, use them!** It is the most optimized approach. If the API does *not* support it natively, you must handle the logic on the client side: filtering the latest/updated items, filtering the fields, and sorting the results.
@@ -264,7 +325,7 @@ If enabled and the API supports pagination, use the global variable `context?.pa
 > [!WARNING]
 > Re-assigning `0` or `null` will reset pagination completely back to the start.
 
-#### Scheduled Trigger Perform Code Pseudo Code:
+#### Scheduled Trigger Perform Code Patterns:
 
 ##### 1. Fetching New Items from an API with pagination
 ```javascript
@@ -810,7 +871,7 @@ Always follow these rules while creating a sample code for the Schedule Trigger:
 4. Map the exact schema properties to empty/default values
 5. Return the dynamic fallback item with an exact matching structure
 
-#### Schedule Trigger Sample Pseudo Code:
+#### Schedule Trigger Sample Code Pattern:
 
 **Fetch the latest 1 item or any item or fallback structure**
 ```javascript
@@ -1041,6 +1102,64 @@ try {
   throw error;
 }
 ```
+### Scheduled Trigger Transfer Code Rules:
+
+- **Purpose**: Used to transfer historical data to the flow after the trigger is published.
+- **Pagination**: The GET List endpoint must have pagination enabled.
+- **Input Path**: The global path used for the pagination input is `context?.inputData?.transferOption?.offset`.
+- **Custom Input Fields**: The user defined input fields in the UI will be available in the `context?.inputData` object.
+- The Transfer code will be only used in case of the **New Event** Trigger **NOT** for **Update Event** Trigger.
+- **Output Structure**: The response must contain a maximum of 200 items per page and follow this format: `{ data, offset, uniqueIdentifier }`.
+  - `data`: An array containing the actual records.
+  - `offset`: The next pagination token.
+  - `uniqueIdentifier`: The key name containing the unique value for each record.
+
+### Scheduled Trigger Transfer Code Patterns:
+
+**1. Generic historical data retrieval with pagination**
+```javascript
+  try {
+    // Step 1: Extract the pagination offset/token from the global transfer input path
+    const offset = context?.inputData?.transferOption?.offset || null;
+
+    // Step 2: Set up request parameters and pagination payload
+    const requestParams = {
+      limit: 100 // Maximum 200 items per page
+    };
+
+    // If offset exists from the previous run, apply it to fetch the next page
+    if (offset) {
+      requestParams.cursor = offset; // Adjust the parameter key (e.g., 'offset', 'page', 'starting_after') as per API
+    }
+
+    // Step 3: Configure and execute the API call
+    const config = {
+      method: "GET", // Use GET or POST depending on the API design
+      url: "<api_base_url>/<endpoint>",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      params: requestParams // Use 'data' instead of 'params' if method is POST
+    };
+
+    const response = await axios.request(config);
+    
+    // Step 4: Extract items and identify the next offset/token
+    const items = response.data?.results || response.data || [];
+    const nextOffset = response.data?.next_cursor || null; // Update key based on API response structure (e.g., 'next_page_token')
+
+    // Step 5: Return structured response containing data, offset, and uniqueIdentifier
+    return {
+      data: items,                  // Array of records
+      offset: nextOffset,           // Next pagination offset/token (null if pagination is complete)
+      uniqueIdentifier: "id"        // The field name representing a unique value for each record
+    };
+  } catch (error) {
+    throw error;
+  }
+```
+
+
 ## Manual Trigger
 
 **What it does**
