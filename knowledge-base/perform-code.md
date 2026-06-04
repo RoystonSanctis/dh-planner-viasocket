@@ -31,27 +31,11 @@ published: true
     - Manual Trigger Sample Code Patterns:
 - Actions
   - Action Perform Code Rules:
-  - GET
-    - GET Perform Code Rules:
-    - GET Perform Code Pseudo Code:
-  - LIST
-    - LIST Perform Code Rules:
-    - LIST Perform Code Pseudo Code:
-  - FIND/SEARCH
-    - FIND/SEARCH Perform Code Rules:
-    - FIND/SEARCH Perform Code Pseudo Code:
-  - CREATE
-    - CREATE Perform Code Rules:
-    - CREATE Perform Code Pseudo Code:
-  - UPDATE
-    - UPDATE Perform Code Rules:
-    - UPDATE Perform Code Pseudo Code:
-  - FIND OR CREATE
-    - FIND OR CREATE Perform Code Rules:
-    - FIND OR CREATE Perform Code Pseudo Code:
-  - DELETE
-    - DELETE Perform Code Rules:
-    - DELETE Perform Code Pseudo Code:
+  - Action Perform Code Patterns:
+    - Read Data from an API (GET Family)
+    - Create Data in an API
+    - Update Data in an API
+    - Delete or Archive Data in an API
 - Special Note:
   - Special Note - API Request Error Handling:
   - Special Note - Success Code Handling:
@@ -206,7 +190,7 @@ C. Webhook data contains nested object format. Now need to flatten the nested ob
 
 ### Instant Trigger Unsubscribe Code Rules:
 The following internal variables can be used in the **Unsubscribe** code:
-- `context?.inputData?.performsubscribe`: The response received from the .
+- `context?.inputData?.performsubscribe`: The response received from the subscribe code.
 - `context?.inputData`: The data entered by the user in the trigger UI.
 
 ### Instant Trigger Transfer Code Rules:
@@ -1178,7 +1162,7 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 - Manual Triggers has **no API call** supports Perform code (Optional: Modify data before sending it to the workflow).
 - No scheduling logic, no `__executionStartTime__`, no pagination state.
 
-### Manual Trigger Perform Code Pseudo Code:
+### Manual Trigger Perform Code Pattern:
 ```
 async (context) => {
   try {
@@ -1207,7 +1191,7 @@ async (context) => {
 }
 ```
 
-### Manual Trigger Sample Code Pseudo Code:
+### Manual Trigger Sample Code Pattern:
 ```
 async (context) => {
   try {
@@ -1222,372 +1206,352 @@ async (context) => {
 
 # Actions
 
-Actions perform operations on external services. Each action category has specific perform code patterns.
+Actions perform request/response operations on external services. Unlike scheduled triggers, actions run only when the workflow reaches that action step and usually depend on user-provided input values.
 
 ## Action Perform Code Rules:
-- All action perform code must be wrapped in `async (context) => { try { ... } catch (error) { throw error; } }`.
-- Read all user inputs from `context.inputData.<key>`.
-- Use `axios()` for all HTTP requests.
-- Auth tokens come from `context.authData.<auth_key>`.
-- Always return the meaningful part of the API response (not the raw HTTP response wrapper).
-- Handle errors gracefully — provide actionable error messages when possible.
-- **Required Field Validation**: For every input field defined with `required: true` in the input fields JSON, the perform code **must** validate the value at the top of the function — before making any API call. If the value is missing, empty, `null`, or `undefined`, throw an error immediately. Example:
-  ```javascript
-  if (!context.inputData.date) {
-    throw new Error('Date is required.');
-  }
-  ```
 
-## GET
+**Best Practice Algorithm:**
+First identify what the action is trying to do: read data, create data, update data, find-or-create data, or delete/archive data. Then choose the closest pseudo-code pattern below and adapt the endpoint, method, query params, body, and response path according to the service API.
 
-### GET Perform Code Rules:
-- Use `GET` HTTP method with the record ID in the URL path.
-- Return the single record object directly.
-- Handle 404 (record not found) with a clear error message only if the service does not return the data properly. If the user provides invalid id then it will return 404, which is expected behavior.
+- **Required Field Validation:** For every input field defined with `required: true` in the input fields JSON, validate the value at the top of the function before making any API call. If the value is missing, empty, `null`, or `undefined`, throw an error immediately.
+- **Input Reading:** Read all user inputs from `context?.inputData?.<key>`.
+- **HTTP Request:** Use `axios()` for all HTTP requests.
+- **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
+- **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
+- **Error Handling:** Wrap all perform code in `try { ... } catch (error) { throw error; }`. Do not modify the error in the catch block.
 
-### GET Perform Code Pseudo Code:
-```
-async (context) => {
-  try {
-    // Step 1: Read the record ID from input
-    const recordId = context.inputData.<record_id_key>;
-
-    // Step 2: Make GET request
-    const response = await axios({
-      url: `<api_base_url>/<resource>/${recordId}`,
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    // Step 3: Return the record
-    return response.data;
-
-  } catch (error) {
-    throw error;
-  }
+**Required Field Validation Pattern**
+```javascript
+if (!context?.inputData?.record_id) {
+  throw new Error('Record ID is required.');
 }
 ```
 
-## LIST
+#### Action Perform Code Patterns:
 
-### LIST Perform Code Rules:
-- Use `GET` HTTP method with query parameters for pagination and filtering.
-- Support pagination via cursor tokens, page numbers, or offset values.
-- Read pagination inputs from `context.inputData` (e.g., `page_limit`, `start_cursor`).
-- Return an array of records.
-- If no results, return an empty array `[]`.
-- If the API does not provide the proper structure then the format should be `{success: true/false, data:[], pagination:{...}}`. `pagination` object can contain information like `{has_more: true, next_cursor: 'cursor', page_number: 1, has_previous: false, previous_cursor: null, has_next: true}`. If the sevice only provide only array of records in response then the response can be modified to fit the format. `success` key should be added as boolean to the response object.
+##### 1. Read Data from an API (GET Family)
 
-### LIST Perform Code Pseudo Code:
+Use this category when the action only reads data from the service. `GET`, `LIST`, and `FIND/SEARCH` all belong to this read category. The action can still use `POST` if the service's search/query endpoint requires a request body, but behavior-wise it is still a read action.
+
+**Pattern A: Get Single Record by ID**
+```javascript
+try {
+  // Step 1: Read the record ID from input
+  const recordId = context?.inputData?.record_id;
+
+  if (!recordId) {
+    throw new Error('Record ID is required.');
+  }
+
+  // Step 2: Make GET request
+  const response = await axios({
+    method: 'GET',
+    url: `https://api.service.com/resources/${recordId}`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  // Step 3: Return the record
+  return response?.data;
+
+} catch (error) {
+  throw error;
+}
 ```
-async (context) => {
-  try {
-    // Step 1: Read pagination and filter inputs
-    const pageLimit = context.inputData.page_limit || 100;
-    const startCursor = context.inputData.start_cursor || undefined;
 
-    // Step 2: Build query params
-    const params = {
-      limit: pageLimit,
+**Pattern B: List Records with User-Provided Filters**
+```javascript
+try {
+  // Step 1: Read from input
+  const dbId = context?.inputData?.dbId;
+
+  // Step 2: Make GET request
+  const response = await axios({
+    method: 'GET',
+    url: `https://api.service.com/resources/all/${dbId}`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  // Step 3: Return records array
+  return response.data;
+
+} catch (error) {
+  throw error;
+}
+```
+
+**Pattern C: Find/Search Records with Client-Side Filtering**
+```javascript
+try {
+  // Step 1: Read from inputs
+  const query = context?.inputData?.query;
+
+  if (!query) {
+    throw new Error('query is required.');
+  }
+
+  // Step 2 : Use native API filtering/search params whenever supported
+  const response = await axios({
+    method: 'GET',
+    url: `https://api.service.com/resources/all`,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+
+  // Step 3: Use client-side filtering only if the API does not support native search params.
+  const matchedData = response?.data?.find(channel => channel.id === query);
+
+  // Step 4: Return data.
+
+  if (!matchedData) {
+    return {
+      success: true,
+      channels: []
     };
-    if (startCursor) params.start_cursor = startCursor;
-
-    // Step 3: Make GET request
-    const response = await axios({
-      url: `<api_base_url>/<resource>`,
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      params
-    });
-
-    // Step 4: Return results array
-    return response.data?.results || response.data || [];
-
-  } catch (error) {
-    throw error;
   }
+
+  return matchedData;
+
+} catch (error) {
+  throw error;
 }
 ```
 
-## FIND/SEARCH
+**Pattern D: Search Records Supported by Service**
+```javascript
 
-### FIND/SEARCH Perform Code Rules:
-- Use `GET` or `POST` HTTP method depending on the API's search endpoint.
-- Support both Basic (single field exact match) and Advanced (multi-field query) modes.
-- Read the search mode from a Boolean input field.
-- For Basic mode: filter by a single column/field with an exact match value.
-- For Advanced mode: pass a structured filter/query object (often AI-generated).
-- Apply client-side filtering if the API does not support native search.
-- Return matching records as an array.
+const apiUrl = "https://api.service.com/resources";
+// step 1 : read from inputData
+const requestData = {
+  resourceId: context.inputData.resource_id,
+  page: context.inputData.page,
+  limit: context.inputData.limit
+};
 
-### FIND/SEARCH Perform Code Pseudo Code:
-```
-async (context) => {
-  try {
-    // Step 1: Read search inputs
-    const resourceId = context.inputData.<resource_key>;
-    const isBasicMode = context.inputData.filter_type; // Boolean: true = Basic, false = Advanced
-    const lookupColumn = context.inputData.lookup_column;
-    const lookupValue = context.inputData.lookup_value;
-    const advancedFilter = context.inputData.advanced_filter; // AI-generated filter object
-    const resultLimit = context.inputData.row_count || 10;
+try {
+  // Step 2 : Make Get request
+  const response = await axios.get(apiUrl, {
+    params: requestData
+  });
 
-    let results = [];
-
-    if (isBasicMode) {
-      // Step 2a: Basic mode — fetch and filter client-side (if API lacks native search)
-      const response = await axios({
-        url: `<api_base_url>/<resource>/${resourceId}`,
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const allRecords = response.data?.results || response.data || [];
-
-      // Client-side exact match filter
-      results = allRecords.filter(record => {
-        const fieldValue = record[lookupColumn];
-        return String(fieldValue) === String(lookupValue);
-      });
-
-    } else {
-      // Step 2b: Advanced mode — pass structured filter to API
-      const filterObject = typeof advancedFilter === 'string' ? JSON.parse(advancedFilter) : advancedFilter;
-
-      const response = await axios({
-        url: `<api_base_url>/<resource>/${resourceId}/query`,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: { filter: filterObject }
-      });
-
-      results = response.data?.results || response.data || [];
-    }
-
-    // Step 3: Apply result limit
-    return results.slice(0, resultLimit);
-
-  } catch (error) {
-    throw error;
+  if (!response.data.success) {
+    return {
+      success: false,
+      message: response.data.message || "Request failed."
+    };
   }
+
+
+  // step 3 : return response
+  return response.data;
+} catch (error) {
+  throw error;
 }
 ```
 
-## CREATE
+**Pattern E: Combined Advanced Search**
 
-### CREATE Perform Code Rules:
-- Use `POST` HTTP method to create new records.
-- Map input fields from `context.inputData.<key>` to the API payload structure.
-- For dynamic input groups (schema-based fields), iterate over the input keys and build the payload object.
-- Normalize keys if they were modified during input field generation (e.g., dots replaced with underscores).
-- Return the newly created record.
+```javascript
+let apiUrl = "https://api.service.com";
 
-### CREATE Perform Code Pseudo Code:
-```
-async (context) => {
-  try {
-    // Step 1: Read input data
-    const parentResourceId = context.inputData.<parent_key>;
+// Step 1 : Read from inputData
+const searchMode = context.inputData?.search_mode || 'manual';
+const query = context.inputData?.query;
+const aiId = context.inputData?.aiId;
+const params = {};
 
-    // Step 2: Build the payload from dynamic input fields
-    const payload = {};
-    // Map each input field to the API's expected structure
-    // Example: context.inputData.field_name → payload.properties.field_name.value
-    const fieldKeys = Object.keys(context.inputData).filter(key => {
-      // Filter out non-payload keys (resource selectors, config toggles)
-      return !['<parent_key>', '<config_keys>'].includes(key);
-    });
-
-    for (const key of fieldKeys) {
-      const value = context.inputData[key];
-      if (value !== undefined && value !== '' && value !== null) {
-        // Reverse key normalization if needed (e.g., underscores back to dots)
-        const originalKey = key.replace(/_/g, '.');
-        payload[originalKey] = value;
-      }
+// Step 2: Based on the actual usecase make payload for sending in the api.
+try {
+  switch (searchMode) {
+    case 'manual' : {
+      apiUrl += '/path-to-be-for-manual';
+      params.id = query;
+      params.advanced = 'manual';
+      // any other things...
+    };
+    break;
+    case 'ai' : {
+      apiUrl += `/path-to-be-for-ai/${aiId}`;
+      params.id = `${query}&id=${aiId}`;
+      params.advanced = 'ai';
+      // any other things..
     }
+    break;
+    case 'usecase' : {
+      // any other case.
+    }
+    break;
 
-    // Step 3: Make POST request
-    const response = await axios({
-      url: `<api_base_url>/<resource>/${parentResourceId}`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: payload
-    });
-
-    // Step 4: Return the created record
-    return response.data;
-
-  } catch (error) {
-    throw error;
+    default: break;
   }
+
+  // Step 3 : Make GET request
+  const response = await axios.get(apiUrl, {
+    params
+  });
+
+  if (!response.data.success) {
+    return {
+      success: false,
+      message: response.data.message || "Request failed."
+    };
+  }
+
+  return response.data;
+} catch (error) {
+  throw error;
 }
 ```
 
-## UPDATE
+##### 2. Create Data in an API
 
-### UPDATE Perform Code Rules:
-- Use `PUT`, `PATCH`, or `POST` HTTP method depending on the API.
-- Include the record ID in the URL path.
-- Only send fields that the user has provided values for (partial update).
-- Skip empty, undefined, or null values unless explicitly intended.
-- Return the updated record.
+Use this category when the action creates a new record in the external service.
 
-### UPDATE Perform Code Pseudo Code:
+**Pattern A: Create a Record**
+```javascript
+try {
+  // Step 1: Read required input
+  const title = context?.inputData?.title;
+
+  if (!title) {
+    throw new Error('title is required.');
+  }
+
+  // Step 2: Build payload from action input fields
+  const payload = {};
+
+
+  payload.title = title;
+  // any other input added in the payload from the inputData.
+
+  // Step 3: Make API request
+  const response = await axios({
+    method: 'POST',
+    url: `https://api.service.com/resources/records`,
+    data: payload
+  });
+
+  // Step 4: Return created record
+  return response?.data;
+
+} catch (error) {
+  throw error;
+}
 ```
-async (context) => {
-  try {
-    // Step 1: Read the record ID and parent resource
-    const parentResourceId = context.inputData.<parent_key>;
-    const recordId = context.inputData.<record_id_key>;
+**Pattern B: Create if not exists record (Find or Create Data)**
+```javascript
+try {
+  // Step 1: Gather input data
+  const recordId = context?.inputData?.record_id;
+  const messageData = context?.inputData?.message;
 
-    // Step 2: Build partial update payload (only non-empty fields)
-    const payload = {};
-    const fieldKeys = Object.keys(context.inputData).filter(key => {
-      return !['<parent_key>', '<record_id_key>', '<config_keys>'].includes(key);
-    });
+  if (!recordId) {
+    throw new Error('record_id is required.');
+  }
 
-    for (const key of fieldKeys) {
-      const value = context.inputData[key];
-      if (value !== undefined && value !== '' && value !== null) {
-        payload[key] = value;
-      }
+  // Step 2: Fetch the requested data.
+  let response = await axios({
+    method: 'GET',
+    url: `https://api.service.com/resources/records/${recordId}`
+  });
+
+  // Step 3: If present, return the existing record.
+  if (response.data) return response.data;
+
+  response = await axios({
+    method: 'POST',
+    url: `https://api.service.com/resources/records/create`,
+    data: {
+      record_id: recordId,
+      message: messageData
+    }
+  });
+
+  return response.data;
+} catch (error) {
+  throw error;
+}
+
+```
+
+##### 3. Update Data in an API
+
+Use this category when the action updates an existing record. Send only values provided by the user unless the API requires a full replacement payload.
+
+```javascript
+try {
+  // Step 1: Read required identifiers
+  const recordId = context?.inputData?.record_id;
+
+  if (!recordId) {
+    throw new Error('Record ID is required.');
+  }
+
+  // Step 2: Build partial update payload
+  const payload = {};
+  const ignoredKeys = ['record_id', 'config_key'];
+
+  for (const key of Object.keys(context?.inputData || {})) {
+    if (ignoredKeys.includes(key)) {
+      continue;
     }
 
-    // Step 3: Make PATCH/PUT request
-    const response = await axios({
-      url: `<api_base_url>/<resource>/${parentResourceId}/<records>/${recordId}`,
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: payload
-    });
+    const value = context.inputData[key];
 
-    // Step 4: Return the updated record
-    return response.data;
-
-  } catch (error) {
-    throw error;
+    if (value !== undefined && value !== null && value !== '') {
+      payload[key] = value;
+    }
   }
+
+  // Step 3: Make PATCH/PUT/POST request depending on the API
+  const response = await axios({
+    method: 'PATCH',
+    url: `https://api.service.com/resources/${recordId}`,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: payload
+  });
+
+  // Step 4: Return updated record
+  return response?.data;
+
+} catch (error) {
+  throw error;
 }
 ```
 
-## FIND OR CREATE
+##### 4. Delete or Archive Data in an API
 
-### FIND OR CREATE Perform Code Rules:
-- Combine a **search request** followed by a **conditional create request**.
-- First, execute the search logic (same as FIND/SEARCH).
-- If results are found, return the first matching record.
-- If no results are found AND the user opted into "Create if not found", execute the create logic (same as CREATE).
-- Return the found or newly created record with a flag indicating which action was taken.
+Use this category when the action deletes, archives, disables, or marks a record as inactive. Some APIs use `DELETE`; others use `PATCH` or `POST` for archive-style behavior.
 
-### FIND OR CREATE Perform Code Pseudo Code:
-```
-async (context) => {
-  try {
-    // Step 1: Read search inputs
-    const resourceId = context.inputData.<resource_key>;
-    const lookupColumn = context.inputData.lookup_column;
-    const lookupValue = context.inputData.lookup_value;
-    const createIfNotFound = context.inputData.create_if_not_found;
+```javascript
+try {
+  // Step 1: Read required identifier
+  const recordId = context?.inputData?.record_id;
 
-    // Step 2: Search for existing record
-    const searchResponse = await axios({
-      url: `<api_base_url>/<resource>/${resourceId}/query`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        filter: { property: lookupColumn, value: lookupValue }
-      }
-    });
-
-    const results = searchResponse.data?.results || searchResponse.data || [];
-
-    // Step 3: If found, return the first match
-    if (results.length > 0) {
-      return { ...results[0], __action_taken: 'found' };
-    }
-
-    // Step 4: If not found and create enabled, create new record
-    if (createIfNotFound) {
-      const createPayload = {};
-      // Build payload from create-specific input fields
-      const createKeys = Object.keys(context.inputData).filter(key => {
-        return !['<resource_key>', 'lookup_column', 'lookup_value', 'create_if_not_found', '<config_keys>'].includes(key);
-      });
-
-      for (const key of createKeys) {
-        const value = context.inputData[key];
-        if (value !== undefined && value !== '' && value !== null) {
-          createPayload[key] = value;
-        }
-      }
-
-      const createResponse = await axios({
-        url: `<api_base_url>/<resource>/${resourceId}`,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: createPayload
-      });
-
-      return { ...createResponse.data, __action_taken: 'created' };
-    }
-
-    // Step 5: Not found and create not enabled
-    return { message: 'No matching record found.', __action_taken: 'not_found' };
-
-  } catch (error) {
-    throw error;
+  if (!recordId) {
+    throw new Error('Record ID is required.');
   }
-}
-```
 
-## DELETE
+  // Step 2: Make DELETE request, or replace with PATCH/POST if API archives records
+  const response = await axios({
+    method: 'DELETE',
+    url: `https://api.service.com/resources/${recordId}`
+  });
 
-### DELETE Perform Code Rules:
-- Use `DELETE` HTTP method with the record ID in the URL path.
-- Some services use `PATCH` or `POST` for archiving instead of hard deletion. Use the appropriate method.
-- Return a confirmation object with the deleted record's ID.
-- Handle 404 (already deleted) gracefully.
+  // Step 3: Return API response or a confirmation object
+  return response?.data || {
+    id: recordId,
+    deleted: true
+  };
 
-### DELETE Perform Code Pseudo Code:
-```
-async (context) => {
-  try {
-    // Step 1: Read the record ID
-    const parentResourceId = context.inputData.<parent_key>;
-    const recordId = context.inputData.<record_id_key>;
-
-    // Step 2: Make DELETE request
-    const response = await axios({
-      url: `<api_base_url>/<resource>/${parentResourceId}/<records>/${recordId}`,
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    // Step 3: Return confirmation
-    return response.data || { id: recordId, deleted: true };
-
-  } catch (error) {
-    throw error;
-  }
+} catch (error) {
+  throw error;
 }
 ```
 
