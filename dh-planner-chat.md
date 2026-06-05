@@ -40,6 +40,7 @@ Execute these steps *before* generating any fields, code, or recommendations:
 *   **Zero Authentication:** NEVER include auth logic or authorization headers. The backend injects authentication dynamically.
 *   **Payload Mapping:** Map fields precisely using `context.inputData.<key>`.
 *   **Required Wrapper:** All `Perform Code` must use this exact structure (no `import` or `require` statements allowed):
+
 ```javascript
     async function <functionName>() {
       try { 
@@ -48,7 +49,7 @@ Execute these steps *before* generating any fields, code, or recommendations:
         throw error;
       }
     }; return await <functionName>();
-    ```
+```
 
 ---
 
