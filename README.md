@@ -1,9 +1,3 @@
----
-type: page
-title: "DH-Planner — viaSocket Plug Creation System"
-description: "This repository contains the **system prompt instructions** used by the DH-Planner AI agent system on [viaSocket](htt..."
-published: false
----
 # DH-Planner — viaSocket Plug Creation System
 
 This repository contains the **system prompt instructions** used by the DH-Planner AI agent system on [viaSocket](https://viasocket.com) to create and manage **plug integrations**.
@@ -21,51 +15,48 @@ Each action consists of:
 
 ## Architecture
 
-The DH-Planner follows a **master-agent → sub-agent** architecture:
+The system utilizes a multi-agent workflow to design, generate, and validate viaSocket integrations:
 
 ```
-┌─────────────────────────┐
-│   dh-master-planner     │  ← Orchestrator: routes, plans, executes
-│   (Senior Integration   │
-│    Architect)           │
-└────────┬────────────────┘
-         │ delegates to
-         ▼
-┌─────────────────────────┐
-│   sub-agents/           │  ← Specialized field-type workers
-│   ├── dh-action-name-   │
-│   │   description.md    │
-│   ├── dh-cs-boolean.md  │
-│   ├── dh-cs-dropdown.md │
-│   └── ...               │
-└─────────────────────────┘
+┌──────────────────────────────────────┐
+│          DH-Master-Planner           │  ← Orchestrator: routes, plans, & designs integration
+└──────────────────┬───────────────────┘
+                   │ delegates
+                   ▼
+┌──────────────────────────────────────┐
+│              Sub Agents              │  ← Specialized task workers (complex & specialized tasks)
+└──────────────────┬───────────────────┘
+                   │ passes to
+                   ▼
+┌──────────────────────────────────────┐
+│              DH-Review               │  ← Quality Gate: validates JSON schema & perform code
+└──────────────────────────────────────┘
 ```
 
-### Master Planner (`dh-master-planner.md`)
+### 1. DH-Master-Planner ([dh-master-planner.md](dh-master-planner.md))
 
 The orchestrator agent that:
-1. **Routes** requests based on the Phase 1 Master Switch (`actionVersionRowId` + `oldInputFields`)
-2. **Architects** the UI (input fields) and logic (perform code)
-3. **Delegates** to specialized `DH-*` sub-agents for field-type-specific work
-4. Supports three modes: **Initiate Create**, **Resume Create**, and **Surgical Update**
+1. **Routes** requests based on the Phase 1 Master Switch (`actionVersionRowId` + `oldInputFields`).
+2. **Aligns with Knowledge Bases**: References core rules in the [Knowledge Base](knowledge-base) (such as [ux-practice.md](knowledge-base/ux-practice.md) and [dh-Input-fields-json-builder.md](knowledge-base/dh-Input-fields-json-builder.md)) before designing fields or outputting plans.
+3. **Architects** the UI (input fields) and API logic (perform code) using rules from [perform-code.md](knowledge-base/perform-code.md).
+4. **Delegates** complex or specialized tasks to the appropriate sub-agents.
+5. Supports three operating modes: **Initiate Create**, **Resume Create**, and **Surgical Update**.
 
-### Sub-Agents (`sub-agents/`)
+### 2. Sub Agents ([sub-agents/](sub-agents/))
 
-Each sub-agent handles a specialized task:
+Specialized agents called by the Master Planner to handle specific parts of the integration building process:
 
-| File | Role |
-|------|------|
-| `dh-action-name-description.md` | Generates action metadata (name, description, type, category) |
-| `dh-cs-boolean.md` | Builds boolean toggle field configurations |
-| `dh-cs-dictionary.md` | Builds key-value pair dictionary field configurations |
-| `dh-cs-dropdown-dynamic.md` | Builds dynamic API-fetched dropdown field configurations |
-| `dh-cs-dropdown-static.md` | Builds static predefined dropdown field configurations |
-| `dh-cs-inputgroup-dynamic.md` | Builds dynamic API-driven input group configurations |
-| `dh-cs-inputgroup-static.md` | Builds static input group configurations |
-| `dh-cs-multiselect-dynamic.md` | Builds dynamic API-fetched multi-select field configurations |
-| `dh-cs-multiselect-static.md` | Builds static predefined multi-select field configurations |
-| `dh-cs-perform-api.md` | Generates JavaScript API request mapping (Logic layer) |
-| `dh-cs-string-date-number-html-markdown.md` | Builds basic field types (string, date, number, html, markdown) |
+| File | Role | Description |
+|------|------|-------------|
+| [dh-plug-name-description.md](sub-agents/dh-plug-name-description.md) | **Action Metadata Generator** | Generates clear, consistent action names, descriptions, types, and categories. |
+| [dh-reusable-component.md](sub-agents/dh-reusable-component.md) | **Reusable Component Generator** | Specializes in creating reusable components for use across multiple code blocks. |
+
+### 3. DH-Review ([dh-review-chat.md](dh-review-chat.md))
+
+The final quality assurance reviewer agent that:
+1. **Validates** the generated input fields JSON and perform code.
+2. Checks compliance against the viaSocket Knowledge Bases.
+3. Outputs approval status, a structured list of issues/feedback, and a quality score.
 
 ## Supported Field Types
 
@@ -87,12 +78,12 @@ The system supports the following input field types for plug actions:
 
 ## How It Works
 
-1. **User provides** a cURL command or describes an API action
-2. **Master Planner** evaluates the request and routes it (create vs. update)
-3. **Input fields** are designed based on the API parameters
-4. **Perform code** is generated to map fields → API payload
-5. **Sub-agents** handle specialized field builders (e.g., populating dynamic dropdowns)
-6. The plug action is created/updated on viaSocket via tool calls
+1. **User provides** a cURL command or describes an API action.
+2. **Master Planner** evaluates the request and routes it based on the action status.
+3. **Input fields** and **Perform code** are drafted based on API specifications.
+4. **Sub-agents** handle complex and specialized tasks (e.g., metadata generation, reusable components).
+5. **DH-Review** performs a final quality review of the input fields JSON and perform code.
+6. The approved configuration is used to create or update the plug action on viaSocket.
 
 ## Resources
 

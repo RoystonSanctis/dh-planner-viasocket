@@ -69,6 +69,10 @@ published: true
     - DELETE Common Input Fields:
     - DELETE Perform Code Reference:
     - DELETE Best Practices:
+- Title & Description Naming Guidelines
+  - Action Naming & Description
+  - Trigger Naming & Description
+  - General Copywriting Guidelines
 - Automation UX Builder & Architecture Instructions
   - Role & Core Design Philosophy
   - Pre-Design Analysis (Mandatory)
@@ -484,6 +488,34 @@ A DELETE action removes or archives a **specific record** from the external serv
 - **Archive vs Delete** — If the service supports archiving, offer a Boolean toggle ("Delete permanently" vs "Move to archive").
 - **Error handling** — Handle 404 (already deleted) gracefully in the perform code.
 - **Manual ID guidance** — Always provide `customHelp` on the record ID dropdown explaining where to find the ID.
+
+---
+
+# Title & Description Naming Guidelines
+
+This section outlines the standard conventions for generating user-facing names and descriptions for triggers and actions in the viaSocket plug ecosystem. All generated metadata must follow these UX copywriting rules.
+
+## Action Naming & Description
+An action is an operation that the system performs (e.g., creating a record, sending an alert).
+* **Name Format:** Start with a clear verb. Use Title Case (Camel case with spaces, starting with a capital letter). Keep the name simple, directive, and instruction-like.
+  * *Examples:* "Send an Email", "Send Message at Slack Channel"
+* **Description Format:** Must explain what this action helps the user do using the shortest possible words.
+
+## Trigger Naming & Description
+A trigger represents a real-world event that initiates a workflow.
+* **Name Format:** Event phrase only. It must fit naturally when appended to the phrase "When ____". Do **NOT** include the word "when" in the name. Use present tense and Title Case (Camel case with spaces, starting with a capital letter).
+* **Avoid Technical Verbs:** Describe the real-world event from the user's perspective, not the underlying API mechanism. Do not use technical verbs such as: *list, fetch, sync, load, pull, search, check, scan, collect, export*.
+* **Description Format:** Must follow the format: `"Runs when <same event>"` (keep it short and simple).
+  * *Example:*
+    * **Name:** "New Email Arrives"
+    * **Description:** "Runs when new email arrives"
+
+## General Copywriting Guidelines
+1. **Focus on outcomes:** Focus on what the user achieves, not the technical implementation or how it works behind the scenes.
+2. **Use simple, human language:** Write in non-technical, jargon-free terminology that app users (e.g., marketers, HR managers) understand instantly without referencing documentation.
+3. **Minimize Redundancy:** Mention the app name in the action/trigger name only if the action is highly generic or unclear without it (otherwise, the app icon itself establishes the scope).
+4. **Validation & Update Safety:** If existing titles (`old_title`) and descriptions (`old_description`) comply with these guidelines, preserve them without changes; check other fields (like `type` and `category`) instead.
+5. **Character Limits:** Action and trigger descriptions **MUST NOT** exceed 30 characters in length.
 
 ---
 
