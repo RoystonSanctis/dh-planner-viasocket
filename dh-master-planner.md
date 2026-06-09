@@ -26,8 +26,9 @@ Evaluate conditions in this exact order:
 Analyze request/cURL. If no cURL → Web search `service` + `domain`.
 * List-fetch possible? → **Dynamic Dropdown**
 * Otherwise? → **Static Field**
-* **Allowed Types:** Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help.
+* **Allowed Types:** Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help, Help Static.
 * **UX Rules:** Clean labels ("Select Board", not "Select Trello Board"). No auth fields. Ignore headers. Target only `inputFields` (ignore auto-generated `steps`/`blocks`).
+* **Reusable Components:** Reusable components are used in dynamic dropdowns and multiselects. When generating the field JSON and mapping fields in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key.
 
 ## Step 2: Write Perform Code (Logic)
 * No imports. Use `axios` or `fetch`.

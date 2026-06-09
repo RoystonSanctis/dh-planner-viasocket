@@ -2201,16 +2201,15 @@ schema:
 #### AI Field JSON Example:
 ```json
 [
-  {
-    "key": "filter_conditions",
+    {
+    "key": "filterConditions",
     "help": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] } . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)",
     "type": "aifield",
     "label": "Filter Conditions",
-    "prompt": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }. I want the filter condition supports notion and can include complex OR and AND. In suggetions you will get the schema of the column title and fields accordingly design the filter based on the type. Note: Output is the json, don't give me like code return.",
+    "prompt": "Generate a Notion API JSON filter condition based on the user request and provided schema. Support complex AND/OR structures.\n\n**CRITICAL Output Structure:**\n* Return the raw filter object directly at the root. Do NOT wrap the output inside a \"filter\" key.\n    * *Correct:* `{\"property\": \"Email\", \"email\": {\"equals\": \"...\"}}`\n    * *Wrong:* `{\"filter\": {\"property\": \"Email\", ...}}`\n**CRITICAL Rules for Variables (e.g., `${context.req.body.value}`):**\n* **Strings (email, rich_text, select):** MUST be wrapped in double quotes. \n    * *Format:* `{\"equals\": \"${context.req.body.email}\"}`\n* **Numbers/Booleans:** MUST NOT be wrapped in quotes. \n    * *Format:* `{\"equals\": ${context.req.body.age}}`\nOutput ONLY valid JSON. No markdown backticks, code formatting, or explanations.",
     "required": false,
     "placeholder": "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }",
-    "suggestionGenerator": "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;",
-    "visibilityCondition": "context?.inputData?.data_source_id"
+    "suggestionGenerator": "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
   },
     {
         "key": "content_block",
@@ -2229,15 +2228,14 @@ schema:
 #### AI Field TOON Example:
 ```toon
 [2]:
-  - key: filter_conditions
+  - key: filterConditions
     help: "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] } . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)"
     type: aifield
     label: Filter Conditions
-    prompt: "Filters in JSON when supplied, limits which pages are returned based on the filter conditions. Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }. I want the filter condition supports notion and can include complex OR and AND. In suggetions you will get the schema of the column title and fields accordingly design the filter based on the type. Note: Output is the json, don't give me like code return."
+    prompt: "Generate a Notion API JSON filter condition based on the user request and provided schema. Support complex AND/OR structures.\n\n**CRITICAL Output Structure:**\n* Return the raw filter object directly at the root. Do NOT wrap the output inside a \"filter\" key.\n    * *Correct:* `{\"property\": \"Email\", \"email\": {\"equals\": \"...\"}}`\n    * *Wrong:* `{\"filter\": {\"property\": \"Email\", ...}}`\n**CRITICAL Rules for Variables (e.g., `${context.req.body.value}`):**\n* **Strings (email, rich_text, select):** MUST be wrapped in double quotes. \n    * *Format:* `{\"equals\": \"${context.req.body.email}\"}`\n* **Numbers/Booleans:** MUST NOT be wrapped in quotes. \n    * *Format:* `{\"equals\": ${context.req.body.age}}`\nOutput ONLY valid JSON. No markdown backticks, code formatting, or explanations."
     required: false
     placeholder: "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }"
     suggestionGenerator: "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
-    visibilityCondition: context?.inputData?.data_source_id
   - key: content_block
     help: "Give a prompt to generate child content to append to a container block as an array of block objects.[Learn More](https://developers.notion.com/reference/block)"
     type: aifield

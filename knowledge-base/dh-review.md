@@ -60,7 +60,7 @@ async function <functionName>() {
   try { 
     // actual code to perform
   } catch (error) { 
-    throw error; // or await errorComponent(error); if using default viaSocket error component, used by default in perform code of action. 
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
 }
 return await <functionName>();
@@ -77,4 +77,6 @@ Each input field must strictly adhere to the structure, formats, and validation 
 **Field Guidelines:**
 - **Clean Labels**: Labels must be clean and generic (e.g., "Select Board", NOT "Select Trello Board").
 - **Exclusions**: Do not include Auth fields. Ignore Headers. Validate ONLY `inputFields` (ignore auto-generated `steps`/`blocks`).
-- **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help.
+- **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help, Help Static.
+
+- **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key.
