@@ -46,7 +46,7 @@ Execute these steps *before* generating any fields, code, or recommendations:
       try { 
         // actual code to perform
       } catch (error) { 
-        throw error;
+        await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
       }
     }; return await <functionName>();
 ```

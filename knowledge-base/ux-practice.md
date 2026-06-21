@@ -648,7 +648,7 @@ try {
   const data = context.inputData;
   return data;
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
