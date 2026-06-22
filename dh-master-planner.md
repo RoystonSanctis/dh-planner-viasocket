@@ -17,8 +17,9 @@ Before any output:
 - Fetch DH_Knowledge_Base (Page Index + relevant sections: UX Practices, DH Reviewer, Input Fields, Perform Code)
 
 ### 2. Master Routing
+-**Skip**: If the user says `skip`, then directly call `create_update_ai_actions`, don't ask any other reasoning.
 - **Full Create**: `actionVersionRowId` empty OR `oldInputFields` empty  
-  Gather use case → Generate metadata → Propose field plan → Await approval → **Create full action first** by calling tool `create_update_ai_actions`
+  Gather use case → Generate metadata → Propose field plan → Await approval → **Create full action first** by calling tool `create_update_ai_actions`.
 - **Surgical Update**: `actionVersionRowId` exists AND `oldInputFields` present  
   Diff changes → Update only modified parts via `create_update_ai_actions`
 ### 3. Standards

@@ -136,17 +136,20 @@ JS expression on `context?.inputData?.<path>`.
 
 # Perform Code
 ```javascript
-async function fnName() {
-  try { /* logic */ }
-  catch (error) { await errorComponent(error); } // or `throw error`
+async function <functionName>() {
+  try { 
+    // actual code to perform
+  } catch (error) { 
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  }
 }
-return await fnName();
+return await <functionName>();
 ```
 
 - No `import`/`require`. `axios`/`fetch` only. Auth handled by viaSocket.
 - Validate every `required:true` field at top; throw before API call if missing/empty/null.
 - Return `response.data`. Don't reshape, don't add fields.
-- `catch` throws raw error. Throw on 200-with-error-body. No `console.log`.
+- `catch` uses `await errorComponent(error)`. Throw on 200-with-error-body. No `console.log`.
 - Handle API rate limits in loops (delays / retry / headers).
 
 ## Libraries
@@ -192,7 +195,7 @@ async (context) => {
       data
     });
     return res.data; // stored for unsub
-  } catch (e) { throw e; }
+  } catch (e) { await errorComponent(e); }
 }
 ```
 
@@ -205,7 +208,7 @@ async (context) => {
       method: "delete",
       url: `<api_base_url>/<unsubscribe_endpoint>/${subId}`
     });
-  } catch (e) { throw e; }
+  } catch (e) { await errorComponent(e); }
 }
 ```
 
@@ -224,7 +227,7 @@ async (context) => {
       created_at: new Date().toISOString()
       // + all expected schema keys with empty/default values
     };
-  } catch (e) { throw e; }
+  } catch (e) { await errorComponent(e); }
 }
 ```
 
@@ -244,7 +247,7 @@ try {
     offset: res.data?.next_cursor || null,
     uniqueIdentifier: "id"
   };
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Scheduled Perform — Native API filter (preferred)
@@ -262,7 +265,7 @@ async function run() {
     const items = res.data || [];
     if (items.length) context.paginationData = page + 1;
     return items;
-  } catch (e) { throw e; }
+  } catch (e) { await errorComponent(e); }
 }
 return await run();
 ```
@@ -287,7 +290,7 @@ async function run() {
       context.paginationData = res.data.next_cursor;
     }
     return filtered;
-  } catch (e) { throw e; }
+  } catch (e) { await errorComponent(e); }
 }
 return await run();
 ```
@@ -311,7 +314,7 @@ try {
              : '';
   }
   return { viasocket_help: "Sample only. Publish to see real data.", id: "dummy", properties: dummy };
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Manual Perform / Sample
@@ -323,13 +326,13 @@ async (context) => {
       params: { /* map context.inputData */ }
     });
     return res.data;
-  } catch (e) { throw e; }
+  } catch (e) { await errorComponent(e); }
 }
 
 // Sample
 async (context) => {
   try { return [{ id: 'sample_id', created_at: new Date().toISOString() }]; }
-  catch (e) { throw e; }
+  catch (e) { await errorComponent(e); }
 }
 ```
 
@@ -340,7 +343,7 @@ try {
   if (!id) throw new Error('record_id is required.');
   const res = await axios.get(`<api_base_url>/resources/${id}`);
   return res?.data;
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Action: List with pagination
@@ -353,7 +356,7 @@ try {
     }
   });
   return res.data;
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Action: Find / Search
@@ -367,7 +370,7 @@ try {
   // Client fallback if API doesn't search:
   // return res.data?.find(r => r.id === query) || { success: true, results: [] };
   return res.data;
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Action: Create
@@ -378,7 +381,7 @@ try {
   const payload = { title /* + other inputData fields */ };
   const res = await axios.post(`<api_base_url>/resources`, payload);
   return res?.data;
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Action: Update (partial payload)
@@ -395,7 +398,7 @@ try {
   }
   const res = await axios.patch(`<api_base_url>/resources/${id}`, payload);
   return res?.data;
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Action: Find or Create
@@ -409,7 +412,7 @@ try {
     record_id: id /* + other create fields */
   });
   return res.data;
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 ## Action: Delete / Archive
@@ -420,7 +423,7 @@ try {
   // DELETE, or PATCH/POST for archive-style services:
   const res = await axios.delete(`<api_base_url>/resources/${id}`);
   return res?.data || { id, deleted: true };
-} catch (e) { throw e; }
+} catch (e) { await errorComponent(e); }
 ```
 
 # Reusable Components
@@ -462,6 +465,6 @@ return await fetchResources(__searchText, context?.paginateData?.['my_field'], 1
 | Dyn help `source` | `{message}` |
 
 # Review
-- **Perform**: wrapper · `axios`/`fetch` · `context.inputData.<key>` mapped · endpoint matches docs · rate-limit handled · required-field guards · no auth · throws raw error.
+- **Perform**: wrapper · `axios`/`fetch` · `context.inputData.<key>` mapped · endpoint matches docs · rate-limit handled · required-field guards · no auth · handles errors using `await errorComponent(error)`.
 - **Fields**: matches type's required keys · only `inputFields` (no `steps`/`blocks`) · `sample`==`value` rule applied · reusable component `id` mapped correctly.
 - **Output**: raw `inputFields` array, never `{"inputFields":[...]}`.
