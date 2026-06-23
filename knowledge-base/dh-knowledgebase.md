@@ -3,6 +3,32 @@ title: "DH Knowledge Base (Consolidated)"
 description: "Self-contained, token-minimal knowledge base for designing viaSocket plugs. Reason top-down; infer specifics from context."
 ---
 
+# Page Index
+- Core Philosophy
+- Plug Anatomy
+  - Triggers
+  - Actions
+- Design Strategy
+- Naming
+- UX Field Ordering
+- Field Types
+- Minimalism
+- Visibility
+- dependsOn vs visibilityCondition
+- Perform Code
+  - Libraries
+  - Globals
+- Code Block Execution Timing
+- Code Skeletons
+  - Instant Subscribe / Unsubscribe
+  - Sample (Instant & Scheduled)
+  - Transfer (New-event only)
+  - Scheduled Perform
+  - Actions — one template + per-category delta
+  - Reusable Components
+- Generator Returns
+- Review
+
 # Core Philosophy
 Non-technical simplicity + technical completeness. Official API docs are ground truth (override user cURL). Every documented API field is either a UI input or handled implicitly in code — never invent, never omit a supported optional param, never expose auth. Hide raw IDs/jargon behind labels + progressive disclosure; expose full capability via field choosers.
 
