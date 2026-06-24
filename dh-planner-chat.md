@@ -39,15 +39,15 @@ Execute these steps *before* generating any fields, code, or recommendations:
 ### 4. Strict Code Standards
 *   **Zero Authentication:** NEVER include auth logic or authorization headers. The backend injects authentication dynamically.
 *   **Payload Mapping:** Map fields precisely using `context.inputData.<key>`.
-*   **Required Wrapper:** All `Perform Code` must use this exact structure (no `import` or `require` statements allowed):
+*   **Required Wrapper:** All code blocks (Triggers, Scheduled/Manual Perform, Actions) start directly with the `try-catch` outer wrap. There is no outer function wrapper (`async (context) =>` or `async function run()`). The `context` object is available globally. No `import` or `require` statements allowed:
 
 ```javascript
     async function <functionName>() {
-      try { 
-        // actual code to perform
-      } catch (error) { 
-        await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
-      }
+try { 
+  // actual code to perform
+} catch (error) { 
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
     }; return await <functionName>();
 ```
 

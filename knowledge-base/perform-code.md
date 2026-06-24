@@ -81,33 +81,31 @@ The following internal variables can be used in the subscribe code:
 **Example:**
 
 ```javascript
-async (context) => {
-  try {
-    // Step 1: Construct the payload with the viaSocket hook URL and required event parameters
-    const data = {
-      hookUrl: context?.inputData?.hookUrl, // Required: Tells the external service where to send events
-      event: "<event_name>", // e.g., "course.completed" or mapped from context.inputData.event
-      // ... map any other required fields from context.inputData here
-    };
+try {
+  // Step 1: Construct the payload with the viaSocket hook URL and required event parameters
+  const data = {
+    hookUrl: context?.inputData?.hookUrl, // Required: Tells the external service where to send events
+    event: "<event_name>", // e.g., "course.completed" or mapped from context.inputData.event
+    // ... map any other required fields from context.inputData here
+  };
 
-    // Step 2: Configure the API request to the external service's webhook subscription endpoint
-    const config = {
-      method: "post",
-      url: "<api_base_url>/<webhook_subscription_endpoint>",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data,
-    };
+  // Step 2: Configure the API request to the external service's webhook subscription endpoint
+  const config = {
+    method: "post",
+    url: "<api_base_url>/<webhook_subscription_endpoint>",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data,
+  };
 
-    // Step 3: Execute the request
-    const response = await axios.request(config);
+  // Step 3: Execute the request
+  const response = await axios.request(config);
 
-    // Step 4: Return the response so viaSocket can store any returned subscription IDs (needed for unsubscription)
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  // Step 4: Return the response so viaSocket can store any returned subscription IDs (needed for unsubscription)
+  return response.data;
+} catch (error) {
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -118,43 +116,41 @@ A **Sample Code** block is required to fetch test/sample data for the trigger co
 The sample code should fetch the **most recent 1 item** from the API to provide the user with a realistic data preview.
 If no data exists, the sample code should return a **hardcoded fallback object** representing the expected schema.
 
-```
-async (context) => {
-  try {
-    // Step 1: Read input data from UI form
-    const resourceId = context.inputData.<resource_key>;
+```javascript
+try {
+  // Step 1: Read input data from UI form
+  const resourceId = context.inputData.<resource_key>;
 
-    // Step 2: Fetch the most recent 1 item from the API
-    const response = await axios({
-      url: `<api_base_url>/<resource_endpoint>`,
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      params: {
-        limit: 1,
-        sort: 'created_at:desc' // Sort by most recent
-      }
-    });
-
-    // Step 3: Return sample data or fallback
-    const results = response.data?.results || response.data || [];
-
-    if (results.length > 0) {
-      return results;
+  // Step 2: Fetch the most recent 1 item from the API
+  const response = await axios({
+    url: `<api_base_url>/<resource_endpoint>`,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    params: {
+      limit: 1,
+      sort: 'created_at:desc' // Sort by most recent
     }
+  });
 
-    // Step 4: Fallback — return hardcoded schema sample
-    return [{
-      id: 'sample_id_123',
-      name: 'Sample Record',
-      created_at: new Date().toISOString(),
-      // ... include all expected fields with sample values
-    }];
+  // Step 3: Return sample data or fallback
+  const results = response.data?.results || response.data || [];
 
-  } catch (error) {
-    throw error;
+  if (results.length > 0) {
+    return results;
   }
+
+  // Step 4: Fallback — return hardcoded schema sample
+  return [{
+    id: 'sample_id_123',
+    name: 'Sample Record',
+    created_at: new Date().toISOString(),
+    // ... include all expected fields with sample values
+  }];
+
+} catch (error) {
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -248,7 +244,7 @@ The following internal variables can be used in the **Unsubscribe** code:
       uniqueIdentifier: "id"        // The field name representing a unique value for each record
     };
   } catch (error) {
-    throw error;
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
 ```
 
@@ -314,69 +310,69 @@ If enabled and the API supports pagination, use the global variable `context?.pa
 ##### 1. Fetching New Items from an API with pagination
 ```javascript
 async function fetchItems() {
-    try {
+try {
 
-        // 1. Calculate lookback time
-        const minutesAgo = new Date(__executionStartTime__ - context?.inputData?.scheduledTime * 60 * 1000);
+    // 1. Calculate lookback time
+    const minutesAgo = new Date(__executionStartTime__ - context?.inputData?.scheduledTime * 60 * 1000);
 
-        // 2. Prepare request payload
-        let requestPayload = {
-            key: "value"
-        };
+    // 2. Prepare request payload
+    let requestPayload = {
+        key: "value"
+    };
 
-        // -----------------------------------
-        // OPTIONAL PAGINATION (Generic)
-        // -----------------------------------
-        // Use existing pagination value if present
-        // Initial expected value: 0 or null
-        // User need to enable pagination in UI first
-        if (context?.paginationData) {
-            requestPayload.cursor = context.paginationData;
-        }
-
-        // 3. Configure API request
-        const requestConfig = {
-            method: "GET",                // Can be GET or POST
-            url: "https://api.service.com/endpoint",
-            params: requestPayload,       // Use "data" instead if POST
-            headers: {
-                "API-Version": "v1"
-            }
-        };
-
-        // 4. Execute API call
-        const response = await axios(requestConfig);
-
-        const allItems = response?.data?.items || [];
-
-        // 5. Filter the results to include only those created in the last scheduled time
-        let filteredData = allItems.filter((item) => {
-            const createdTime = new Date(item.created_time);
-            return createdTime >= minutesAgo;
-        });
-
-        // 6. Sort the filtered data by creation time (oldest first)
-        filteredData.sort(
-            (a, b) => new Date(a.created_time) - new Date(b.created_time)
-        );
-
-        // -----------------------------------
-        // OPTIONAL PAGINATION UPDATE
-        // -----------------------------------
-        // User need to enable pagination in UI first
-        // Only update if:
-        // 1. We actually have filtered results
-        // 2. API returned next cursor
-        if (filteredData.length !== 0 && response?.data?.next_cursor) {
-            context.paginationData = response.data.next_cursor;
-        }
-
-        // 7. Return results
-        return filteredData;
-
-    } catch (error) {
-        throw error;
+    // -----------------------------------
+    // OPTIONAL PAGINATION (Generic)
+    // -----------------------------------
+    // Use existing pagination value if present
+    // Initial expected value: 0 or null
+    // User need to enable pagination in UI first
+    if (context?.paginationData) {
+        requestPayload.cursor = context.paginationData;
     }
+
+    // 3. Configure API request
+    const requestConfig = {
+        method: "GET",                // Can be GET or POST
+        url: "https://api.service.com/endpoint",
+        params: requestPayload,       // Use "data" instead if POST
+        headers: {
+            "API-Version": "v1"
+        }
+    };
+
+    // 4. Execute API call
+    const response = await axios(requestConfig);
+
+    const allItems = response?.data?.items || [];
+
+    // 5. Filter the results to include only those created in the last scheduled time
+    let filteredData = allItems.filter((item) => {
+        const createdTime = new Date(item.created_time);
+        return createdTime >= minutesAgo;
+    });
+
+    // 6. Sort the filtered data by creation time (oldest first)
+    filteredData.sort(
+        (a, b) => new Date(a.created_time) - new Date(b.created_time)
+    );
+
+    // -----------------------------------
+    // OPTIONAL PAGINATION UPDATE
+    // -----------------------------------
+    // User need to enable pagination in UI first
+    // Only update if:
+    // 1. We actually have filtered results
+    // 2. API returned next cursor
+    if (filteredData.length !== 0 && response?.data?.next_cursor) {
+        context.paginationData = response.data.next_cursor;
+    }
+
+    // 7. Return results
+    return filteredData;
+
+} catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 }
 
 // Execute function
@@ -387,76 +383,76 @@ return await fetchItems();
 
 ```javascript
 async function fetchUpdatedItems() {
-    try {
+try {
 
-        // 1. Calculate lookback time
-        const minutesAgo = new Date(__executionStartTime__ - context?.inputData?.scheduledTime * 60 * 1000);
+    // 1. Calculate lookback time
+    const minutesAgo = new Date(__executionStartTime__ - context?.inputData?.scheduledTime * 60 * 1000);
 
-        // 2. Prepare request payload
-        let requestPayload = {
-            key: "value",
-            sorts: [
-                {
-                    timestamp: "last_edited_time", // The property to sort by
-                    direction: "descending" // Sort by latest first
-                }
-            ]
-        };
-
-        // -----------------------------------
-        // OPTIONAL PAGINATION (Generic)
-        // -----------------------------------
-        // User need to enable pagination in UI first
-        if (context?.paginationData) {
-            requestPayload.cursor = context.paginationData;
-        }
-
-        // 3. Configure API request
-        const requestConfig = {
-            method: "POST",               // Can be GET or POST
-            url: "https://api.service.com/updated-endpoint",
-            data: requestPayload,         // Use "params" instead if GET
-            headers: {
-                "API-Version": "v1"
+    // 2. Prepare request payload
+    let requestPayload = {
+        key: "value",
+        sorts: [
+            {
+                timestamp: "last_edited_time", // The property to sort by
+                direction: "descending" // Sort by latest first
             }
-        };
+        ]
+    };
 
-        // 4. Execute API call
-        const response = await axios(requestConfig);
-
-        const allItems = response?.data?.items || [];
-
-        // 5. Filter the results to include those edited in the last scheduled time,
-        // and exclude those where created time is the same as edited time
-        let filteredData = allItems.filter((item) => {
-            const last_edited_time = new Date(item.last_edited_time);
-            const created_time = new Date(item.created_time);
-
-            return last_edited_time >= minutesAgo && created_time.getTime() !== last_edited_time.getTime();
-        });
-
-        // 6. Sort the filtered data by edited time (oldest first)
-        filteredData.sort(
-            (a, b) => new Date(a.last_edited_time) - new Date(b.last_edited_time)
-        );
-
-        // -----------------------------------
-        // OPTIONAL PAGINATION UPDATE
-        // -----------------------------------
-        // User need to enable pagination in UI first
-        // Only update if:
-        // 1. We actually have filtered results
-        // 2. API returned next cursor
-        if (filteredData.length > 0 && response?.data?.next_cursor) {
-            context.paginationData = response.data.next_cursor;
-        }
-
-        // 7. Return results
-        return filteredData;
-
-    } catch (error) {
-        throw error;
+    // -----------------------------------
+    // OPTIONAL PAGINATION (Generic)
+    // -----------------------------------
+    // User need to enable pagination in UI first
+    if (context?.paginationData) {
+        requestPayload.cursor = context.paginationData;
     }
+
+    // 3. Configure API request
+    const requestConfig = {
+        method: "POST",               // Can be GET or POST
+        url: "https://api.service.com/updated-endpoint",
+        data: requestPayload,         // Use "params" instead if GET
+        headers: {
+            "API-Version": "v1"
+        }
+    };
+
+    // 4. Execute API call
+    const response = await axios(requestConfig);
+
+    const allItems = response?.data?.items || [];
+
+    // 5. Filter the results to include those edited in the last scheduled time,
+    // and exclude those where created time is the same as edited time
+    let filteredData = allItems.filter((item) => {
+        const last_edited_time = new Date(item.last_edited_time);
+        const created_time = new Date(item.created_time);
+
+        return last_edited_time >= minutesAgo && created_time.getTime() !== last_edited_time.getTime();
+    });
+
+    // 6. Sort the filtered data by edited time (oldest first)
+    filteredData.sort(
+        (a, b) => new Date(a.last_edited_time) - new Date(b.last_edited_time)
+    );
+
+    // -----------------------------------
+    // OPTIONAL PAGINATION UPDATE
+    // -----------------------------------
+    // User need to enable pagination in UI first
+    // Only update if:
+    // 1. We actually have filtered results
+    // 2. API returned next cursor
+    if (filteredData.length > 0 && response?.data?.next_cursor) {
+        context.paginationData = response.data.next_cursor;
+    }
+
+    // 7. Return results
+    return filteredData;
+
+} catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 }
 
 // Execute function
@@ -466,72 +462,72 @@ return await fetchUpdatedItems();
 ##### 3. Fetching items with client-side field filtering and page-number pagination
 ```javascript
 async function fetchItemsWithClientFiltering() {
-    try {
-        const scheduledMinutes = context?.inputData?.scheduledTime || 15;
-        const selectedFields = context?.inputData?.formFields || []; // User selected fields from UI
-        const pageSize = 50;
+try {
+    const scheduledMinutes = context?.inputData?.scheduledTime || 15;
+    const selectedFields = context?.inputData?.formFields || []; // User selected fields from UI
+    const pageSize = 50;
 
-        // 1. Calculate time window
-        const timeAgo = new Date(__executionStartTime__ - scheduledMinutes * 60 * 1000);
+    // 1. Calculate time window
+    const timeAgo = new Date(__executionStartTime__ - scheduledMinutes * 60 * 1000);
 
-        // 2. Determine which page to fetch (Default to 1 if no saved cursor)
-        let currentPage = context?.paginationData || 1;
+    // 2. Determine which page to fetch (Default to 1 if no saved cursor)
+    let currentPage = context?.paginationData || 1;
 
-        // 3. API Request
-        const res = await axios({
-            method: "GET",
-            url: "https://api.service.com/items",
-            params: {
-                page: currentPage,
-                page_size: pageSize
-            }
-        });
+    // 3. API Request
+    const res = await axios({
+        method: "GET",
+        url: "https://api.service.com/items",
+        params: {
+            page: currentPage,
+            page_size: pageSize
+        }
+    });
 
-        const orders = res.data || [];
-        let finalOrders = [];
+    const orders = res.data || [];
+    let finalOrders = [];
 
-        // 4. Process and Filter Data
-        if (Array.isArray(orders) && orders.length > 0) {
-            
-            // Filter raw orders by timestamp first
-            const recentOrders = orders.filter(order =>
-                order.created_at && new Date(order.created_at) >= timeAgo
-            );
+    // 4. Process and Filter Data
+    if (Array.isArray(orders) && orders.length > 0) {
+        
+        // Filter raw orders by timestamp first
+        const recentOrders = orders.filter(order =>
+            order.created_at && new Date(order.created_at) >= timeAgo
+        );
 
-            // Map to selected fields
-            for (const order of recentOrders) {
-                const filteredOrder = {};
+        // Map to selected fields
+        for (const order of recentOrders) {
+            const filteredOrder = {};
 
-                if (selectedFields.length > 0) {
-                    for (const field of selectedFields) {
-                        // Only add the field if it exists in the order object
-                        if (order[field] !== undefined) {
-                            filteredOrder[field] = order[field];
-                        }
+            if (selectedFields.length > 0) {
+                for (const field of selectedFields) {
+                    // Only add the field if it exists in the order object
+                    if (order[field] !== undefined) {
+                        filteredOrder[field] = order[field];
                     }
-                    finalOrders.push(filteredOrder);
-                } else {
-                     // If no fields selected, keep the whole order
-                     finalOrders.push(order);
                 }
+                finalOrders.push(filteredOrder);
+            } else {
+                 // If no fields selected, keep the whole order
+                 finalOrders.push(order);
             }
         }
-
-        // 5. Pagination Logic
-        // LOGIC UPDATE: 
-        // - orders.length >= pageSize: Checks if there is potentially a next page from API.
-        // - finalOrders.length !== 0: Checks if THIS page had any relevant data. 
-        //   If finalOrders is empty, it means we passed the time window, so we stop.
-        if (orders.length >= pageSize && finalOrders.length !== 0) {
-            context.paginationData = currentPage + 1;
-        }
-
-        // 6. Return Result
-        return finalOrders;
-
-    } catch (error) {
-        throw error;
     }
+
+    // 5. Pagination Logic
+    // LOGIC UPDATE: 
+    // - orders.length >= pageSize: Checks if there is potentially a next page from API.
+    // - finalOrders.length !== 0: Checks if THIS page had any relevant data. 
+    //   If finalOrders is empty, it means we passed the time window, so we stop.
+    if (orders.length >= pageSize && finalOrders.length !== 0) {
+        context.paginationData = currentPage + 1;
+    }
+
+    // 6. Return Result
+    return finalOrders;
+
+} catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 }
 
 // Execute function
@@ -541,55 +537,55 @@ return await fetchItemsWithClientFiltering();
 ##### 4. Fetching items utilizing Native API query parameters (Most Optimized)
 ```javascript
 async function fetchItemsOptimized() {
-    try {
-        const scheduledMinutes = context?.inputData?.scheduledTime || 15;
-        const selectedFields = context?.inputData?.formFields || []; // User-selected fields
-        const pageSize = 50;
+try {
+    const scheduledMinutes = context?.inputData?.scheduledTime || 15;
+    const selectedFields = context?.inputData?.formFields || []; // User-selected fields
+    const pageSize = 50;
 
-        // 1. Calculate time window
-        const timeAgo = new Date(__executionStartTime__ - scheduledMinutes * 60 * 1000);
-        
-        // 2. Format exactly as the API expects (e.g. UTC, ISO-8601 string)
-        const timeAgoStr = timeAgo.toISOString().replace('T', ' ').slice(0, 19);
+    // 1. Calculate time window
+    const timeAgo = new Date(__executionStartTime__ - scheduledMinutes * 60 * 1000);
+    
+    // 2. Format exactly as the API expects (e.g. UTC, ISO-8601 string)
+    const timeAgoStr = timeAgo.toISOString().replace('T', ' ').slice(0, 19);
 
-        // 3. Determine which page to fetch (Default to 1 if no saved cursor)
-        let currentPage = context?.paginationData || 1;
+    // 3. Determine which page to fetch (Default to 1 if no saved cursor)
+    let currentPage = context?.paginationData || 1;
 
-        // 4. Setup request parameters with native API date filter
-        let requestParams = {
-            page: currentPage,
-            page_size: pageSize,
-            created_at_min: timeAgoStr // Utilizing native date filter!
-        };
+    // 4. Setup request parameters with native API date filter
+    let requestParams = {
+        page: currentPage,
+        page_size: pageSize,
+        created_at_min: timeAgoStr // Utilizing native date filter!
+    };
 
-        // Optional: Include native field filter if user selected fields and API supports it
-        if (selectedFields.length > 0) {
-            requestParams.fields = selectedFields.join(','); 
-        }
-
-        // 5. Single API Request
-        const res = await axios({
-            method: "GET",
-            url: "https://api.service.com/items",
-            params: requestParams
-        });
-
-        const orders = res.data || [];
-
-        // 5. Pagination Logic
-        // LOGIC UPDATE: 
-        // Because the API handled the time limit filter natively, 
-        // if orders.length > 0 it means there are still valid matching records.
-        if (orders.length !== 0) {
-            context.paginationData = currentPage + 1;
-        }
-
-        // 6. Return Result
-        return orders;
-
-    } catch (error) {
-        throw error;
+    // Optional: Include native field filter if user selected fields and API supports it
+    if (selectedFields.length > 0) {
+        requestParams.fields = selectedFields.join(','); 
     }
+
+    // 5. Single API Request
+    const res = await axios({
+        method: "GET",
+        url: "https://api.service.com/items",
+        params: requestParams
+    });
+
+    const orders = res.data || [];
+
+    // 5. Pagination Logic
+    // LOGIC UPDATE: 
+    // Because the API handled the time limit filter natively, 
+    // if orders.length > 0 it means there are still valid matching records.
+    if (orders.length !== 0) {
+        context.paginationData = currentPage + 1;
+    }
+
+    // 6. Return Result
+    return orders;
+
+} catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 }
 
 // Execute function
@@ -629,29 +625,29 @@ async function newdatasourceItem() {
     };
 
     try {
-        const response = await axios.request(config);
+    const response = await axios.request(config);
 
-        // Filter the results to include only those created in the last scheduled time
-        let filteredData = response.data.results.filter((item) => {
-            const createdTime = new Date(item.created_time);
-            return createdTime >= minutesAgo;
-        });
+    // Filter the results to include only those created in the last scheduled time
+    let filteredData = response.data.results.filter((item) => {
+        const createdTime = new Date(item.created_time);
+        return createdTime >= minutesAgo;
+    });
 
-        // Sort the filtered data by creation time (oldest first)
-        filteredData.sort(
-            (a, b) => new Date(a.created_time) - new Date(b.created_time)
-        );
+    // Sort the filtered data by creation time (oldest first)
+    filteredData.sort(
+        (a, b) => new Date(a.created_time) - new Date(b.created_time)
+    );
 
-        // If there are results and a next_cursor, set pagination for the next request
-        if (filteredData.length !== 0 && response.data?.next_cursor) {
-            context.paginationData = response.data?.next_cursor;
-        }
-
-        return filteredData;
-
-    } catch (error) {
-        throw error; // Handle errors if any
+    // If there are results and a next_cursor, set pagination for the next request
+    if (filteredData.length !== 0 && response.data?.next_cursor) {
+        context.paginationData = response.data?.next_cursor;
     }
+
+    return filteredData;
+
+} catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 }
 
 return await newdatasourceItem();
@@ -694,33 +690,33 @@ async function updatedatasourceItem() {
     };
 
     try {
-        const response = await axios.request(config);
+    const response = await axios.request(config);
 
-        // Filter the results to include only those created in the last scheduled time, 
-        // and exclude those where created_time is the same as last_edited_time
-        let filteredData = response.data.results.filter((item) => {
-            const last_edited_time = new Date(item.last_edited_time);
-            const created_time = new Date(item.created_time);
+    // Filter the results to include only those created in the last scheduled time, 
+    // and exclude those where created_time is the same as last_edited_time
+    let filteredData = response.data.results.filter((item) => {
+        const last_edited_time = new Date(item.last_edited_time);
+        const created_time = new Date(item.created_time);
 
-            // Exclude items where created_time is the same as last_edited_time
-            return last_edited_time >= minutesAgo && created_time.getTime() !== last_edited_time.getTime();
-        });
+        // Exclude items where created_time is the same as last_edited_time
+        return last_edited_time >= minutesAgo && created_time.getTime() !== last_edited_time.getTime();
+    });
 
-        // Sort the filtered data by last_edited_time (oldest first)
-        filteredData.sort(
-            (a, b) => new Date(a.last_edited_time) - new Date(b.last_edited_time)
-        );
+    // Sort the filtered data by last_edited_time (oldest first)
+    filteredData.sort(
+        (a, b) => new Date(a.last_edited_time) - new Date(b.last_edited_time)
+    );
 
-        // If there are results and a next_cursor, set pagination for the next request
-        if (filteredData.length > 0 && response.data?.next_cursor) {
-            context.paginationData = response.data?.next_cursor;
-        }
-
-        return filteredData;
-
-    } catch (error) {
-        throw error; // Handle errors if any
+    // If there are results and a next_cursor, set pagination for the next request
+    if (filteredData.length > 0 && response.data?.next_cursor) {
+        context.paginationData = response.data?.next_cursor;
     }
+
+    return filteredData;
+
+} catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 }
 
 return await updatedatasourceItem();
@@ -794,7 +790,7 @@ try {
   return finalOrders;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -840,7 +836,7 @@ try {
   return orders;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -924,7 +920,7 @@ try {
   // };
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1083,7 +1079,7 @@ try {
   }
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 ### Scheduled Trigger Transfer Code Rules:
@@ -1139,7 +1135,7 @@ try {
       uniqueIdentifier: "id"        // The field name representing a unique value for each record
     };
   } catch (error) {
-    throw error;
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
 ```
 
@@ -1163,44 +1159,40 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 - No scheduling logic, no `__executionStartTime__`, no pagination state.
 
 ### Manual Trigger Perform Code Pattern:
-```
-async (context) => {
-  try {
-    // Step 1: Read input data from UI form
-    const inputValue = context.inputData.<input_key>;
-    const resourceId = context.inputData.<resource_key>;
+```javascript
+try {
+  // Step 1: Read input data from UI form
+  const inputValue = context.inputData.<input_key>;
+  const resourceId = context.inputData.<resource_key>;
 
-    // Step 2: Make the API request
-    const response = await axios({
-      url: `<api_base_url>/<endpoint>`,
-      method: 'GET', // or POST depending on the action
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      params: {
-        // Map input data to query params if needed
-      }
-    });
+  // Step 2: Make the API request
+  const response = await axios({
+    url: `<api_base_url>/<endpoint>`,
+    method: 'GET', // or POST depending on the action
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    params: {
+      // Map input data to query params if needed
+    }
+  });
 
-    // Step 3: Return the response
-    return response.data;
+  // Step 3: Return the response
+  return response.data;
 
-  } catch (error) {
-    throw error;
-  }
+} catch (error) {
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
 ### Manual Trigger Sample Code Pattern:
-```
-async (context) => {
-  try {
+```javascript
+try {
  // Actual Trigger Sample Schema
-    return [{ id: 'sample_id', name: 'Sample', created_at: new Date().toISOString() }];
+     return [{ id: 'sample_id', name: 'Sample', created_at: new Date().toISOString() }];
 
-  } catch (error) {
-    throw error;
-  }
+} catch (error) {
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1218,7 +1210,7 @@ First identify what the action is trying to do: read data, create data, update d
 - **HTTP Request:** Use `axios()` for all HTTP requests.
 - **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
 - **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
-- **Error Handling:** Wrap all perform code in `try { ... } catch (error) { throw error; }`. Do not modify the error in the catch block.
+- **Error Handling:** Wrap all perform code in `try { ... } catch (error) { await errorComponent(error); }`. Do not modify the error in the catch block.
 
 **Required Field Validation Pattern**
 ```javascript
@@ -1256,7 +1248,7 @@ try {
   return response?.data;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1279,7 +1271,7 @@ try {
   return response.data;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1317,7 +1309,7 @@ try {
   return matchedData;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1349,7 +1341,7 @@ try {
   // step 3 : return response
   return response.data;
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1403,7 +1395,7 @@ try {
 
   return response.data;
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1439,7 +1431,7 @@ try {
   return response?.data;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 **Pattern B: Create if not exists record (Find or Create Data)**
@@ -1473,7 +1465,7 @@ try {
 
   return response.data;
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 
 ```
@@ -1521,7 +1513,7 @@ try {
   return response?.data;
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1551,7 +1543,7 @@ try {
   };
 
 } catch (error) {
-  throw error;
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
 
@@ -1561,10 +1553,10 @@ try {
 
 - Use try-catch blocks to handle errors gracefully.
 - Provide meaningful error messages to the user.
-- Always in catch block, catch the error and throw it. Do not return the error.
-- Some of the services return error with response 200. Those need to be thrown in the -try block of the perform code and caught there and thrown. This is to avoid the false error in the viaSocket UI for the user.
-- viaSocket will identify the error based on the final response code return.
-- Don't modify the error message in the catch block. Just throw the error. Let the viaSocket handle the error message.
+- Always in catch block, catch the error and call `await errorComponent(error);`. Do not throw or return the error.
+- Some of the services return error with response 200. Those need to be thrown in the -try block of the perform code and caught there using the error component. This is to avoid the false error in the viaSocket UI for the user.
+- viaSocket will identify the error based on the errorComponent invocation.
+- Don't modify the error message in the catch block. Just call `await errorComponent(error);`. Let the viaSocket handle the error message.
 
 ## Special Note - Success Code Handling:
 
@@ -1574,6 +1566,6 @@ try {
 
 ## Special Note - Final Code Review:
 - Don't use any console.log() in the perform code.
-- Don't modify the error response. Just throw the error.
+- Don't modify the error response. Just call `await errorComponent(error);`.
 - No need to use the authentication configuration in the perform code. It will be handled by viaSocket. The authentication can be passed through header, query parameter or body, these are aleady configured in backend while the API call is made. Can include the additional header/query parameter/body if needed for the API call.
 - **Required Field Validation**: Always throw an error before the API call if a required input field is missing. Do not silently pass `undefined` or `null` to the API for required fields.

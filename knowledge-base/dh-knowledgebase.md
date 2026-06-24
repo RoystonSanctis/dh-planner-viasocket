@@ -161,7 +161,7 @@ Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Bu
 | Transfer | Transfer button — user picks selected/all; sent in `≤200` batches |
 
 # Code Skeletons
-Trigger blocks use `async (context) => { try {…} catch (e) { await errorComponent(e); } }`; Scheduled/Action Perform uses the Perform Code wrapper above. `errorComponent` in every catch.
+Trigger blocks (Subscribe, Unsubscribe, Sample, Manual Trigger Perform/Sample) start directly with the `try-catch` outer wrap (no `async (context) =>` wrapper). Scheduled Perform and Actions use the `async function run() { try { ... } catch (e) { await errorComponent(e); } } return await run();` wrapper.
 
 ## Instant Subscribe / Unsubscribe
 ```javascript
@@ -256,5 +256,5 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 # Review
 Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).
 Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't invent undocumented params; every documented API field is in UX or handled in code.
-- **Perform**: wrapper correct · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
+- **Perform**: wrapper correct (`async function run()`) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
 - **Fields**: each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
