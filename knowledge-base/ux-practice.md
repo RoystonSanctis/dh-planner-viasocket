@@ -430,17 +430,17 @@ An UPDATE action modifies an **existing record** in the external service. The us
 1. **Dynamic Dropdown** → Primary resource/parent selection.
 2. **Dynamic Dropdown** → Secondary resource selection. Uses `visibilityCondition`.
 3. **Input Group Static (Search Section)** → Search criteria fields:
-   - **Boolean** → Search mode (Basic/Advanced).
-   - **Dynamic Dropdown** → Column/field to search.
-   - **String** → Lookup value.
+   - If the service supports complex search queries, use an **AI Field** to construct the search logic.
+   - If the service supports simple filters, use a **Dynamic Dropdown** (for the search/lookup field the user selects) and a **String** field (for the lookup value).
 4. **Boolean** → "Create if not found?" toggle. `defaultValue: { label: "Yes", value: true }`.
-5. **Dynamic Input Group** *(conditional)* → Schema-based fields for creating a new record. Visible only when the "Create if not found" toggle is `true`. Uses `visibilityCondition: "context?.inputData?.create_if_not_found"`.
+5. **Dynamic Input Group** *(conditional)* → Schema-based fields for creating a new record. Visible only when the "Create if not found" toggle is `true` (Yes). Uses `visibilityCondition: "context?.inputData?.create_if_not_found"`.
 6. **Multiselect Dynamic** *(optional)* → Select columns/fields for the create operation.
 
 ### FIND OR CREATE Common Input Fields:
-- **Dropdown Dynamic** — For resource selection.
+- **Dropdown Dynamic** — For resource selection, and (if simple filter is supported) for selecting the lookup field.
 - **Input Group Static** — For grouping search criteria.
-- **String** — For lookup values.
+- **AI Field** — For complex search queries (when supported).
+- **String** — For the lookup value (if simple filter is supported).
 - **Boolean** — For the "Create if not found?" toggle.
 - **Input Group Dynamic** — For dynamically generated create fields, conditionally visible.
 - **Multiselect Dynamic** — For selecting which fields to populate during creation.
@@ -451,7 +451,8 @@ An UPDATE action modifies an **existing record** in the external service. The us
 
 ### FIND OR CREATE Best Practices:
 - **Clear separation** — Visually separate the "Find" section and the "Create" section using Input Groups.
-- **Conditional create fields** — Use `visibilityCondition` on the create section so it only appears when the user opts into "Create if not found".
+- **Search field selection based on service capabilities** — Evaluate the external API's search capabilities: if it supports complex query structures, implement an AI Field; if it only supports basic filters, implement a dropdown to choose the search field and a string input for the lookup value.
+- **Conditional create fields** — Use `visibilityCondition` on the create section (Dynamic Input Group) so it only appears when the user selects "Yes" for "Create if not found?".
 - **Default to create** — Set the Boolean toggle's default to `true` (Yes) so the action creates by default.
 - **Reuse search patterns** — The search section follows the same patterns as FIND/SEARCH.
 - **Reuse create patterns** — The create section follows the same patterns as CREATE.

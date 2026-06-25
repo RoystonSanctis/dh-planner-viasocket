@@ -1227,176 +1227,191 @@ Use this category when the action only reads data from the service. `GET`, `LIST
 
 **Pattern A: Get Single Record by ID**
 ```javascript
-try {
-  // Step 1: Read the record ID from input
-  const recordId = context?.inputData?.record_id;
+async function getRecordById() {
+  try {
+    // Step 1: Read the record ID from input
+    const recordId = context?.inputData?.record_id;
 
-  if (!recordId) {
-    throw new Error('Record ID is required.');
-  }
-
-  // Step 2: Make GET request
-  const response = await axios({
-    method: 'GET',
-    url: `https://api.service.com/resources/${recordId}`,
-    headers: {
-      'Content-Type': 'application/json'
+    if (!recordId) {
+      throw new Error('Record ID is required.');
     }
-  });
 
-  // Step 3: Return the record
-  return response?.data;
+    // Step 2: Make GET request
+    const response = await axios({
+      method: 'GET',
+      url: `https://api.service.com/resources/${recordId}`,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+    // Step 3: Return the record
+    return response?.data;
+
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  }
 }
+return await getRecordById();
 ```
 
 **Pattern B: List Records with User-Provided Filters**
 ```javascript
-try {
-  // Step 1: Read from input
-  const dbId = context?.inputData?.dbId;
+async function listRecords() {
+  try {
+    // Step 1: Read from input
+    const dbId = context?.inputData?.dbId;
 
-  // Step 2: Make GET request
-  const response = await axios({
-    method: 'GET',
-    url: `https://api.service.com/resources/all/${dbId}`,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
+    // Step 2: Make GET request
+    const response = await axios({
+      method: 'GET',
+      url: `https://api.service.com/resources/all/${dbId}`,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
-  // Step 3: Return records array
-  return response.data;
+    // Step 3: Return records array
+    return response.data;
 
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  }
 }
+return await listRecords();
 ```
 
 **Pattern C: Find/Search Records with Client-Side Filtering**
 ```javascript
-try {
-  // Step 1: Read from inputs
-  const query = context?.inputData?.query;
+async function findRecordByClientFilter() {
+  try {
+    // Step 1: Read from inputs
+    const query = context?.inputData?.query;
 
-  if (!query) {
-    throw new Error('query is required.');
+    if (!query) {
+      throw new Error('query is required.');
+    }
+
+    // Step 2 : Use native API filtering/search params whenever supported
+    const response = await axios({
+      method: 'GET',
+      url: `https://api.service.com/resources/all`,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    });
+
+    // Step 3: Use client-side filtering only if the API does not support native search params.
+    const matchedData = response?.data?.find(channel => channel.id === query);
+
+    // Step 4: Return data.
+
+    if (!matchedData) {
+      return {
+        success: true,
+        channels: []
+      };
+    }
+
+    return matchedData;
+
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
-
-  // Step 2 : Use native API filtering/search params whenever supported
-  const response = await axios({
-    method: 'GET',
-    url: `https://api.service.com/resources/all`,
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  });
-
-  // Step 3: Use client-side filtering only if the API does not support native search params.
-  const matchedData = response?.data?.find(channel => channel.id === query);
-
-  // Step 4: Return data.
-
-  if (!matchedData) {
-    return {
-      success: true,
-      channels: []
-    };
-  }
-
-  return matchedData;
-
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+return await findRecordByClientFilter();
 ```
 
 **Pattern D: Search Records Supported by Service**
 ```javascript
 
-const apiUrl = "https://api.service.com/resources";
-// step 1 : read from inputData
-const requestData = {
-  resourceId: context.inputData.resource_id,
-  page: context.inputData.page,
-  limit: context.inputData.limit
-};
+async function searchRecords() {
+  const apiUrl = "https://api.service.com/resources";
+  // step 1 : read from inputData
+  const requestData = {
+    resourceId: context.inputData.resource_id,
+    page: context.inputData.page,
+    limit: context.inputData.limit
+  };
 
-try {
-  // Step 2 : Make Get request
-  const response = await axios.get(apiUrl, {
-    params: requestData
-  });
+  try {
+    // Step 2 : Make Get request
+    const response = await axios.get(apiUrl, {
+      params: requestData
+    });
 
-  if (!response.data.success) {
-    return {
-      success: false,
-      message: response.data.message || "Request failed."
-    };
+    if (!response.data.success) {
+      return {
+        success: false,
+        message: response.data.message || "Request failed."
+      };
+    }
+
+
+    // step 3 : return response
+    return response.data;
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
-
-
-  // step 3 : return response
-  return response.data;
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+return await searchRecords();
 ```
 
 **Pattern E: Combined Advanced Search**
 
 ```javascript
-let apiUrl = "https://api.service.com";
+async function advancedSearch() {
+  let apiUrl = "https://api.service.com";
 
-// Step 1 : Read from inputData
-const searchMode = context.inputData?.search_mode || 'manual';
-const query = context.inputData?.query;
-const aiId = context.inputData?.aiId;
-const params = {};
+  // Step 1 : Read from inputData
+  const searchMode = context.inputData?.search_mode || 'manual';
+  const query = context.inputData?.query;
+  const aiId = context.inputData?.aiId;
+  const params = {};
 
-// Step 2: Based on the actual usecase make payload for sending in the api.
-try {
-  switch (searchMode) {
-    case 'manual' : {
-      apiUrl += '/path-to-be-for-manual';
-      params.id = query;
-      params.advanced = 'manual';
-      // any other things...
-    };
-    break;
-    case 'ai' : {
-      apiUrl += `/path-to-be-for-ai/${aiId}`;
-      params.id = `${query}&id=${aiId}`;
-      params.advanced = 'ai';
-      // any other things..
+  // Step 2: Based on the actual usecase make payload for sending in the api.
+  try {
+    switch (searchMode) {
+      case 'manual' : {
+        apiUrl += '/path-to-be-for-manual';
+        params.id = query;
+        params.advanced = 'manual';
+        // any other things...
+      };
+      break;
+      case 'ai' : {
+        apiUrl += `/path-to-be-for-ai/${aiId}`;
+        params.id = `${query}&id=${aiId}`;
+        params.advanced = 'ai';
+        // any other things..
+      }
+      break;
+      case 'usecase' : {
+        // any other case.
+      }
+      break;
+
+      default: break;
     }
-    break;
-    case 'usecase' : {
-      // any other case.
+
+    // Step 3 : Make GET request
+    const response = await axios.get(apiUrl, {
+      params
+    });
+
+    if (!response.data.success) {
+      return {
+        success: false,
+        message: response.data.message || "Request failed."
+      };
     }
-    break;
 
-    default: break;
+    return response.data;
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
-
-  // Step 3 : Make GET request
-  const response = await axios.get(apiUrl, {
-    params
-  });
-
-  if (!response.data.success) {
-    return {
-      success: false,
-      message: response.data.message || "Request failed."
-    };
-  }
-
-  return response.data;
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+return await advancedSearch();
 ```
 
 ##### 2. Create Data in an API
@@ -1405,68 +1420,73 @@ Use this category when the action creates a new record in the external service.
 
 **Pattern A: Create a Record**
 ```javascript
-try {
-  // Step 1: Read required input
-  const title = context?.inputData?.title;
+async function createRecord() {
+  try {
+    // Step 1: Read required input
+    const title = context?.inputData?.title;
 
-  if (!title) {
-    throw new Error('title is required.');
+    if (!title) {
+      throw new Error('title is required.');
+    }
+
+    // Step 2: Build payload from action input fields
+    const payload = {};
+
+    payload.title = title;
+    // any other input added in the payload from the inputData.
+
+    // Step 3: Make API request
+    const response = await axios({
+      method: 'POST',
+      url: `https://api.service.com/resources/records`,
+      data: payload
+    });
+
+    // Step 4: Return created record
+    return response?.data;
+
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
-
-  // Step 2: Build payload from action input fields
-  const payload = {};
-
-
-  payload.title = title;
-  // any other input added in the payload from the inputData.
-
-  // Step 3: Make API request
-  const response = await axios({
-    method: 'POST',
-    url: `https://api.service.com/resources/records`,
-    data: payload
-  });
-
-  // Step 4: Return created record
-  return response?.data;
-
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+return await createRecord();
 ```
 **Pattern B: Create if not exists record (Find or Create Data)**
 ```javascript
-try {
-  // Step 1: Gather input data
-  const recordId = context?.inputData?.record_id;
-  const messageData = context?.inputData?.message;
+async function findOrCreateRecord() {
+  try {
+    // Step 1: Gather input data
+    const recordId = context?.inputData?.record_id;
+    const messageData = context?.inputData?.message;
 
-  if (!recordId) {
-    throw new Error('record_id is required.');
-  }
-
-  // Step 2: Fetch the requested data.
-  let response = await axios({
-    method: 'GET',
-    url: `https://api.service.com/resources/records/${recordId}`
-  });
-
-  // Step 3: If present, return the existing record.
-  if (response.data) return response.data;
-
-  response = await axios({
-    method: 'POST',
-    url: `https://api.service.com/resources/records/create`,
-    data: {
-      record_id: recordId,
-      message: messageData
+    if (!recordId) {
+      throw new Error('record_id is required.');
     }
-  });
 
-  return response.data;
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+    // Step 2: Fetch the requested data.
+    let response = await axios({
+      method: 'GET',
+      url: `https://api.service.com/resources/records/${recordId}`
+    });
+
+    // Step 3: If present, return the existing record.
+    if (response.data) return response.data;
+
+    response = await axios({
+      method: 'POST',
+      url: `https://api.service.com/resources/records/create`,
+      data: {
+        record_id: recordId,
+        message: messageData
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  }
 }
+return await findOrCreateRecord();
 
 ```
 
@@ -1475,46 +1495,49 @@ try {
 Use this category when the action updates an existing record. Send only values provided by the user unless the API requires a full replacement payload.
 
 ```javascript
-try {
-  // Step 1: Read required identifiers
-  const recordId = context?.inputData?.record_id;
+async function updateRecord() {
+  try {
+    // Step 1: Read required identifiers
+    const recordId = context?.inputData?.record_id;
 
-  if (!recordId) {
-    throw new Error('Record ID is required.');
-  }
-
-  // Step 2: Build partial update payload
-  const payload = {};
-  const ignoredKeys = ['record_id', 'config_key'];
-
-  for (const key of Object.keys(context?.inputData || {})) {
-    if (ignoredKeys.includes(key)) {
-      continue;
+    if (!recordId) {
+      throw new Error('Record ID is required.');
     }
 
-    const value = context.inputData[key];
+    // Step 2: Build partial update payload
+    const payload = {};
+    const ignoredKeys = ['record_id', 'config_key'];
 
-    if (value !== undefined && value !== null && value !== '') {
-      payload[key] = value;
+    for (const key of Object.keys(context?.inputData || {})) {
+      if (ignoredKeys.includes(key)) {
+        continue;
+      }
+
+      const value = context.inputData[key];
+
+      if (value !== undefined && value !== null && value !== '') {
+        payload[key] = value;
+      }
     }
+
+    // Step 3: Make PATCH/PUT/POST request depending on the API
+    const response = await axios({
+      method: 'PATCH',
+      url: `https://api.service.com/resources/${recordId}`,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: payload
+    });
+
+    // Step 4: Return updated record
+    return response?.data;
+
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
-
-  // Step 3: Make PATCH/PUT/POST request depending on the API
-  const response = await axios({
-    method: 'PATCH',
-    url: `https://api.service.com/resources/${recordId}`,
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    data: payload
-  });
-
-  // Step 4: Return updated record
-  return response?.data;
-
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+return await updateRecord();
 ```
 
 ##### 4. Delete or Archive Data in an API
@@ -1522,29 +1545,32 @@ try {
 Use this category when the action deletes, archives, disables, or marks a record as inactive. Some APIs use `DELETE`; others use `PATCH` or `POST` for archive-style behavior.
 
 ```javascript
-try {
-  // Step 1: Read required identifier
-  const recordId = context?.inputData?.record_id;
+async function deleteRecord() {
+  try {
+    // Step 1: Read required identifier
+    const recordId = context?.inputData?.record_id;
 
-  if (!recordId) {
-    throw new Error('Record ID is required.');
+    if (!recordId) {
+      throw new Error('Record ID is required.');
+    }
+
+    // Step 2: Make DELETE request, or replace with PATCH/POST if API archives records
+    const response = await axios({
+      method: 'DELETE',
+      url: `https://api.service.com/resources/${recordId}`
+    });
+
+    // Step 3: Return API response or a confirmation object
+    return response?.data || {
+      id: recordId,
+      deleted: true
+    };
+
+  } catch (error) {
+    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
   }
-
-  // Step 2: Make DELETE request, or replace with PATCH/POST if API archives records
-  const response = await axios({
-    method: 'DELETE',
-    url: `https://api.service.com/resources/${recordId}`
-  });
-
-  // Step 3: Return API response or a confirmation object
-  return response?.data || {
-    id: recordId,
-    deleted: true
-  };
-
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+return await deleteRecord();
 ```
 
 # Special Note:

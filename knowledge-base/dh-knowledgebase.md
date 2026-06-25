@@ -71,10 +71,10 @@ Required fields first, optionals grouped after. Resource dropdowns for large lis
 | FIND/SEARCH | DynDropdown(parent) → DynDropdown(child)? → Boolean(Basic/Advanced) → Group(filter: column+value for Basic / AIField for Advanced) → Group(sort/limit)? → Multiselect(return)? |
 | CREATE | DynDropdown(parent) → DynDropdown(child)? → Boolean? → Multiselect(field chooser) → DynGroup(fieldsGenerator) → AIField?/Dictionary? |
 | UPDATE | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(record ID) → Multiselect(chooser) → DynGroup(chosen fields only) |
-| FIND OR CREATE | DynDropdown(parent) → DynDropdown(child)? → Group(search) → Boolean `create_if_not_found` (default `{label:"Yes",value:true}`) → DynGroup(visibilityCondition on toggle) → Multiselect? |
+| FIND OR CREATE | DynDropdown(parent) → DynDropdown(child)? → Group(search: AIField if complex query, or DynDropdown+String if simple filter) → Boolean `create_if_not_found` (default `{label:"Yes",value:true}`) → DynGroup(visibilityCondition on toggle) → Multiselect? |
 | DELETE | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(record ID) → HelpStatic(irreversibility warning) |
 
-Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence. **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** default page limit 100. **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **DELETE** keep minimal; archive toggle if API supports.
+Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence. **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** default page limit 100. **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **FIND OR CREATE** use AIField if complex query is supported, or dropdown + string if simple filter is supported; "Create if not found?" toggle (default true) shows creation fields via visibilityCondition when true. **DELETE** keep minimal; archive toggle if API supports.
 
 # Field Types
 Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · `label` · `help`. Allowed types only: string, number, html, markdown, dictionary, boolean, dropdown, multiselect, aifield, help, input groups. Optionals per Minimalism. Output valid JSON only — no comments/extra keys.
@@ -120,14 +120,14 @@ JS expression on `context?.inputData?.<path>`; must evaluate to boolean (support
 
 # Perform Code
 ```javascript
-async function run() {
+async function <functionName>() {
   try {
     // validate required fields; build request from context.inputData; call API
   } catch (error) {
     await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
   }
 }
-return await run();
+return await <functionName>();
 ```
 - No `import`/`require`. HTTP via `axios`/`fetch` only. Auth handled by viaSocket — never include (add an extra header/query/body only if API needs a non-standard value).
 - Read inputs via `context?.inputData?.<key>`. Validate every `required:true` field at top — `throw` before the API call if missing/empty/null.
@@ -161,7 +161,7 @@ Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Bu
 | Transfer | Transfer button — user picks selected/all; sent in `≤200` batches |
 
 # Code Skeletons
-Trigger blocks (Subscribe, Unsubscribe, Sample, Manual Trigger Perform/Sample) start directly with the `try-catch` outer wrap (no `async (context) =>` wrapper). Scheduled Perform and Actions use the `async function run() { try { ... } catch (e) { await errorComponent(e); } } return await run();` wrapper.
+Trigger blocks (Subscribe, Unsubscribe, Sample, Manual Trigger Perform/Sample) start directly with the `try-catch` outer wrap (no `async (context) =>` wrapper). Scheduled Perform and Actions use the `async <functionName>() { try { ... } catch (e) { await errorComponent(e); } } return await <functionName>();` wrapper, naming the function according to the operation performed.
 
 ## Instant Subscribe / Unsubscribe
 ```javascript
@@ -208,7 +208,7 @@ Time window (all variants): `const t = new Date(__executionStartTime__ - (contex
 
 ## Actions — one template + per-category delta
 ```javascript
-async function run() {
+async function <functionName>() {
   try {
     const id = context?.inputData?.record_id;
     if (!id) throw new Error('record_id is required.'); // validate every required field
@@ -216,7 +216,7 @@ async function run() {
     return res?.data; // raw
   } catch (e) { await errorComponent(e); }
 }
-return await run();
+return await <functionName>();
 ```
 | Category | Call | Notes |
 |---|---|---|
@@ -256,5 +256,5 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 # Review
 Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).
 Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't invent undocumented params; every documented API field is in UX or handled in code.
-- **Perform**: wrapper correct (`async function run()`) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
+- **Perform**: wrapper correct (`async <functionName>()` matching the operation performed) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
 - **Fields**: each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
