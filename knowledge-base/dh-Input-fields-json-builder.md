@@ -1191,8 +1191,8 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable.
-- Include customInputLabel only if manual input mode is intended. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID". Omit if not applicable.
-- Include customPlaceholder only if a placeholder is needed for manual input mode. Provide a relevant numeric or text example (e.g., "E.g., 15" if expecting an ID). Omit if not applicable.
+- customInputLabel is required. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID".
+- customPlaceholder is required. Provide a relevant numeric or text example (e.g., "E.g., 15" if expecting an ID).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the dropdown depends on another field.
 - Omit if always visible.
@@ -1339,7 +1339,9 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         "type",
                         "label",
                         "help",
-                        "options"
+                        "options",
+                        "customInputLabel",
+                        "customPlaceholder"
                     ]
                 }
             }
@@ -1431,7 +1433,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: An optional extra value for the default option. Omit if not needed.
             required[3]: label,value,sample
-        required[5]: key,type,label,help,options
+        required[7]: key,type,label,help,options,customInputLabel,customPlaceholder
   required[1]: inputFields
 ```
 
@@ -1695,8 +1697,8 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable.
-- Include customInputLabel only if manual input mode is intended. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array"). Omit if not applicable.
-- Include customPlaceholder only if a placeholder is needed for manual input mode. Provide a relevant array example (e.g., "E.g., [\"markdown\",\"block\"]" or "E.g., [\"first_name\",\"email\"]"). Omit if not applicable.
+- customInputLabel is required. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array").
+- customPlaceholder is required. Provide a relevant array example (e.g., "E.g., [\"markdown\",\"block\"]" or "E.g., [\"first_name\",\"email\"]").
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the multiselect depends on another field.
 - Omit if always visible.
@@ -1827,7 +1829,9 @@ Generate a JSON object strictly following the rules below for a static multisele
                         "type",
                         "label",
                         "help",
-                        "options"
+                        "options",
+                        "customInputLabel",
+                        "customPlaceholder"
                     ]
                 }
             }
@@ -1915,7 +1919,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[5]: key,type,label,help,options
+        required[7]: key,type,label,help,options,customInputLabel,customPlaceholder
   required[1]: inputFields
 ```
 
@@ -2998,6 +3002,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
 - Set `type: "dropdown"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
 - Ensure that properties related to dynamic behavior, like `canPaginate` and `enableSearchApi`, are configured correctly based on whether the endpoint supports pagination offsets or search query parameters.
+- Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included for the manual input mode.
 - **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (e.g., `[{label, value, sample}]` or `{data: [{label, value, sample}], offset: ...}`). MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 
 ### Dropdown Dynamic JSON Schema:
@@ -3113,7 +3118,8 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         "label",
                         "help",
                         "optionsGenerator",
-                        "customPlaceholder"
+                        "customPlaceholder",
+                        "customInputLabel"
                     ]
                 }
             }
@@ -3195,7 +3201,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
             required[3]: label,value,sample
-        required[6]: key,type,label,help,optionsGenerator,customPlaceholder
+        required[7]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel
   required[1]: inputFields
 ```
 
@@ -3592,7 +3598,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
-- A proper manual input option should be carefully configured. Include `customPlaceholder` (mandatory) that illustrates how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). Optionally provide `customInputLabel` and `customHelp` to guide the user in array input formatting.
+- A proper manual input option must be configured. Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). `customInputLabel` must guide the user on what manual input is expected. Optionally provide `customHelp` to guide the user in array input formatting.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
 ### Multi Select Dynamic JSON Schema:
@@ -3693,7 +3699,8 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         "label",
                         "help",
                         "optionsGenerator",
-                        "customPlaceholder"
+                        "customPlaceholder",
+                        "customInputLabel"
                     ]
                 }
             }
@@ -3768,7 +3775,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[6]: key,type,label,help,optionsGenerator,customPlaceholder
+        required[7]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel
   required[1]: inputFields
   ```
 ### Multi Select Dynamic Examples:
