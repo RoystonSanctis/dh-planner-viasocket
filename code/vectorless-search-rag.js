@@ -5,10 +5,12 @@
 
 // (Helpers and KB_URLS kept minimal)
 const KB_URLS = {
-  "dh-Input-fields-json-builder": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/dh-Input-fields-json-builder.md",
-  "perform-code": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/perform-code.md",
-  "dh-review": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/dh-review.md",
-  "ux-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/ux-practice.md"
+  "dh-knowledgebase": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md",
+  "ux-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-practice.md",
+  "dh-Input-fields-json-builder": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-Input-fields-json-builder.md",
+  "perform-code": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/perform-code.md",
+  "dh-review": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-review.md",
+
 };
 
 function parseFrontmatter(mdContent) {

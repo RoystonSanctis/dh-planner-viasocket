@@ -101,7 +101,7 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 **Visibility + required**: visibility evaluated first — a hidden `required` field is skipped (not enforced). Optional parent revealing a required child → set child `required:true` AND throw in perform if parent set but child missing.
 
 # Minimalism
-Include an optional key only when it adds info beyond `label` + specific app + specific action. Optionals: `placeholder` (format non-obvious) · `defaultValue` (sensible default exists) · `customHelp`/`customInputLabel`/`customPlaceholder` (where to find a manual ID) · `sample` (value is ID ≠ label) · `visibilityCondition` (conditional) · `required` (mandatory; defaults false). `help` is required — keep its value concise.
+Include an optional key only when it adds info beyond `label` + specific app + specific action. Optionals: `placeholder` (format non-obvious) · `defaultValue` (sensible default exists) · `customHelp`/`customInputLabel`/`customPlaceholder` (where to find a manual ID) · `sample` (value is ID ≠ label) · `visibilityCondition` (conditional) · `required` (mandatory; defaults false). `help` is optional (do not flag if missing) — keep its value concise, short, plain, and non-technical.
 
 # Visibility
 JS expression on `context?.inputData?.<path>`; must evaluate to boolean (supports `.includes()`, calcs).
@@ -259,5 +259,13 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 # Review
 Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).
 Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't invent undocumented params; every documented API field is in UX or handled in code.
-- **Perform**: wrapper correct (`async <functionName>()` matching the operation performed) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
-- **Fields**: each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
+- **Perform**:
+  - Wrapper correct (`async <functionName>()` matching the operation performed) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
+  - **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
+  - **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.
+- **Fields & Text Quality**:
+  - Each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
+  - **Help Key**: `help` must be short, plain, and non-technical.
+  - **Labels & Placeholders**: Must be clear and grammatically correct.
+  - **Suggestions for Text**: Put the corrected value in "suggestions" for fixed help/label/placeholder.
+  - **Consistency**: Ensure `help`/`label`/`placeholder` are consistent across all fields. Fix casing, wording, and punctuation mismatches (e.g., "Select option." vs "select Options" → "Select Option" (Title Case)).

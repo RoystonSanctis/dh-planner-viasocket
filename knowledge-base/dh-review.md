@@ -82,3 +82,11 @@ Each input field must strictly adhere to the structure, formats, and validation 
 - **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help, Help Static.
 
 - **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key.
+- **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
+- **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.
+
+## 3. Text Quality & Consistency
+- **Help Key**: It must be short, plain, and non-technical.
+- **Labels & Placeholders**: Must be clear and grammatically correct.
+- **Length Checking Constraint**: The length checking constraint applies to the `help` KEY only; never flag `type: "help"` panels for length.
+- **Consistency**: Ensure `help`/`label`/`placeholder` are consistent across all fields. Fix casing, wording, and punctuation mismatches (e.g., "Select option." vs "select Options" → "Select Option" (Title Case)).
