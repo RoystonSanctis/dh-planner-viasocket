@@ -123,9 +123,3 @@ code: String (async JS try-catch)
 ```
 
 ---
-
-# 4. Schema References & Integrations
-
-- For details on building child fields inside `inputFields`, refer to [dh-Input-fields-json-builder.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/knowledge-base/dh-Input-fields-json-builder.md).
-- For structure and conventions regarding `performCode`, `subscribeCode`, and `unsubscribeCode`, refer to [perform-code.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/knowledge-base/perform-code.md).
-- For guidelines on user metadata layout (`name` and `description` formatting), refer to [ux-practice.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/knowledge-base/ux-practice.md).

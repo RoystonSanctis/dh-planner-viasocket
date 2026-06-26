@@ -96,6 +96,8 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 
 **Options metadata**: `sample` MUST equal `value`; include only if `value` is an ID and ≠ `label`. Dynamic `defaultValue` requires `sample`. `extraValue` = hidden metadata, read via `context?.inputData?.{key}_extraValue` (group: `{group}?.{key}_extraValue`).
 
+**optionsGenerator invocation:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call that component function (e.g., `return await fetchComponent(param1, param2);`).
+
 **Visibility + required**: visibility evaluated first — a hidden `required` field is skipped (not enforced). Optional parent revealing a required child → set child `required:true` AND throw in perform if parent set but child missing.
 
 # Minimalism
