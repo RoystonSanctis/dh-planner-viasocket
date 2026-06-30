@@ -1210,7 +1210,7 @@ First identify what the action is trying to do: read data, create data, update d
 - **HTTP Request:** Use `axios()` for all HTTP requests.
 - **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
 - **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
-- **Error Handling:** Wrap all perform code in `try { ... } catch (error) { await errorComponent(error); }`. Do not modify the error in the catch block.
+- **Error Handling & Structure:** Wrap all perform code in a `try-catch` block. Both a direct parent-level `try { ... } catch (error) { await errorComponent(error); }` structure and a wrapping async function structure (e.g., `async function run() { try { ... } catch (error) { await errorComponent(error); } } return await run();`) are fully valid and supported. Do not modify the error in the catch block.
 
 **Required Field Validation Pattern**
 ```javascript

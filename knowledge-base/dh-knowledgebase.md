@@ -122,6 +122,9 @@ JS expression on `context?.inputData?.<path>`; must evaluate to boolean (support
 **Generator context access**: read upstream values via `context?.inputData?.<key>`; group-scoped via `context?.inputData?.<group>?.<field>`. Pagination token: `context?.paginateData?.['<field>']`; in group `['group.field']`; nested groups add keys in path order. `__searchText` only when `enableSearchApi:true`. `axios` available directly in these generators.
 
 # Perform Code
+Both of the following structures are valid and supported:
+
+**Format 1: Wrapping async function**
 ```javascript
 async function <functionName>() {
   try {
@@ -131,6 +134,15 @@ async function <functionName>() {
   }
 }
 return await <functionName>();
+```
+
+**Format 2: Direct parent try-catch (no wrapping function)**
+```javascript
+try {
+  // validate required fields; build request from context.inputData; call API
+} catch (error) {
+  await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
+}
 ```
 - No `import`/`require`. HTTP via `axios`/`fetch` only. Auth handled by viaSocket — never include (add an extra header/query/body only if API needs a non-standard value).
 - Read inputs via `context?.inputData?.<key>`. Validate every `required:true` field at top — `throw` before the API call if missing/empty/null.

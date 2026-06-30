@@ -649,8 +649,9 @@ An organized JSON definition of the Input Fields, showing hierarchy, field group
 > Detailed field schemas, option generators, dynamic field builders, and allowed types **MUST** follow the rules defined in the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
 
 ### 4. API Configuration Perform Code
-JavaScript code that maps input fields to the API payload. It **MUST** strictly adhere to the following template:
+JavaScript code that maps input fields to the API payload. It **MUST** strictly adhere to one of the following templates:
 
+**Format A: Direct parent try-catch (no wrapping function)**
 ```javascript
 try {
   const data = context.inputData;
@@ -660,10 +661,23 @@ try {
 }
 ```
 
+**Format B: Wrapping async function**
+```javascript
+async function <functionName>() {
+  try {
+    const data = context.inputData;
+    return data;
+  } catch (error) {
+    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
+  }
+}
+return await <functionName>();
+```
+
 > [!WARNING]
 > #### Perform Code Constraints:
-> *   The outer `try/catch` block is **mandatory**.
-> *   `return data` must be within the `try` block. `throw error` must be within the `catch` block.
+> *   The outer `try/catch` block (either direct parent-level or wrapping async function) is **mandatory**.
+> *   `return data` must be within the `try` block.
 > *   The variable name **must** be `data` (do not rename it). Do not declare other variables before or after `const data = context.inputData` unless manual key mapping or payload transformations are strictly required due to mismatched field names.
 > *   Authentication values must **never** be hardcoded or managed in the perform code.
 > *   The perform code should focus strictly on payload mapping and request dispatching.

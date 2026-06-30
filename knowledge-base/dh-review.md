@@ -55,8 +55,9 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **Required Field Validation**: For every input field marked `required: true` in the input fields JSON, the perform code **must** throw an error at the top of the function (before the API call) if that field's value is missing, empty, or `null`. Example: `if (!context.inputData.date) { throw new Error('Date is required.'); }`
 
 **Required Structure:**
-All code blocks (Triggers, Scheduled/Manual Perform, Actions) start directly with the `try-catch` outer wrap. There is no outer function wrapper (`async (context) =>` or `async function run()`). The `context` object is available globally.
+The code block can use either of the two formats below. The reviewer must not flag either as an issue. The `context` object is available globally.
 
+**Format 1: Wrapping async function**
 ```javascript
 async function <functionName>() {
 try { 
@@ -66,6 +67,15 @@ try {
 }
 }
 return await <functionName>();
+```
+
+**Format 2: Direct parent try-catch (no wrapping function)**
+```javascript
+try {
+  // actual code to perform
+} catch (error) {
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+}
 ```
 
 ## 2. Input Fields
