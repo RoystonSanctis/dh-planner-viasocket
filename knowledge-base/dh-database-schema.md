@@ -66,7 +66,8 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
   "authid": "String (Optional. Authentication identifier associated with the service/action, e.g., 'rowqgp0s6jwh')",
   "metadata": {
     "chatbotthreadid": "String (Optional. Association with chatbot thread, e.g., 'KSniUIbOsr')"
-  }
+  },
+  "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
 ```
 
@@ -93,6 +94,7 @@ perform: String (async JS try-catch)
 authid: String (optional)
 metadata: Object (optional)
   - chatbotthreadid: String
+sampledata: Object (optional)
 ```
 
 ---
@@ -121,7 +123,8 @@ A Trigger represents a real-world event (e.g., "New Email Arrives", "New Lead Cr
     "steps": "Object (Auto-generated; always pass {})",
     "blocks": "Object (Auto-generated; always pass {})",
     "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
-  }
+  },
+  "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
 ```
 
@@ -153,7 +156,8 @@ Instant Triggers run via webhooks where external systems send events immediately
   "performunsubscribe": "String (Unsubscribe JavaScript code to unregister/delete webhook from external service)",
   "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
   "modifytriggerdata": "String (Perform Modify Code block to transform webhook data)",
-  "transferoption": "String (Transfer option code block)"
+  "transferoption": "String (Transfer option code block)",
+  "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
 ```
 
@@ -180,6 +184,7 @@ performunsubscribe: String (unsubscribe JS)
 performlist: String (sample JS)
 modifytriggerdata: String (modify code JS)
 transferoption: String (transfer JS)
+sampledata: Object (optional)
 ```
 
 ### 2.2. Schedule Trigger Schema (`triggertype: "polling"`)
@@ -210,7 +215,8 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
   "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
   "transferoption": "String (Transfer option code block)",
   "scheduleTimeOptions": "Array (Accepted intervals in minutes. [] means all by default; specific arrays like [5, 15, 60, 720, 1440] restrict user options to limit API rate limits)",
-  "canpaginate": "Boolean (Set to true to enable the pagination feature if using the pagination path in the perform code)"
+  "canpaginate": "Boolean (Set to true to enable the pagination feature if using the pagination path in the perform code)",
+  "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
 ```
 
@@ -237,6 +243,7 @@ performlist: String (sample JS)
 transferoption: String (transfer JS)
 scheduleTimeOptions: Array of integers
 canpaginate: Boolean
+sampledata: Object (optional)
 ```
 
 ### 2.3. Manual Trigger Schema (`triggertype: "manual_webhook"`)
@@ -264,7 +271,8 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
     "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
   },
   "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
-  "modifytriggerdata": "String (Perform Modify Code block to transform webhook data)"
+  "modifytriggerdata": "String (Perform Modify Code block to transform webhook data)",
+  "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
 ```
 
@@ -288,6 +296,7 @@ inputjson: InputJsonObject
   - inputFields: Array of FieldObjects
 performlist: String (sample JS)
 modifytriggerdata: String (modify code JS)
+sampledata: Object (optional)
 ```
 
 ---
