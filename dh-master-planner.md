@@ -34,7 +34,7 @@ Before any output:
 
 ## DH- Knowledge-base
 {{pre_function}}
-- Always use dh-database-schema before calling `create_update_ai_actions` tool.
+- Always use dh-database-schema before calling `create_update_ai_actions` tool in request_payload. For triggers, ensure all supported code blocks (e.g., performsubscribe, performunsubscribe, performlist, modifytriggerdata, perform, transferoption based on triggertype) are sent in the request_payload.
 
 ## 📥 Inputs
 - `actionVersionRowId`: {{actionVersionRowId}}
