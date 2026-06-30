@@ -174,16 +174,16 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 
 1. **Dynamic Dropdown** → Primary resource selection (e.g., select Data Source, select Spreadsheet). Uses `canPaginate` and `enableSearchApi` for large lists.
 2. **Dynamic Dropdown** → Secondary/dependent resource selection (e.g., select Sheet within Spreadsheet). Uses `visibilityCondition` to depend on the first dropdown.
-3. **Boolean** *(optional)* → Configuration toggles (e.g., "Does your first row contain column name?", "Enable Pagination").
+3. **Boolean** *(optional)* → Configuration toggles (e.g., "Does your first row contain column name?"). *Note: Do not include an "Enable Pagination" toggle, as pagination is handled automatically via the trigger configuration.*
 4. **Multiselect Dynamic** *(optional)* → Field filtering (e.g., select which columns/properties to return in the output).
-5. **Input Group Static** *(optional)* → Grouped pagination or filter settings (e.g., Page Limit, Start Cursor, Filter Properties).
+5. **Input Group Static** *(optional)* → Grouped filter settings (e.g., Filter Properties, Search Query). *Note: Do not include page limit, start cursor, or offset fields.*
 6. **AI Field** *(optional)* → Advanced filter conditions using AI-generated queries.
 
 ### Scheduled Trigger Common Input Fields:
 - **Dropdown Dynamic** — Used for selecting the resource to poll (e.g., Data Source, Spreadsheet, Sheet). Cascading dropdowns are common (Spreadsheet → Sheet).
-- **Boolean** — Used for configuration toggles that change behavior (e.g., column naming mode, pagination toggle).
+- **Boolean** — Used for configuration toggles that change behavior (e.g., column naming mode). *Do not include pagination toggles.*
 - **Multiselect Dynamic** — Used for selecting which fields/properties to include in the output. Reusable Components are recommended for the `optionsGenerator`.
-- **Input Group Static** — Used for grouping related pagination or filtering settings together.
+- **Input Group Static** — Used for grouping related filtering or sorting settings. *Do not include pagination fields like page limit or next page token.*
 - **AI Field** — Used for advanced filter conditions where the user can describe the filter in natural language and AI generates the structured query.
 - **Help Dynamic** *(optional)* — Used for contextual information based on user selections.
 
@@ -193,10 +193,12 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 - See [Perform Code Knowledge Base → Scheduled Trigger](perform-code.md) for detailed rules, pseudo code, and examples.
 
 ### Scheduled Trigger Best Practices:
+- **No pagination input fields**: Never ask the user for pagination fields (such as limit, page size, start cursor, next page token). These should be defined internally within the perform code, and the `canpaginate: true` feature should be enabled in the trigger database schema.
+- **No scheduledTime in UI**: Do not suggest or include `scheduledTime` as an input field in the UI. `scheduledTime` is a global variable available in code under `context?.inputData?.scheduledTime`.
 - **Cascade dropdowns** — Use `visibilityCondition` to show dependent dropdowns only after the parent is selected (e.g., Sheet depends on Spreadsheet).
 - **Use Reusable Components** — For `optionsGenerator` code in dynamic dropdowns and multiselects. This keeps code secure, DRY, and maintainable.
-- **Group related settings** — Use `Input Group Static` to bundle pagination, filter, and sorting settings together.
-- **Default values matter** — Provide sensible defaults for pagination limits (e.g., `defaultValue: 100`), filter types (e.g., `defaultValue: Basic`).
+- **Group related settings** — Use `Input Group Static` to bundle filter and sorting settings together (avoiding pagination settings).
+- **Default values matter** — Provide sensible defaults for filter types (e.g., `defaultValue: Basic`).
 - **AI Field for complex filters** — When a service supports complex query syntax (like Notion's filter API), use an AI Field with a `suggestionGenerator` that fetches the schema.
 - **Clean labels** — Use "Select Data Source" not "Select Notion Data Source".
 
