@@ -18,6 +18,7 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 - Code Skeletons: Instant Subscribe / Unsubscribe, Sample (Instant & Scheduled), Transfer (New-event only), Scheduled Perform, Actions — one template + per-category delta
 - Reusable Components
 - Generator Returns
+- API Database Payload Schemas
 - Review
 
 # Core Philosophy
@@ -267,6 +268,16 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 | `fieldsGenerator` | field-object array, or `{message}` if deps missing |
 | `suggestionGenerator` | schema/context shape the AI can consume |
 | Help dynamic `source` | `{message}` |
+
+# API Database Payload Schemas
+- **Action (Create/Update)**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` ('false'|'true'), `type: 'action'`, `category`, `sub_category` (optional), `rtllayer` (boolean), `isAIActionTrigger` (boolean), `functionId` (optional on create), `isUserOnDh` (boolean), `inputjson: {steps: {}, blocks: {}, inputFields: [...]}` (always pass empty objects `{}` for `steps` and `blocks`), `perform`, `authid` (optional), `metadata: {chatbotthreadid}` (optional).
+- **Trigger (Create/Update)**: Common: `authid`, `category`, `sub_category` (optional), `description`, `ignoreuniversalsampledata` (boolean), `isvisible` ('True'|'False'), `key`, `name`, `pluginrecordid`, `preferred_step_name`, `type: 'trigger'`, `triggertype: 'hook'|'polling'|'manual_webhook'`, `inputjson: {steps: {}, blocks: {}, inputFields: [...]}` (always pass empty objects `{}` for `steps` and `blocks`).
+  - *Instant (`hook`)*: `performsubscribe`, `performunsubscribe`, `performlist`, `modifytriggerdata`, `transferoption`.
+  - *Schedule (`polling`)*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (array, e.g. `[]` or `[5,15,60,720,1440]`), `canpaginate` (boolean).
+- **Reusable Component**:
+  - *Create*: `function_name`, `description`, `params: [{name, sample}]`, `code` (raw JS), `pluginrecordid`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
+  - *Update*: `rowid`, `description`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `code` (raw JS).
+- **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key).
 
 # Review
 Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).

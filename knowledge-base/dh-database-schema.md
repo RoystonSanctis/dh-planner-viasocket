@@ -5,11 +5,34 @@ description: "Technical specification of database and API objects required for v
 published: true
 ---
 
+# Page Index
+- 1. Action Object Schema
+  - Action JSON Schema
+  - Action TOON Schema
+- 2. Trigger Object Schema
+  - Trigger JSON Schema (Common Fields)
+  - 2.1. Instant Trigger Schema (triggertype: "hook")
+    - Instant Trigger JSON Schema
+    - Instant Trigger TOON Schema
+  - 2.2. Schedule Trigger Schema (triggertype: "polling")
+    - Schedule Trigger JSON Schema
+    - Schedule Trigger TOON Schema
+- 3. Reusable Component Object Schema
+  - Reusable Component JSON Schema
+    - Reusable Component Create Payload
+    - Reusable Component Update Payload
+  - Reusable Component TOON Schema
+    - Reusable Component Create Payload
+    - Reusable Component Update Payload
+- Reusable Component Action Version Mapping Schema
+  - Reusable Component Mapping JSON Schema
+  - Reusable Component Mapping TOON Schema
+
+---
+
 # Database Schema for the Tool Call Model
 
 This document outlines the technical specification of the database and API objects required for managing viaSocket actions, triggers, and reusable components through LLM tool calls (such as `create_update_ai_actions`).
-
----
 
 # 1. Action Object Schema
 
@@ -19,30 +42,54 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
 
 ```json
 {
-  "actionVersionRowId": "String (UUID / row identifier. If present, indicates a surgical update; if empty, indicates a full create)",
-  "service": "String (The name of the target app/service, e.g., 'Slack')",
-  "domain": "String (The API domain of the service, e.g., 'slack.com')",
-  "name": "String (User-friendly name starting with a verb, e.g., 'Send Message to Channel')",
-  "description": "String (Brief outcome-focused description, maximum 30 characters)",
-  "type": "GET | POST | PUT | DELETE",
-  "category": "String (UPPERCASE category, e.g., 'CREATE', 'UPDATE', 'LIST', 'SEARCH', 'DELETE')",
-  "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)",
-  "performCode": "String (Executable JavaScript try-catch code block conforming to perform-code.md)"
+  "name": "String (User-friendly name of the action, e.g., 'List Notion Databases')",
+  "key": "String (Unique machine-readable key, e.g., 'list_notion_databases')",
+  "description": "String (Brief description of the action's purpose)",
+  "pluginrecordid": "String (Unique row ID of the plugin/service, e.g., 'rowbvcb80z3y')",
+  "isvisible": "String (Boolean as a string, e.g., 'false')",
+  "type": "String (Set to 'action')",
+  "category": "String (The action category, e.g., 'UPDATE' or 'AI')",
+  "sub_category": "String (Optional. The action sub-category, e.g., 'Page')",
+  "rtllayer": "Boolean (e.g., true)",
+  "isAIActionTrigger": "Boolean (e.g., true)",
+  "functionId": "String (Action version row ID; optional on create, required on update, e.g., 'KSniUIbOsr')",
+  "isUserOnDh": "Boolean (e.g., true)",
+  "inputjson": {
+    "steps": "Object (Auto-generated; always pass {})",
+    "blocks": "Object (Auto-generated; always pass {})",
+    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+  },
+  "perform": "String (Executable JavaScript function block conforming to perform-code.md)",
+  "authid": "String (Optional. Authentication identifier associated with the service/action, e.g., 'rowqgp0s6jwh')",
+  "metadata": {
+    "chatbotthreadid": "String (Optional. Association with chatbot thread, e.g., 'KSniUIbOsr')"
+  }
 }
 ```
 
 ## Action TOON Schema
 
 ```toon
-actionVersionRowId: String (optional)
-service: String
-domain: String
 name: String
-description: String (max 30 chars)
-type: enum[4]: GET,POST,PUT,DELETE
-category: String (UPPERCASE)
-inputFields: Array of FieldObjects
-performCode: String (JS try-catch)
+key: String
+description: String
+pluginrecordid: String
+isvisible: String ('true' | 'false')
+type: String ('action')
+category: String
+sub_category: String (optional)
+rtllayer: Boolean
+isAIActionTrigger: Boolean
+functionId: String (optional on create, required on update)
+isUserOnDh: Boolean
+inputjson: InputJsonObject
+  - steps: Object (Auto-generated; always pass {})
+  - blocks: Object (Auto-generated; always pass {})
+  - inputFields: Array of FieldObjects
+perform: String (async JS try-catch)
+authid: String (optional)
+metadata: Object (optional)
+  - chatbotthreadid: String
 ```
 
 ---
@@ -51,36 +98,142 @@ performCode: String (JS try-catch)
 
 A Trigger represents a real-world event (e.g., "New Email Arrives", "New Lead Created") that starts an automation workflow.
 
-## Trigger JSON Schema
+## Trigger JSON Schema (Common Fields)
 
 ```json
 {
-  "triggerVersionRowId": "String (UUID / row identifier. If present, indicates a surgical update; if empty, indicates a full create)",
-  "service": "String (The name of the target app/service, e.g., 'HubSpot')",
-  "domain": "String (The API domain of the service, e.g., 'hubspot.com')",
-  "name": "String (Event phrase, e.g., 'New Lead Created')",
-  "description": "String (Runs when <event>, maximum 30 characters, e.g., 'Runs when new lead is created')",
-  "triggerType": "INSTANT | SCHEDULED | MANUAL",
-  "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)",
-  "performCode": "String (Executable JavaScript try-catch code block conforming to perform-code.md)",
-  "subscribeCode": "String (Optional. Dynamic subscribe code block for webhooks)",
-  "unsubscribeCode": "String (Optional. Dynamic unsubscribe code block for webhooks)"
+  "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "description": "String (Description of what triggers the workflow)",
+  "ignoreuniversalsampledata": "Boolean (e.g., false)",
+  "isvisible": "String ('True' | 'False')",
+  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "pluginrecordid": "String (Unique row ID of the plugin/service)",
+  "preferred_step_name": "String (e.g., '')",
+  "type": "String ('trigger')",
+  "triggertype": "String ('manual_webhook' | 'hook' | 'polling')",
+  "inputjson": {
+    "steps": "Object (Auto-generated; always pass {})",
+    "blocks": "Object (Auto-generated; always pass {})",
+    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+  }
 }
 ```
 
-## Trigger TOON Schema
+### 2.1. Instant Trigger Schema (`triggertype: "hook"`)
 
+Instant Triggers run via webhooks where external systems send events immediately.
+
+#### Instant Trigger JSON Schema
+```json
+{
+  "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "description": "String (Description of what triggers the workflow)",
+  "ignoreuniversalsampledata": "Boolean (e.g., false)",
+  "isvisible": "String ('True' | 'False')",
+  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "pluginrecordid": "String (Unique row ID of the plugin/service)",
+  "preferred_step_name": "String (e.g., '')",
+  "type": "String ('trigger')",
+  "triggertype": "String ('hook')",
+  "inputjson": {
+    "steps": "Object (Auto-generated; always pass {})",
+    "blocks": "Object (Auto-generated; always pass {})",
+    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+  },
+  "performsubscribe": "String (Subscribe JavaScript code to register webhook with external service)",
+  "performunsubscribe": "String (Unsubscribe JavaScript code to unregister/delete webhook from external service)",
+  "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
+  "modifytriggerdata": "String (Perform Modify Code block to transform webhook data)",
+  "transferoption": "String (Transfer option code block)"
+}
+```
+
+#### Instant Trigger TOON Schema
 ```toon
-triggerVersionRowId: String (optional)
-service: String
-domain: String
+authid: String (optional)
+category: String
+sub_category: String (optional)
+description: String
+ignoreuniversalsampledata: Boolean
+isvisible: String ('True' | 'False')
+key: String
 name: String
-description: String (max 30 chars, starts with 'Runs when')
-triggerType: enum[3]: INSTANT,SCHEDULED,MANUAL
-inputFields: Array of FieldObjects
-performCode: String (JS try-catch)
-subscribeCode: String (optional)
-unsubscribeCode: String (optional)
+pluginrecordid: String
+preferred_step_name: String
+type: String ('trigger')
+triggertype: String ('hook')
+inputjson: InputJsonObject
+  - steps: Object (Auto-generated; always pass {})
+  - blocks: Object (Auto-generated; always pass {})
+  - inputFields: Array of FieldObjects
+performsubscribe: String (subscribe JS)
+performunsubscribe: String (unsubscribe JS)
+performlist: String (sample JS)
+modifytriggerdata: String (modify code JS)
+transferoption: String (transfer JS)
+```
+
+### 2.2. Schedule Trigger Schema (`triggertype: "polling"`)
+
+Schedule/Polling Triggers poll the external API periodically at defined intervals.
+
+#### Schedule Trigger JSON Schema
+```json
+{
+  "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "description": "String (Description of what triggers the workflow)",
+  "ignoreuniversalsampledata": "Boolean (e.g., false)",
+  "isvisible": "String ('True' | 'False')",
+  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "pluginrecordid": "String (Unique row ID of the plugin/service)",
+  "preferred_step_name": "String (e.g., '')",
+  "type": "String ('trigger')",
+  "triggertype": "String ('polling')",
+  "inputjson": {
+    "steps": "Object (Auto-generated; always pass {})",
+    "blocks": "Object (Auto-generated; always pass {})",
+    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+  },
+  "perform": "String (Perform schedule code block executed on each poll)",
+  "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
+  "transferoption": "String (Transfer option code block)",
+  "scheduleTimeOptions": "Array (Accepted intervals in minutes. [] means all by default; specific arrays like [5, 15, 60, 720, 1440] restrict user options to limit API rate limits)",
+  "canpaginate": "Boolean (Set to true to enable the pagination feature if using the pagination path in the perform code)"
+}
+```
+
+#### Schedule Trigger TOON Schema
+```toon
+authid: String (optional)
+category: String
+sub_category: String (optional)
+description: String
+ignoreuniversalsampledata: Boolean
+isvisible: String ('True' | 'False')
+key: String
+name: String
+pluginrecordid: String
+preferred_step_name: String
+type: String ('trigger')
+triggertype: String ('polling')
+inputjson: InputJsonObject
+  - steps: Object (Auto-generated; always pass {})
+  - blocks: Object (Auto-generated; always pass {})
+  - inputFields: Array of FieldObjects
+perform: String (poll perform JS)
+performlist: String (sample JS)
+transferoption: String (transfer JS)
+scheduleTimeOptions: Array of integers
+canpaginate: Boolean
 ```
 
 ---
@@ -91,35 +244,83 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
 
 ## Reusable Component JSON Schema
 
+### Reusable Component Create Payload
 ```json
 {
-  "id": "String (Unique identifier/UUID used to map the component inside inputFields)",
-  "name": "String (Unique function identifier, camelCase, e.g., 'fetchSpreadsheets')",
+  "function_name": "String (Unique function identifier, camelCase, e.g., 'fetchSpreadsheets')",
   "description": "String (Clear description of what the component fetches)",
-  "parameters": [
+  "params": [
     {
       "name": "String (Parameter key name)",
-      "type": "String (Data type, e.g., 'string', 'number', 'boolean')",
-      "required": "Boolean",
-      "description": "String (Help context for parameter values)"
+      "sample": "String (Sample/test value for the parameter)"
     }
   ],
-  "code": "String (Executable asynchronous JavaScript function returning arrays of options)"
+  "code": "String (Raw executable JavaScript logic or return statement inside the function)",
+  "pluginrecordid": "String (Unique identifier/row ID of the plugin/service, e.g., 'row2khuqk6fy')",
+  "function_code": "String (Complete executable asynchronous JavaScript function block wrapping the name, description, parameters, and code)",
+  "componentgenerationsource": "userGenerated | aiGenerated",
+  "functionId": "String (Action version row ID mapping the component to a specific action version, e.g., 'rowcopcmbfds')"
+}
+```
+
+### Reusable Component Update Payload
+```json
+{
+  "rowid": "String (Unique identifier/row ID of the reusable component, e.g., 'rowjoyllflj4')",
+  "description": "String (Clear description of what the component fetches)",
+  "function_code": "String (Complete executable asynchronous JavaScript function block wrapping the name, description, parameters, and code)",
+  "componentgenerationsource": "userGenerated | aiGenerated",
+  "code": "String (Raw executable JavaScript logic or return statement inside the function)"
 }
 ```
 
 ## Reusable Component TOON Schema
 
+### Reusable Component Create Payload
 ```toon
-id: String
-name: String (camelCase)
+function_name: String (camelCase)
 description: String
-parameters: Array of ParameterObjects
+params: Array of ParameterObjects
   - name: String
-  - type: String
-  - required: Boolean
-  - description: String
-code: String (async JS try-catch)
+  - sample: String
+code: String (raw JS body)
+pluginrecordid: String (plugin ID)
+function_code: String (async JS wrapper function)
+componentgenerationsource: String ('userGenerated' | 'aiGenerated')
+functionId: String (action version ID)
+```
+
+### Reusable Component Update Payload
+```toon
+rowid: String (component row ID)
+description: String
+function_code: String (async JS wrapper function)
+componentgenerationsource: String ('userGenerated' | 'aiGenerated')
+code: String (raw JS body)
+```
+
+## Reusable Component Action Version Mapping Schema
+
+When a reusable component (new or existing) is used within an action or trigger (e.g., in dropdown fields or code blocks like perform, subscribe, unsubscribe, performlist, or transfer option code), a mapping entry must be created to link the component to the specific action version and path.
+
+### Reusable Component Mapping JSON Schema
+```json
+{
+  "action_version_id": "String (Unique row ID of the action version or trigger version, e.g., 'row1m4r25oit')",
+  "component_id": "String (Unique row ID/identifier of the reusable component, e.g., 'rowye083t43i')",
+  "pluginrecordid": "String (Unique row ID of the plugin/service, e.g., 'rowbxw4uz2gq')",
+  "action_id": "String (Unique row ID of the action or trigger, e.g., 'row2oafcm02w')",
+  "path": "String (The code block or input field path where the component is used, e.g., 'perform', 'performsubscribe', 'performunsubscribe', 'performlist', 'transferoption')"
+}
+```
+
+### Reusable Component Mapping TOON Schema
+```toon
+action_version_id: String (action version ID)
+component_id: String (reusable component ID)
+pluginrecordid: String (plugin ID)
+action_id: String (action/trigger ID)
+path: String ('perform' | 'performsubscribe' | 'performunsubscribe' | 'performlist' | 'transferoption' | field key)
 ```
 
 ---

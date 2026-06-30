@@ -16,7 +16,7 @@ Before any output:
 **If the required context is not available,** fetch the `DH_Knowledge_Base` → **Page Index**. Fetch all required sections together using their **exact section names**.
 
 ### 2. Master Routing
--**Skip**: If the user says `skip`, then directly call `create_update_ai_actions`, don't ask any other reasoning and don't do a web search.
+-**Skip**: If the user says `skip`, then directly call `create_update_ai_actions`, don't ask any other reasoning and don't do a web search. The perform and input JSON should be empty initially if not present.
 - **Full Create**: `actionVersionRowId` empty OR `oldInputFields` empty  
   Gather use case → Generate metadata → Propose field plan → Await approval → **Create full action first** by calling tool `create_update_ai_actions`. 
 - **Surgical Update**: `actionVersionRowId` exists AND `oldInputFields` present  
