@@ -28,13 +28,13 @@ Non-technical simplicity + technical completeness. Official API docs are ground 
 Plug = **Triggers** (start workflows) + **Actions** (do things). Each = **Input Fields** (UI) + **Perform Code** (logic). Output = raw `inputFields` array — never wrap in `{"inputFields":[...]}`; ignore auto-generated `steps`/`blocks`/`dependsOn`.
 
 ## Triggers
-| Type | Use when | Code blocks |
+| Type (`triggertype`) | Use when | Code blocks |
 |---|---|---|
-| Instant | Service has webhook subscribe/unsubscribe API | Subscribe, Sample, Perform(modify, optional), Unsubscribe, Transfer |
-| Scheduled | No webhook — poll at interval | Sample, Perform(poll), Transfer |
-| Manual | Webhooks but no programmatic subscribe — user pastes viaSocket hook URL into service | Sample(hardcoded schema), Perform(modify, optional) |
+| Instant (`hook`) | Service has webhook subscribe/unsubscribe API | Subscribe (`performsubscribe`), Sample (`performlist`), Perform(modify, optional) (`modifytriggerdata`), Unsubscribe (`performunsubscribe`), Transfer (`transferoption`) |
+| Scheduled (`polling`) | No webhook — poll at interval | Sample (`performlist`), Perform(poll) (`perform`), Transfer (`transferoption`) |
+| Manual (`manual_webhook`) | Webhooks but no programmatic subscribe — user pastes viaSocket hook URL into service | Sample (`performlist`), Perform(modify, optional) (`modifytriggerdata`) |
 
-Block roles: **Subscribe** register webhook, return data viaSocket stores for unsub · **Unsubscribe** deregister using stored subscribe response · **Sample** latest 1 item else fallback schema for UI preview (wrap `{viasocket_help, ...item}`) · **Perform(modify)** optional reshape of pushed payload, no API call · **Transfer** bulk-pull history; **New-event only**; its List endpoint must have pagination enabled; sends `≤200/batch` (500 → 200+200+100).
+Block roles: **Subscribe** register webhook, return data viaSocket stores for unsub · **Unsubscribe** deregister using stored subscribe response · **Sample** latest 1 item else fallback schema for UI preview (wrap `{viasocket_help, ...item}`) · **Perform(modify)** optional reshape of pushed webhook payload, no API call · **Transfer** bulk-pull history; **New-event only**; its List endpoint must have pagination enabled; sends `≤200/batch` (500 → 200+200+100).
 
 ## Actions
 Single Perform call mapped from `context.inputData`. Categories: GET · LIST · FIND/SEARCH · CREATE · UPDATE · FIND OR CREATE · DELETE.
@@ -75,7 +75,7 @@ Required fields first, optionals grouped after. Resource dropdowns for large lis
 | FIND OR CREATE | DynDropdown(parent) → DynDropdown(child)? → Group(search: AIField if complex query, or DynDropdown+String if simple filter) → Boolean `create_if_not_found` (default `{label:"Yes",value:true}`) → DynGroup(visibilityCondition on toggle) → Multiselect? |
 | DELETE | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(record ID) → HelpStatic(irreversibility warning) |
 
-Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence. **Scheduled (polling)** never ask the user for pagination fields (limit, page size, start cursor, next page token) or scheduledTime in inputFields/UI; pagination is handled internally via `canpaginate:true` config, and `scheduledTime` is a global variable. **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** default page limit 100. **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **FIND OR CREATE** use AIField if complex query is supported, or dropdown + string if simple filter is supported; "Create if not found?" toggle (default true) shows creation fields via visibilityCondition when true. **DELETE** keep minimal; archive toggle if API supports.
+Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence. **Scheduled (polling)** never ask the user for pagination fields (limit, page size, start cursor, next page token) or scheduledTime in inputFields/UI; pagination is handled internally via `canpaginate:true` config, and `scheduledTime` is a global variable. **Manual (manual_webhook)** triggers support `performlist` (sample code) and `modifytriggerdata` (Perform Modify Code). **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** default page limit 100. **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **FIND OR CREATE** use AIField if complex query is supported, or dropdown + string if simple filter is supported; "Create if not found?" toggle (default true) shows creation fields via visibilityCondition when true. **DELETE** keep minimal; archive toggle if API supports.
 **Dropdown Preference & ID Optimization (DELETE/UPDATE):** Always give first preference to dropdowns over text ID fields if an options-fetching API is available. However, for **DELETE** and **UPDATE** actions, if fetching the record ID dropdown requires creating dependent parent dropdowns (not otherwise required by the action), bypass the parent dropdowns and just use a simple text ID field. If the options are static, or if the parent dropdown is already required/selected, proceed with the dropdown.
 
 # Field Types
@@ -274,6 +274,7 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 - **Trigger (Create/Update)**: Common: `authid`, `category`, `sub_category` (optional), `description`, `ignoreuniversalsampledata` (boolean), `isvisible` ('True'|'False'), `key`, `name`, `pluginrecordid`, `preferred_step_name`, `type: 'trigger'`, `triggertype: 'hook'|'polling'|'manual_webhook'`, `inputjson: {steps: {}, blocks: {}, inputFields: [...]}` (always pass empty objects `{}` for `steps` and `blocks`).
   - *Instant (`hook`)*: `performsubscribe`, `performunsubscribe`, `performlist`, `modifytriggerdata`, `transferoption`.
   - *Schedule (`polling`)*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (array, e.g. `[]` or `[5,15,60,720,1440]`), `canpaginate` (boolean).
+  - *Manual (`manual_webhook`)*: `performlist`, `modifytriggerdata`.
 - **Reusable Component**:
   - *Create*: `function_name`, `description`, `params: [{name, sample}]`, `code` (raw JS), `pluginrecordid`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
   - *Update*: `rowid`, `description`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `code` (raw JS).

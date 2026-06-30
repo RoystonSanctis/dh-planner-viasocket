@@ -17,6 +17,9 @@ published: true
   - 2.2. Schedule Trigger Schema (triggertype: "polling")
     - Schedule Trigger JSON Schema
     - Schedule Trigger TOON Schema
+  - 2.3. Manual Trigger Schema (triggertype: "manual_webhook")
+    - Manual Trigger JSON Schema
+    - Manual Trigger TOON Schema
 - 3. Reusable Component Object Schema
   - Reusable Component JSON Schema
     - Reusable Component Create Payload
@@ -234,6 +237,57 @@ performlist: String (sample JS)
 transferoption: String (transfer JS)
 scheduleTimeOptions: Array of integers
 canpaginate: Boolean
+```
+
+### 2.3. Manual Trigger Schema (`triggertype: "manual_webhook"`)
+
+Manual Webhook Triggers are user-configured webhooks where the user manually copies the webhook URL into the external service.
+
+#### Manual Trigger JSON Schema
+```json
+{
+  "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "description": "String (Description of what triggers the workflow)",
+  "ignoreuniversalsampledata": "Boolean (e.g., false)",
+  "isvisible": "String ('True' | 'False')",
+  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "pluginrecordid": "String (Unique row ID of the plugin/service)",
+  "preferred_step_name": "String (e.g., '')",
+  "type": "String ('trigger')",
+  "triggertype": "String ('manual_webhook')",
+  "inputjson": {
+    "steps": "Object (Auto-generated; always pass {})",
+    "blocks": "Object (Auto-generated; always pass {})",
+    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+  },
+  "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
+  "modifytriggerdata": "String (Perform Modify Code block to transform webhook data)"
+}
+```
+
+#### Manual Trigger TOON Schema
+```toon
+authid: String (optional)
+category: String
+sub_category: String (optional)
+description: String
+ignoreuniversalsampledata: Boolean
+isvisible: String ('True' | 'False')
+key: String
+name: String
+pluginrecordid: String
+preferred_step_name: String
+type: String ('trigger')
+triggertype: String ('manual_webhook')
+inputjson: InputJsonObject
+  - steps: Object (Auto-generated; always pass {})
+  - blocks: Object (Auto-generated; always pass {})
+  - inputFields: Array of FieldObjects
+performlist: String (sample JS)
+modifytriggerdata: String (modify code JS)
 ```
 
 ---

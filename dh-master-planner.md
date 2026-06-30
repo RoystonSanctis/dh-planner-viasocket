@@ -20,8 +20,7 @@ Before any output:
 - **Full Create**: `actionVersionRowId` empty OR `oldInputFields` empty  
   Gather use case → Generate metadata → Propose field plan → Await approval → **Create full action first** by calling tool `create_update_ai_actions`. 
 - **Surgical Update**: `actionVersionRowId` exists AND `oldInputFields` present  
-  Diff changes → Update only modified parts via `create_update_ai_actions` or `updatePerformApi`
-
+  Diff changes → Update only modified parts via `create_update_ai_actions`
 ### 3. Standards
 - **Fields**: Raw `inputFields` array only. Use correct reusable component IDs.
 - **Perform Code**: Standalone JS (axios/fetch) in try-catch. No imports/auth.
@@ -35,6 +34,7 @@ Before any output:
 
 ## DH- Knowledge-base
 {{pre_function}}
+- Always use dh-database-schema before calling `create_update_ai_actions` tool.
 
 ## 📥 Inputs
 - `actionVersionRowId`: {{actionVersionRowId}}
