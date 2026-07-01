@@ -296,7 +296,7 @@ schema:
     "type": "string",
     "label": "Learner's Email ID",
     "required": true,
-    "placeholder": "E.g. john@example.com"
+    "placeholder": "john@example.com"
   },
   {
     "key": "name",
@@ -304,7 +304,7 @@ schema:
     "type": "string",
     "label": "Learner's Name",
     "required": true,
-    "placeholder": "E.g. John Doe"
+    "placeholder": "John Doe"
   },
   {
     "key": "password", 
@@ -320,7 +320,7 @@ schema:
     "type": "string",
     "label": "Learner's Mobile No",
     "required": false,
-    "placeholder": "E.g. +9175XXXXXXXX"
+    "placeholder": "+9175XXXXXXXX"
   },
   {
     "key": "to",
@@ -328,14 +328,14 @@ schema:
     "type": "string",
     "label": "Recipient's Email",
     "required": true,
-    "placeholder": "E.g. recipient@example.com"
+    "placeholder": "recipient@example.com"
   },
   {
     "key": "page_limit",
     "help": "Default it will fetch data upto 100. The maximum value is 100.",
     "type": "number",
     "label": "Page Limit",
-    "placeholder": "Eg. 10",
+    "placeholder": "10",
     "defaultValue": 100
   },
   {
@@ -345,7 +345,7 @@ schema:
     "type": "string",
     "label": "Feed URL",
     "required": true,
-    "placeholder": "E.g. https://example.com/rss1.xml"
+    "placeholder": "https://example.com/rss1.xml"
   },
   {
     "key": "quick_reply",
@@ -355,7 +355,7 @@ schema:
     "type": "string",
     "label": "Quick Reply Options",
     "required": true,
-    "placeholder": "E.g. Option 1"
+    "placeholder": "Option 1"
   },
   {
     "key": "html_body",
@@ -363,7 +363,7 @@ schema:
     "type": "html",
     "label": "Message Body",
     "required": true,
-    "placeholder": "E.g. <p>Write your HTML email message here</p>",
+    "placeholder": "<p>Write your HTML email message here</p>",
     "visibilityCondition": "context.inputData.messageType === 'html'"
   },
   {
@@ -2212,7 +2212,7 @@ schema:
     "label": "Filter Conditions",
     "prompt": "Generate a Notion API JSON filter condition based on the user request and provided schema. Support complex AND/OR structures.\n\n**CRITICAL Output Structure:**\n* Return the raw filter object directly at the root. Do NOT wrap the output inside a \"filter\" key.\n    * *Correct:* `{\"property\": \"Email\", \"email\": {\"equals\": \"...\"}}`\n    * *Wrong:* `{\"filter\": {\"property\": \"Email\", ...}}`\n**CRITICAL Rules for Variables (e.g., `${context.req.body.value}`):**\n* **Strings (email, rich_text, select):** MUST be wrapped in double quotes. \n    * *Format:* `{\"equals\": \"${context.req.body.email}\"}`\n* **Numbers/Booleans:** MUST NOT be wrapped in quotes. \n    * *Format:* `{\"equals\": ${context.req.body.age}}`\nOutput ONLY valid JSON. No markdown backticks, code formatting, or explanations.",
     "required": false,
-    "placeholder": "Eg., { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }",
+    "placeholder": "{ \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }",
     "suggestionGenerator": "const data_source_id = context?.inputData?.data_source_id;\n\n  const url = `https://api.notion.com/v1/data_sources/${data_source_id}`;\n\n    const response = await axios.get(url, {\n      headers: {\n        'Notion-Version': '2025-09-03', // Use the current API version\n      }\n    });\n    const data = response.data;\n    const columns = data.properties;\n    // Extract column names and their field types\n    const columnDetails = Object.keys(columns).map((columnName) => {\n      return {\n        columnName: columnName,\n        fieldType: columns[columnName].type,\n      };\n    });\nreturn columnDetails;"
   },
     {
@@ -2636,7 +2636,7 @@ schema:
         "type": "string",
         "label": "Start Cursor",
         "required": false,
-        "placeholder": "E.g. 13fe3a00-095c-81a5-b0dd-dd6ce042ebd3"
+        "placeholder": "13fe3a00-095c-81a5-b0dd-dd6ce042ebd3"
       }
     ]
   },
@@ -2714,7 +2714,7 @@ schema:
         "type": "string",
         "label": "Lookup Value",
         "required": true,
-        "placeholder": "E.g., John",
+        "placeholder": "John",
         "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
       },
       {
@@ -2724,7 +2724,7 @@ schema:
         "label": "Advance Filter Condition Prompt",
         "prompt": "Give me the if js code including the sheet columns. I will provide the sample google sheet data to understand the column names and the structure of the data. The user will provide the search condition. Example: If user gives the prompt: Check whether a sheet row's 'Status' column equals 'Done'.The output: String((row['Status'] || '').trim()).toLowerCase() === 'done'; When using path in the condition wrap with '' Example: (String((row['Email'] || '').trim()).toLowerCase() === '${context.req.body.email}'). Note: The sheet can have the column name or column letters. If you can see the key name as a column name, not letters, then don't guess the column letter.",
         "required": true,
-        "placeholder": "E.g., Email is email@domain.com or phone is..",
+        "placeholder": "Email is email@domain.com or phone is..",
         "suggestionGenerator": "async function fetchSheetData() {\n    try {\n        // 1. INPUTS & SETUP\n      const spreadsheetId = context?.inputData?.spreadsheet_Id;\n        const targetSheetId = context?.inputData?.sheet_Id; \n        const useColumnKey =context?.inputData?.search_filter?.column_key  ?? true; // Default to true if undefined\n        const limit = 5; // <-- SET YOUR LIMIT HERE\n\n        const reqHeaders = {\n            'Content-Type': 'application/json'\n        };\n\n        // 2. FETCH METADATA\n        const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(title,sheetId,gridProperties.columnCount)`;\n        const metaResponse = await axios.get(metaUrl, { headers: reqHeaders });\n        \n        const targetSheet = metaResponse.data.sheets?.find(s => s.properties.sheetId == targetSheetId);\n        if (!targetSheet) {\n            return { success: false, message: `Sheet with ID \"${targetSheetId}\" not found.` };\n        }\n        \n        const actualSheetName = targetSheet.properties.title;\n        const totalGridColumns = targetSheet.properties.gridProperties?.columnCount || 26; \n\n        // 3. FETCH VALUES (OPTIMIZED WITH RANGE)\n        // If we use column keys (headers), we need 1 extra row to fetch the headers themselves.\n        const rowsToFetch = useColumnKey ? limit + 1 : limit;\n        \n        // Construct A1 Notation (e.g., \"Sheet1!1:6\")\n        const encodedSheetName = encodeURIComponent(actualSheetName);\n        const range = `${encodedSheetName}!1:${rowsToFetch}`;\n        \n        const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`;\n        const response = await axios.get(url, { headers: reqHeaders });\n        const values = response.data.values || [];\n\n        if (values.length === 0) {\n            return { success: true, data: [], message: \"Sheet is empty.\" };\n        }\n\n        // Helper: Convert index to Column Letter\n        function getColumnLetter(index) {\n            let letter = '';\n            let temp = index;\n            while (temp >= 0) {\n                letter = String.fromCharCode(65 + (temp % 26)) + letter;\n                temp = Math.floor(temp / 26) - 1;\n            }\n            return letter;\n        }\n\n        let finalKeys = [];\n        let rowsToProcess = [];\n        let startRowIndex = 0;\n\n        // 4. DETERMINE KEYS & DATA RANGE\n        if (useColumnKey) {\n            // --- SCENARIO A: Row 1 is Headers ---\n            const headerRow = values[0] || [];\n            if (headerRow.length === 0) {\n                 return { success: false, message: \"Headers are missing in Row 1.\" };\n            }\n\n            const headerCounts = {};\n            headerRow.forEach(h => {\n                const name = h ? h.toString().trim() : \"\";\n                if (name) headerCounts[name] = (headerCounts[name] || 0) + 1;\n            });\n\n            finalKeys = headerRow.map((h, index) => {\n                const rawName = h ? h.toString().trim() : `Column_${index}`;\n                if (headerCounts[rawName] > 1) {\n                    return `${rawName}--${getColumnLetter(index)}`;\n                }\n                return rawName;\n            });\n\n            // Skip headers, start data from Row 2\n            rowsToProcess = values.slice(1);\n            startRowIndex = 2; \n\n        } else {\n            // --- SCENARIO B: Column Letters ---\n            for(let i=0; i < totalGridColumns; i++) {\n                finalKeys.push(getColumnLetter(i));\n            }\n\n            // Process ALL fetched rows, start data from Row 1\n            rowsToProcess = values;\n            startRowIndex = 1;\n        }\n\n        // 5. MAP DATA\n        const formattedData = rowsToProcess.map((row, index) => {\n            let rowObject = {\n                \"_rowNumber\": startRowIndex + index \n            };\n\n            // Map data to the determined keys\n            finalKeys.forEach((key, colIndex) => {\n                rowObject[key] = row[colIndex] !== undefined ? row[colIndex] : \"\";\n            });\n\n            return rowObject;\n        });\n\n        return formattedData;\n\n    } catch (error) {\n        return { success: false, error: error.message || error }; \n    }\n}\n\nreturn await fetchSheetData();",
         "visibilityCondition": "!context?.inputData?.search_filter?.search_filter_type"
       },
@@ -2749,7 +2749,7 @@ schema:
         "type": "number",
         "label": "Row Count",
         "required": false,
-        "placeholder": "E.g., 10"
+        "placeholder": "10"
 
       },
       {
@@ -2769,7 +2769,7 @@ schema:
         ],
         "required": true,
         "customHelp": "Enter \"true\" for search from the last row of the spreadsheet.",
-        "placeholder": "E.g., true",
+        "placeholder": "true",
         "defaultValue": {
           "label": "No",
           "value": false
@@ -2841,7 +2841,7 @@ schema:
         "type": "string",
         "label": "posted after date",
         "required": true,
-        "placeholder": "E.g., 2026-03-17T01:49:34+0000",
+        "placeholder": "2026-03-17T01:49:34+0000",
         "visibilityCondition": "context?.inputData?.settings?.comment === 'next media'"
       }
     ]
