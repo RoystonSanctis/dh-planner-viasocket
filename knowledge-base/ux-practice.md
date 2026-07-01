@@ -416,7 +416,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 ### UPDATE Best Practices:
 - **Partial updates** — Only send fields the user has filled. Don't send empty fields as `null` unless explicitly intended.
 - **Field chooser before dynamic group** — Use a Multiselect to let users select which fields they want to update, then pass that selection to the `fieldsGenerator` to render only those fields.
-- **Record selection & parent dropdown bypass** — Prioritize dropdowns over text ID fields if an options API is available. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options).Provide a dynamic dropdown for selecting the record, with `customHelp` explaining how to find the record ID manually.
+- **Record selection & ID priority** — Always give first preference to dropdowns over text ID fields (type `string`) for triggers and actions if an options-fetching API is available. Do not bypass parent dropdowns even if they are required to fetch the record ID. If no options-fetching API is available, only then proceed with the type `string` and ask the user for the ID. Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
 
 - **Preserve existing values** — Help text should clarify that unfilled fields will remain unchanged.
 
@@ -491,7 +491,7 @@ A DELETE action removes or archives a **specific record** from the external serv
 - **Warn about permanence** — Use a Help Static field to warn users if the deletion is irreversible.
 - **Archive vs Delete** — If the service supports archiving, offer a Boolean toggle ("Delete permanently" vs "Move to archive").
 - **Error handling** — Handle 404 (already deleted) gracefully in the perform code.
-- **Record selection & parent dropdown bypass** — Prioritize dropdowns over text ID fields if an options API is available. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options).
+- **Record selection & ID priority** — Always give first preference to dropdowns over text ID fields (type `string`) for triggers and actions if an options-fetching API is available. Do not bypass parent dropdowns even if they are required to fetch the record ID. If no options-fetching API is available, only then proceed with the type `string` and ask the user for the ID.
 - **Manual ID guidance** — Always provide `customHelp` on the record ID dropdown explaining where to find the ID.
 
 ---
