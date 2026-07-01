@@ -217,7 +217,7 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
   "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
   "transferoption": "String (Transfer option code block)",
   "scheduleTimeOptions": "Array (Accepted intervals in minutes. [] means all by default; specific arrays like [5, 15, 60, 720, 1440] restrict user options to limit API rate limits)",
-  "canpaginate": "Boolean (Set to true to enable the pagination feature if using the pagination path in the perform code)",
+  "canpaginate": "Boolean (Set to true to enable the pagination feature if using the pagination path(context?.paginationData) in the perform code)",
   "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
 ```
