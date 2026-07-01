@@ -103,6 +103,8 @@ sampledata: Object (optional)
 
 A Trigger represents a real-world event (e.g., "New Email Arrives", "New Lead Created") that starts an automation workflow.
 
+The additional keys for each trigger which is specified are the supported keys and is required. If keys are updated only updated keys are sent.
+
 ## Trigger JSON Schema (Common Fields)
 
 ```json
