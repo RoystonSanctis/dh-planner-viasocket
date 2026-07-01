@@ -190,7 +190,7 @@ strict: true
       "label": "Project ID",
       "help": "Select a project",
       "optionsGenerator": "return await fetchProjects()",
-      "customPlaceholder": "E.g., 123",
+      "customPlaceholder": "123",
       "customInputLabel": "Project ID"
     }
   ],
