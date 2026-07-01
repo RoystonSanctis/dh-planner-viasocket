@@ -1249,11 +1249,11 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         },
                         "customInputLabel": {
                             "type": "string",
-                            "description": "Optional label for the manual input mode. If the expected value is an ID, use a format like 'Enter ID' or 'Enter [Entity] ID'. Omit if not applicable."
+                            "description": "Required label for the manual input mode. If the expected value is an ID, use a format like 'Enter ID' or 'Enter [Entity] ID'."
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Optional placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 15' if expecting an ID). Omit if not applicable."
+                            "description": "Required placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., '15' if expecting an ID)."
                         },
                         "visibilityCondition": {
                             "type": "string",
@@ -1390,10 +1390,10 @@ schema:
             description: "Optional custom help text for manual/dynamic input. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable."
           customInputLabel:
             type: string
-            description: "Optional label for the manual input mode. If the expected value is an ID, use a format like 'Enter ID' or 'Enter [Entity] ID'. Omit if not applicable."
+            description: "Required label for the manual input mode. If the expected value is an ID, use a format like 'Enter ID' or 'Enter [Entity] ID'."
           customPlaceholder:
             type: string
-            description: "Optional placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 15' if expecting an ID). Omit if not applicable."
+            description: "Required placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., '15' if expecting an ID)."
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility. Omit if always visible.
@@ -1755,11 +1755,11 @@ Generate a JSON object strictly following the rules below for a static multisele
                         },
                         "customInputLabel": {
                             "type": "string",
-                            "description": "Optional label for the manual input mode (e.g., 'Enter fields in array'). Omit if not applicable."
+                            "description": "Required label for the manual input mode (e.g., 'Enter fields in array')."
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Optional placeholder for the manual input mode. Provide a relevant array example (e.g., 'E.g., [\"markdown\",\"block\"]' or 'E.g., [\"first_name\",\"email\"]'). Omit if not applicable."
+                            "description": "Required placeholder for the manual input mode. Provide a relevant array example (e.g., '[\"markdown\",\"block\"]' or '[\"first_name\",\"email\"]')."
                         },
                         "visibilityCondition": {
                             "type": "string",
@@ -1880,10 +1880,10 @@ schema:
             description: "Optional custom help text for manual/dynamic input. If expecting specific IDs, explain where the user can find them. Omit if not applicable."
           customInputLabel:
             type: string
-            description: "Optional label for the manual input mode (e.g., 'Enter fields in array'). Omit if not applicable."
+            description: "Required label for the manual input mode (e.g., 'Enter fields in array')."
           customPlaceholder:
             type: string
-            description: "Optional placeholder for the manual input mode. Provide a relevant array example (e.g., 'E.g., [\"markdown\",\"block\"]' or 'E.g., [\"first_name\",\"email\"]'). Omit if not applicable."
+            description: "Required placeholder for the manual input mode. Provide a relevant array example (e.g., '[\"markdown\",\"block\"]' or '[\"first_name\",\"email\"]')."
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility. Omit if always visible.
@@ -3062,11 +3062,11 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Compulsory placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 229a83a6-ccba-80f4...')."
+                            "description": "Required placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., '229a83a6-ccba-80f4...')."
                         },
                         "customInputLabel": {
                             "type": "string",
-                            "description": "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Spreadsheet ID'). Include only if a short label fits; if a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+                            "description": "Required label for the manual input mode. MUST be kept short (e.g., 'Enter Spreadsheet ID'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together."
                         },
                         "customHelp": {
                             "type": "string",
@@ -3175,10 +3175,10 @@ schema:
             description: "Set to true if the list API supports a search query. If true, the optionsGenerator should utilize the `__searchText` variable."
           customPlaceholder:
             type: string
-            description: "Compulsory placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., 'E.g., 229a83a6-ccba-80f4...')."
+            description: "Required placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., '229a83a6-ccba-80f4...')."
           customInputLabel:
             type: string
-            description: "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Spreadsheet ID'). Include only if a short label fits; if a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+            description: "Required label for the manual input mode. MUST be kept short (e.g., 'Enter Spreadsheet ID'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together."
           customHelp:
             type: string
             description: "Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly where the user can find the ID (e.g., in a URL). Supports markdown links [Link](https://...). Omit if not applicable."
@@ -3651,11 +3651,11 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Compulsory placeholder for the manual input mode. Provide a relevant array example in string format (e.g., 'E.g., [\"Name\"]' or 'E.g., [\"title\", \"status\"]')."
+                            "description": "Required placeholder for the manual input mode. Provide a relevant array example in string format (e.g., '[\"Name\"]' or '[\"title\", \"status\"]')."
                         },
                         "customInputLabel": {
                             "type": "string",
-                            "description": "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Column Name in Array'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+                            "description": "Required label for the manual input mode. MUST be kept short (e.g., 'Enter Column Name in Array'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together."
                         },
                         "customHelp": {
                             "type": "string",
@@ -3751,10 +3751,10 @@ schema:
             description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
           customPlaceholder:
             type: string
-            description: "Compulsory placeholder for the manual input mode. Provide a relevant array example in string format (e.g., 'E.g., [\"Name\"]' or 'E.g., [\"title\", \"status\"]')."
+            description: "Required placeholder for the manual input mode. Provide a relevant array example in string format (e.g., '[\"Name\"]' or '[\"title\", \"status\"]')."
           customInputLabel:
             type: string
-            description: "Optional label for the manual input mode. MUST be kept short (e.g., 'Enter Column Name in Array'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together. Omit if not applicable."
+            description: "Required label for the manual input mode. MUST be kept short (e.g., 'Enter Column Name in Array'). If a longer explanation is needed, use 'customHelp' instead. Both can be used together."
           customHelp:
             type: string
             description: Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly what array format is expected. Supports markdown links. Omit if not applicable.
