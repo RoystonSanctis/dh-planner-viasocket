@@ -5,7 +5,9 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 
 # Page Index
 - Core Philosophy
-- Plug Anatomy: Triggers, Actions
+- Plug Anatomy
+  - Triggers
+  - Actions
 - Design Strategy
 - Naming
 - UX Field Ordering
@@ -13,16 +15,23 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 - Minimalism
 - Visibility
 - dependsOn vs visibilityCondition
-- Perform Code: Libraries, Globals
+- Perform Code
+  - Libraries
+  - Globals
 - Code Block Execution Timing
-- Code Skeletons: Instant Subscribe / Unsubscribe, Sample (Instant & Scheduled), Transfer (New-event only), Scheduled Perform, Actions — one template + per-category delta
+- Code Skeletons
+  - Instant Subscribe / Unsubscribe
+  - Sample (Instant & Scheduled)
+  - Transfer (New-event only)
+  - Scheduled Perform
+  - Actions — one template + per-category delta
 - Reusable Components
 - Generator Returns
 - API Database Payload Schemas
 - Review
 
 # Core Philosophy
-Non-technical simplicity + technical completeness. Official API docs are ground truth (override user cURL). Every documented API field is either a UI input or handled implicitly in code — never invent undocumented params, never omit a supported optional, never expose auth (viaSocket handles it). Hide raw IDs/jargon behind labels + progressive disclosure; expose full capability via field choosers.
+Consolidated Core Philosophy: Non-technical simplicity + technical completeness. Official API docs are ground truth (override user cURL). Every documented API field is either a UI input or handled implicitly in code — never invent undocumented params, never omit a supported optional, never expose auth (viaSocket handles it), and never ask the user for `pluginrecordid` or `authid` (as these are internally passed). Hide raw IDs/jargon behind labels + progressive disclosure; expose full capability via field choosers.
 
 # Plug Anatomy
 Plug = **Triggers** (start workflows) + **Actions** (do things). Each = **Input Fields** (UI) + **Perform Code** (logic). Output = raw `inputFields` array — never wrap in `{"inputFields":[...]}`; ignore auto-generated `steps`/`blocks`/`dependsOn`.
@@ -273,7 +282,7 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 - **Action (Create/Update)**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` ('false'|'true'), `type: 'action'`, `category`, `sub_category` (optional), `rtllayer` (boolean), `isAIActionTrigger` (boolean), `functionId` (optional on create), `isUserOnDh` (boolean), `inputjson: {steps: {}, blocks: {}, inputFields: [...]}` (always pass empty objects `{}` for `steps` and `blocks`), `perform`, `authid` (optional), `metadata: {chatbotthreadid}` (optional).
 - **Trigger (Create/Update)**: Common: `authid`, `category`, `sub_category` (optional), `description`, `ignoreuniversalsampledata` (boolean), `isvisible` ('True'|'False'), `key`, `name`, `pluginrecordid`, `preferred_step_name`, `type: 'trigger'`, `triggertype: 'hook'|'polling'|'manual_webhook'`, `inputjson: {steps: {}, blocks: {}, inputFields: [...]}` (always pass empty objects `{}` for `steps` and `blocks`). The additional keys for each trigger which is specified are the supported keys and is required. If keys are updated only updated keys are sent.
   - *Instant (`hook`)*: `performsubscribe`, `performunsubscribe`, `performlist`, `modifytriggerdata`, `transferoption`.
-  - *Schedule (`polling`)*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (array, e.g. `[]` or `[5,15,60,720,1440]`), `canpaginate` (boolean).
+  - *Schedule (`polling`)*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (array, e.g. `[]` or `[5,15,60,720,1440]`), `canpaginate` (boolean, set to true to enable the pagination feature if using the pagination path `context?.paginationData` in the perform code).
   - *Manual (`manual_webhook`)*: `performlist`, `modifytriggerdata`.
 - **Reusable Component**:
   - *Create*: `function_name`, `description`, `params: [{name, sample}]`, `code` (raw JS), `pluginrecordid`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
@@ -282,7 +291,7 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 
 # Review
 Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).
-Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't invent undocumented params; every documented API field is in UX or handled in code.
+Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't ask the user for `pluginrecordid` or `authid`, as this is internally passed; don't invent undocumented params; every documented API field is in UX or handled in code.
 - **Perform**:
   - Wrapper correct (`async <functionName>()` matching the operation performed) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
   - **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
