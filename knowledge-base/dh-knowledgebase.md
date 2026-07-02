@@ -290,6 +290,32 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 - **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key).
 
 # Review
+
+## Priorities & Rules
+- **P0 (Breaking)**:
+  - Catch must await `errorComponent(error)`. async function declaration and `return await <functionName>()` call or parent try catch.
+  - Every `context.inputData.<key>` must exist in input fields. No orphan fields. `visibilityCondition` must map to real keys.
+  - Payload must match API schema.
+  - Do not require URL extensions (use presence checks).
+  - Derived required values must have fallbacks.
+  - No auth logic or hardcoded secrets.
+  - Generators: return `{ message: <text> }` on zero results; handle unselected parent state.
+  - Reject malformed JSON (duplicate keys, broken escaping, missing commas).
+  - Guard required fields (throw at top if missing/empty/null).
+- **P1 (Automation)**:
+  - No raw internal IDs typed by user (resolve via dropdowns).
+  - Handle pagination on lists. Flag internal pagination if its not `list all` or `list all items` unless user has the option to have internal pagination based on user flag or enable pagination.
+  - Flag non-idempotent or repeat-unsafe actions.
+  - Avoid `Promise.all` for rate-limited calls; use sequential + delay. There can be the api rate limit function having counter logic which is used to limit the api calls.
+- **P2 (UX)**:
+  - Required fields first. Sensible `defaultValue` on required dropdowns. Hide complexity (auto-detect format).
+- **P3 (Text/Consistency)**:
+  - Help text: short, plain, non-technical.
+  - `label` = Title Case. `help`, `placeholder`, errors = sentence case.
+  - `customHelp`/`customInputLabel`/`customPlaceholder` valid only on dropdowns/multiselect.
+  - Scan for typos, trailing spaces, and differences from sibling actions.
+
+## General Guidelines
 Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).
 Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't ask the user for `pluginrecordid` or `authid`, as this is internally passed; don't invent undocumented params; every documented API field is in UX or handled in code.
 - **Perform**:
