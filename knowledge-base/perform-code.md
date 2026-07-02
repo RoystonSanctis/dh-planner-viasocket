@@ -21,14 +21,16 @@ published: true
     - Scheduled Trigger Code Generation Rules:
       - Scheduled Trigger Perform Code Rules:
       - Scheduled Trigger Perform Code Patterns:
-      - Scheduled Trigger Sample Code Rules:
-      - Scheduled Trigger Sample Code Patterns:
+      - Schedule Trigger Sample Code:
+        - Schedule Trigger Sample Code Rules:
+        - Schedule Trigger Sample Code Pattern:
+        - Schedule Trigger Sample Example Code:
       - Scheduled Trigger Transfer Code Rules:
       - Scheduled Trigger Transfer Code Patterns:
   - Manual Trigger
     - Manual Trigger Perform Code Rules:
-    - Manual Trigger Perform Code Patterns:
-    - Manual Trigger Sample Code Patterns:
+    - Manual Trigger Perform Code Pattern:
+    - Manual Trigger Sample Code Pattern:
 - Actions
   - Action Perform Code Rules:
   - Action Perform Code Patterns:

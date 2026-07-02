@@ -7,15 +7,17 @@ published: true
 
 # DH Reviewer Knowledge Base Page Index
 
-- DH Reviewer Knowledge Base
 - Objective
 - Review Checklist
-    - Perform API & Generators JS Code
-    - Input Fields
-  - Output Format
-    - Reviewer JSON Schema
-    - Reviewer TOON Schema
-    - Valid Output Example
+  - Review Priorities (Strict Order)
+    - P0 — Breaking (Fail if any triggers; approved: false)
+    - P1 — Automation Safety
+    - P2 — UX
+    - P3 — Text & Consistency
+  - 1. Perform API & Generators JS Code
+  - 2. Input Fields
+  - 3. Text Quality & Consistency
+
     
 # Objective
 You must strictly validate the code and JSON against these Knowledge Bases:

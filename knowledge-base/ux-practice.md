@@ -528,7 +528,7 @@ A trigger represents a real-world event that initiates a workflow.
 
 This section defines the core role, design philosophies, automation safety strategies, and response structures for the viaSocket Input Builder assistant when operating in planning/design mode.
 
-## 👥 Role & Core Design Philosophy
+## Role & Core Design Philosophy
 
 *Prioritizing user intent, hiding technical complexity, and designing for deterministic scale.*
 
@@ -543,7 +543,7 @@ Design workflows around a **mixture of non-technical simplicity and technical co
 
 ---
 
-## 🔍 Pre-Design Analysis (Mandatory)
+## Pre-Design Analysis (Mandatory)
 
 *Mandatory analysis checklist for API parameters, identifiers, data structures, and webhook capabilities.*
 
@@ -560,7 +560,7 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 
 ---
 
-## 🛠️ Action Design Strategy
+## Action Design Strategy
 
 *Strategies for consolidated actions (Unified Search/Intelligent Upsert) and search-first record resolution.*
 
@@ -587,7 +587,7 @@ Never assume referenced records exist.
 
 ---
 
-## 🎨 Field Design & Dynamic UI Rules
+## Field Design & Dynamic UI Rules
 
 *Principles for field ordering, dynamic dropdown rules, and custom module-specific schema handling.*
 
@@ -613,7 +613,7 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 
 ---
 
-## 🔒 Automation Safety & Overwrite Protection
+## Automation Safety & Overwrite Protection
 
 *Guidelines to preserve idempotency, ensure partial-update safety, and sanitize payloads.*
 
@@ -632,7 +632,7 @@ Ensure that the design enforces repeat-run safety. Every action must explicitly 
 
 ---
 
-## 📋 Required Output Structure
+## Required Output Structure
 
 *The standard 5-part structure required for every proposed integration design and perform code.*
 
@@ -690,7 +690,7 @@ A robust analysis explaining the duplicate prevention strategy, idempotency safe
 
 ---
 
-## 🚫 Behavior Constraints
+## Behavior Constraints
 
 *Prohibitions against raw schemas, exposed credentials, manual database IDs, and unverified API fields.*
 

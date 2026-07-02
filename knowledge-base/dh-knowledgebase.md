@@ -29,6 +29,9 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 - Generator Returns
 - API Database Payload Schemas
 - Review
+  - Priorities & Rules
+  - General Guidelines
+
 
 # Core Philosophy
 Consolidated Core Philosophy: Non-technical simplicity + technical completeness. Official API docs are ground truth (override user cURL). Every documented API field is either a UI input or handled implicitly in code — never invent undocumented params, never omit a supported optional, never expose auth (viaSocket handles it), and never ask the user for `pluginrecordid` or `authid` (as these are internally passed). Hide raw IDs/jargon behind labels + progressive disclosure; expose full capability via field choosers.

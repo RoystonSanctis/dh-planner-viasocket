@@ -27,9 +27,10 @@ published: true
   - Reusable Component TOON Schema
     - Reusable Component Create Payload
     - Reusable Component Update Payload
-- Reusable Component Action Version Mapping Schema
-  - Reusable Component Mapping JSON Schema
-  - Reusable Component Mapping TOON Schema
+  - Reusable Component Action Version Mapping Schema
+    - Reusable Component Mapping JSON Schema
+    - Reusable Component Mapping TOON Schema
+
 
 ---
 
