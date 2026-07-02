@@ -168,7 +168,7 @@ Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Bu
 |---|---|
 | `__executionStartTime__` | Scheduled Perform — run timestamp. Lookback: `new Date(__executionStartTime__ - scheduledTime*60000)` |
 | `context.inputData.scheduledTime` | Scheduled — interval (min) |
-| `context.paginationData` | Scheduled cursor across runs (init `0`/`null`; requires pagination enabled in UI). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks the loop. **Reassigning to `0`/`null` resets to start.** |
+| `context.paginationData` | Scheduled cursor across runs (init `0`/`null`; requires pagination enabled in UI). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks the loop. **Reassigning to `0`/`null` resets to start.** **CRITICAL WARNING:** NEVER assign `null`, `0`, or clear `context.paginationData` in an `else` block or when there are no more pages. Simply do NOT reassign or modify `context.paginationData` to stop the loop. |
 | `context.paginateData['<field>']` | Dynamic dropdown/multiselect `optionsGenerator` token. Group: `['group.field']`; nested: path order. |
 | `__searchText` | Generators when `enableSearchApi:true` |
 | `context.inputData.transferOption.offset` | Transfer |
@@ -227,9 +227,15 @@ return {
 
 ## Scheduled Perform
 Time window (all variants): `const t = new Date(__executionStartTime__ - (context?.inputData?.scheduledTime || 15) * 60000);`
-- **Native filter (preferred)**: pass `created_at_min=t` (+ `fields=` from a Multiselect) to API; one call; advance on raw count: `if (items.length) context.paginationData = page + 1`.
-- **Client filter — new items**: fetch page → `items.filter(i => new Date(i.created_time) >= t)` → sort oldest-first → advance cursor only if `filtered.length && next_cursor`.
-- **Client filter — updated items**: filter `last_edited_time >= t && created_time !== last_edited_time` (drops never-edited / just-created) → sort ascending by `last_edited_time` → advance as above.
+- **Native filter (preferred)**: pass `created_at_min=t` (+ `fields=` from a Multiselect) to API; one call.
+- **Client filter — new items**: fetch page → `items.filter(i => new Date(i.created_time) >= t)` → sort oldest-first.
+- **Client filter — updated items**: filter `last_edited_time >= t && created_time !== last_edited_time` (drops never-edited / just-created) → sort ascending by `last_edited_time`.
+- **Pagination Update Pattern**: Only update pagination data if filtered results are non-empty and API returned a next cursor/page:
+  ```javascript
+  if (filteredData.length !== 0 && response?.data?.next_cursor) {
+      context.paginationData = response.data.next_cursor;
+  }
+  ```
 
 ## Actions — one template + per-category delta
 ```javascript

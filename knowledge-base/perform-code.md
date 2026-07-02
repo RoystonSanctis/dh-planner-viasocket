@@ -302,8 +302,8 @@ If enabled and the API supports pagination, use the global variable `context?.pa
   2. The API returned a valid **next page token** (Or you manually validated the max page length on the client side: e.g., `orders.length >= pageSize`).
   If these aren't met, do nothing. Failing to advance the token stops the loop.
 - **Loop Break:** The system automatically stops the pagination loop if it receives the *same* next page token or page number twice.
-> [!WARNING]
-> Re-assigning `0` or `null` will reset pagination completely back to the start.
+> [!CRITICAL]
+> **NEVER** write code like `else { context.paginationData = null; }` or reset/clear it when pagination ends. To stop the loop, simply do not assign/reassign anything to `context.paginationData` (doing nothing lets the loop end naturally). Re-assigning `0` or `null` will reset pagination completely back to the start and cause infinite loops.
 
 #### Scheduled Trigger Perform Code Patterns:
 

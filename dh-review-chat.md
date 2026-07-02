@@ -226,7 +226,6 @@ strict: true
 ```
 # DH Knowledge Base:
 {{pre_function}}
-- The additional keys for each trigger which is specified are the supported keys and is required. If keys are updated only updated keys are sent.
 
 Review `{{actionName}}` of `{{service}}` (`{{domain}}`):
 - **Input Fields**: `{{inputFields}}`

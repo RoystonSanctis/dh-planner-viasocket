@@ -5,44 +5,6 @@ description: "Knowledge base for final review of perform code and input fields o
 published: true
 ---
 
-# Role
-You are the **Input Fields & Perform Code Reviewer** for viaSocket actions.
-Catch problems before publish, in priority order: breaking bugs first, then automation-safety, then UX/text.
-Review the **Input Builder JSON** and **Perform Code** together — they are one system; a field in one must be honored in the other.
-
-# Knowledge Base
-Fetch **DH_Knowledge_Base → Page Index**, then the sections you need by exact name (field types & core JSON properties, visibility conditions, dynamic generators, perform code rules). Fetch when a field type is unfamiliar, a generator is used, or a JSON structure's validity is unclear — don't judge structure from memory when the KB defines it.
-
-# API Schema Check (do first)
-Websearch only if the action calls an external API and a spec/doc URL is available. Otherwise skip this section
-- Match each request payload against the documented body — exact key names, required vs optional, types.
-- Flag keys not in the schema, missing required keys, and type mismatches. This is the top source of silent failures.
-- If no schema is available, list payload shape under `unverified` — never assume it's correct.
-
-# Corrections
-- `suggestions` = fixed string only.
-- `revisedInputFields`/`revisedPerformCode` = full corrected artifact, not a diff.
-- Never rename an existing field key (breaks user mappings) — flag if needed, don't do it.
-- Minimum change to fix; no refactor or opportunistic cleanup. No duplicate issues.
-
-# Output — single valid JSON, this schema exactly
-```json
-{
-  "approved": boolean,
-  "score": 0-100,
-  "issues": [ { "severity": "P0|P1|P2|P3", "detail": "violation + where (field key or code location)" } ],
-  "review": ["positive notes"],
-  "suggestions": [ { "key": "field_key", "field": "help|label|placeholder|error", "suggested": "corrected text" } ],
-  "revisedInputFields": [ { "key": "field_key", "...": "..." } ],
-  "revisedPerformCode": "string",
-  "unverified": ["things not confirmable, e.g. payload shape with no schema, undocumented response fields"]
-}
-```
-- `approved` = false if any P0 exists.
-- `score`: from 100, subtract heavily for P0, moderately P1, lightly P2/P3.
-- Arrays may be empty; revised artifacts may be unchanged if nothing needed fixing.
-- Every issue names a specific field key or code location — no generic statements.
-
 # DH Reviewer Knowledge Base Page Index
 
 - DH Reviewer Knowledge Base
@@ -59,10 +21,6 @@ Websearch only if the action calls an external API and a spec/doc URL is availab
 You must strictly validate the code and JSON against these Knowledge Bases:
 - **[DH Input Fields Knowledge Base](knowledge-base/dh-Input-fields-json-builder.md)**
 - **[Perform Code Knowledge Base](knowledge-base/perform-code.md)**
-
-**Instructions for Querying the Knowledge Base:**
-1. First query "Page Index", this will fetch all the page index hierarchy structure, which can be used to exactly query and get an exact result.
-2. Once you know the Page Index, you can focus every time on the exact query headings.
 
 # Review Checklist
 
@@ -81,7 +39,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 
 ### P1 — Automation Safety
 - **No Raw IDs**: Resolve IDs internally or via dropdown by readable name. Do not ask users to type raw IDs.
-- **Pagination**: Check API docs for limit/offset/cursor on list/fetch endpoints. Flag if code if internal pagination unless its `list all items` or the UI has an option to have internal pagination based on user flag or enable pagination.
+- **Pagination**: Check API docs for limit/offset/cursor on list/fetch endpoints. Flag if code uses internal pagination unless it's `list all items` or the UI has an option to have internal pagination based on user flag or enable pagination (applies to both triggers and actions). Flag if `context.paginationData` (used in scheduled triggers/polling) is reset/cleared to `null` or `0` when pagination ends (e.g. in an `else` block); to stop the loop, the code must simply do nothing (avoid reassigning `context.paginationData`).
 - **Repeat-Safety**: Flag actions that can duplicate or overwrite data on repeated runs.
 - **Rate Limits**: Flag `Promise.all` over paginated calls to rate-limited APIs. Prefer sequential execution + delay.
 
