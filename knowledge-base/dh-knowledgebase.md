@@ -88,7 +88,7 @@ Required fields first, optionals grouped after. Resource dropdowns for large lis
 | DELETE | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(record ID) → HelpStatic(irreversibility warning) |
 
 Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence. **Scheduled (polling)** never ask the user for pagination fields (limit, page size, start cursor, next page token) or scheduledTime in inputFields/UI; pagination is handled internally via `canpaginate:true` config, and `scheduledTime` is a global variable. **Manual (manual_webhook)** triggers support `performlist` (sample code) and `modifytriggerdata` (Perform Modify Code). **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** default page limit 100. **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **FIND OR CREATE** use AIField if complex query is supported, or dropdown + string if simple filter is supported; "Create if not found?" toggle (default true) shows creation fields via visibilityCondition when true. **DELETE** keep minimal; archive toggle if API supports.
-**Dropdown Preference & ID Priority:** Always give first preference to dropdowns over text ID fields (type `string`) across all triggers and actions if an options-fetching API is available. Do not bypass parent dropdowns even if they are required to fetch the record ID. If no options-fetching API is available, only then proceed with the type `string` and ask the user for the ID.
+**Dropdown Preference & ID Priority:** Always give first preference to dropdowns over text ID fields (type `string`) across all triggers and actions if an options-fetching API is available. Do not bypass parent dropdowns even if they are required to fetch the record ID. If no options-fetching API is available, only then proceed with the type `string` and ask the user for the ID. **UPDATE/DELETE Action Exception:** This applies strictly to UPDATE/DELETE Actions. For the rest of the triggers and actions, it is not applicable (dropdowns always have high priority over string IDs). If the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created. If parent dropdowns are required to fetch the ID options, bypass the parent dropdowns and create a direct text ID field (type `string`) instead. Exceptions: if the parent dropdown is already required/selected by other fields in the action anyway, or if the ID dropdown has static options.
 
 # Field Types
 Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · `label` · `help`. Allowed types only: string, number, html, markdown, dictionary, boolean, dropdown, multiselect, aifield, help, input groups. Optionals per Minimalism. Output valid JSON only — no comments/extra keys.
@@ -276,6 +276,10 @@ return {
 };
 ```
 Caller (in `optionsGenerator`): `return await fetchResources(__searchText, context?.paginateData?.['my_field'], 100);` — map the component's `id` correctly.
+- **Tool usage (`create_update_map_Reusable_components`)**: Use this tool to create, update, or map reusable components.
+  - **Map**: Requires `actionVersionRowId`, `path` and `component_id`.
+  - **Create**: Do not send `component_id` or `path`. Requires `function_name`, `params`, `code`, and `description`.
+  - **Update**: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`). Do not change `function_name`.
 
 # Generator Returns
 | Generator | Return |
