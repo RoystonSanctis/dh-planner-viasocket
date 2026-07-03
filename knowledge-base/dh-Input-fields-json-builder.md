@@ -4413,34 +4413,61 @@ The `whereClause` feature allows you to display an input group as a readable sen
 **Key Characteristics & Limitations:**
 - **Availability:** Only available within **Static Input Groups**.
 - **Recommended Fields:** When `whereClause` is enabled (`"whereClause": true`), it is recommended to use `dropdown` and `multiselect` fields for the best sentence UI. Other field types are allowed but may not render inline as a sentence.
+- **Label Capitalization & Casing Exception:** While normal fields require `label` to be in **Title Case**, when `whereClause: true` is enabled, all labels inside the input group must use **sentence case**. Only the **first** field inside the input group should have its first letter capitalized (e.g., `"label": "When commented on"`). All subsequent/dependent fields' labels should be in sentence case, starting with a lowercase letter (e.g., `"label": "posted after date"`) unless the word naturally requires capitalization (such as proper nouns like `"label": "Media"`).
 - **Example:**
 ```json
 [
   {
     "key": "settings",
     "type": "input groups",
+    "label": "",
     "whereClause": true,
     "fields": [
       {
         "key": "comment",
+        "help": "Choose when to receive incoming comments.",
         "type": "dropdown",
         "label": "When commented on",
         "options": [
-          {"label": "a specific media", "value": "a specific media"},
-          {"label": "any media", "value": "any media"},
-          {"label": "next media", "value": "next media"}
-        ]
+          {
+            "label": "a specific media",
+            "value": "a specific media"
+          },
+          {
+            "label": "any media",
+            "value": "any media"
+          },
+          {
+            "label": "next media",
+            "value": "next media"
+          }
+        ],
+        "required": true,
+        "placeholder": "Choose Option",
+        "customInputLabel": "Enter when to receive incoming comments.",
+        "customPlaceholder": "E.g. a specific media"
       },
       {
         "key": "mediaId",
+        "help": "Choose media or enter media Id.",
         "type": "dropdown",
         "label": "Media",
-        "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media'"
+        "required": true,
+        "customHelp": "You can choose he media from the dropdown or can also find the media ID from the List Media aciton.",
+        "canPaginate": true,
+        "placeholder": "Choose Media",
+        "customInputLabel": "Enter media ID.",
+        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  throw e;\n}",
+        "customPlaceholder": "e.g. 18062960995844908",
+        "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' "
       },
       {
         "key": "media_start_date",
+        "help": "Choose the date after which the new comment recived should be received.",
         "type": "string",
         "label": "posted after date",
+        "required": true,
+        "placeholder": "E.g., 2026-03-17T01:49:34+0000",
         "visibilityCondition": "context?.inputData?.settings?.comment === 'next media'"
       }
     ]

@@ -155,7 +155,7 @@ The standard field ordering for an Instant Trigger follows this flow:
 
 - **Dynamic Help for validation** — Use a dynamic help field after resource selection to check permissions or display relevant warnings.
 - **Clean labels** — Use "Select Page" not "Select Facebook Page". Keep labels generic.
-- **whereClause for conversational UX** — When the trigger has multiple filter dropdowns (e.g., "when commented on [specific media]"), use `whereClause: true` to create readable sentence layouts.
+- **whereClause for conversational UX** — When the trigger has multiple filter dropdowns (e.g., "when commented on [specific media]"), use `whereClause: true` to create readable sentence layouts. In such cases, all labels inside the input group must use **sentence case** (instead of standard Title Case), where only the first field's label starts with a capital letter (e.g. `'When commented on'`), and all subsequent fields' labels start with lowercase (e.g. `'posted after date'`) unless they are proper nouns (e.g. `'Media'`).
 
 ---
 
@@ -519,6 +519,7 @@ A trigger represents a real-world event that initiates a workflow.
 3. **Minimize Redundancy:** Mention the app name in the action/trigger name only if the action is highly generic or unclear without it (otherwise, the app icon itself establishes the scope).
 4. **Validation & Update Safety:** If existing titles (`old_title`) and descriptions (`old_description`) comply with these guidelines, preserve them without changes; check other fields (like `type` and `category`) instead.
 5. **Character Limits:** Action and trigger descriptions **MUST NOT** exceed 30 characters in length.
+6. **Label Casing & whereClause Exception:** Labels must use Title Case. Exception: In conversational `whereClause: true` input groups, all field labels must use sentence case, where only the first field's label starts with a capital letter and subsequent labels start with a lowercase letter unless they are proper nouns.
 
 ---
 
