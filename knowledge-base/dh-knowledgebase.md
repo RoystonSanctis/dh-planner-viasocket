@@ -72,7 +72,7 @@ Single Perform call mapped from `context.inputData`. Categories: GET · LIST · 
 App name only if generic without it. Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update.
 
 # UX Field Ordering
-Required fields first, optionals grouped after. Resource dropdowns for large lists use `canPaginate:true` + `enableSearchApi:true`.
+Required fields first, optionals grouped after. Resource dropdowns for large lists use `canPaginate:true` + `enableSearchApi:true`. **Help placement:** When using a static or dynamic help field, it must always be positioned below the field it is referring to.
 
 | Category | Order |
 |---|---|
@@ -102,8 +102,8 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 | `dropdown` dynamic | `optionsGenerator`, `customPlaceholder`, `customInputLabel` | `canPaginate:true` (paginated list) ⇒ generator returns `{data,offset,message?}`. `enableSearchApi:true` ⇒ use `__searchText`. Generator returns `{message}` if no options found or to show warning block. `customPlaceholder` (required) = manual-input example (e.g. `123`). `customInputLabel` (required) = short manual label (e.g. `Enter Spreadsheet ID`). Optional: `customHelp` (longer manual help/explain ID location, supports markdown links). `defaultValue` = object `{label,value,sample}`. |
 | `multiselect` dynamic | `optionsGenerator`, `customPlaceholder`, `customInputLabel` | `customPlaceholder` (required) = array example (e.g. `["title","status"]`). `customInputLabel` (required) = short manual label (e.g. `Enter Column Name in Array`). Optional: `customHelp` (longer manual help/explain expected array format). `defaultValue` = array of `{label,value,sample}`. |
 | `aifield` | `prompt`, `suggestionGenerator` | AI builds structured data at config-time (user interacts only at setup); result used later in perform. `suggestionGenerator` mandatory (`""` if no dynamic context). `prompt` must output ONLY valid JSON (no backticks/prose), return raw object (no `"filter"` wrapper), quote string vars (`"${...email}"`) but NOT numbers/booleans (`${...age}`). |
-| `help` static | — (`key`·`type`·`help` only) | `help` = content (text/HTML/MD + links). No `label`/`required`/`placeholder` allowed. Optional: `visibilityCondition`. |
-| `help` dynamic | `source` | `source` JS → `{message}` (text/HTML/MD). Not `optionsGenerator`. Optional: `label` (header text), `visibilityCondition`. No `required`, `placeholder`, or `help` key allowed. |
+| `help` static | — (`key`·`type`·`help` only) | `help` = content (text/HTML/MD + links). No `label`/`required`/`placeholder` allowed. Optional: `visibilityCondition`. Placement: Must be positioned below the field it is referring to. |
+| `help` dynamic | `source` | `source` JS → `{message}` (text/HTML/MD). Not `optionsGenerator`. Optional: `label` (header text), `visibilityCondition`. No `required`, `placeholder`, or `help` key allowed. Placement: Must be positioned below the field it is referring to. |
 | `input groups` static | `fields` | `fields[]` each independently valid (nestable). `whereClause:true` (static only) → inline sentence UI; recommend dropdown/multiselect children; `label`/`help` optional then. |
 | `input groups` dynamic | `label`, `fieldsGenerator` | `fieldsGenerator` → field array, or `{message}` if deps missing (renders warning block). Generated children: any type incl. nested groups, static+dynamic. Normalize keys: drop `.` → `_` (`label.replace(/\./g,'_')`). Optional: `required`, `help`, `visibilityCondition`. |
 

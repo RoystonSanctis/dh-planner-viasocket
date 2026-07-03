@@ -590,7 +590,7 @@ Never assume referenced records exist.
 *Principles for field ordering, dynamic dropdown rules, and custom module-specific schema handling.*
 
 ### 1. General Principles
-*   **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together.
+*   **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
 *   **Field Chooser Pattern:** If there are many optional fields, hide them behind a **"Select Additional Fields"** multi-select list. Render only the chosen fields dynamically.
 *   **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.
 
