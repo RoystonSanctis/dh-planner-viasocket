@@ -29,7 +29,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 ## Review Priorities (Strict Order)
 
 ### P0 — Breaking (Fail if any triggers; approved: false)
-- **errorComponent**: `catch` must await `errorComponent(error)`. No `return` required; do not flag missing return.
+- **errorComponent**: `catch` must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). No `return` required; do not flag missing return.
 - **JSON ↔ Code Alignment**: Every `context.inputData.<key>` read must exist as a JSON input field key. Flag orphan fields (defined in JSON but never used in code). Every `visibilityCondition` must reference a real field key.
 - **Payload Shape**: Must match the API schema exactly. The final endpoint must match the provided cURL.
 - **Auto-Derivation Fallback**: If a required value is derived (e.g., mimetype from URL) and could fail, require a safe fallback.
@@ -90,7 +90,7 @@ async function <functionName>() {
 try { 
   // actual code to perform
 } catch (error) { 
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks (except for Reusable Components which must use "throw error" or "throw e"). It is required instead of "throw error".
 }
 }
 return await <functionName>();
@@ -101,7 +101,7 @@ return await <functionName>();
 try {
   // actual code to perform
 } catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  await errorComponent(error); // await errorComponent(error) is used by default in code blocks (except for Reusable Components which must use "throw error" or "throw e"). It is required instead of "throw error".
 }
 ```
 
