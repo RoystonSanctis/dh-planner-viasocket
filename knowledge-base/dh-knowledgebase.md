@@ -107,7 +107,7 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 | `input groups` static | `fields` | `fields[]` each independently valid (nestable). `whereClause:true` (static only) → inline sentence UI; recommend dropdown/multiselect children; `label`/`help` optional then. |
 | `input groups` dynamic | `label`, `fieldsGenerator` | `fieldsGenerator` → field array, or `{message}` if deps missing (renders warning block). Generated children: any type incl. nested groups, static+dynamic. Normalize keys: drop `.` → `_` (`label.replace(/\./g,'_')`). Optional: `required`, `help`, `visibilityCondition`. |
 
-**Options metadata**: `sample` MUST equal `value`; include only if `value` is an ID and ≠ `label`. Dynamic `defaultValue` requires `sample`. `extraValue` = hidden metadata, read via `context?.inputData?.{key}_extraValue` (group: `{group}?.{key}_extraValue`).
+**Options metadata**: `sample` MUST equal `value`; include only if `value` is an ID and ≠ `label`. Dynamic `defaultValue` requires `sample`. `extraValue` = hidden metadata supporting all data types (string, number, boolean, object, array, etc.), read via `context?.inputData?.{key}_extraValue` (group: `{group}?.{key}_extraValue`) inside visibility conditions, dynamic generators, or perform/trigger code blocks. It is extremely useful when the option's value is an ID and you want to pass extra info (like the resource type or category) to perform specific visibility logic or actions.
 
 **optionsGenerator invocation:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call that component function (e.g., `return await fetchComponent(param1, param2);`).
 
@@ -126,7 +126,7 @@ JS expression on `context?.inputData?.<path>`; must evaluate to boolean (support
 | String/Dropdown eq / in | `context?.inputData?.k === 'v'` / `['A','B'].includes(context?.inputData?.k)` |
 | Boolean t/f | `context?.inputData?.k` / `!context?.inputData?.k` |
 | In group | `context?.inputData?.group?.k` |
-| `extraValue` | `context?.inputData?.k_extraValue === 'x'` (group: `context?.inputData?.group?.k_extraValue`) |
+| `extraValue` | `context?.inputData?.k_extraValue === 'x'` (group: `context?.inputData?.group?.k_extraValue`) — supports all data types in conditions and code blocks |
 | Calc | `(context?.inputData?.a * context?.inputData?.b) > 100` |
 
 # dependsOn vs visibilityCondition

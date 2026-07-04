@@ -4482,7 +4482,7 @@ Instead of showing stacked disconnected fields (*Select Media, Select Type*), yo
 ## Special Note: Dropdown & Multiselect:
 When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 1. **The `sample` attribute**: The `sample` string must **always** be identical to the option's `value`. MANDATORY RULE: If the value is an ID, the `sample` MUST be included. If the `label` and `sample` are exactly the same, then NO `sample` is needed. Omit otherwise.
-2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This is particularly useful for driving complex visibility conditions or dynamic `fieldsGenerator` logic, which can easily evaluate this hidden state via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
+2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This metadata supports every JSON data type (string, number, boolean, object, array, etc.). It is highly useful when a dropdown option uses an ID as the `value` and you want to pass extra information (like the resource type or category) to drive complex visibility conditions, dynamic `fieldsGenerator` logic, or to be consumed directly inside the perform code or trigger code blocks. In code blocks and visibility conditions, the hidden state is read via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
 ## Special Note: Visibility Condition Rules:
 
 When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed. **Any valid JavaScript condition is supported, including complex calculations, array methods (like `.includes()`), and dynamic key value checks.**
@@ -4539,7 +4539,7 @@ Here are the various patterns you should use based on what field type it depends
      *(Here `search_filter` is the `key` of the input group, and `column_key` is the `key` of the specific field inside it).*
 
 6. **Depending on an `extraValue` (Dropdowns):**
-   - The visibility condition supports the `extraValue` key, which is used in the static and dynamic dropdown.
+   - The visibility condition and perform/trigger code blocks support the `extraValue` key of static and dynamic dropdowns (supporting any data type).
    - The path for the `extraValue` will be `context?.inputData?.{dropdown_key}_extraValue`.
      ```javascript
      context?.inputData?.agent_extraValue === 'variables'
@@ -4739,5 +4739,4 @@ The following example illustrates how `dependsOn` is populated for dynamic field
 - **Dependent Required Fields:** If an optional parent field is selected/provided, and it reveals a dependent child field that is required for that specific selection, the child field **MUST** be marked as `required: true`. Additionally, the **perform code** must explicitly evaluate and enforce this requirement, throwing an error if the parent is provided but the required child field is missing.
 > [!NOTE]
 > **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
-
 
