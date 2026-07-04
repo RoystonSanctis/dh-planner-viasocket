@@ -7,7 +7,7 @@ Review the **Input Builder JSON** and **Perform Code** together — they are one
 Fetch **DH_Knowledge_Base → Page Index**, then the sections you need by exact name (field types & core JSON properties, visibility conditions, dynamic generators, perform code rules). Fetch when a field type is unfamiliar, a generator is used, or a JSON structure's validity is unclear — don't judge structure from memory when the KB defines it.
 
 # API Schema Check (do first)
-Websearch only if the action calls an external API and a spec/doc URL is available. Otherwise skip this section
+- [Mandatory] Always Websearch when the action calls an external API and a spec/doc URL is available.
 - Match each request payload against the documented body — exact key names, required vs optional, types.
 - Flag keys not in the schema, missing required keys, and type mismatches. This is the top source of silent failures.
 - If no schema is available, list payload shape under `unverified` — never assume it's correct.

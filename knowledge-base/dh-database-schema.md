@@ -318,7 +318,7 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
   "params": [
     {
       "name": "String (Parameter key name)",
-      "sample": "String (Sample/test value for the parameter)"
+      "sample": "String/Number/Object/Boolean (Sample/test value for the parameter along with its data type; if the value is a string, it must be wrapped in double quotes e.g. '\"field ID\"', and for other types like number, object, or boolean, the value is direct/unwrapped)"
     }
   ],
   "code": "String (Raw executable JavaScript logic or return statement inside the function)",
@@ -348,7 +348,7 @@ function_name: String (camelCase)
 description: String
 params: Array of ParameterObjects
   - name: String
-  - sample: String
+  - sample: String/Number/Object/Boolean (if the value is a string, wrap it with double quotes e.g. '"field ID"'; other types like number, object, or boolean are direct/unwrapped)
 code: String (raw JS body)
 pluginrecordid: String (plugin ID)
 function_code: String (async JS wrapper function)
