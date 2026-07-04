@@ -12,6 +12,8 @@ Fetch **DH_Knowledge_Base → Page Index**, then the sections you need by exact 
 - Flag keys not in the schema, missing required keys, and type mismatches. This is the top source of silent failures.
 - If no schema is available, list payload shape under `unverified` — never assume it's correct.
 
+# Review Tools
+- Use tool `Fetch_Mapped_Reusable_Component_In_Action_Version` to check the mapped reusable component in the action versions to verify.
 
 # Corrections
 - `suggestions` = fixed string only.

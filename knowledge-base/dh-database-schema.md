@@ -321,9 +321,9 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
       "sample": "String/Number/Object/Boolean (Sample/test value for the parameter along with its data type; if the value is a string, it must be wrapped in double quotes e.g. '\"field ID\"', and for other types like number, object, or boolean, the value is direct/unwrapped)"
     }
   ],
-  "code": "String (Raw executable JavaScript logic or return statement inside the function)",
+  "code": "String (Raw executable JavaScript logic or return statement inside the function. Any try-catch block inside the component code MUST use 'throw error' or 'throw e' in the catch block; do not use 'await errorComponent(error)')",
   "pluginrecordid": "String (Unique identifier/row ID of the plugin/service, e.g., 'row2khuqk6fy')",
-  "function_code": "String (Complete executable asynchronous JavaScript function block wrapping the name, description, parameters, and code)",
+  "function_code": "String (Complete executable asynchronous JavaScript function block wrapping the name, description, parameters, and code. Any try-catch block inside the component function MUST use 'throw error' or 'throw e' in the catch block; do not use 'await errorComponent(error)')",
   "componentgenerationsource": "userGenerated | aiGenerated",
   "functionId": "String (Action version row ID mapping the component to a specific action version, e.g., 'rowcopcmbfds')"
 }
@@ -334,9 +334,9 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
 {
   "rowid": "String (Unique identifier/row ID of the reusable component, e.g., 'rowjoyllflj4')",
   "description": "String (Clear description of what the component fetches)",
-  "function_code": "String (Complete executable asynchronous JavaScript function block wrapping the name, description, parameters, and code)",
+  "function_code": "String (Complete executable asynchronous JavaScript function block wrapping the name, description, parameters, and code. Any try-catch block inside the component function MUST use 'throw error' or 'throw e' in the catch block; do not use 'await errorComponent(error)')",
   "componentgenerationsource": "userGenerated | aiGenerated",
-  "code": "String (Raw executable JavaScript logic or return statement inside the function)"
+  "code": "String (Raw executable JavaScript logic or return statement inside the function. Any try-catch block inside the component code MUST use 'throw error' or 'throw e' in the catch block; do not use 'await errorComponent(error)')"
 }
 ```
 
@@ -349,9 +349,9 @@ description: String
 params: Array of ParameterObjects
   - name: String
   - sample: String/Number/Object/Boolean (if the value is a string, wrap it with double quotes e.g. '"field ID"'; other types like number, object, or boolean are direct/unwrapped)
-code: String (raw JS body)
+code: String (raw JS body; try-catch must throw error in catch)
 pluginrecordid: String (plugin ID)
-function_code: String (async JS wrapper function)
+function_code: String (async JS wrapper function; try-catch must throw error in catch)
 componentgenerationsource: String ('userGenerated' | 'aiGenerated')
 functionId: String (action version ID)
 ```
@@ -360,7 +360,7 @@ functionId: String (action version ID)
 ```toon
 rowid: String (component row ID)
 description: String
-function_code: String (async JS wrapper function)
+function_code: String (async JS wrapper function; try-catch must throw error in catch)
 componentgenerationsource: String ('userGenerated' | 'aiGenerated')
 code: String (raw JS body)
 ```

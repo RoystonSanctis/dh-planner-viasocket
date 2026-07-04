@@ -3382,7 +3382,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - Must be a valid JavaScript function.
 - Can use `async/await` for API calls.
 - **Returns:** `[{label, value}]` (Standard) or `{data: [...], offset, message}` (Paginated). Fields support `sample`/`extraValue`. Globals: `__searchText`, `context?.paginateData`.
-- **Proper try/catch:** Must use a proper `try/catch` block for error handling.
+- **Proper try/catch:** Must use a proper `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
 - **Input Validations:** At the beginning of the code, add validations for missing input or dependent field paths by throwing an error.
 - **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always pass them as function parameters and call the function with them.
 - Can use external libraries like `axios`. But Import is not allowed. You can use `axios` directly.
@@ -3879,7 +3879,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - Must be a valid JavaScript function.
 - Can use `async/await` for API calls.
 - **Returns:** MUST return an array of objects `[{label, value}]`. Fields support `sample`.
-- **Proper try/catch:** Must use a proper `try/catch` block for error handling.
+- **Proper try/catch:** Must use a proper `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
 - **Input Validations:** At the beginning of the code, add validations for missing input or dependent field paths by throwing an error.
 - **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always pass them as function parameters and call the function with them.
 - Can use external libraries like `axios`. But Import is not allowed. You can use it directly.

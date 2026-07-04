@@ -143,7 +143,7 @@ async function <functionName>() {
   try {
     // validate required fields; build request from context.inputData; call API
   } catch (error) {
-    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
+    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
   }
 }
 return await <functionName>();
@@ -154,7 +154,7 @@ return await <functionName>();
 try {
   // validate required fields; build request from context.inputData; call API
 } catch (error) {
-  await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
+  await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
 }
 ```
 - No `import`/`require`. HTTP via `axios`/`fetch` only. Auth handled by viaSocket — never include (add an extra header/query/body only if API needs a non-standard value).
@@ -263,17 +263,21 @@ return await <functionName>();
 | DELETE | `DELETE /resources/:id` (or `PATCH`/`POST` archive) | validate id; handle 404 already-deleted |
 
 # Reusable Components
-JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = valid async JS fn with try/catch). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields.
+JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = valid async JS fn with try/catch where catch block MUST throw error instead of calling errorComponent). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields.
 - Accept ALL dependent inputs (search text, limit, every input-field path) as **parameters** — this enables `dependsOn` auto-detection. Never read `context.inputData`/`__searchText`/`context.paginateData` inside.
 - Validate inputs at top (throw on missing). Return matches host field shape.
 ```javascript
 // fetchResources(searchText, pageToken, pageSize)
-if (!pageSize) throw new Error('pageSize required');
-const res = await axios.get('<url>/<endpoint>', { params: { q: searchText, cursor: pageToken, limit: pageSize } });
-return {
-  data: (res.data?.items || []).map(i => ({ label: i.name, value: i.id, sample: i.id })),
-  offset: res.data?.next_cursor || null
-};
+try {
+  if (!pageSize) throw new Error('pageSize required');
+  const res = await axios.get('<url>/<endpoint>', { params: { q: searchText, cursor: pageToken, limit: pageSize } });
+  return {
+    data: (res.data?.items || []).map(i => ({ label: i.name, value: i.id, sample: i.id })),
+    offset: res.data?.next_cursor || null
+  };
+} catch (error) {
+  throw error; // Reusable Components MUST use 'throw error' or 'throw e' in catch
+}
 ```
 Caller (in `optionsGenerator`): `return await fetchResources(__searchText, context?.paginateData?.['my_field'], 100);` — map the component's `id` correctly.
 - **Tool usage (`create_update_map_Reusable_components`)**: Use this tool to create, update, or map reusable components.
@@ -306,7 +310,7 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 
 ## Priorities & Rules
 - **P0 (Breaking)**:
-  - Catch must await `errorComponent(error)`. async function declaration and `return await <functionName>()` call or parent try catch.
+  - Catch must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). async function declaration and `return await <functionName>()` call or parent try catch.
   - Every `context.inputData.<key>` must exist in input fields. No orphan fields. `visibilityCondition` must map to real keys.
   - Payload must match API schema.
   - Do not require URL extensions (use presence checks).
