@@ -318,7 +318,7 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
   "params": [
     {
       "name": "String (Parameter key name)",
-      "sample": "String/Number/Object/Boolean (Sample/test value for the parameter along with its data type; if the value is a string, it must be wrapped in double quotes e.g. '\"field ID\"', and for other types like number, object, or boolean, the value is direct/unwrapped)"
+      "sample": "String/Number/Object/Boolean/Array (Sample/test value for the parameter along with its data type; if the value is a string, it must be wrapped in double quotes e.g. '\"field ID\"', and for other types like number, object, boolean, or array, the value is direct/unwrapped)"
     }
   ],
   "code": "String (Raw executable JavaScript logic or return statement inside the function. Any try-catch block inside the component code MUST use 'throw error' or 'throw e' in the catch block; do not use 'await errorComponent(error)')",
@@ -348,7 +348,7 @@ function_name: String (camelCase)
 description: String
 params: Array of ParameterObjects
   - name: String
-  - sample: String/Number/Object/Boolean (if the value is a string, wrap it with double quotes e.g. '"field ID"'; other types like number, object, or boolean are direct/unwrapped)
+  - sample: String/Number/Object/Boolean/Array (if the value is a string, wrap it with double quotes e.g. '"field ID"'; other types like number, object, boolean, or array are direct/unwrapped)
 code: String (raw JS body; try-catch must throw error in catch)
 pluginrecordid: String (plugin ID)
 function_code: String (async JS wrapper function; try-catch must throw error in catch)
