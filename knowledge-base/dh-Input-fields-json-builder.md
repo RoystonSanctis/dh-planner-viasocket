@@ -2603,7 +2603,7 @@ schema:
                   pattern: "^[^.]*$"
                 type:
                   type: string
-                  enum[8]: string,number,boolean,dropdown,multiselect,aifield,help,input groups
+                  enum[8]: string,number,boolean,dropdown,multiselect,aifield,help,"input groups"
               required[2]: key,type
         required[5]: key,type,label,help,fields
   required[1]: inputFields
