@@ -801,8 +801,10 @@ Generate a JSON object strictly following the rules below for a boolean field.
 - Omit defaultValue entirely if there is no default
 
 **7. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
+- Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
+- Include customInputLabel only if manual/dynamic input mode needs a custom label (e.g. "Enter Boolean Value"). Omit if not applicable
 - Include customPlaceholder only if a placeholder is needed for manual input (e.g. "E.g., true"). Omit if not applicable
+- Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
 
 **8. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
@@ -891,6 +893,14 @@ Generate a JSON object strictly following the rules below for a boolean field.
                                 "value"
                             ]
                         },
+                        "placeholder": {
+                            "type": "string",
+                            "description": "Optional placeholder text shown before selection. Omit if not applicable."
+                        },
+                        "customInputLabel": {
+                            "type": "string",
+                            "description": "Optional custom label for manual/dynamic input (e.g. 'Enter Boolean Value'). Omit if not applicable."
+                        },
                         "customHelp": {
                             "type": "string",
                             "description": "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
@@ -977,6 +987,12 @@ schema:
                 type: boolean
                 description: "The value of the default option (e.g. false, true)."
             required[2]: label,value
+          placeholder:
+            type: string
+            description: "Optional placeholder text shown before selection. Omit if not applicable."
+          customInputLabel:
+            type: string
+            description: "Optional custom label for manual/dynamic input (e.g. 'Enter Boolean Value'). Omit if not applicable."
           customHelp:
             type: string
             description: "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
@@ -1011,6 +1027,8 @@ schema:
           }
         ],
         "required": true,
+        "placeholder": "Choose Option",
+        "customInputLabel": "Enter Column Key Option",
         "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
         "defaultValue": {
           "label": "Yes",
@@ -1100,6 +1118,8 @@ schema:
       Yes,true
       No,false
     required: true
+    placeholder: Choose Option
+    customInputLabel: Enter Column Key Option
     customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
     defaultValue:
       label: Yes

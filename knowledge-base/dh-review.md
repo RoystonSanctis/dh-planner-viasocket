@@ -51,7 +51,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 ### P3 — Text & Consistency
 - **Help text**: Short, plain, non-technical. Do not flag length of static/dynamic `type: "help"` panels, only normal fields.
 - **Casing**: `label` must be Title Case (clean & generic labels: e.g. "Select Board", NOT "Select Trello Board"). `help`, `placeholder`, and errors must be sentence case (do not Title-Case).
-- **Custom Keys**: `customHelp`, `customInputLabel`, and `customPlaceholder` are valid ONLY on dropdown/multiselect (flag elsewhere).
+- **Custom Keys**: `customHelp`, `customInputLabel`, and `customPlaceholder` are valid ONLY on dropdown, multiselect, and boolean (flag elsewhere).
 - **Consistency**: Scan for typos, trailing spaces, and mismatches with sibling actions.
 ---
 

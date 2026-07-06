@@ -91,13 +91,13 @@ Category deltas beyond order: **Instant** DynHelp validates permissions after re
 **Dropdown Preference & ID Priority:** Always give first preference to dropdowns over text ID fields (type `string`) across all triggers and actions if an options-fetching API is available. Do not bypass parent dropdowns even if they are required to fetch the record ID. If no options-fetching API is available, only then proceed with the type `string` and ask the user for the ID. **UPDATE/DELETE Action Exception:** This applies strictly to UPDATE/DELETE Actions. For the rest of the triggers and actions, it is not applicable (dropdowns always have high priority over string IDs). If the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created. If parent dropdowns are required to fetch the ID options, bypass the parent dropdowns and create a direct text ID field (type `string`) instead. Exceptions: if the parent dropdown is already required/selected by other fields in the action anyway, or if the ID dropdown has static options.
 
 # Field Types
-Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · `label` · `help`. Allowed types only: string, number, html, markdown, dictionary, boolean, dropdown, multiselect, aifield, help, input groups. Optionals per Minimalism. Output valid JSON only — no comments/extra keys.
+Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · `label` · `help` · `required`. Allowed types only: string, number, html, markdown, dictionary, boolean, dropdown, multiselect, aifield, help, input groups. Optionals per Minimalism. Output valid JSON only — no comments/extra keys.
 
 | `type` | Required (beyond base) | Constraints |
 |---|---|---|
 | `string` `number` `html` `markdown` | — | No `date` type — date/time/DOB → `string`; amount/count/qty → `number`; rich → `html`/`markdown`. `list:true` (string/number only, preconfigured array); `limit:N` requires `list:true`. `list:false` (default) if single value, or if array/comma-separated value is dynamically passed. |
 | `dictionary` | `template` | Variable/unknown key-value pairs. `template` FIXED: `{key:{type:string,placeholder},value:{type:string,placeholder}}` — both types always `string`; only placeholder text may change. |
-| `boolean` | `options` | Exactly 2 options `{label,value}`, true-option FIRST. `defaultValue:{label,value}` must equal an option. Labels any binary pair; value mapping arbitrary. Optional: `customHelp`/`customPlaceholder` for manual mode. |
+| `boolean` | `options` | Exactly 2 options `{label,value}`, true-option FIRST. `defaultValue:{label,value}` must equal an option. Labels any binary pair; value mapping arbitrary. Optional: `placeholder`, `customInputLabel`, `customPlaceholder`, `customHelp` for manual mode. |
 | `dropdown`/`multiselect` static | `options`, `customInputLabel`, `customPlaceholder` | `options:[{label,value,sample?,extraValue?}]` fixed. `customInputLabel` and `customPlaceholder` are required. `defaultValue` = exact copy of an option (multiselect: array of copies). |
 | `dropdown` dynamic | `optionsGenerator`, `customPlaceholder`, `customInputLabel` | `canPaginate:true` (paginated list) ⇒ generator returns `{data,offset,message?}`. `enableSearchApi:true` ⇒ use `__searchText`. Generator returns `{message}` if no options found or to show warning block. `customPlaceholder` (required) = manual-input example (e.g. `123`). `customInputLabel` (required) = short manual label (e.g. `Enter Spreadsheet ID`). Optional: `customHelp` (longer manual help/explain ID location, supports markdown links). `defaultValue` = object `{label,value,sample}`. |
 | `multiselect` dynamic | `optionsGenerator`, `customPlaceholder`, `customInputLabel` | `customPlaceholder` (required) = array example (e.g. `["title","status"]`). `customInputLabel` (required) = short manual label (e.g. `Enter Column Name in Array`). Optional: `customHelp` (longer manual help/explain expected array format). `defaultValue` = array of `{label,value,sample}`. |
@@ -114,7 +114,7 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 **Visibility + required**: visibility evaluated first — a hidden `required` field is skipped (not enforced). Optional parent revealing a required child → set child `required:true` AND throw in perform if parent set but child missing.
 
 # Minimalism
-Include an optional key only when it adds info beyond `label` + specific app + specific action. Optionals: `placeholder` (format non-obvious) · `defaultValue` (sensible default exists) · `customHelp` (where to find a manual ID) · `sample` (value is ID ≠ label) · `visibilityCondition` (conditional) · `required` (mandatory; defaults false). (Note: `customInputLabel` and `customPlaceholder` are required for dropdown and multiselect fields). `help` is optional (do not flag if missing) — keep its value concise, short, plain, and non-technical.
+Include an optional key only when it adds info beyond `label` + specific app + specific action. Optionals: `placeholder` (format non-obvious) · `defaultValue` (sensible default exists) · `customHelp` (where to find a manual ID) · `sample` (value is ID ≠ label) · `visibilityCondition` (conditional) · `required` (mandatory; defaults false). (Note: `customInputLabel` and `customPlaceholder` are required for dropdown and multiselect fields; they are optional for boolean fields). `help` is optional (do not flag if missing) — keep its value concise, short, plain, and non-technical.
 
 # Visibility
 JS expression on `context?.inputData?.<path>`; must evaluate to boolean (supports `.includes()`, calcs).
@@ -329,7 +329,7 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 - **P3 (Text/Consistency)**:
   - Help text: short, plain, non-technical.
   - `label` = Title Case. `help`, `placeholder`, errors = sentence case. **Exception:** In `whereClause: true` input groups, all field labels must use sentence case; only the first field's label starts with a capital letter, and subsequent labels start with lowercase (e.g., `"posted after date"`) unless they are proper nouns (e.g., `"Media"`).
-  - `customHelp`/`customInputLabel`/`customPlaceholder` valid only on dropdowns/multiselect.
+  - `customHelp`/`customInputLabel`/`customPlaceholder` valid only on dropdowns, multiselect, and boolean.
   - Scan for typos, trailing spaces, and differences from sibling actions.
 
 ## General Guidelines
