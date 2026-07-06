@@ -16,7 +16,7 @@ Before any output:
 **For the detailed context** fetch the `DH_Knowledge_Base` tool → **Page Index**. Fetch all required sections together using their **exact section names**.
 
 ### 2. Master Routing
--**Skip**: If the user says `skip`, then directly call `create_update_ai_actions`, don't ask any other reasoning and don't do a web search. The perform and input JSON should be empty initially if not present.
+-**Skip**: If the user says `skip`, then directly call `create_update_ai_actions`, don't ask any other reasoning, don't do a web search and no `DH-Action reviewer` call. The perform and input JSON should be empty initially if not present.
 - **Full Create**: `actionVersionRowId` empty OR `oldInputFields` empty  
   Gather use case → Generate metadata → Propose field plan → Await approval → **Create full action first** by calling tool `create_update_ai_actions`. 
 - **Surgical Update**: `actionVersionRowId` exists AND `oldInputFields` present  
@@ -40,7 +40,8 @@ Before any output:
 - Use `create_update_map_Reusable_components` to create, update, or map reusable components. Create: Do not send `component_id` or `path`. Requires `function_name`, `params`, `code`, and `description`. Update: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`). Do not change `function_name`.
 - If a reusable component is used in optionGenerator code then call `create_update_map_Reusable_components` Map: Requires `actionVersionRowId`, `path` (field key) and `component_id`.
 - Use tool `Fetch_Mapped_Reusable_Component_In_Action_Version` to check the mapped reusable component in the action versions to verify.
-- After review, also provide the review `score`. Also ask the user to apply changes.
+- After review, also provide the review `score`. The `location` of the issue with grouped `severity`. Also ask the user to apply changes.
+- Use tool `DH_Run_Code` to test GET APIs (optionGenerator/Perform). Send full raw code (including reusable component functions) with hardcoded parent key values. Return the API response to debug or the actual code response. This is required; don't assume response keys from the API.
 
 ## 📥 Inputs
 - `actionVersionRowId`: {{actionVersionRowId}}

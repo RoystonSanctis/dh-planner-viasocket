@@ -47,6 +47,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 
 ### P2 — UX
 - **Simplicity First**: Required fields first. Group optionals. Use `defaultValue` on required dropdowns. Auto-detect formats instead of asking. Flag complex UX with concrete simpler alternatives.
+- **Placeholders**: `placeholder` and `customPlaceholder` must always be included in the fields where applicable; they are never optional.
 
 ### P3 — Text & Consistency
 - **Help text**: Short, plain, non-technical. Do not flag length of static/dynamic `type: "help"` panels, only normal fields.
@@ -120,10 +121,11 @@ Each input field must strictly adhere to the structure, formats, and validation 
 
 - **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key.
 - **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
+- **Placeholders**: `placeholder` and `customPlaceholder` must always be included in the fields where applicable; they are never optional.
 - **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.
 
 ## 3. Text Quality & Consistency
 - **Help Key**: It must be short, plain, and non-technical.
-- **Labels & Placeholders**: Must be clear and grammatically correct.
+- **Labels & Placeholders**: Must be clear and grammatically correct. Do NOT use "E.g." or "e.g." in `placeholder` or `customPlaceholder` (such as using `"john@example.com"` instead of `"E.g. john@example.com"`); they must contain direct sample values only.
 - **Length Checking Constraint**: The length checking constraint applies to the `help` KEY only; never flag `type: "help"` panels for length.
 - **Consistency**: Ensure `help`/`label`/`placeholder` are consistent across all fields. Fix casing, wording, and punctuation mismatches (e.g., "Select option." vs "select Options" → "Select Option" (Title Case)).
