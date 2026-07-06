@@ -263,8 +263,8 @@ return await <functionName>();
 | DELETE | `DELETE /resources/:id` (or `PATCH`/`POST` archive) | validate id; handle 404 already-deleted |
 
 # Reusable Components
-JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = valid async JS fn with try/catch where catch block MUST throw error instead of calling errorComponent). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields.
-- Accept ALL dependent inputs (search text, limit, every input-field path) as **parameters** — this enables `dependsOn` auto-detection. Never read `context.inputData`/`__searchText`/`context.paginateData` inside.
+JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = raw JavaScript code starting directly with a `try`/`catch` block. Do NOT wrap the code in a function block. The parameters defined in the component's metadata are available as global variables directly inside this code block. Inside the catch block, you MUST use `throw error` or `throw e` instead of calling `errorComponent`). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields.
+- Accept ALL dependent inputs (search text, limit, every input-field path) as **parameters** — this enables `dependsOn` auto-detection. Always map the dynamic values to these parameters; never read `context.inputData`/`__searchText`/`context.paginateData` directly inside the component's code block.
 - Validate inputs at top (throw on missing). Return matches host field shape.
 ```javascript
 // fetchResources(searchText, pageToken, pageSize)
@@ -302,8 +302,8 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
   - *Schedule (`polling`)*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (array, e.g. `[]` or `[5,15,60,720,1440]`), `canpaginate` (boolean, set to true to enable the pagination feature if using the pagination path `context?.paginationData` in the perform code).
   - *Manual (`manual_webhook`)*: `performlist`, `modifytriggerdata`.
 - **Reusable Component**:
-  - *Create*: `function_name`, `description`, `params: [{name, sample}]` (where the `sample` key contains the parameter's sample value along with its data type; if the value is a string, it must be wrapped in double quotes e.g., `"sample":"\"field ID\""`, and for other types like number, object, boolean, or array, the value is direct/unwrapped), `code` (raw JS), `pluginrecordid`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
-  - *Update*: `rowid`, `description`, `function_code` (async JS wrapper), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `code` (raw JS).
+  - *Create*: `function_name`, `description`, `params: [{name, sample}]` (where the `sample` key contains the parameter's sample value along with its data type; if the value is a string, it must be wrapped in double quotes e.g., `"sample":"\"field ID\""`, and for other types like number, object, boolean, or array, the value is direct/unwrapped), `code` (raw JS in try-catch parent format, not wrapped in a function, params are global), `pluginrecordid`, `function_code` (async JS wrapper function block wrapping the name, parameters, and code), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
+  - *Update*: `rowid`, `description`, `function_code` (async JS wrapper function block wrapping the name, parameters, and code), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `code` (raw JS in try-catch parent format, not wrapped in a function, params are global).
 - **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key).
 
 # Review

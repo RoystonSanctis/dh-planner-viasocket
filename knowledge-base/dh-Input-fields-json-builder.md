@@ -3424,12 +3424,12 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Component Code:** Write your JavaScript code here.
 
 **Component Code Rules:**
-- Must be a valid JavaScript function.
+- Must be written in the parent try-catch format (e.g., `try { ... } catch (error) { throw error; }`) without any wrapping async function block. The parameters defined in the component's metadata are available as global variables directly inside this code block.
 - Can use `async/await` for API calls.
 - **Returns:** `[{label, value}]` (Standard) or `{data: [...], offset, message}` (Paginated). Fields support `sample`/`extraValue`. Globals: `__searchText`, `context?.paginateData`.
-- **Proper try/catch:** Must use a proper `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
+- **Proper try/catch:** Must use a proper parent `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
 - **Input Validations:** At the beginning of the code, add validations for missing input or dependent field paths by throwing an error.
-- **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always pass them as function parameters and call the function with them.
+- **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always map these values to the component's parameters, which will be accessible as global variables in the code block.
 - Can use external libraries like `axios`. But Import is not allowed. You can use `axios` directly.
 
 **Below are supported libraries to use directly in component code:**
@@ -3925,12 +3925,12 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Component Code:** Write your JavaScript code here.
 
 **Component Code Rules:**
-- Must be a valid JavaScript function.
+- Must be written in the parent try-catch format (e.g., `try { ... } catch (error) { throw error; }`) without any wrapping async function block. The parameters defined in the component's metadata are available as global variables directly inside this code block.
 - Can use `async/await` for API calls.
 - **Returns:** MUST return an array of objects `[{label, value}]`. Fields support `sample`.
-- **Proper try/catch:** Must use a proper `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
+- **Proper try/catch:** Must use a proper parent `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
 - **Input Validations:** At the beginning of the code, add validations for missing input or dependent field paths by throwing an error.
-- **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always pass them as function parameters and call the function with them.
+- **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always map these values to the component's parameters, which will be accessible as global variables in the code block.
 - Can use external libraries like `axios`. But Import is not allowed. You can use it directly.
 
 **Below are supported libraries to use directly in component code:**
