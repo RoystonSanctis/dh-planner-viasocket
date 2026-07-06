@@ -2435,6 +2435,7 @@ Generate a JSON object strictly following the rules below for an input group.
 - Create an object with `type: "input groups"`.
 - Add the new or updated group to the existing `inputFields` array.
 - The group must contain a `fields` array.
+- **Nesting Support**: Input group fields can be nested (created inside a static input group or a dynamic input group).
 
 **2. Key Rules**
 - `key` must be unique within `inputFields`.
@@ -4260,6 +4261,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
 ### Input Group Dynamic Input Field Generation Rules:
 - When creating a dynamic input group field, ensure you correctly construct the field structure following the JSON/TOON schemas format.
 - Set `type: "input groups"` and define the essential top-level fields such as `key`, `label`, `help`, and `required`.
+- **Nesting Support**: Input group fields can be nested (created inside a static input group or a dynamic input group).
 - Write the `fieldsGenerator` JavaScript code to formulate the child fields.
 - **Rules for `fieldsGenerator`:**
   - **Standard Return:** You **MUST** return an array of fully valid, complete field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', required: true }]`). The generated fields can be `string`, `number`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, `html`, `markdown`, or even nested input groups. It supports both static and dynamic fields.
