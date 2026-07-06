@@ -40,7 +40,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **Reusable Component Mapping**: Ensure the `"id"` key is correctly mapped to the reusable component's `"id"` key.
 
 ### P1 — Automation Safety
-- **No Raw IDs**: Resolve IDs internally or via dropdown by readable name. Do not ask users to type raw IDs.
+- **No Raw IDs**: Resolve IDs internally or via dropdown by readable name. Do not ask users to type raw IDs. Exception: DELETE actions must always use a direct text ID field (type 'string') to delete the record directly, with no dropdown logic. For UPDATE actions, the parent dropdown bypass exception rules remain.
 - **Pagination**: Check API docs for limit/offset/cursor on list/fetch endpoints. Flag if code uses internal pagination unless it's `list all items` or the UI has an option to have internal pagination based on user flag or enable pagination (applies to both triggers and actions). Flag if `context.paginationData` (used in scheduled triggers/polling) is reset/cleared to `null` or `0` when pagination ends (e.g. in an `else` block); to stop the loop, the code must simply do nothing (avoid reassigning `context.paginationData`).
 - **Repeat-Safety**: Flag actions that can duplicate or overwrite data on repeated runs.
 - **Rate Limits**: Flag `Promise.all` over paginated calls to rate-limited APIs. Prefer sequential execution + delay.

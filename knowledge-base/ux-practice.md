@@ -416,7 +416,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 ### UPDATE Best Practices:
 - **Partial updates** — Only send fields the user has filled. Don't send empty fields as `null` unless explicitly intended.
 - **Field chooser before dynamic group** — Use a Multiselect to let users select which fields they want to update, then pass that selection to the `fieldsGenerator` to render only those fields.
-- **Record selection & parent dropdown bypass** — This applies strictly to UPDATE/DELETE Actions. For the rest of the triggers and actions, it is not applicable (dropdowns always have higher priority than string ID fields). Prioritize dropdowns over text ID fields if an options API is available. If the ID field supports a dropdown and no parent dropdown is required to fetch the options, the dropdown should be created. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options). Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
+- **Record selection & parent dropdown bypass** — This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For the rest of the triggers and actions, it is not applicable (dropdowns always have higher priority than string ID fields). Prioritize dropdowns over text ID fields if an options API is available. For UPDATE actions: if the ID field supports a dropdown and no parent dropdown is required to fetch the options, the dropdown should be created. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options). Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
 - **Preserve existing values** — Help text should clarify that unfilled fields will remain unchanged.
 
 ---
@@ -469,14 +469,11 @@ A DELETE action removes or archives a **specific record** from the external serv
 **Examples:** Delete Data Source Item, Delete Row, Delete Contact, Archive Page.
 
 ### DELETE UX Pattern:
-1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet).
-2. **Dynamic Dropdown** → Secondary resource selection (e.g., select Sheet). Uses `visibilityCondition`.
-3. **Dynamic Dropdown / String** → Record ID selection (the specific record to delete).
-4. **Help Static** *(optional)* → Warning message about the permanence of the deletion.
+1. **String** → Record ID (the specific record to delete directly, no dropdown logic).
+2. **Help Static** *(optional)* → Warning message about the permanence of the deletion.
 
 ### DELETE Common Input Fields:
-- **Dropdown Dynamic** — For selecting the resource and the specific record to delete.
-- **String** — For directly entering a record ID when a dropdown isn't practical.
+- **String** — For directly entering a record ID. No dropdown or parent dropdown is allowed.
 - **Help Static** *(optional)* — For displaying warnings about irreversible actions.
 - **Boolean** *(optional)* — For confirming the delete action or choosing between "delete" and "archive".
 
@@ -486,11 +483,11 @@ A DELETE action removes or archives a **specific record** from the external serv
 - See [Perform Code Knowledge Base → Actions → DELETE](perform-code.md) for code patterns.
 
 ### DELETE Best Practices:
-- **Keep it minimal** — DELETE actions should have the fewest fields possible. Resource selection + record ID is usually sufficient.
+- **Keep it minimal** — DELETE actions must only require the record ID directly. Do not use dropdowns or resource/parent selection dropdowns.
 - **Warn about permanence** — Use a Help Static field to warn users if the deletion is irreversible.
 - **Archive vs Delete** — If the service supports archiving, offer a Boolean toggle ("Delete permanently" vs "Move to archive").
 - **Error handling** — Handle 404 (already deleted) gracefully in the perform code.
-- **Record selection & parent dropdown bypass** — This applies strictly to UPDATE/DELETE Actions. For the rest of the triggers and actions, it is not applicable (dropdowns always have higher priority than string ID fields). Prioritize dropdowns over text ID fields if an options API is available. If the ID field supports a dropdown and no parent dropdown is required to fetch the options, the dropdown should be created. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options). Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
+- **No Dropdowns for DELETE** — Never use dropdowns or dynamic/static options to select the record ID in DELETE actions. Always use a direct text ID field (type 'string').
 
 ---
 
@@ -599,10 +596,10 @@ Never assume referenced records exist.
 *   **Dropdown Preference:** Always prioritize dropdowns (static or dynamic) over direct text ID fields. Check if an API/endpoint is available to fetch options first, then reason about building the dropdown. Fall back to a text ID field only if no API is available or if dropdown nesting rules (see below) apply.
 *   **Use Dropdowns Only When:** The dataset is small, stable, and backed by a highly reliable, paginated `GET` API.
 *   **Avoid Dropdowns When:** Datasets are large, values shift frequently, or the options list depends dynamically on upstream trigger data. Use a direct **Identifier Input** (string field) instead.
-*   **DELETE & UPDATE Record ID Selection Rule:** This applies strictly to UPDATE/DELETE Actions. For all other triggers and actions, this exception does not apply (dropdowns always have higher priority than text ID fields).
+*   **UPDATE Record ID Selection Rule:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For all other triggers and actions, this exception does not apply (dropdowns always have higher priority than text ID fields).
     *   If the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created.
-    *   If fetching the ID options requires creating dependent parent dropdowns (e.g. needing to select a workspace, then a project, just to list page IDs to delete/update), **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
-    *   *Exceptions:* If the dropdown has static options for deletion/update, or if the parent dropdown is already required/selected by other fields in the action anyway, proceed with the dropdown selection.
+    *   If fetching the ID options requires creating dependent parent dropdowns (e.g. needing to select a workspace, then a project, just to list page IDs to update), **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
+    *   *Exceptions:* If the dropdown has static options for update, or if the parent dropdown is already required/selected by other fields in the action anyway, proceed with the dropdown selection.
 
 ### 3. Dynamic Schema Handling
 For APIs supporting custom fields, custom properties, or module-specific schemas:
