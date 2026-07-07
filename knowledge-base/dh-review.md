@@ -29,7 +29,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 ## Review Priorities (Strict Order)
 
 ### P0 — Breaking (Fail if any triggers; approved: false)
-- **errorComponent**: `catch` must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). No `return` required; do not flag missing return.
+- **errorComponent**: `catch` must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). For `optionsGenerator` using component mapping, the block must be wrapped with a parent `try-catch` and call `await errorComponent(error)` in the catch block (do NOT throw error). No `return` required; do not flag missing return.
 - **JSON ↔ Code Alignment**: Every `context.inputData.<key>` read must exist as a JSON input field key. Flag orphan fields (defined in JSON but never used in code). Every `visibilityCondition` must reference a real field key.
 - **Payload Shape**: Must match the API schema exactly. The final endpoint must match the provided cURL.
 - **Auto-Derivation Fallback**: If a required value is derived (e.g., mimetype from URL) and could fail, require a safe fallback.
@@ -52,7 +52,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 ### P3 — Text & Consistency
 - **Help text**: Short, plain, non-technical. Do not flag length of static/dynamic `type: "help"` panels, only normal fields.
 - **Casing**: `label` must be Title Case (clean & generic labels: e.g. "Select Board", NOT "Select Trello Board"). `help`, `placeholder`, and errors must be sentence case (do not Title-Case).
-- **Custom Keys**: `customHelp`, `customInputLabel`, and `customPlaceholder` are valid ONLY on dropdown, multiselect, and boolean (flag elsewhere).
+- **Custom Keys**: `customHelp`, `customInputLabel`, and `customPlaceholder` are valid ONLY on dropdown, multiselect, and boolean (flag elsewhere). In `customHelp`, the phrasing must guide the user to enter the value manually (e.g. `"Enter value..."` or `"Enter ID..."`) rather than selecting/choosing it.
 - **Consistency**: Scan for typos, trailing spaces, and mismatches with sibling actions.
 ---
 
@@ -119,7 +119,7 @@ Each input field must strictly adhere to the structure, formats, and validation 
 - **Exclusions**: Do not include Auth fields. Ignore Headers. Validate ONLY `inputFields` (ignore auto-generated `steps`/`blocks`).
 - **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help, Help Static.
 
-- **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key.
+- **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key. Also, inside the `optionsGenerator` where the component is called (using component mapping), the call must be wrapped in a `try-catch` block and the `catch` block must call `await errorComponent(error)` (do NOT use `throw error` or `throw e`).
 - **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
 - **Placeholders**: `placeholder` and `customPlaceholder` must always be included in the fields where applicable; they are never optional.
 - **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.

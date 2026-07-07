@@ -1220,7 +1220,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable.
+- Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable. The phrasing must guide the user to enter the value (e.g. "Enter Spreadsheet ID...") rather than selecting or choosing it.
 - customInputLabel is required. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID".
 - customPlaceholder is required. Provide a relevant numeric or text example (such as "15" if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only.
 **10. Visibility Condition Rule**
@@ -1624,7 +1624,7 @@ schema:
     "placeholder": "Choose Category",
     "customInputLabel": "Enter the video category ID.",
     "customPlaceholder": "22",
-    "customHelp": "If you don't know the video category ID, you can choose the video category from the dropdown.Additionally you can get the category ID from the List Categories Action."
+    "customHelp": "If you don't know the video category ID, you can enter the video category ID manually. Additionally you can get the category ID from the List Categories Action."
   }
   ]
 ```
@@ -1683,7 +1683,7 @@ schema:
     placeholder: Choose Category
     customInputLabel: Enter the video category ID.
     customPlaceholder: "22"
-    customHelp: "If you don't know the video category ID, you can choose the video category from the dropdown.Additionally you can get the category ID from the List Categories Action."
+    customHelp: "If you don't know the video category ID, you can enter the video category ID manually. Additionally you can get the category ID from the List Categories Action."
 ```
 
 
@@ -1730,7 +1730,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable.
+- Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable. The phrasing must guide the user to enter the value (e.g. "Enter Column Name...") rather than selecting or choosing it.
 - customInputLabel is required. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array").
 - customPlaceholder is required. Provide a relevant array example (such as "[\"markdown\",\"block\"]" or "[\"first_name\",\"email\"]"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only.
 **10. Visibility Condition Rule**
@@ -2745,7 +2745,7 @@ schema:
         "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
         "placeholder": "Choose Column",
         "customInputLabel": "Enter Column Name",
-        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "Name or A",
         "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
       },
@@ -2825,7 +2825,7 @@ schema:
         "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
         "placeholder": "Choose Columns",
         "customInputLabel": "Enter Column Name in Array.",
-        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "[\"Name\"]or [\"A\"]",
         "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
       }
@@ -2868,11 +2868,11 @@ schema:
         "type": "dropdown",
         "label": "Media",
         "required": true,
-        "customHelp": "You can choose he media from the dropdown or can also find the media ID from the List Media aciton.",
+        "customHelp": "You can enter the media ID manually or can also find the media ID from the List Media action.",
         "canPaginate": true,
         "placeholder": "Choose Media",
         "customInputLabel": "Enter media ID.",
-        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  throw e;\n}",
+        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  await errorComponent(e);\n}",
         "customPlaceholder": "18062960995844908",
         "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' "
       },
@@ -2968,7 +2968,7 @@ schema:
         customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
         placeholder: Choose Column
         customInputLabel: Enter Column Name
-        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
         customPlaceholder: "Name or A"
         visibilityCondition: context?.inputData?.search_filter?.search_filter_type
       - key: lookupValue
@@ -3024,7 +3024,7 @@ schema:
         customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
         placeholder: Choose Columns
         customInputLabel: Enter Column Name in Array.
-        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
         customPlaceholder: "[\"Name\"]or [\"A\"]"
         visibilityCondition: context?.inputData?.search_filter?.search_filter_type
 ```
@@ -3266,7 +3266,7 @@ schema:
     "placeholder": "Choose Data Source",
     "enableSearchApi": true,
     "customInputLabel": "Enter Data Source ID.",
-    "optionsGenerator": "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  throw e;\n}",
+    "optionsGenerator": "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  await errorComponent(e);\n}",
     "customPlaceholder": "229a83a6-ccba-80f4-a654-000b91179e35"
   },
   {
@@ -3280,7 +3280,7 @@ schema:
     "placeholder": "Choose Spreadsheet ID",
     "enableSearchApi": true,
     "customInputLabel": "Enter Spreadsheet ID",
-    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}",
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}",
     "customPlaceholder": "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
   },
   {
@@ -3294,7 +3294,7 @@ schema:
     "placeholder": "Choose Sheet",
     "enableSearchApi": false,
     "customInputLabel": "Enter Sheet ID",
-    "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}",
+    "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nawait errorComponent(e);\n}",
     "customPlaceholder": "38470421"
   },
   {
@@ -3346,7 +3346,7 @@ schema:
     placeholder: Choose Data Source
     enableSearchApi: true
     customInputLabel: Enter Data Source ID.
-    optionsGenerator: "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  throw e;\n}"
+    optionsGenerator: "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "229a83a6-ccba-80f4-a654-000b91179e35"
   - key: spreadsheet_id
     help: Select or enter the ID of the spreadsheet .
@@ -3358,7 +3358,7 @@ schema:
     placeholder: Choose Spreadsheet ID
     enableSearchApi: true
     customInputLabel: Enter Spreadsheet ID
-    optionsGenerator: "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
+    optionsGenerator: "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
   - key: sheet_id
     help: Select the Sheet or Enter Sheet ID.
@@ -3370,7 +3370,7 @@ schema:
     placeholder: Choose Sheet
     enableSearchApi: false
     customInputLabel: Enter Sheet ID
-    optionsGenerator: "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}"
+    optionsGenerator: "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nawait errorComponent(e);\n}"
     customPlaceholder: "38470421"
   - key: channel_id
     help: Select the channel to send the message.
@@ -3454,6 +3454,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 **Rules for using the component inside a dynamic dropdown's `optionsGenerator`:**
 - Inside the dropdown's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
 - Output the final results using the `return` keyword (e.g., `return await fetchSpreadsheets(...)`).
+- **Error Handling wrapper**: When calling/mapping a reusable component in the `optionsGenerator`, the code must be wrapped in a parent `try-catch` block and the `catch` block must call `await errorComponent(error)` (it must NOT throw the error).
 - This keeps your dynamic dropdown logic clean, hidden, and reusable.
 - **Strict Parameter Usage:** Strictly do NOT use the dependent paths for the input hardcoded directly inside the reusable component code (like `context?.inputData?.key_name`). For such paths, always use parameters. Also, adding search, limit, and all input fields paths as parameters is the correct practice in case of the reusable component function. This will help in the auto detection of the `dependsOn` key, which is discussed in the **Understanding `dependsOn` vs `visibilityCondition`** section. For further reference, please see the **Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]** in the documentation.
 - **Alternative to Reusable Components (Inline Code):** If not using a Reusable Component, the function code and its invocation must be written directly inside the `optionsGenerator` (i.e., you must define the function and explicitly call/invoke it at the end, e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides inside the component itself, and `optionsGenerator` only needs to call that component function (e.g., `return await fetchComponent(param1, param2);`).
@@ -3550,7 +3551,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 Usage inside a dynamic dropdown's `optionsGenerator`:
 ```json
 {
- "optionsGenerator": "try{\n  const selectedPage = context?.inputData?.selectedPage;\nconst offset = context?.paginateData?.['page_id'];\nconst limit = context?.inputData?.limit;\nreturn await fetchLeadForms(selectedPage, offset, limit);\n}catch(e){\nthrow e;\n}"
+ "optionsGenerator": "try{\n  const selectedPage = context?.inputData?.selectedPage;\nconst offset = context?.paginateData?.['page_id'];\nconst limit = context?.inputData?.limit;\nreturn await fetchLeadForms(selectedPage, offset, limit);\n}catch(e){\nawait errorComponent(e);\n}"
 }
 ```
 ##### Example 2: Google Sheet Spreadsheet Dropdown Dynamic
@@ -3631,7 +3632,7 @@ Usage inside a dynamic dropdown's `optionsGenerator`:
 Usage inside a dynamic dropdown's `optionsGenerator`:
 ```json
 {
-    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}"
 }
 ```
 
@@ -3854,7 +3855,7 @@ schema:
         "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
         "placeholder": "Choose Columns",
         "customInputLabel": "Enter Column Name in Array.",
-        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "[\"Name\"]or [\"A\"]"
       },
        {
@@ -3865,7 +3866,7 @@ schema:
         "required": false,
         "customHelp": "Enter an array of Property Name.",
         "placeholder": "Choose Property",
-        "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}",
+        "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}",
         "customPlaceholder": "['title','status']"
       }
 ]
@@ -3890,7 +3891,7 @@ schema:
     customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
     placeholder: Choose Columns
     customInputLabel: Enter Column Name in Array.
-    optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+    optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
     customPlaceholder: "[\"Name\"]or [\"A\"]"
   - key: filter_properties
     help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
@@ -3899,7 +3900,7 @@ schema:
     required: false
     customHelp: Enter an array of Property Name.
     placeholder: Choose Property
-    optionsGenerator: "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}"
+    optionsGenerator: "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "['title','status']"
 ```
 
@@ -3955,6 +3956,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 **Rules for using the component inside a dynamic multiselect's `optionsGenerator`:**
 - Inside the multiselect's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
 - Output the final results using the `return` keyword (e.g., `return await fetchSheetColumns(...)`).
+- **Error Handling wrapper**: When calling/mapping a reusable component in the `optionsGenerator`, the code must be wrapped in a parent `try-catch` block and the `catch` block must call `await errorComponent(error)` (it must NOT throw the error).
 - This keeps your dynamic multiselect logic clean, hidden, and reusable.
 - **Strict Parameter Usage:** Strictly do NOT use the dependent paths for the input hardcoded directly inside the reusable component code (like `context?.inputData?.key_name`). For such paths, always use parameters. Also, adding search, limit, and all input fields paths as parameters is the correct practice in case of the reusable component function. This will help in the auto detection of the `dependsOn` key, which is discussed in the **Understanding `dependsOn` vs `visibilityCondition`** section. For further reference, please see the **Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]** in the documentation.
 - **Alternative to Reusable Components:** If not using the reusable component, the code can be directly added the same way: the function and the function call can be written directly inside the `optionsGenerator`.
@@ -4054,7 +4056,7 @@ try {
 Usage inside a dynamic multiselect's `optionsGenerator`:
 ```json
 {
-    "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+    "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
 }
 ```
 ##### Example 2: Notion Data Source Property Multi Select Dynamic
@@ -4094,7 +4096,7 @@ return returnDropdown(first);
 Usage inside a dynamic multiselect's `optionsGenerator`:
 ```json
 {
-    "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}"
+    "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}"
 }
 ```
 ## Help Dynamic
@@ -4504,11 +4506,11 @@ The `whereClause` feature allows you to display an input group as a readable sen
         "type": "dropdown",
         "label": "Media",
         "required": true,
-        "customHelp": "You can choose he media from the dropdown or can also find the media ID from the List Media aciton.",
+        "customHelp": "You can enter the media ID manually or can also find the media ID from the List Media action.",
         "canPaginate": true,
         "placeholder": "Choose Media",
         "customInputLabel": "Enter media ID.",
-        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  throw e;\n}",
+        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  await errorComponent(e);\n}",
         "customPlaceholder": "18062960995844908",
         "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' "
       },
