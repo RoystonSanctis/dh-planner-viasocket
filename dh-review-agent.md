@@ -13,6 +13,7 @@ Fetch **DH_Knowledge_Base → Page Index**, then the sections you need by exact 
 - If no schema is available, list payload shape under `unverified` — never assume it's correct.
 
 # Review Tools
+- Use tool `Fetch_Reusable_Components` for available components.
 - Use tool `Fetch_Mapped_Reusable_Component_In_Action_Version` to check the mapped reusable component in the action versions to verify.
 - Use tool `DH_Run_Code` to test GET APIs (optionGenerator/Perform). Send full raw code (including reusable component functions) with hardcoded parent key values. Return the API response to debug or the actual code response.
 

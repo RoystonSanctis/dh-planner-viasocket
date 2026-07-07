@@ -3430,6 +3430,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Proper try/catch:** Must use a proper parent `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
 - **Input Validations:** At the beginning of the code, add validations for missing input or dependent field paths by throwing an error.
 - **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always map these values to the component's parameters, which will be accessible as global variables in the code block.
+- **Search-Pagination Offset Rule:** If the dropdown supports both search and pagination (`enableSearchApi: true` and `canPaginate: true`), and the search is active/enabled (i.e. the search query parameter has a value), if the API/search returns empty results, the returned `offset` must be the current cursor (`pageToken`/`offset` parameter). This ensures that if the user switches from searching back to pagination, the previous pagination offset/cursor is preserved. Any offset returned by the search API in this case must be ignored.
 - Can use external libraries like `axios`. But Import is not allowed. You can use `axios` directly.
 
 **Below are supported libraries to use directly in component code:**
