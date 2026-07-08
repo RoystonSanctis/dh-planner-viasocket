@@ -116,7 +116,7 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 
 **Options metadata**: `sample` MUST equal `value`; include only if `value` is an ID and ≠ `label`. Dynamic `defaultValue` requires `sample`. `extraValue` = hidden metadata supporting all data types (string, number, boolean, object, array, etc.), read via `context?.inputData?.{key}_extraValue` (group: `{group}?.{key}_extraValue`) inside visibility conditions, dynamic generators, or perform/trigger code blocks. It is extremely useful when the option's value is an ID and you want to pass extra info (like the resource type or category) to perform specific visibility logic or actions.
 
-**optionsGenerator invocation:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call that component function (e.g., `return await fetchComponent(param1, param2);`).
+**optionsGenerator invocation:** Any code block inside `optionsGenerator` (whether using inline code or calling a Reusable Component) must be wrapped in a parent `try...catch` block. The `catch` block must handle errors by calling `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`). If the function code is written inline, it must be explicitly defined, called inside the `try` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`).
 
 **Visibility + required**: visibility evaluated first — a hidden `required` field is skipped (not enforced). Optional parent revealing a required child → set child `required:true` AND throw in perform if parent set but child missing.
 
@@ -318,7 +318,7 @@ Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText,
 
 ## Priorities & Rules
 - **P0 (Breaking)**:
-  - Catch must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). Note that for `optionsGenerator` calling a reusable component (using component mapping), it must be wrapped in a parent `try-catch` and call `await errorComponent(error)` in the catch block (do NOT throw error). async function declaration and `return await <functionName>()` call or parent try catch.
+  - Catch must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). Any code block in `optionsGenerator` (whether inline code or calling a Reusable Component) must be wrapped in a parent `try-catch` block and call `await errorComponent(error)` in the `catch` block (do NOT throw error).
   - Every `context.inputData.<key>` must exist in input fields. No orphan fields. `visibilityCondition` must map to real keys.
   - Payload must match API schema.
   - Do not require URL extensions (use presence checks).
