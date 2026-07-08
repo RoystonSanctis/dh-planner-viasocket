@@ -8,6 +8,7 @@ published: true
 
 - UX Practices Knowledge Base
 - Triggers
+  - Trigger Selection & Priority Guidelines
   - Instant Trigger
     - Instant Trigger Purpose:
     - Instant Trigger UX Pattern:
@@ -93,6 +94,25 @@ This document contains structured UX guidelines and best practices for creating 
 # Triggers
 
 Triggers initiate a workflow. There are three trigger types, each with distinct UX patterns and input field requirements.
+
+## Trigger Selection & Priority Guidelines
+
+When designing or planning triggers, follow this structured priority flow to determine the trigger type to implement, especially when the user has not specified their preferred type.
+
+### 1. Trigger Type Priority Flow
+If the trigger type is not specified, evaluate capabilities in this order:
+**Instant Trigger (`hook`)** → **Scheduled Trigger (`polling`)** → **Manual Trigger (`manual_webhook`)**
+
+*   **Step 1: Check for Instant Trigger (`hook`)**
+    *   Verify if the external service provides subscribe and unsubscribe API endpoints to programmatically manage webhooks. If yes, implement an **Instant Trigger**.
+*   **Step 2: Check for Scheduled/Polling Trigger (`polling`)**
+    *   If programmatic webhooks are not supported, check if there is a GET or LIST API to retrieve/poll the data.
+    *   Verify that the API response includes a created or updated timestamp, OR the endpoint supports a time filter configuration parameter. If yes, implement a **Scheduled Trigger**.
+*   **Step 3: Check for Manual Trigger (`manual_webhook`)**
+    *   If polling is not possible, check if the service supports manually adding a webhook URL in their platform dashboard/UI. If yes, implement a **Manual Trigger**.
+*   **Step 4: Ask the User**
+    *   If none of the above options are possible, ask the user for the trigger type and request the API documentation or cURL command.
+    *   *Note:* At the beginning of the design phase, you can also directly ask the user which trigger type they want to build (Instant, Scheduled, or Manual).
 
 ## Instant Trigger
 
@@ -207,30 +227,36 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 ## Manual Trigger
 
 ### Manual Trigger Purpose:
-A Manual Trigger is a one-time, user-initiated trigger. The user manually runs the workflow, typically to process specific data or perform a one-off action. There is no automatic scheduling or webhook — the user clicks "Run" to execute.
+A Manual Trigger (in viaSocket, this corresponds to `manual_webhook`) is used when the external service supports webhooks but does not have a programmatic subscribe/unsubscribe API. The user must manually copy the viaSocket webhook URL and paste it into the external service's platform dashboard.
 
 **When to use:**
-- When the workflow should only run on-demand.
-- When the user needs to manually initiate a process with specific inputs.
-- Example: Manually send a bulk email, manually sync records, manually process a file.
+- When the external service supports webhooks but lacks subscribe/unsubscribe APIs.
+- When scheduled polling is not possible or not preferred.
+- Example: WordPress form webhook submissions.
 
 ### Manual Trigger UX Pattern:
-The standard field ordering for a Manual Trigger follows this flow:
-
-1. **Help Static** → Instructions explaining what the manual trigger does and any prerequisites.
-2. **String / Number / Dropdown** → Simple input fields for the data the user provides at trigger time.
-3. **Dynamic Dropdown** *(optional)* → Resource selection if the trigger targets a specific resource.
+The `inputFields` array for a Manual Trigger must only contain a single field: a static `help` field. No other fields (strings, dropdowns, etc.) are allowed.
 
 ### Manual Trigger Common Input Fields:
-1. **Help Static** → Step-by-step webhook setup instructions (how to copy the webhook URL from viaSocket and paste it into the SaaS platform).
-- **Use HTML formatting** in help text for clear, scannable instructions (`<ul>`, `<li>`, `<strong>`).
+*   **Single Field Limit:** The `inputFields` array (inputjson) for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field. No other fields are allowed.
+*   **Help Content:** The `help` field must contain step-by-step instructions in HTML format showing the user how to configure the webhook in the external SaaS platform.
+*   **Example Manual Trigger JSON:**
+    ```json
+    [
+      {
+        "key": "help",
+        "help": "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",
+        "type": "help"
+      }
+    ]
+    ```
 
 ### Manual Trigger Perform Code Reference:
 - Manual Triggers use a direct API call pattern without scheduling or pagination logic.
 - See [Perform Code Knowledge Base → Manual Trigger](perform-code.md) for code patterns.
 
 ### Manual Trigger Best Practices:
-- **Always start with a Help block** that guides the user through webhook setup with numbered steps.
+- **Always use a single Help block** as the only input field to guide the user through webhook setup with HTML formatting.
 
 ---
 
