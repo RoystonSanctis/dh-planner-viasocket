@@ -99,7 +99,7 @@ Triggers initiate a workflow. There are three trigger types, each with distinct 
 
 When designing or planning triggers, follow this structured priority flow to determine the trigger type to implement, especially when the user has not specified their preferred type.
 
-### 1. Trigger Type Priority Flow
+**1. Trigger Type Priority Flow**
 If the trigger type is not specified, evaluate capabilities in this order:
 **Instant Trigger (`hook`)** → **Scheduled Trigger (`polling`)** → **Manual Trigger (`manual_webhook`)**
 
