@@ -156,7 +156,7 @@ Generate a JSON object strictly following the rules below.
 **3. Label, Help, Placeholder**
 - label: Clean, human-readable version of fieldPurpose
 - help: Clearly explain what the user should enter
-- placeholder: Provide a realistic example relevant to the purpose
+- placeholder: Provide a realistic example relevant to the purpose. The value must always be a string; even for number fields, the placeholder value must be wrapped in a string (e.g. `"10"`).
 
 **4. Required Rule**
 - Set required: true if fieldPurpose implies mandatory input
@@ -415,7 +415,7 @@ schema:
     help: Default it will fetch data upto 100. The maximum value is 100.
     type: number
     label: Page Limit
-    placeholder: 10
+    placeholder: "10"
     defaultValue: 100
   - key: feed_url
     help: Paste your RSS URL here. Must be publicly accessible. Multiple feed links can be given in a line item.
@@ -809,7 +809,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
 - Include customInputLabel only if manual/dynamic input mode needs a custom label (e.g. "Enter Boolean Value"). Omit if not applicable
-- Include customPlaceholder only if a placeholder is needed for manual input (such as "true"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. Omit if not applicable
+- Include customPlaceholder only if a placeholder is needed for manual input (such as "true"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. Omit if not applicable. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
 - Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
 
 **8. Visibility Condition Rule**
@@ -1222,7 +1222,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 **9. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable. The phrasing must guide the user to enter the value (e.g. "Enter Spreadsheet ID...") rather than selecting or choosing it.
 - customInputLabel is required. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID".
-- customPlaceholder is required. Provide a relevant numeric or text example (such as "15" if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only.
+- customPlaceholder is required. Provide a relevant numeric or text example (such as "15" if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"15"`).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the dropdown depends on another field.
 - Omit if always visible.
@@ -1732,7 +1732,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 **9. Custom Input Rules**
 - Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable. The phrasing must guide the user to enter the value (e.g. "Enter Column Name...") rather than selecting or choosing it.
 - customInputLabel is required. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array").
-- customPlaceholder is required. Provide a relevant array example (such as "[\"markdown\",\"block\"]" or "[\"first_name\",\"email\"]"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only.
+- customPlaceholder is required. Provide a relevant array example (such as "[\"markdown\",\"block\"]" or "[\"first_name\",\"email\"]"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"[\"markdown\",\"block\"]"`).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the multiselect depends on another field.
 - Omit if always visible.
@@ -2107,7 +2107,7 @@ Generate a JSON object strictly following the rules below for an AI field.
 - Otherwise set `required: false`.
 
 **8. Placeholder Rule**
-- `placeholder`: Optional text showing an example input to guide the user. Can be an example query or expected value. Omit if not applicable.
+- `placeholder`: Optional text showing an example input to guide the user. Can be an example query or expected value. Omit if not applicable. The value must always be a string and wrapped in a string/quotes.
 
 **9. Visibility Condition Rule**
 - Include `visibilityCondition` only when the field depends on another field's state.
@@ -2669,7 +2669,7 @@ schema:
         "customHelp": "Enter Array of Property Name.",
         "placeholder": "Choose Property",
         "optionsGenerator": "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n",
-        "customPlaceholder": "['title','status']"
+        "customPlaceholder": "[\"title\",\"status\"]"
       },
       {
         "key": "start_cursor",
@@ -2910,7 +2910,7 @@ schema:
           label: Default
           value: 100
           sample: "100"
-        customPlaceholder: 10
+        customPlaceholder: "10"
       - key: filter_properties
         help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
         type: multiselect
@@ -2919,13 +2919,13 @@ schema:
         customHelp: Enter Array of Property Name.
         placeholder: Choose Property
         optionsGenerator: "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n"
-        customPlaceholder: "['title','status']"
+        customPlaceholder: "[\"title\",\"status\"]"
       - key: start_cursor
         help: "A next_cursor value returned in a previous response. Treat this as an opaque value.  Defaults to undefined, which returns results from the beginning of the list."
         type: string
         label: Start Cursor
         required: false
-        placeholder: 13fe3a00-095c-81a5-b0dd-dd6ce042ebd3
+        placeholder: "13fe3a00-095c-81a5-b0dd-dd6ce042ebd3"
   - key: search_filter
     help: Filter configuration to return the sheet rows based on the condition met.
     type: input groups
@@ -3044,7 +3044,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
 - **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). Alternatively, if a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call the component function (e.g., `return await fetchComponent(param1, param2);`).
 - Ensure that properties related to dynamic behavior, like `canPaginate` and `enableSearchApi`, are configured correctly based on whether the endpoint supports pagination offsets or search query parameters.
-- Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included for the manual input mode.
+- Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included for the manual input mode. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes.
 - **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (e.g., `[{label, value, sample}]` or `{data: [{label, value, sample}], offset: ...}`). MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 
 ### Dropdown Dynamic JSON Schema:
@@ -3103,7 +3103,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Required placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., '229a83a6-ccba-80f4...')."
+                            "description": "Required placeholder for the manual input mode. Provide a relevant numeric or text example wrapped in a string (e.g., '229a83a6-ccba-80f4...')."
                         },
                         "customInputLabel": {
                             "type": "string",
@@ -3388,7 +3388,7 @@ schema:
     placeholder: Select the Facebook page
     customInputLabel: Enter Page ID
     optionsGenerator: "async function fetchPagesWithPagination(context) {\n  // Get the offset (next page cursor) from context if it exists\n  const offset = context?.paginateData?.['page_id'];\n\n  const limit = 100;\n\n  // Build the API URL\n  let url = `https://graph.facebook.com/me/accounts?limit=${limit}`;\n  if (offset) {\n    url += `&after=${offset}`;\n  }\n\n  const config = {\n    method: 'get',\n    url: url\n  };\n\n  try {\n    const res = await axios.request(config);\n    const responseData = res.data;\n\n    // Check if there's any data\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        message: \"No pages found. Make sure manage access is given. Update the connection and select page to give access for the automation.\"\n      };\n    }\n    else if ((!responseData.data || responseData.data.length === 0) && offset){\n return {\n  message: \"All Pages fetched successfully..\"\n }\n   }\n\n    // Transform data into dropdown format\n    const data = responseData.data.map(account => ({\n      label: account.name,\n      value: account.id,\n      sample: account.id\n    }));\n\n    // Prepare response with current page data and next offset (if any)\n    const result = {\n      data: data\n    };\n\n    // Check if there's a next page\n    if (responseData.paging && responseData.paging.cursors && responseData.paging.cursors.after) {\n      result.offset = responseData.data.length < limit ? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    // Handle specific error cases if needed\n    if (error.response?.status === 400 || error.response?.status === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect.\" };\n    }\n\n    return { message: \"Enter page ID. E.g. 516470358708231\" };\n  }\n}\n\n// Call the function (assuming context is available in your environment)\nconst result = await fetchPagesWithPagination(context);\nreturn result;"
-    customPlaceholder: 516470358708231
+    customPlaceholder: "516470358708231"
   - key: form_id
     help: Select the lead form associated with the page.
     type: dropdown
@@ -3398,7 +3398,7 @@ schema:
     placeholder: Choose Lead Form
     customInputLabel: Enter Lead Form ID
     optionsGenerator: "async function fetchLeadFormsWithPagination(context) {\n  const selectedPage = context?.inputData?.page_id;\n  const offset = context?.paginateData?.['form_id'];\n  const limit = 100; // Max supported for leadgen_forms endpoint\n\n  if (!selectedPage) {\n    return { message: \"Please select a Facebook Page first.\" };\n  }\n\n  try {\n    // Get page access token using the provided getAccessToken function (empty permissions)\n    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);\n\n    if (!accessToken || !isPermission) {\n      return { message: \"Unable to get access to the selected Page. Please reconnect or check permissions.\" };\n    }\n\n    // Build the API URL for leadgen_forms with pagination\n    let url = `https://graph.facebook.com/v25.0/${selectedPage}/leadgen_forms`;\n    url += `?limit=${limit}&access_token=${accessToken}`;\n    if (offset) {\n      url += `&after=${offset}`;\n    }\n\n    const response = await axios.get(url);\n    const responseData = response.data;\n\n    // If no forms returned and this is the first request\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        data: [{ label: 'All Leadgen Forms', value: '0' }],\n        offset: null,\n        message: \"No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page.\"\n      };\n    }\n\n    // If no more forms on subsequent pages\n    if (!responseData.data || responseData.data.length === 0) {\n      return {\n        message: \"All Lead Forms fetched successfully.\"\n      };\n    }\n\n    // Transform forms into dropdown options\n    const data = responseData.data.map(form => ({\n      label: form.name,\n      value: form.id,\n      sample: form.id\n    }));\n\n    // Always include \"All Leadgen Forms\" as first option (only on first page)\n    if (!offset) {\n      data.unshift({ label: 'All Leadgen Forms', value: '0' });\n    }\n\n    // Prepare result\n    const result = { data };\n\n    // Add offset if there's a next page\n    if (responseData.paging?.cursors?.after) {\n      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    console.error(\"Error fetching lead forms:\", error);\n\n    // Specific OAuth/token errors\n    if (error.response?.data?.error?.code === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect your Facebook account.\" };\n    }\n\n    // Permission or page access issue\n    if (error.response?.status === 400 || error.response?.status === 403) {\n      return { message: \"Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted.\" };\n    }\n\n    // Fallback: return only \"All\" option\n    return {\n      data: [{ label: 'All Leadgen Forms', value: '0' }],\n       offset: null,\n      message: error?.message || \"Could not load forms. Using 'All Leadgen Forms' as default.\"\n    };\n  }\n}\n\n// Execute and return\nreturn await fetchLeadFormsWithPagination(context);"
-    customPlaceholder: 1161533432455827
+    customPlaceholder: "1161533432455827"
     visibilityCondition: context?.inputData?.page_id
 ```
 ### Reusable Component In Dropdown Dynamic:
@@ -3647,7 +3647,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 - **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). Alternatively, if a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call the component function (e.g., `return await fetchComponent(param1, param2);`).
-- A proper manual input option must be configured. Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). `customInputLabel` must guide the user on what manual input is expected. Optionally provide `customHelp` to guide the user in array input formatting.
+- A proper manual input option must be configured. Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. `customInputLabel` must guide the user on what manual input is expected. Optionally provide `customHelp` to guide the user in array input formatting.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
 ### Multi Select Dynamic JSON Schema:
