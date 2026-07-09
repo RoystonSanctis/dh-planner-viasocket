@@ -87,7 +87,7 @@ Single Perform call mapped from `context.inputData`. Categories: GET · LIST · 
 App name only if generic without it. Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update.
 
 # UX Field Ordering
-Required fields first, optionals grouped after. Resource dropdowns for large lists use `canPaginate:true` + `enableSearchApi:true`. **Help placement:** When using a static or dynamic help field, it must always be positioned below the field it is referring to.
+Required fields first, optionals grouped after. Resource dropdowns for large lists use `canPaginate:true` + `enableSearchApi:true`. **Help placement:** When using a static or dynamic help field, it must always be positioned below the field it is referring to. **Field Chooser Pattern:** Hide numerous optional fields behind a "Select Additional Fields" multi-select field (rendering only chosen fields dynamically).
 
 | Category | Order |
 |---|---|
