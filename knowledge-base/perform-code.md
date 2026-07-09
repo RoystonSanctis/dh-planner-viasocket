@@ -279,6 +279,8 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 
 ### Scheduled Trigger Perform Code Rules:
 
+- **Output Structure:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
+
 **Best Practice Algorithm:**
 Always check if the API natively supports filtering by a start date (e.g., `created_at_min`), updated date, or returning specific output item keys. **If the API supports these native query parameters, use them!** It is the most optimized approach. If the API does *not* support it natively, you must handle the logic on the client side: filtering the latest/updated items, filtering the fields, and sorting the results.
 
@@ -847,11 +849,12 @@ try {
 #### Schedule Trigger Sample Code Rules:
 
 Always follow these rules while creating a sample code for the Schedule Trigger:
-1. Get the latest 1 item or any one item.
-2. If an item exists, return it with the help text
-3. If no items exist, fetch the schema to dynamically build the fallback
-4. Map the exact schema properties to empty/default values
-5. Return the dynamic fallback item with an exact matching structure
+1. The Sample Code must return a single object `{ ... }` representing just one of those items. This ensures the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array. This single item can be retrieved through the GET code pattern.
+2. Get the latest 1 item or any one item.
+3. If an item exists, return it with the help text
+4. If no items exist, fetch the schema to dynamically build the fallback
+5. Map the exact schema properties to empty/default values
+6. Return the dynamic fallback item with an exact matching structure
 
 #### Schedule Trigger Sample Code Pattern:
 
@@ -1207,6 +1210,7 @@ Actions perform request/response operations on external services. Unlike schedul
 **Best Practice Algorithm:**
 First identify what the action is trying to do: read data, create data, update data, find-or-create data, or delete/archive data. Then choose the closest pseudo-code pattern below and adapt the endpoint, method, query params, body, and response path according to the service API.
 
+- **Scheduled Trigger Perform vs Sample Output:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine automatically loops through that array and runs the workflow for each individual item. The Sample Code, however, must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 - **Required Field Validation:** For every input field defined with `required: true` in the input fields JSON, validate the value at the top of the function before making any API call. If the value is missing, empty, `null`, or `undefined`, throw an error immediately.
 - **Input Reading:** Read all user inputs from `context?.inputData?.<key>`.
 - **HTTP Request:** Use `axios()` for all HTTP requests.

@@ -168,6 +168,7 @@ try {
 - Read inputs via `context?.inputData?.<key>`. Validate every `required:true` field at top — `throw` before the API call if missing/empty/null.
 - `throw` **inside `try`** for validation and for 200-responses carrying an error body (viaSocket reads the final response code; this avoids a false success). Wrapper routes it to `errorComponent`.
 - Return `response.data` raw — don't reshape, don't add fields. Array return → flow iterates per item.
+- **Scheduled Trigger Perform vs Sample Output:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine automatically loops through that array and runs the workflow for each individual item. The Sample Code, however, must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 - No `console.log`. Handle API rate limits in loops (delay/retry/headers). GET uses `params`, POST uses `data`.
 
 ## Libraries
@@ -211,6 +212,7 @@ await axios.delete(`<url>/subscribe/${context?.inputData?.performsubscribe?.id}`
 ```
 
 ## Sample (Instant & Scheduled)
+For scheduled triggers, the Sample Code must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 ```javascript
 const res = await axios.get('<url>/<resource>', { params: { limit: 1, sort: 'created_at:desc' } });
 const items = res.data?.results || res.data || [];
@@ -237,6 +239,7 @@ return {
 
 ## Scheduled Perform
 Time window (all variants): `const t = new Date(__executionStartTime__ - (context?.inputData?.scheduledTime || 15) * 60000);`
+- **Output Structure**: Returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
 - **Native filter (preferred)**: pass `created_at_min=t` (+ `fields=` from a Multiselect) to API; one call.
 - **Client filter — new items**: fetch page → `items.filter(i => new Date(i.created_time) >= t)` → sort oldest-first.
 - **Client filter — updated items**: filter `last_edited_time >= t && created_time !== last_edited_time` (drops never-edited / just-created) → sort ascending by `last_edited_time`.
