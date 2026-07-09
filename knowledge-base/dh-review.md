@@ -47,7 +47,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 
 ### P2 — UX
 - **Simplicity First**: Required fields first. Group optionals. Use `defaultValue` on required dropdowns. Auto-detect formats instead of asking. Flag complex UX with concrete simpler alternatives.
-- **Placeholders**: `placeholder` and `customPlaceholder` must always be included in the fields where applicable; they are never optional.
+- **Help and Placeholders**: `help` must always be available (present) in all fields. `placeholder` must be available in `string`, `number`, `html`, and `markdown` fields; it is optional in `dropdown`, `multiselect`, and `boolean` fields. However, `customPlaceholder` must always be included for those three types.
 
 ### P3 — Text & Consistency
 - **Help text**: Short, plain, non-technical. Do not flag length of static/dynamic `type: "help"` panels, only normal fields.
@@ -121,7 +121,7 @@ Each input field must strictly adhere to the structure, formats, and validation 
 
 - **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key. Also, inside the `optionsGenerator` where the component is called (using component mapping), the call must be wrapped in a `try-catch` block and the `catch` block must call `await errorComponent(error)` (do NOT use `throw error` or `throw e`).
 - **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
-- **Placeholders**: `placeholder` and `customPlaceholder` must always be included in the fields where applicable; they are never optional.
+- **Help and Placeholders**: `help` must always be available (present) in all fields. `placeholder` must be available in `string`, `number`, `html`, and `markdown` fields; it is optional in `dropdown`, `multiselect`, and `boolean` fields. However, `customPlaceholder` must always be included for those three types.
 - **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.
 
 ## 3. Text Quality & Consistency
