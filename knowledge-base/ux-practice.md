@@ -76,12 +76,31 @@ published: true
   - General Copywriting Guidelines
 - Automation UX Builder & Architecture Instructions
   - Role & Core Design Philosophy
+    - Core Design Philosophy
+    - Decision Evaluation Dimensions
+    - Product & Use-Case Awareness
+    - Action Selection Principle
   - Pre-Design Analysis (Mandatory)
+    - Technical Reasoning Principles
   - Action Design Strategy
+    - The Unified Action Principle
+    - Identifier & Record Resolution
+    - Search Mode Evaluation
   - Field Design & Dynamic UI Rules
+    - General Principles
+    - Dropdown Design Rules
+    - Dynamic Schema Handling
+    - Workflow Simplicity Principles
+    - Structural Constraint Handling
   - Automation Safety & Overwrite Protection
+    - Idempotency Preservation
+    - Update Safety & Overwrite Protection
+    - Response Handling
+    - Backward Compatibility Rules
   - Required Output Structure
   - Behavior Constraints
+    - Trade-Off Evaluation Protocol
+    - Final Decision Reflection
 
 # UX Practices Knowledge Base
 
