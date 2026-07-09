@@ -563,6 +563,27 @@ Design workflows around a **mixture of non-technical simplicity and technical co
 *   **Prioritize Stable Identifiers:** Favor robust identifiers (e.g., email, external ID) over brittle or time-sensitive ones (e.g., database IDs).
 *   **Design for Deterministic Scale:** Automation configurations must run safely across thousands of executions without duplicate records or accidental data loss.
 
+### Decision Evaluation Dimensions
+Every design decision should be evaluated across five key dimensions (balanced dynamically based on context, rather than strictly prioritizing one):
+1.  **Accessibility:** Can a non-technical business owner configure this confidently?
+2.  **Workflow Simplicity:** Does the flow remain clean, pure, and minimal?
+3.  **Technical Feasibility:** Is this technically implementable and stable?
+4.  **Scalability:** Will this hold under worst-case usage and API rate limits?
+5.  **Structural Constraints:** Does this respect platform limitations?
+*The assistant should not blindly enforce simplicity; it must evaluate context and decide intelligently.*
+
+### Product & Use-Case Awareness
+Before proposing any trigger or action:
+*   Understand the purpose of the application.
+*   Identify practical, real-world user automation scenarios.
+*   Avoid exposing features that are technically possible but workflow-irrelevant. Focus on meaningful automation over feature completeness.
+
+### Action Selection Principle
+An action is strong when:
+*   It naturally fits into Trigger → Action workflows.
+*   It solves a repeatable automation problem.
+*   It does not introduce unnecessary complexity. Avoid priority for rarely used actions.
+
 ---
 
 ## Pre-Design Analysis (Mandatory)
@@ -579,6 +600,15 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 > [!IMPORTANT]
 > *   Every documented API field must be either represented in the UX or handled implicitly by the backend code.
 > *   **Security Constraint:** Authentication parameters must **never** be exposed in the UX configuration.
+
+### Technical Reasoning Principles
+*   **Dynamic URL Awareness:** If base URLs differ per user, prefer programmatic retrieval. Avoid user-specific structures unless programmatic retrieval is too unstable.
+*   **Connection-Level Context Selection:** If a context (e.g., workspace, tenant, organization, or account) is required but no API is available to fetch options dynamically:
+    *   Capture the selection during connection/authentication setup.
+    *   Store it as part of the connection.
+    *   Actions must use this connection-level value automatically without repeatedly asking the user in every action.
+*   **Parameter Exposure:** Avoid exposing system-level complexity unless necessary. If exposure is unavoidable, provide guidance and clarity.
+*   **Endpoint Validation:** If endpoints are undocumented, attempt provider confirmation, or document the limitation clearly (avoid assumptions that cause unstable integrations).
 
 ---
 
@@ -611,7 +641,7 @@ Never assume referenced records exist.
 
 ## Field Design & Dynamic UI Rules
 
-*Principles for field ordering, dynamic dropdown rules, and custom module-specific schema handling.*
+*Principles for field ordering, dropdown rules, and custom module-specific schema handling.*
 
 ### 1. General Principles
 *   **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
@@ -619,12 +649,12 @@ Never assume referenced records exist.
 *   **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.
 
 ### 2. Dropdown Design Rules
-*   **Dropdown Preference:** Always prioritize dropdowns (static or dynamic) over direct text ID fields. Check if an API/endpoint is available to fetch options first, then reason about building the dropdown. Fall back to a text ID field only if no API is available or if dropdown nesting rules (see below) apply.
+*   **Dropdown Preference:** Always prioritize dropdowns (static or dynamic) over direct text ID fields. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no API is available or if dropdown nesting rules apply.
 *   **Use Dropdowns Only When:** The dataset is small, stable, and backed by a highly reliable, paginated `GET` API.
 *   **Avoid Dropdowns When:** Datasets are large, values shift frequently, or the options list depends dynamically on upstream trigger data. Use a direct **Identifier Input** (string field) instead.
-*   **UPDATE Record ID Selection Rule:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For all other triggers and actions, this exception does not apply (dropdowns always have higher priority than text ID fields).
+*   **UPDATE Record ID Selection Rule:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic).
     *   If the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created.
-    *   If fetching the ID options requires creating dependent parent dropdowns (e.g. needing to select a workspace, then a project, just to list page IDs to update), **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
+    *   If fetching the ID options requires creating dependent parent dropdowns, **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
     *   *Exceptions:* If the dropdown has static options for update, or if the parent dropdown is already required/selected by other fields in the action anyway, proceed with the dropdown selection.
 
 ### 3. Dynamic Schema Handling
@@ -632,6 +662,18 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 1. Allow the user to select the **Module / Resource** first.
 2. Dynamically retrieve the schema for that selection.
 3. Render only the fields relevant to the selected resource to prevent UI bloat and schema drift.
+
+### 4. Workflow Simplicity Principles
+*   **Workflow Purity:** Design flows as `Trigger → Action`. If a Javascript step is needed solely for formatting or mapping, move that logic internally inside the perform code.
+*   **Coded Value Handling:** If an API expects numeric codes or enums (e.g., `1 = Male`, `2 = Female`), prefer input fields with clear help text explaining the mapping, unless the mappings are guaranteed stable, in which case a dropdown is viable.
+*   **Format Abstraction Principle:** Users describe intent, not technical formatting. If a content format (e.g., HTML vs. plain text) can be safely inferred internally, detect it automatically in perform code instead of exposing format-selection fields.
+*   **Default Value Usage Rule:** Before using `defaultValue`, verify if the API has native default behavior. If the API applies a default when omitted, avoid setting `defaultValue` in the builder. Allow the API to apply its own default behavior unless there is a strong UX override benefit.
+*   **customHelp Writing Guidelines:** Focus on business meaning and explain what the user should provide rather than how the system stores it. Avoid explaining internal IDs or instructing users to copy task IDs from browser URLs.
+    *   *Good:* `"Select the parent task under which the subtask should be created."`
+    *   *Bad:* `"Open Asana, copy the task ID from the URL, and paste it here."`
+
+### 5. Structural Constraint Handling
+*   If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
 
 ---
 
@@ -652,6 +694,11 @@ Ensure that the design enforces repeat-run safety. Every action must explicitly 
 *   **Small & Flat Responses:** Return the entire API payload.
 *   **Large / Nested Responses:** Implement **Basic** vs **Detailed** response modes, returning key identifiers by default with optional detail expansion.
 
+### 4. Backward Compatibility Rules
+Field keys are stable contracts. When modifying an existing action, trigger, or field:
+*   **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
+*   **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
+
 ---
 
 ## Required Output Structure
@@ -661,7 +708,7 @@ Ensure that the design enforces repeat-run safety. Every action must explicitly 
 Your final proposed design must strictly output the following **five-part** structure:
 
 ### 1. API Understanding Summary
-A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, and enums.
+A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, enums, and response complexity.
 
 ### 2. Clarification Questions
 Ask clear, high-priority questions only when critical behavior, API limits, or lookup endpoints are ambiguous.
@@ -673,34 +720,20 @@ An organized JSON definition of the Input Fields, showing hierarchy, field group
 > Detailed field schemas, option generators, dynamic field builders, and allowed types **MUST** follow the rules defined in the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
 
 ### 4. API Configuration Perform Code
-JavaScript code that maps input fields to the API payload. It **MUST** strictly adhere to one of the following templates:
+JavaScript code that maps input fields to the API payload. It **MUST** strictly adhere to the following structure:
 
-**Format A: Direct parent try-catch (no wrapping function)**
 ```javascript
 try {
   const data = context.inputData;
   return data;
 } catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  await errorComponent(error);
 }
-```
-
-**Format B: Wrapping async function**
-```javascript
-async function <functionName>() {
-  try {
-    const data = context.inputData;
-    return data;
-  } catch (error) {
-    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
-  }
-}
-return await <functionName>();
 ```
 
 > [!WARNING]
 > #### Perform Code Constraints:
-> *   The outer `try/catch` block (either direct parent-level or wrapping async function) is **mandatory**.
+> *   The outer `try/catch` block is **mandatory**.
 > *   `return data` must be within the `try` block.
 > *   The variable name **must** be `data` (do not rename it). Do not declare other variables before or after `const data = context.inputData` unless manual key mapping or payload transformations are strictly required due to mismatched field names.
 > *   Authentication values must **never** be hardcoded or managed in the perform code.
@@ -721,3 +754,20 @@ A robust analysis explaining the duplicate prevention strategy, idempotency safe
 *   **No Direct System IDs:** Never force users to manage or copy internal system IDs (such as GUIDs or serial keys) manually when stable, user-friendly values exist.
 *   **Adherence to Real Schemas:** Do **not** invent or assume API parameter names, payloads, or field endpoints that are not explicitly documented.
 *   **Strict Review Validation:** All final configurations and perform codes must strictly be validated against the checklist in the **[DH Reviewer Instructions](dh-review.md)**.
+
+### Trade-Off Evaluation Protocol
+When conflicts arise during design, evaluate:
+1.  Does this increase complexity for non-technical users?
+2.  Does this increase system instability?
+3.  Does this increase API load risk?
+4.  Does this reduce long-term maintainability?
+*Choose the solution that minimizes long-term risk while preserving usability.*
+
+### Final Decision Reflection
+Before finalizing any design recommendation, internally validate:
+*   Is this usable by a traditional business owner?
+*   Is this unnecessarily exposing technical complexity?
+*   Is worst-case scaling acceptable?
+*   Is the workflow still logically clean?
+*   Are constraints handled responsibly?
+*If trade-offs exist, explicitly acknowledge them and explain the reasoning.*

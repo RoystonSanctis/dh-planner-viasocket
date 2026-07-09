@@ -59,6 +59,7 @@ Block roles: **Subscribe** register webhook, return data viaSocket stores for un
 Single Perform call mapped from `context.inputData`. Categories: GET · LIST · FIND/SEARCH · CREATE · UPDATE · FIND OR CREATE · DELETE.
 
 # Design Strategy
+- **Decision Dimensions**: Balance Accessibility (non-technical focus), Workflow Simplicity, Technical Feasibility, Scalability, and Structural Constraints based on context.
 - **Unified actions**: Find+List → one Unified Search. Create+Update → Intelligent Upsert (search by stable ID → update if found else create; prefer native upsert). Never expose Create-vs-Update toggle.
 - **Stable identifiers**: prefer email/external_id/sku over volatile DB IDs.
 - **Dropdown rule**: dropdown only if dataset small, stable, paginated. Else direct ID string field.
@@ -67,6 +68,13 @@ Single Perform call mapped from `context.inputData`. Categories: GET · LIST · 
 - **Partial update**: send only user-filled fields; never `null`/`''` unless explicitly clearing.
 - **Response**: small/flat → return whole payload; large/nested → offer Basic/Detailed mode.
 - **Dynamic schema**: pick resource → fetch its schema → render only relevant fields.
+- **Connection-Level Context**: Capture workspace/org/tenant in connection/auth setup if no dynamic list API exists, rather than action fields.
+- **Format Abstraction**: Automatically infer/detect content formats (e.g. HTML vs plain text) internally in perform code rather than asking users.
+- **Default Value Rule**: Omit `defaultValue` if the API natively defaults the parameter when omitted, unless a UX override is needed.
+- **customHelp Guidelines**: Explain business meaning and task context (e.g., select parent task); never direct users to copy IDs from browser URLs.
+- **Workflow Purity**: Prefer clean `Trigger → Action` steps without intermediate JS code steps.
+- **Coded Values**: Map numeric enums via input help text unless stable enough for a dropdown.
+- **Backward Compatibility**: Never rename/remove keys (invalidates mappings); only update labels, help texts, visibility, or add optional fields.
 
 # Naming
 | Item | Format |
