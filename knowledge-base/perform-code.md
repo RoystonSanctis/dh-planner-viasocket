@@ -280,6 +280,7 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 ### Scheduled Trigger Perform Code Rules:
 
 - **Output Structure:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
+- **Backend Limit**: Capped at a maximum of 1000 items (or the service's supported limit, whichever is smaller). The perform code must enforce this limit.
 
 **Best Practice Algorithm:**
 Always check if the API natively supports filtering by a start date (e.g., `created_at_min`), updated date, or returning specific output item keys. **If the API supports these native query parameters, use them!** It is the most optimized approach. If the API does *not* support it natively, you must handle the logic on the client side: filtering the latest/updated items, filtering the fields, and sorting the results.

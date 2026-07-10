@@ -162,7 +162,7 @@ The standard field ordering for an Instant Trigger follows this flow:
 - **Sample Code** (Required) - Used to fetch test data for the trigger configuration UI.
 - **Perform Code (Modify response)** (Optional) - Instant Triggers typically do **not** require perform code since the webhook handles data delivery. This is only used to modify the response data from the webhook if needed.
 - **Unsubscribe Code** (Required) - Used to unregister the webhook with the external service.
-- **Transfer Code** (Optional) - Enables bulk transfer of historical data by listing all previous trigger items and sending them to the flow. Users can pull all data from the beginning for triggers like "New Item".
+- **Transfer Code** (Optional) - Enables bulk transfer of historical data by listing all previous trigger items and sending them to the flow. Applicable for the "New Event" trigger only (not for "Update Event" triggers). Users can pull all data from the beginning for triggers like "New Item".
 - See [Perform Code Knowledge Base → Instant Trigger](perform-code.md) for sample code patterns.
 
 
@@ -228,7 +228,10 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 
 ### Scheduled Trigger Perform Code Reference:
 - Scheduled Triggers require **Perform Code** for polling, filtering, sorting, and pagination.
+  - **Output Limit**: The perform code must return an array of items. There is a hard limit of 1000 items in the backend; the perform code must add appropriate limits to ensure the returned array does not exceed 1000 items (or the service's supported limit, whichever is smaller).
 - They also require **Sample Code** for fetching test data or generating fallback schema.
+- They also require **Transfer Code** (Optional) for historical bulk data transfers (applicable for the "New Event" trigger only, not for "Update Event" triggers).
+  - **Transfer Output Limit**: The `data` key in the returned transfer object must contain a maximum of 200 items per batch.
 - See [Perform Code Knowledge Base → Scheduled Trigger](perform-code.md) for detailed rules, pseudo code, and examples.
 
 ### Scheduled Trigger Best Practices:
