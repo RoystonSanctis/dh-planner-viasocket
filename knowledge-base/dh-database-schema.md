@@ -369,6 +369,10 @@ code: String (raw JS body in try-catch parent format, not wrapped in a function;
 
 When a reusable component (new or existing) is used within an action or trigger (e.g., in dropdown fields or code blocks like perform, subscribe, unsubscribe, performlist, or transfer option code), a mapping entry must be created to link the component to the specific action version and path.
 
+> [!WARNING]
+> The mapping API acts as a toggle (boolean behavior): calling the API the first time maps the reusable component to the path, and calling it again with the same parameters unmaps (removes the link) the reusable component from the path.
+
+
 ### Reusable Component Mapping JSON Schema
 ```json
 {

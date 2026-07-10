@@ -325,7 +325,7 @@ Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText,
 - **Reusable Component**:
   - *Create*: `function_name`, `description`, `params: [{name, sample}]` (where the `sample` key contains the parameter's sample value along with its data type; if the value is a string, it must be wrapped in double quotes e.g., `"sample":"\"field ID\""`, and for other types like number, object, boolean, or array, the value is direct/unwrapped), `code` (raw JS in try-catch parent format, not wrapped in a function, params are global), `pluginrecordid`, `function_code` (async JS wrapper function block wrapping the name, parameters, and code), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
   - *Update*: `rowid`, `description`, `function_code` (async JS wrapper function block wrapping the name, parameters, and code), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `code` (raw JS in try-catch parent format, not wrapped in a function, params are global).
-- **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key).
+- **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key). *Note: The mapping API acts as a toggle (boolean behavior) — first call creates mapping, second call with same parameters unmaps/removes mapping.*
 
 # Review
 
