@@ -322,30 +322,50 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 
 ### LIST UX Pattern:
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source).
-2. **Multiselect Dynamic** *(optional)* → Select which fields/properties to include in the response.
-3. **Input Group Static** → Pagination settings (Page Limit dropdown, Start Cursor string).
-4. **AI Field** *(optional)* → Advanced filter conditions.
-5. **Boolean** *(optional)* → Configuration toggles (e.g., include archived items).
+2. **Dropdown Static (Mode)** → Choose the retrieval mode:
+   - **List All**: Retrieve all records (with pagination options).
+   - **Search by... (identifier)**: Search by specific attributes (e.g. Email, Phone, Name).
+   - **Search by ID**: Retrieve a specific record by its unique ID.
+   - **Advance Search**: Provided only when the service supports multiple and advanced query filtering.
+3. **Conditional Fields based on Mode Selection**:
+   - **If Mode is "List All"**:
+     - **Boolean** → "Enable Pagination" toggle.
+     - **Input Group Static** (Conditional: visible when "Enable Pagination" is true) → Contains Page Limit (`limit`) and Start Cursor/Offset (`offset`) fields.
+     - Note: If pagination is disabled ("Fetch All"), the perform code handles client-side internal pagination (auto-looping all pages) to return all records.
+   - **If Mode is "Search by... (identifier)"**:
+     - **String** → Identifier input field (e.g., Search Email, Search Phone, Search Name).
+     - **Pagination Special Case**: If the search identifier is unique (i.e. no multiple entries are possible or the service enforces uniqueness), pagination options are not required. If the search identifier is NOT unique and can return multiple entries, then the pagination options ("Enable Pagination" toggle and Page Limit/Offset fields) must be provided in the UI.
+   - **If Mode is "Search by ID"**:
+     - **String/Dropdown** → Specific Record ID input field.
+     - Note: Pagination options (such as 'Enable Pagination', limit, offset) are not available in 'Search by ID' mode, as it is a direct GET request.
+   - **If Mode is "Advance Search"**:
+     - **AI Field** *(optional)* → Advanced filter conditions.
+4. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned.
 
 ### LIST Common Input Fields:
 - **Dropdown Dynamic** — For selecting the parent resource to list items from.
-- **Multiselect Dynamic** — For selecting which fields to include in the output. Uses Reusable Components in `optionsGenerator`.
-- **Input Group Static** — For grouping pagination settings (page limit, cursor/offset, sort order).
-- **Dropdown Static** — For fixed options like sort direction ("Ascending" / "Descending"), page size.
-- **String** — For pagination cursor or offset values.
-- **Number** — For page limit with a `defaultValue` (e.g., 100).
-- **AI Field** *(optional)* — For complex filter conditions.
+- **Dropdown Static (Mode)** — For choosing between "List All", "Search by... (identifier)", "Search by ID", or "Advance Search".
+- **Boolean** — "Enable Pagination" toggle (shown under Mode: "List All", or under Mode: "Search by... (identifier)" when the search identifier is not unique).
+- **Input Group Static** — For grouping pagination settings (page limit, cursor/offset), only shown when Enable Pagination is true.
+- **String / Number** — For identifier search values, ID input, or pagination settings.
+- **AI Field** — For advanced filter conditions (only shown under Mode: "Advance Search").
+- **Multiselect Dynamic** — Optional field chooser to select which fields/properties to return in the response.
 
 ### LIST Perform Code Reference:
-- LIST actions use `GET` or `POST` requests with query parameters for pagination and filtering.
-- Must handle pagination tokens/page numbers.
+- Code must fork dynamically based on the selected `mode`:
+  - **List All**: If "Enable Pagination" is true, execute a single paginated API request with `limit` and `offset`. If false, implement a client-side loop (internal pagination) using a `while` loop or recursion to fetch all records and return the consolidated list.
+  - **Search by... (identifier)**: Execute the search API using the provided identifier. If pagination is enabled (for non-unique search fields), handle pagination parameters accordingly.
+  - **Search by ID**: Call the get-by-ID API endpoint using the provided record ID.
+  - **Advance Search**: Execute search API with AI-constructed query conditions.
+- If the optional field-selection multiselect is populated, filter the returned response payload to only include selected keys/fields. Otherwise, return all keys.
 - See [Perform Code Knowledge Base → Actions → LIST](perform-code.md) for code patterns.
 
 ### LIST Best Practices:
-- **Always provide pagination controls** — Include Page Limit with a sensible default and a Start Cursor/Offset field.
-- **Group pagination fields** — Use `Input Group Static` to bundle pagination settings.
-- **Default page limit** — Set a reasonable default (e.g., 100) as `defaultValue` on the page limit dropdown.
-- **Field selection** — Offer a Multiselect Dynamic for users to choose which fields to return, reducing payload size.
+- **Combine operations** — Always combine listing ("List All"), searching (by specific identifiers), "Search by ID", and "Advance Search" (if supported) into a single LIST action using a Mode selector.
+- **Conditional pagination** — Offer pagination settings (limit, offset) only when Mode is 'List All' or when Mode is a non-unique search identifier, and "Enable Pagination" is enabled. Do not show pagination options for 'Search by ID' mode.
+- **Client-side pagination** — If Mode is 'List All' (or a non-unique search identifier) and "Enable Pagination" is disabled, the perform code must automatically iterate through all pages (internal pagination) to return all records.
+- **Optional field selection** — Provide an optional multiselect field chooser to specify which fields to return. If left empty, default to returning all fields/keys.
+- **Clear conditional visibility** — Use `visibilityCondition` to display mode-specific inputs (e.g., showing ID input only for "Search by ID", or AI Field only for "Advance Search").
 
 ---
 
@@ -637,7 +657,7 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 
 ### 1. The Unified Action Principle
 Consolidate operations whenever possible to simplify user choice and prevent workflow fragmentation:
-*   **Find + List → Unified Search:** Consolidate listing and lookup endpoints into a single intelligent search action.
+*   **List + Search + Get → Unified LIST Action:** Consolidate listing ("List All"), searching/filtering (by unique identifiers like email, phone, etc.), "Search by ID", and "Advance Search" (if supported) into a single unified LIST action using a Mode dropdown.
 *   **Create + Update → Intelligent Upsert:** Consolidate insertion and editing logic into a single action. Always prefer native Upsert endpoints if available.
 *   **No Manual Choice:** Users should never have to explicitly choose "Create" vs "Update". The system must automatically determine the appropriate behavior through identifier resolution.
 
