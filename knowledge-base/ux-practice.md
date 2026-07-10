@@ -762,22 +762,32 @@ An organized JSON definition of the Input Fields, showing hierarchy, field group
 > Detailed field schemas, option generators, dynamic field builders, and allowed types **MUST** follow the rules defined in the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
 
 ### 4. API Configuration Perform Code
-JavaScript code that maps input fields to the API payload. It **MUST** strictly adhere to the following structure:
+JavaScript code that maps input fields to the API payload. Both of the following structures are fully valid and supported:
 
+**Format 1: Wrapping async function**
+```javascript
+async function <functionName>() {
+  try {
+    // validate required fields; build request from context.inputData; call API
+  } catch (error) {
+    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
+  }
+}
+return await <functionName>();
+```
+
+**Format 2: Direct parent try-catch (no wrapping function)**
 ```javascript
 try {
-  const data = context.inputData;
-  return data;
+  // validate required fields; build request from context.inputData; call API
 } catch (error) {
-  await errorComponent(error);
+  await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
 }
 ```
 
 > [!WARNING]
 > #### Perform Code Constraints:
-> *   The outer `try/catch` block is **mandatory**.
-> *   `return data` must be within the `try` block.
-> *   The variable name **must** be `data` (do not rename it). Do not declare other variables before or after `const data = context.inputData` unless manual key mapping or payload transformations are strictly required due to mismatched field names.
+> *   Either of the two formats above is **mandatory**.
 > *   Authentication values must **never** be hardcoded or managed in the perform code.
 > *   The perform code should focus strictly on payload mapping and request dispatching.
 > *   For full perform code templates, pagination logic, sample API request wrappers, and helper generators, refer to the **[Perform Code Knowledge Base](perform-code.md)**.

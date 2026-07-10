@@ -1217,7 +1217,30 @@ First identify what the action is trying to do: read data, create data, update d
 - **HTTP Request:** Use `axios()` for all HTTP requests.
 - **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
 - **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
-- **Error Handling & Structure:** Wrap all perform code in a `try-catch` block. Both a direct parent-level `try { ... } catch (error) { await errorComponent(error); }` structure and a wrapping async function structure (e.g., `async function run() { try { ... } catch (error) { await errorComponent(error); } } return await run();`) are fully valid and supported. Do not modify the error in the catch block.
+- **Error Handling & Structure:** Wrap all perform code in a `try-catch` block. Both of the following structures are fully valid and supported:
+
+  **Format 1: Wrapping async function**
+  ```javascript
+  async function <functionName>() {
+    try {
+      // validate required fields; build request from context.inputData; call API
+    } catch (error) {
+      await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
+    }
+  }
+  return await <functionName>();
+  ```
+
+  **Format 2: Direct parent try-catch (no wrapping function)**
+  ```javascript
+  try {
+    // validate required fields; build request from context.inputData; call API
+  } catch (error) {
+    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
+  }
+  ```
+  Do not modify the error in the catch block.
+
 
 **Required Field Validation Pattern**
 ```javascript
