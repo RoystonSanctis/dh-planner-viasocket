@@ -808,9 +808,9 @@ Generate a JSON object strictly following the rules below for a boolean field.
 
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
-- Include customInputLabel only if manual/dynamic input mode needs a custom label (e.g. "Enter Boolean Value"). Omit if not applicable
-- Include customPlaceholder only if a placeholder is needed for manual input (such as "true"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. Omit if not applicable. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
-- Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
+- **customInputLabel is required** for manual/dynamic input mode (e.g. "Enter Boolean Value").
+- **customPlaceholder is required** for manual input (such as "true"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
+- **customHelp is required** for manual/dynamic input mode. It is like the `help` key but specifically tells the user what values to enter for the `true` and `false` states (e.g. "Enter 'true' if you want to enable pagination else 'false'").
 
 **8. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
@@ -905,15 +905,15 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         },
                         "customInputLabel": {
                             "type": "string",
-                            "description": "Optional custom label for manual/dynamic input (e.g. 'Enter Boolean Value'). Omit if not applicable."
+                            "description": "Required custom label for manual/dynamic input (e.g. 'Enter Boolean Value')."
                         },
                         "customHelp": {
                             "type": "string",
-                            "description": "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
+                            "description": "Required helper text for manual/dynamic input, explaining when to enter true and false values (e.g., 'Enter \"true\" if you want to enable pagination else \"false\"')."
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Optional placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. Omit if not applicable."
+                            "description": "Required placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. The value must always be a string and wrapped in a string/quotes (e.g., '\"true\"')."
                         },
                         "visibilityCondition": {
                             "type": "string",
@@ -925,7 +925,10 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         "type",
                         "label",
                         "help",
-                        "options"
+                        "options",
+                        "customPlaceholder",
+                        "customInputLabel",
+                        "customHelp"
                     ]
                 }
             }
@@ -994,25 +997,21 @@ schema:
                 description: "The value of the default option (e.g. false, true)."
             required[2]: label,value
           placeholder:
-
-
             type: string
             description: "Optional placeholder text shown before selection. Omit if not applicable."
           customInputLabel:
             type: string
-            description: "Optional custom label for manual/dynamic input (e.g. 'Enter Boolean Value'). Omit if not applicable."
+            description: "Required custom label for manual/dynamic input (e.g. 'Enter Boolean Value')."
           customHelp:
             type: string
-            description: "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
+            description: "Required helper text for manual/dynamic input, explaining when to enter true and false values (e.g., 'Enter \"true\" for Basic and \"false\" for Advance')."
           customPlaceholder:
-
-
             type: string
-            description: "Optional placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. Omit if not applicable."
+            description: "Required placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. The value must always be a string and wrapped in a string/quotes (e.g., '\"true\"')."
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility. Omit if always visible.
-        required[5]: key,type,label,help,options
+        required[8]: key,type,label,help,options,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
 ```
 
@@ -1220,9 +1219,10 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable. The phrasing must guide the user to enter the value (e.g. "Enter Spreadsheet ID...") rather than selecting or choosing it.
-- customInputLabel is required. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID".
-- customPlaceholder is required. Provide a relevant numeric or text example (such as "15" if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"15"`).
+- **help key**: Must focus on selection (e.g. "Select the Spreadsheet from the list.").
+- **customHelp is required**: Explains manual mapping or how/where to find the ID (e.g., "Enter the Spreadsheet ID manually. You can find the ID in the URL of your spreadsheet."). The phrasing must guide the user to enter/paste the value rather than selecting/choosing it.
+- **customInputLabel is required**: If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID".
+- **customPlaceholder is required**: Provide a relevant numeric or text example (such as "15" if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"15"`).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the dropdown depends on another field.
 - Omit if always visible.
@@ -1371,7 +1371,8 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         "help",
                         "options",
                         "customInputLabel",
-                        "customPlaceholder"
+                        "customPlaceholder",
+                        "customHelp"
                     ]
                 }
             }
@@ -1467,7 +1468,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: An optional extra value for the default option. Omit if not needed.
             required[3]: label,value,sample
-        required[7]: key,type,label,help,options,customInputLabel,customPlaceholder
+        required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
 
@@ -1730,9 +1731,10 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable. The phrasing must guide the user to enter the value (e.g. "Enter Column Name...") rather than selecting or choosing it.
-- customInputLabel is required. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array").
-- customPlaceholder is required. Provide a relevant array example (such as "[\"markdown\",\"block\"]" or "[\"first_name\",\"email\"]"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"[\"markdown\",\"block\"]"`).
+- **help key**: Must focus on selection (e.g. "Select the fields to include in the output.").
+- **customHelp is required**: Explains manual mapping or formatting guidelines (e.g., "Enter fields ids in array manually."). The phrasing must guide the user to enter/paste the value rather than selecting/choosing it.
+- **customInputLabel is required**: Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array").
+- **customPlaceholder is required**: Provide a relevant array example (such as "[\"markdown\",\"block\"]" or "[\"first_name\",\"email\"]"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"[\"markdown\",\"block\"]"`).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the multiselect depends on another field.
 - Omit if always visible.
@@ -1865,7 +1867,8 @@ Generate a JSON object strictly following the rules below for a static multisele
                         "help",
                         "options",
                         "customInputLabel",
-                        "customPlaceholder"
+                        "customPlaceholder",
+                        "customHelp"
                     ]
                 }
             }
@@ -1957,7 +1960,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[7]: key,type,label,help,options,customInputLabel,customPlaceholder
+        required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
 
@@ -3044,7 +3047,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
 - **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined, wrapped in a parent `try-catch` block with `await errorComponent(error);` in the `catch` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`). Similarly, if a Reusable Component is used, the invocation must be wrapped in a parent `try-catch` block, and the `catch` block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`).
 - Ensure that properties related to dynamic behavior, like `canPaginate` and `enableSearchApi`, are configured correctly based on whether the endpoint supports pagination offsets or search query parameters.
-- Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included for the manual input mode. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes.
+- All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included for the manual input mode. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes. The `help` key must focus on selection, and `customHelp` must guide the user to enter the manual value/ID.
 - **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (e.g., `[{label, value, sample}]` or `{data: [{label, value, sample}], offset: ...}`). MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 
 ### Dropdown Dynamic JSON Schema:
@@ -3161,7 +3164,8 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         "help",
                         "optionsGenerator",
                         "customPlaceholder",
-                        "customInputLabel"
+                        "customInputLabel",
+                        "customHelp"
                     ]
                 }
             }
@@ -3247,7 +3251,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
             required[3]: label,value,sample
-        required[7]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel
+        required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
 ```
 
@@ -3647,7 +3651,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 - **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined, wrapped in a parent `try-catch` block with `await errorComponent(error);` in the `catch` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`). Similarly, if a Reusable Component is used, the invocation must be wrapped in a parent `try-catch` block, and the `catch` block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`).
-- A proper manual input option must be configured. Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. `customInputLabel` must guide the user on what manual input is expected. Optionally provide `customHelp` to guide the user in array input formatting.
+- A proper manual input option must be configured. All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. `customInputLabel` must guide the user on what manual input is expected. `customHelp` must guide the user in array input formatting and manual mapping. The `help` key must focus on selection, and `customHelp` must focus on entering the manual value/ID.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
 ### Multi Select Dynamic JSON Schema:
@@ -3749,7 +3753,8 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         "help",
                         "optionsGenerator",
                         "customPlaceholder",
-                        "customInputLabel"
+                        "customInputLabel",
+                        "customHelp"
                     ]
                 }
             }
@@ -3828,7 +3833,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[7]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel
+        required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
   ```
 ### Multi Select Dynamic Examples:

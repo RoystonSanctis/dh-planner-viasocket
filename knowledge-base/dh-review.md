@@ -47,12 +47,12 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 
 ### P2 — UX
 - **Simplicity First**: Required fields first. Group optionals. Use `defaultValue` on required dropdowns. Auto-detect formats instead of asking. Flag complex UX with concrete simpler alternatives.
-- **Help and Placeholders**: `help` must always be available (present) in all fields. `placeholder` must be available in `string`, `number`, `html`, and `markdown` fields; it is optional in `dropdown`, `multiselect`, and `boolean` fields. However, `customPlaceholder` must always be included for those three types.
+- **Help and Placeholders**: `help` must always be available (present) in all fields. `placeholder` must be available in `string`, `number`, `html`, and `markdown` fields; it is optional in `dropdown`, `multiselect`, and `boolean` fields. However, `customPlaceholder`, `customInputLabel`, and `customHelp` are mandatory/must always be included for those three types.
 
 ### P3 — Text & Consistency
 - **Help text**: Short, plain, non-technical. Do not flag length of static/dynamic `type: "help"` panels, only normal fields.
 - **Casing**: `label` must be Title Case (clean & generic labels: e.g. "Select Board", NOT "Select Trello Board"). `help`, `placeholder`, and errors must be sentence case (do not Title-Case).
-- **Custom Keys**: `customHelp`, `customInputLabel`, and `customPlaceholder` are valid ONLY on dropdown, multiselect, and boolean (flag elsewhere). In `customHelp`, the phrasing must guide the user to enter the value manually (e.g. `"Enter value..."` or `"Enter ID..."`) rather than selecting/choosing it.
+- **Custom Keys**: `customHelp`, `customInputLabel`, and `customPlaceholder` are valid ONLY on dropdown, multiselect, and boolean (flag elsewhere) and are mandatory for these fields. In `customHelp`, the phrasing must guide the user to enter the value manually (e.g. `"Enter value..."` or `"Enter ID..."`) rather than selecting/choosing it. For dropdown and multiselect fields, the `help` key must focus on option selection, whereas `customHelp` must focus on entering the manual value/ID.
 - **Consistency**: Scan for typos, trailing spaces, and mismatches with sibling actions.
 ---
 
