@@ -328,7 +328,7 @@ Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText,
 - **Tool usage (`create_update_map_Reusable_components`)**: Use this tool to create, update, or map reusable components.
   - **Map**: Requires `actionVersionRowId`, `path` and `component_id`.
   - **Create**: Do not send `component_id` or `path`. Requires `function_name`, `params`, `code`, and `description`.
-  - **Update**: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`). Do not change `function_name`.
+  - **Update**: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`). Do not change the `function_name` or `params` if the reusable component is used (mapped/active) anywhere. If the component is not used anywhere, then the `function_name` and `params` can be updated. If the `params` and `code` both need to be updated (and the component is used), then a new component must be created. If only the `code` needs to be updated (even if the component is used), the existing component's `code` can be updated directly.
 
 # Generator Returns
 | Generator | Return |
