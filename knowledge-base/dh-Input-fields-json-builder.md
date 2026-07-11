@@ -128,7 +128,7 @@ The input fields, which are static, have fixed values. The depends on other feil
 
 **String | Date | Number | HTML | Markdown Purpose:**
 - A String is a basic input type used to capture plain text values such as names, titles, identifiers, or short descriptions. It is suitable when the input is textual and does not require numeric calculation or formatting.
-- A Date input type is used to capture calendar-based values such as dates, times, or date-time combinations. It ensures the input follows a valid date or time format.
+- A Date input type (`type: "date"`) is used to capture calendar-based values such as dates, times, or date-time combinations that match one of the four supported date formats. It parses and formats the input strictly according to the specified `dateFormat` before passing it to the perform code.
 - A Number input type is used to capture numeric values such as amounts, prices, counts, quantities, or any value that may be used in calculations or comparisons.
 - An HTML input type is used to capture rich text content that includes HTML tags. It is suitable when the input needs structured formatting and the HTML is required in the payload.
 - A Markdown input type is used to capture formatted text using Markdown syntax. It is ideal for content that needs lightweight formatting such as headings, lists, links, or emphasis.
@@ -138,7 +138,12 @@ Generate a JSON object strictly following the rules below.
 
 **When to Use**
 - Use **string** when capturing plain text values such as names, titles, identifiers, or short descriptions.
-- Use **string** (not a date type) when capturing date, time, or date-time values that must follow a specific format.
+- Use **date** when capturing date, time, or date-time values where the required format is one of the supported date formats:
+  1. `YYYY-MM-DDTHH:mm:ssZ`
+  2. `YYYY-MM-DD HH:mm:ss Z`
+  3. `MM-DD-YYYY HH:mm:ss Z`
+  4. `MM-DD-YYYY HH:mm:ss`
+- Use **string** (not a date type) when capturing date, time, or date-time values that require formats *other* than the four supported formats above.
 - Use **number** when capturing numeric values such as amounts, prices, counts, or quantities that may be used in calculations or comparisons.
 - Use **html** when the input requires rich text content with HTML tags and structured formatting.
 - Use **markdown** when the input requires lightweight formatted text using Markdown syntax (headings, lists, links, emphasis).
@@ -148,39 +153,48 @@ Generate a JSON object strictly following the rules below.
 - key must not contain a dot (.).
 
 **2. Type Selection**
-- If fieldPurpose contains date, time, DOB → type: "string"
+- If fieldPurpose contains date, time, DOB:
+  - If the required format is one of the supported date formats (listed above) → type: "date" and specify `dateFormat`.
+  - Otherwise → type: "string" (with clear instructions/warning in the help text).
 - If it contains amount, price, count, quantity, number → type: "number"
 - If the field supports HTML → type: "html"
 - If the field supports Markdown → type: "markdown"
 - Otherwise → type: "string"
 
-**3. Label, Help, Placeholder**
-- label: Clean, human-readable version of fieldPurpose
-- help: Clearly explain what the user should enter
-- placeholder: Provide a realistic example relevant to the purpose. The value must always be a string; even for number fields, the placeholder value must be wrapped in a string (e.g. `"10"`).
+**3. Date Field Format Rules**
+- If type is **date**, you must define the `dateFormat` key using one of the four supported formats.
+- Difference between `type: "date"` and `type: "string"`:
+  - In `string` fields, the raw input enters the perform code as-is.
+  - In `date` fields, only the formatted date strictly matching the `dateFormat` is returned in the perform code.
+  - The input is expected to match the `dateFormat` format. Hence, the `placeholder` key **must** contain an example date value formatted exactly as the specified `dateFormat`.
 
-**4. Required Rule**
+**4. Label, Help, Placeholder**
+- label: Clean, human-readable version of fieldPurpose
+- help: Clearly explain what the user should enter. For date fields, note the expected format.
+- placeholder: Provide a realistic example relevant to the purpose. The value must always be a string; even for number or date fields, the placeholder value must be wrapped in a string (e.g. `"10"`, or `"07-11-2026 12:00:00"` for `"MM-DD-YYYY HH:mm:ss"`).
+
+**5. Required Rule**
 - Set required: true if fieldPurpose implies mandatory input
 - (e.g. name, email, amount, date)
 - Otherwise set required: false
 
-**5. Visibility Condition Rule**
+**6. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
 - Do not include this key otherwise
 
-**6. List Rule**
+**7. List Rule**
 - Set list: true if the user preconfigures multiple values as an array during setup
 - Set list: false if the value is single or needs to be dynamic later (comma-separated input allowed or multiple values allowed as an array)
   - Example : `[ "Option 1", "Option 2", "Option 3" ]` or `Option 1, Option 2, Option 3`
 
-**7. Limit Rule**
+**8. Limit Rule**
 - Set limit to a number representing the maximum number of list entries allowed.
 - Include limit only if list is true. Omit this key otherwise.
 
 > [!NOTE]
 > Refer to -> **Special Note: `list` and `limit` usage in the text and number field types**.
 
-**8. Output Constraint**
+**9. Output Constraint**
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
@@ -199,7 +213,7 @@ Generate a JSON object strictly following the rules below.
             },
             "type": {
                 "type": "string",
-                "enum": ["string", "number", "html", "markdown"],
+                "enum": ["string", "date", "number", "html", "markdown"],
                 "description": "The type of input field."
             },
             "label": {
@@ -212,7 +226,7 @@ Generate a JSON object strictly following the rules below.
             },
             "placeholder": {
                 "type": "string",
-                "description": "An example value relevant to the purpose."
+                "description": "An example value relevant to the purpose. Must be wrapped in a string."
             },
             "required": {
                 "type": "boolean",
@@ -233,6 +247,16 @@ Generate a JSON object strictly following the rules below.
             "defaultValue": {
                 "type": "string",
                 "description": "The default value. Omit if none."
+            },
+            "dateFormat": {
+                "type": "string",
+                "enum": [
+                    "YYYY-MM-DDTHH:mm:ssZ",
+                    "YYYY-MM-DD HH:mm:ss Z",
+                    "MM-DD-YYYY HH:mm:ss Z",
+                    "MM-DD-YYYY HH:mm:ss"
+                ],
+                "description": "Required when type is 'date'. The format the date field expects and returns."
             }
         },
         "required": [
@@ -257,7 +281,7 @@ schema:
       description: The unique identifier for the field. MUST NOT contain a dot (.).
     type:
       type: string
-      enum[4]: string,number,html,markdown
+      enum[5]: string,date,number,html,markdown
       description: The type of input field.
     label:
       type: string
@@ -285,6 +309,10 @@ schema:
     defaultValue:
       type: string
       description: The default value. Omit if none.
+    dateFormat:
+      type: string
+      enum[4]: YYYY-MM-DDTHH:mm:ssZ,YYYY-MM-DD HH:mm:ss Z,MM-DD-YYYY HH:mm:ss Z,MM-DD-YYYY HH:mm:ss
+      description: Required when type is 'date'. The format the date field expects and returns.
   required[4]: key,type,label,help
 ```
 
@@ -376,6 +404,15 @@ schema:
     "help": "Enter the content for the file. You can use Markdown syntax for formatting.",
     "placeholder": "# My Project\n\nThis is the readme content...",
     "required": true
+  },
+  {
+    "key": "created_date",
+    "type": "date",
+    "label": "Created Date",
+    "help": "Enter the creation date. Must follow the format: MM-DD-YYYY HH:mm:ss",
+    "required": true,
+    "placeholder": "07-11-2026 12:00:00",
+    "dateFormat": "MM-DD-YYYY HH:mm:ss"
   }
 ]
 ```
@@ -446,6 +483,13 @@ schema:
     help: Enter the content for the file. You can use Markdown syntax for formatting.
     placeholder: "# My Project\n\nThis is the readme content..."
     required: true
+  - key: created_date
+    type: date
+    label: Created Date
+    help: "Enter the creation date. Must follow the format: MM-DD-YYYY HH:mm:ss"
+    required: true
+    placeholder: 07-11-2026 12:00:00
+    dateFormat: MM-DD-YYYY HH:mm:ss
 ```
 
 ## Dictionary
