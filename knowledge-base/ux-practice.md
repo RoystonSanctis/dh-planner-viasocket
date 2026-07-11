@@ -714,6 +714,14 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 *   **customHelp Writing Guidelines:** Focus on business meaning and explain what the user should provide rather than how the system stores it. Avoid explaining internal IDs or instructing users to copy task IDs from browser URLs.
     *   *Good:* `"Select the parent task under which the subtask should be created."`
     *   *Bad:* `"Open Asana, copy the task ID from the URL, and paste it here."`
+*   **Custom Mapping Behavior (Dropdown, Multiselect & Boolean):**
+    Ensure these fields support both standard selection mode and custom mapping mode:
+    *   *Standard Mode*: The field renders as a selection component (dropdown, list, or toggle switch) showing the standard `label`, `help`, and optional `placeholder`. If `placeholder` is omitted, the backend automatically defaults to `"Choose {{field label}}"`.
+    *   *Custom Mapping Mode*: When toggled, the field switches to a plain `string` input field showing:
+        *   `customInputLabel` in place of the standard `label` (required/mandatory; must be very short).
+        *   `customHelp` in place of the standard `help` (required/mandatory; must be detailed, guiding the user to enter the manual value/ID rather than choosing it).
+        *   `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
+    *   *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided.
 
 ### 5. Structural Constraint Handling
 *   If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.

@@ -114,6 +114,7 @@ published: true
       - Example 1: Generic Example (Static Fields & Input Groups)
       - Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
   - Special Note: `required` key in the input fields
+  - Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
 
 # DH Input Fields Knowledge Base
 
@@ -808,9 +809,9 @@ Generate a JSON object strictly following the rules below for a boolean field.
 
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
-- **customInputLabel is required** for manual/dynamic input mode. **It must be very short** (e.g. `"Enter Pagination Option"`).
-- **customPlaceholder is required** for manual input (such as `"true"`). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
-- **customHelp is required** for manual/dynamic input mode. **It must be detailed** (e.g. `"Enter 'true' to paginate results, or 'false' to fetch all users."`). It is like the `help` key but specifically explains when/what values to enter for the `true` and `false` states.
+- **customInputLabel is always required/mandatory**: **It must be very short** (e.g. `"Enter Pagination Option"`).
+- **customPlaceholder is always required/mandatory**: Provide a relevant value sample (such as `"true"`). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
+- **customHelp is always required/mandatory**: **It must be detailed** (e.g. `"Enter 'true' to paginate results, or 'false' to fetch all users."`). It is like the `help` key but specifically explains when/what values to enter for the `true` and `false` states.
 
 **8. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
@@ -4797,4 +4798,17 @@ The following example illustrates how `dependsOn` is populated for dynamic field
 - **Dependent Required Fields:** If an optional parent field is selected/provided, and it reveals a dependent child field that is required for that specific selection, the child field **MUST** be marked as `required: true`. Additionally, the **perform code** must explicitly evaluate and enforce this requirement, throwing an error if the parent is provided but the required child field is missing.
 > [!NOTE]
 > **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
+
+## Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
+For `dropdown`, `multiselect`, and `boolean` fields, the user experience involves two modes in the UI:
+1. **Standard Mode (Dropdown/Toggle Selection)**:
+   - The user sees the standard **Label**, **Help**, and **Placeholder** (optional: if omitted, the backend defaults to `"Choose {{field label}}"`; if provided, it overrides this default).
+2. **Custom Mapping Mode**:
+   - When the user switches to custom mapping, the field becomes a plain text `string` input field.
+   - The UI then shows:
+     - `customInputLabel` in place of the standard `label` (this is the label shown for custom mapping, e.g. `"Enter Spreadsheet ID"`, `"Enter Boolean Value"`).
+     - `customHelp` in place of the standard `help` (explaining how to manually fetch the ID/value or detailing true/false outcomes).
+     - `customPlaceholder` in place of the standard `placeholder` (acting as the placeholder for the string input, and must represent a concrete value sample e.g., `"true"`, `"false"`, or a specific ID).
+3. **Mandatory Keys**:
+   - `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** keys for all `boolean`, `dropdown`, and `multiselect` fields (both static and dynamic).
 
