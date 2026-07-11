@@ -187,7 +187,7 @@ Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Bu
 |---|---|
 | `__executionStartTime__` | Scheduled Perform — run timestamp. Lookback: `new Date(__executionStartTime__ - scheduledTime*60000)` |
 | `context.inputData.scheduledTime` | Scheduled — interval (min) |
-| `context.paginationData` | Scheduled cursor across runs (init `0`/`null`; requires pagination enabled in UI). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks the loop. **Reassigning to `0`/`null` resets to start.** **CRITICAL WARNING:** NEVER assign `null`, `0`, or clear `context.paginationData` in an `else` block or when there are no more pages. Simply do NOT reassign or modify `context.paginationData` to stop the loop. |
+| `context.paginationData` | Scheduled cursor/state across runs (init `0`/`null`; requires pagination enabled in UI). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks loop. For multi-item inputs (via multiselect or `list:true` in `string`/`number` fields), structure as an object `{ cursors: { [itemId]: cursor }, activeForms: [itemId] }` to avoid pagination bleed. **Reassigning to `0`/`null` resets to start.** **CRITICAL WARNING:** NEVER assign `null`, `0`, or clear `context.paginationData` in an `else` block. Simply do NOT reassign or modify `context.paginationData` to stop the loop. |
 | `context.paginateData['<field>']` | Dynamic dropdown/multiselect `optionsGenerator` token. Group: `['group.field']`; nested: path order. |
 | `__searchText` | Generators when `enableSearchApi:true` |
 | `context.inputData.transferOption.offset` | Transfer |
@@ -257,6 +257,21 @@ Time window (all variants): `const t = new Date(__executionStartTime__ - (contex
   ```javascript
   if (filteredData.length !== 0 && response?.data?.next_cursor) {
       context.paginationData = response.data.next_cursor;
+  }
+  ```
+- **Multi-item Pagination Pattern**: If the input accepts multiple items (either via `list: true` in `string` or `number` fields, or as a `multiselect` field) and each item has separate pagination, track active items and cursors explicitly as an object to prevent bleed:
+  ```javascript
+  const activeForms = context?.paginationData?.activeForms || formIds;
+  const previousPagination = context?.paginationData?.cursors || {};
+  // ... loop & call API per item with previousPagination[formId] ...
+  // Only advance pagination for items that had new results AND a next cursor
+  if (newResultsFound && nextCursor) {
+      nextPagination[formId] = nextCursor;
+      nextActiveForms.push(formId);
+  }
+  // Only update paginationData if at least one item needs to continue paginating
+  if (nextActiveForms.length > 0) {
+      context.paginationData = { cursors: nextPagination, activeForms: nextActiveForms };
   }
   ```
 

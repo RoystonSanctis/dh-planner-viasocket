@@ -310,6 +310,23 @@ If enabled and the API supports pagination, use the global variable `context?.pa
 > [!CRITICAL]
 > **NEVER** write code like `else { context.paginationData = null; }` or reset/clear it when pagination ends. To stop the loop, simply do not assign/reassign anything to `context.paginationData` (doing nothing lets the loop end naturally). Re-assigning `0` or `null` will reset pagination completely back to the start and cause infinite loops.
 
+- **Multi-item Pagination (Avoiding Bleed):**
+  If pagination is enabled and the input accepts multiple items (either via `list: true` in `string` or `number` fields, or as a `multiselect` field, e.g., a list of Form IDs), and each item has its own separate pagination:
+  1. Do not store a single cursor directly in `context.paginationData`.
+  2. Structure `context.paginationData` as an object to track active items/forms and their respective cursors explicitly:
+     ```javascript
+     context.paginationData = {
+       cursors: { [itemId]: nextCursor },
+       activeForms: [itemId1, itemId2, ...]
+     };
+     ```
+  3. Track active items and their cursors across ticks:
+     ```javascript
+     const activeForms = context?.paginationData?.activeForms || inputFormIds;
+     const previousPagination = context?.paginationData?.cursors || {};
+     ```
+  4. Only reassign/update `context.paginationData` at the end if at least one form/item needs to continue paginating (i.e. has more pages). If no forms/items have more pages, do not reassign or modify `context.paginationData` to stop the loop naturally.
+
 #### Scheduled Trigger Perform Code Patterns:
 
 ##### 1. Fetching New Items from an API with pagination
@@ -843,6 +860,123 @@ try {
 } catch (error) {
   await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
+```
+
+##### Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
+- **Service:** Facebook Leads
+- **Trigger:** New Lead Created
+- **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
+
+```javascript
+async function pollNewLeads() {
+  try {
+    const selectedPage = context?.inputData?.page_id;
+    const formIds = context?.inputData?.form_id;
+
+    if (!selectedPage) {
+      throw new Error("Page is required.");
+    }
+
+    if (!Array.isArray(formIds) || formIds.length === 0) {
+      throw new Error("At least one Lead Form is required.");
+    }
+
+    // Get Page Access Token
+    const {
+      accessToken: pageAccessToken,
+      isPermission,
+    } = await getAccessToken(selectedPage, []);
+
+    if (!isPermission || !pageAccessToken) {
+      throw new Error(
+        "You don't have permission to access leads for this page."
+      );
+    }
+
+    const minutesAgo = new Date(
+      __executionStartTime__ -
+        (context?.inputData?.scheduledTime || 15) * 60 * 1000
+    );
+
+    // Track active forms and their cursors explicitly to prevent multi-form pagination bleed
+    const activeForms = context?.paginationData?.activeForms || formIds;
+    const previousPagination = context?.paginationData?.cursors || {};
+    const nextPagination = {};
+    const nextActiveForms = [];
+    const allLeads = [];
+
+    const fields =
+      "created_time,id,field_data,ad_id,ad_name,form_id,campaign_id,campaign_name,adset_id,adset_name,is_organic,platform";
+
+    for (const formId of activeForms) {
+      if (!formId || formId === "0") {
+        continue;
+      }
+
+      const params = {
+        access_token: pageAccessToken,
+        fields,
+        limit: 100,
+      };
+
+      if (previousPagination[formId]) {
+        params.after = previousPagination[formId];
+      }
+
+      const response = await axios.get(
+        `https://graph.facebook.com/v24.0/${formId}/leads`,
+        { params }
+      );
+
+      const leads = response.data?.data || [];
+      let newLeadsFoundInThisForm = false;
+
+      for (const lead of leads) {
+        const transformedLead = { ...lead };
+
+        if (Array.isArray(lead.field_data)) {
+          lead.field_data.forEach((field) => {
+            transformedLead[field.name] =
+              Array.isArray(field.values) && field.values.length > 0
+                ? field.values[0]
+                : "";
+          });
+          delete transformedLead.field_data;
+        }
+
+        if (new Date(transformedLead.created_time) >= minutesAgo) {
+          allLeads.push(transformedLead);
+          newLeadsFoundInThisForm = true;
+        }
+      }
+
+      const nextCursor = response.data?.paging?.cursors?.after;
+
+      // Only advance pagination for THIS form if it yielded new leads AND has a next page token
+      if (newLeadsFoundInThisForm && nextCursor) {
+        nextPagination[formId] = nextCursor;
+        nextActiveForms.push(formId);
+      }
+    }
+
+    // Update pagination only if at least one form needs to continue paginating
+    if (nextActiveForms.length > 0) {
+      context.paginationData = {
+        cursors: nextPagination,
+        activeForms: nextActiveForms,
+      };
+    }
+
+    return allLeads.sort(
+      (a, b) => new Date(a.created_time) - new Date(b.created_time)
+    );
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await pollNewLeads();
 ```
 
 ### Schedule Trigger Sample Code:

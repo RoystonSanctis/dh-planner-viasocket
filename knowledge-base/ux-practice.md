@@ -243,6 +243,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 - **Default values matter** — Provide sensible defaults for filter types (e.g., `defaultValue: Basic`).
 - **AI Field for complex filters** — When a service supports complex query syntax (like Notion's filter API), use an AI Field with a `suggestionGenerator` that fetches the schema.
 - **Clean labels** — Use "Select Data Source" not "Select Notion Data Source".
+- **Multi-item Pagination**: If pagination is enabled and the input accepts multiple items (either as a `multiselect` field, or via `list: true` in `string` or `number` fields, e.g. selecting multiple Form IDs), and each item has separate pagination, track active items and cursors explicitly as an object in `context.paginationData` to prevent pagination bleed across items.
 
 ---
 
