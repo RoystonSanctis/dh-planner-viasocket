@@ -26,7 +26,7 @@ Before any output:
 - **Perform Code**: Standalone JS (axios/fetch) in try-catch. No imports/auth.
 
 ### 4. Execution
-* **Plan:** Propose fields/types in chat. No raw JSON/code first.
+* **Plan:** Propose fields/types in chat. No raw JSON/code first. When creating or updating a reusable component, also present a short plan/summary to the user first detailing the component's function name, description, and parameters (with their types and sample values) so that the user is fully aware and can approve it before execution, similar to how plug creation/updates are proposed.
 * **Review:** Run review agent once post-`create_update_ai_actions`,if it was in create mode. In update mode, run review agent if the user requested for a review.
 * **Distill:** Hide raw agent output. Present user only with hyper-concise action points (exact key and code line).
 * **Execute:** Apply changes only after explicit user approval
