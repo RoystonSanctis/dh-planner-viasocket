@@ -280,7 +280,8 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 ### Scheduled Trigger Perform Code Rules:
 
 - **Output Structure:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
-- **Backend Limit**: Capped at a maximum of 1000 items (or the service's supported limit, whichever is smaller). The perform code must enforce this limit.
+- **Backend Limit**: Capped at a maximum of 1000 items per single page request. If the service's API supports a limit/page size larger than 1000, the perform code must cap it at 1000 (or less). If the service's maximum limit is smaller than 1000 (e.g. 100), the perform code must use that smaller limit.
+- **Single Page Fetch (No Internal Pagination):** In the Scheduled Trigger perform code, do **not** implement internal client-side loops (like `while` or recursion) to fetch multiple pages or accumulate up to 1000 items in a single run. Each execution of the perform code must fetch only a **single page** of data. To handle pagination across runs/ticks, use the built-in engine pagination feature (`canpaginate: true` in config and updating `context.paginationData` with the next cursor/page-number). For example, if a service like Notion returns 100 items per page, fetch exactly 100 items in a single run, set `context.paginationData` to the next cursor, and return those 100 items.
 
 **Best Practice Algorithm:**
 Always check if the API natively supports filtering by a start date (e.g., `created_at_min`), updated date, or returning specific output item keys. **If the API supports these native query parameters, use them!** It is the most optimized approach. If the API does *not* support it natively, you must handle the logic on the client side: filtering the latest/updated items, filtering the fields, and sorting the results.
