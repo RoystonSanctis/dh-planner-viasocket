@@ -327,14 +327,14 @@ try {
 }
 ```
 Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText, context?.paginateData?.['my_field'], 100); } catch (error) { await errorComponent(error); }` — map the component's `id` correctly.
-- **Tool usage (`create_update_map_Reusable_components`)**: Use this tool to create, update, or map reusable components. Always search/look for an existing reusable component before creating a new one.
-  - **Map**: Requires `actionVersionRowId`, `path` and `component_id`.
-  - **Create**: Do not send `component_id` or `path`. Requires `function_name`, `params`, `code`, and `description`.
-  - **Update**: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`).
+- **Reusable Component Operations (Creation, Mapping, and Updates):** Always search/look for an existing reusable component before creating a new one.
+  - **Mapping**: Link the reusable component to a specific action version and path (requires `actionVersionRowId`, `path` and `component_id`).
+  - **Creation**: Requires `function_name`, `params`, `code`, and `description`. Do not map to a path or pass a component ID during creation.
+  - **Updates**: Requires `component_id` and the fields to update (`params`, `code`, or `description`).
   - **Reuse & Update Protocol**:
     - If a suitable reusable component is already present, reuse it.
     - If the found component is missing required parameters: Do not modify its parameters (as this is prohibited if it is mapped/active elsewhere). Instead, explicitly inform the user that a component is already present, but suggest/propose creating a new reusable component to accommodate the additional parameters without breaking existing mappings.
-    - If the existing component's parameters are already satisfied, but the component's code needs to be updated: Update the existing component's code directly using the update tool, and inform the user that the update is happening on the existing reusable component.
+    - If the existing component's parameters are already satisfied, but the component's code needs to be updated: Update the existing component's code directly, and inform the user that the update is happening on the existing reusable component.
     - Do not change the `function_name` or `params` if the reusable component is used (mapped/active) anywhere. If the component is not used anywhere, then the `function_name` and `params` can be updated. If the `params` and `code` both need to be updated (and the component is used), then a new component must be created. If only the `code` needs to be updated (even if the component is used), the existing component's `code` can be updated directly.
 
 # Generator Returns
