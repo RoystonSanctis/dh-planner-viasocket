@@ -172,17 +172,40 @@ C. Webhook data contains nested object format. Now need to flatten the nested ob
 > **Note the return structure support object and array of objects. When sent array of object the flow will automatically iterate through the array and execute the next steps for each item in the array.**
 
 **How it works**
-1. The Perform Code block receives the data from the webhook.
-2. It modifies the data in the format you need.
-3. It returns the modified data to the flow.
+1. The webhook payload (data sent by the external service) is accessed using the input path:
+   `const rawPayload = context?.req?.body;`
+2. The Perform Code block (`modifytriggerdata`) processes or modifies this data. For example, if it contains only an ID, you use that ID to fetch the full record from the service's API.
+3. The modified/fetched data is returned to the flow.
 
 > [!NOTE]
-> **When user cliks test button on the UI the sample code executes and the response of the sample code will be the input of the perform code, if perform code present then perform code process and sends data to the flow. If no perform code present then the sample code response will be the input of the next steps in the flow.** 
+> **When user clicks test button on the UI, the sample code executes and the response of the sample code will be the input of the perform code. If perform code is present, then perform code processes and sends data to the flow. If no perform code is present, then the sample code response will be the input of the next steps in the flow.** 
 
 **Example A:**
-
 ```javascript
+try {
+  // 1. Access the webhook payload containing only the record ID
+  const rawPayload = context?.req?.body;
+  const recordId = rawPayload?.id;
 
+  if (!recordId) {
+    throw new Error("No ID found in the webhook payload");
+  }
+
+  // 2. Fetch full data from the API using the ID
+  const response = await axios({
+    method: "GET",
+    url: `https://api.service.com/records/${recordId}`,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+
+  // 3. Return the full data to the flow
+  return response.data;
+
+} catch (error) {
+  await errorComponent(error);
+}
 ```
 
 
