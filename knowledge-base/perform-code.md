@@ -30,6 +30,7 @@ published: true
   - Manual Trigger
     - Manual Trigger Perform Code Rules:
     - Manual Trigger Perform Code Pattern:
+    - Manual Trigger Perform Code (Modify data before send to flow) Rules:
     - Manual Trigger Sample Code Pattern:
 - Actions
   - Action Perform Code Rules:
@@ -1319,33 +1320,54 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 - When real-time, immediate data processing is required.
 
 ### Manual Trigger Perform Code Rules:
-- Manual Triggers has **no API call** supports Perform code (Optional: Modify data before sending it to the workflow).
+- Manual Triggers support **Perform Code (Modify data before send to flow) / modifytriggerdata** block to transform/modify the incoming webhook payload before sending it to the workflow.
 - No scheduling logic, no `__executionStartTime__`, no pagination state.
 
-### Manual Trigger Perform Code Pattern:
+### Manual Trigger Perform Code (Modify data before send to flow) Rules:
+
+**Simple understanding**
+- The Perform Code block (`modifytriggerdata`) is used to modify/transform the manual webhook data before sending it to the workflow. If the manual webhook payload is already well-structured and contains all the required information, you can omit/skip this block.
+
+**When to use**
+- When the manual webhook payload is not in the format you need for the workflow, such as:
+  - **A. Webhook contains only an ID:** If the webhook sends a payload containing only a record/item ID, use the perform modify code to fetch the full record from the service's API and return the full data.
+  - **B. Webhook sends an array of IDs:** Fetch details for each individual ID and return them as an array of objects (so the workflow can automatically iterate through each item).
+  - **C. Webhook contains nested objects:** Flatten the nested properties and return a flat object.
+
+**How it works**
+1. The manual webhook raw payload is accessed using the input path:
+   `const rawPayload = context?.req?.body;`
+2. The Perform Code block (`modifytriggerdata`) processes, transforms, or fetches additional details using this payload.
+3. The modified/returned data is sent to the workflow.
+
+> [!NOTE]
+> **When the user clicks the test button on the UI, the sample code (`performlist`) executes, and its response serves as the input to the perform modify code (`modifytriggerdata`). If `modifytriggerdata` is present, it processes and sends the final data to the workflow. Otherwise, the raw sample code response is passed directly to the next workflow steps.**
+
+**Example:**
 ```javascript
 try {
-  // Step 1: Read input data from UI form
-  const inputValue = context.inputData.<input_key>;
-  const resourceId = context.inputData.<resource_key>;
+  // 1. Access the raw webhook body containing the ID
+  const rawPayload = context?.req?.body;
+  const recordId = rawPayload?.id;
 
-  // Step 2: Make the API request
+  if (!recordId) {
+    throw new Error("No ID found in the webhook payload");
+  }
+
+  // 2. Fetch full data from the API using the ID
   const response = await axios({
-    url: `<api_base_url>/<endpoint>`,
-    method: 'GET', // or POST depending on the action
+    method: "GET",
+    url: `https://api.service.com/records/${recordId}`,
     headers: {
-      'Content-Type': 'application/json'
-    },
-    params: {
-      // Map input data to query params if needed
+      "Content-Type": "application/json"
     }
   });
 
-  // Step 3: Return the response
+  // 3. Return the full data to the workflow
   return response.data;
 
 } catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+  await errorComponent(error);
 }
 ```
 
