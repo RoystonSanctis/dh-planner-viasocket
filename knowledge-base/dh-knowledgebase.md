@@ -46,13 +46,21 @@ Plug = **Triggers** (start workflows) + **Actions** (do things). Each = **Input 
 | Scheduled (`polling`) | No webhook — poll at interval | Sample (`performlist`), Perform(poll) (`perform`), Transfer (`transferoption`) |
 | Manual (`manual_webhook`) | Webhooks but no programmatic subscribe — user pastes viaSocket hook URL into service | Sample (`performlist`), Perform(modify, optional) (`modifytriggerdata`) |
 
+**Trigger Selection Priority Flow**:
+If not specified, Priority: **Instant (`hook`)** → **Scheduled (`polling`)** → **Manual (`manual_webhook`)**.
+1. **Instant**: Check if programmatic subscribe/unsubscribe APIs exist.
+2. **Scheduled**: If Instant not possible, check if GET/LIST API exists to poll data, and response has created/updated timestamp OR the configuration supports time filtering.
+3. **Manual**: If Scheduled not possible, check if platform supports manual webhook entry.
+4. **Fallback**: If manual not possible, ask user for trigger type and API doc/cURL. You can also ask user for trigger type (Instant, Scheduled, Manual) at the start.
+
 Block roles: **Subscribe** register webhook, return data viaSocket stores for unsub · **Unsubscribe** deregister using stored subscribe response · **Sample** latest 1 item else fallback schema for UI preview (wrap `{viasocket_help, ...item}`) · **Perform(modify)** optional reshape of pushed webhook payload, no API call · **Transfer** bulk-pull history; **New-event only**; its List endpoint must have pagination enabled; sends `≤200/batch` (500 → 200+200+100).
 
 ## Actions
 Single Perform call mapped from `context.inputData`. Categories: GET · LIST · FIND/SEARCH · CREATE · UPDATE · FIND OR CREATE · DELETE.
 
 # Design Strategy
-- **Unified actions**: Find+List → one Unified Search. Create+Update → Intelligent Upsert (search by stable ID → update if found else create; prefer native upsert). Never expose Create-vs-Update toggle.
+- **Decision Dimensions**: Balance Accessibility (non-technical focus), Workflow Simplicity, Technical Feasibility, Scalability, and Structural Constraints based on context.
+- **Unified actions**: List+Search+Get → one Unified LIST action (dropdown Mode select: List All with optional pagination/fetch all, Search by... (identifier), Search by ID, or Advance Search if supported). Create+Update → Intelligent Upsert (search by stable ID → update if found else create; prefer native upsert). Never expose Create-vs-Update toggle.
 - **Stable identifiers**: prefer email/external_id/sku over volatile DB IDs.
 - **Dropdown rule**: dropdown only if dataset small, stable, paginated. Else direct ID string field.
 - **Structural respect**: enums→dropdown, arrays→repeating input groups, nested objects→logical grouping. Never fabricate unsupported structures.
@@ -60,6 +68,13 @@ Single Perform call mapped from `context.inputData`. Categories: GET · LIST · 
 - **Partial update**: send only user-filled fields; never `null`/`''` unless explicitly clearing.
 - **Response**: small/flat → return whole payload; large/nested → offer Basic/Detailed mode.
 - **Dynamic schema**: pick resource → fetch its schema → render only relevant fields.
+- **Connection-Level Context**: Capture workspace/org/tenant in connection/auth setup if no dynamic list API exists, rather than action fields.
+- **Format Abstraction**: Automatically infer/detect content formats (e.g. HTML vs plain text) internally in perform code rather than asking users.
+- **Default Value Rule**: Omit `defaultValue` if the API natively defaults the parameter when omitted, unless a UX override is needed.
+- **customHelp Guidelines**: Explain business meaning and task context (e.g., select parent task); never direct users to copy IDs from browser URLs.
+- **Workflow Purity**: Prefer clean `Trigger → Action` steps without intermediate JS code steps.
+- **Coded Values**: Map numeric enums via input help text unless stable enough for a dropdown.
+- **Backward Compatibility**: Never rename/remove keys (invalidates mappings); only update labels, help texts, visibility, or add optional fields.
 
 # Naming
 | Item | Format |
@@ -78,24 +93,25 @@ Required fields first, optionals grouped after. Resource dropdowns use `canPagin
 |---|---|
 | Instant | DynDropdown(resource) → whereClause Group? → DynHelp(permission check)? → conditionals |
 | Scheduled | DynDropdown → DynDropdown(dependent) → Boolean? → Multiselect(field filter)? → Group(filter only — no pagination fields)? → AIField? |
-| Manual | HelpStatic(setup: copy viaSocket hook URL → paste into service) → inputs → Dropdown? |
+| Manual | HelpStatic (Only allowed field, step-by-step webhook setup HTML instructions) |
 | GET | DynDropdown(parent) → DynDropdown/String(record ID) → Multiselect(fields)? → Group? |
-| LIST | DynDropdown(parent) → Multiselect(fields)? → Group(Page Limit, Start Cursor) → AIField? → Boolean? |
+| LIST | DynDropdown(parent) → DropdownStatic(Mode: List All, Search by..., Search by ID, Advance Search) → Boolean(Enable Pagination)? → Group(limit, offset)? → String(search/ID input)? → AIField(Advance Search)? → Multiselect(return fields)? |
 | FIND/SEARCH | DynDropdown(parent) → DynDropdown(child)? → Boolean(Basic/Advanced) → Group(filter: column+value for Basic / AIField for Advanced) → Group(sort/limit)? → Multiselect(return)? |
 | CREATE | DynDropdown(parent) → DynDropdown(child)? → Boolean? → Multiselect(field chooser) → DynGroup(fieldsGenerator) → AIField?/Dictionary? |
 | UPDATE | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(record ID) → Multiselect(chooser) → DynGroup(chosen fields only) |
 | FIND OR CREATE | DynDropdown(parent) → DynDropdown(child)? → Group(search: AIField if complex query, or DynDropdown+String if simple filter) → Boolean `create_if_not_found` (default `{label:"Yes",value:true}`) → DynGroup(visibilityCondition on toggle) → Multiselect? |
 | DELETE | String(record ID) → HelpStatic(irreversibility warning) |
 
-Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence (all labels inside use sentence case, only first capitalized; subsequent lowercase). **Scheduled (polling)** never ask the user for pagination fields (limit, page size, start cursor, next page token) or scheduledTime in inputFields/UI; pagination is handled internally via `canpaginate:true` config, and `scheduledTime` is a global variable. **Manual (manual_webhook)** triggers support `performlist` (sample code) and `modifytriggerdata` (Perform Modify Code). **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** default page limit 100. **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **FIND OR CREATE** use AIField if complex query is supported, or dropdown + string if simple filter is supported; "Create if not found?" toggle (default true) shows creation fields via visibilityCondition when true. **DELETE** keep minimal; always use a direct text ID field (type 'string') to identify the record to delete (no dropdown logic or parent dropdowns); archive toggle if API supports.
+Category deltas beyond order: **Instant** DynHelp validates permissions after resource pick; whereClause renders multi-filter as a sentence (all labels inside use sentence case, only first capitalized; subsequent lowercase). **Scheduled (polling)** never ask the user for pagination fields (limit, page size, start cursor, next page token) or scheduledTime in inputFields/UI; pagination is handled internally via `canpaginate:true` config, and `scheduledTime` is a global variable. The perform code returns an array of items, capped at a maximum of 1000 items (or the service's supported limit, whichever is smaller). The transfer code `data` key has a hard limit of 200 items per batch. **Manual (manual_webhook)** triggers support `performlist` (sample code) and `modifytriggerdata` (Perform Modify Code), and must only contain a single static `help` field in the `inputFields` array (no other fields allowed). **GET** always give the manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`) so users paste an ID from a prior step. **LIST** combines List All, Search, Search by ID, and Advance Search using a `mode` dropdown (options: List All, Search by... (identifier), Search by ID, Advance Search). If mode is 'List All' (or a non-unique 'Search by...' field) and "Enable Pagination" is true, show limit and offset fields; if "Enable Pagination" is false, perform client-side internal pagination to fetch all. If the search identifier is unique, pagination is not required. If 'Search by ID' is selected, show ID input and exclude pagination options (direct GET). If 'Advance Search' is selected (only when service supports advanced queries), show AIField. Optional multiselect filters return fields (defaults to all if empty). **FIND/SEARCH** Boolean toggles Basic (column + value) vs Advanced (AIField with `suggestionGenerator`). **CREATE/UPDATE** chooser Multiselect feeds the DynGroup; `fieldsGenerator` returns `{message:'Select a resource first.'}` if deps missing; UPDATE help: "unfilled fields stay unchanged". **FIND OR CREATE** use AIField if complex query is supported, or dropdown + string if simple filter is supported; "Create if not found?" toggle (default true) shows creation fields via visibilityCondition when true. **DELETE** keep minimal; always use a direct text ID field (type 'string') to identify the record to delete (no dropdown logic or parent dropdowns); archive toggle if API supports.
 **Dropdown Preference & ID Priority:** Always give first preference to dropdowns over text ID fields (type `string`) across all triggers and actions if an options-fetching API is available. Do not bypass parent dropdowns even if they are required to fetch the record ID. If no options-fetching API is available, only then proceed with the type `string` and ask the user for the ID. **UPDATE Action Exception:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For the rest of the triggers and actions, it is not applicable (dropdowns always have high priority over string IDs). For UPDATE actions: if the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created. If parent dropdowns are required to fetch the ID options, bypass the parent dropdowns and create a direct text ID field (type `string`) instead. Exceptions: if the parent dropdown is already required/selected by other fields in the action anyway, or if the ID dropdown has static options.
 
 # Field Types
-Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · `label` · `help` · `required` · `placeholder` (where applicable: string, number, html, markdown, boolean, dropdown, multiselect). Always include `placeholder` and `customPlaceholder` (where applicable: boolean, dropdown, multiselect) in the fields; do not omit them. Allowed types only: `string`, `number`, `html`, `markdown`, `dictionary`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, `input groups`. Optionals per Minimalism. Output valid JSON only — no comments/extra keys.
+Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$` ) · `type` · `label` · `help` · `required` · `placeholder` (where applicable: string, date, number, html, markdown, boolean, dropdown, multiselect; note that `placeholder` is optional for dropdown, multiselect static and dynamic, and boolean fields). Always include `placeholder` (where required/applicable) and `customPlaceholder` (where applicable: boolean, dropdown, multiselect) in the fields. The value of `placeholder` and `customPlaceholder` must always be a string; even for number, date, boolean, array, or object values, they must be wrapped in a string (e.g. `"10"`, `"true"`, `"[\"item1\", \"item2\"]"`). Allowed types only: `string`, `date`, `number`, `html`, `markdown`, `dictionary`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, `input groups`. Optionals per Minimalism. Output valid JSON only — no comments/extra keys.
 
 | `type` | Required (beyond base) | Constraints |
 |---|---|---|
-| `string` `number` `html` `markdown` | `placeholder` | No `date` type — date/time/DOB → `string`; amount/count/qty → `number`; rich → `html`/`markdown`. `list:true` (string/number only, preconfigured array); `limit:N` requires `list:true`. `list:false` (default) if single value, or if array/comma-separated value is dynamically passed. |
+| `string` `number` `html` `markdown` | `placeholder` | For date/time/DOB values, if they do not match one of the four supported date formats, use `string` as a fallback. `list:true` (string/number only, preconfigured array); `limit:N` requires `list:true`. `list:false` (default) if single value, or if array/comma-separated value is dynamically passed. |
+| `date` | `placeholder`, `dateFormat` | Use when capturing dates/times matching the 4 supported formats: `YYYY-MM-DDTHH:mm:ssZ`, `YYYY-MM-DD HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss`. If needs another format, **must** use `string`. `placeholder` is required and must match the `dateFormat`. In code, date fields return the date strictly formatted according to the `dateFormat` (unlike `string` fields where raw input is passed as-is). |
 | `dictionary` | `template` | Variable/unknown key-value pairs. `template` FIXED: `{key:{type:string,placeholder},value:{type:string,placeholder}}` — both types always `string`; only placeholder text may change. |
 | `boolean` | `options`, `placeholder`, `customPlaceholder` | Exactly 2 options `{label,value}`, true-option FIRST. `defaultValue:{label,value}` must equal an option. Labels any binary pair; value mapping arbitrary. `customInputLabel` and `customHelp` are optional for manual mode. |
 | `dropdown`/`multiselect` static | `options`, `placeholder`, `customInputLabel`, `customPlaceholder` | `options:[{label,value,sample?,extraValue?}]` fixed. `defaultValue` = exact copy of an option (multiselect: array of copies). |
@@ -109,12 +125,20 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$`) · `type` · 
 
 **Options metadata**: `sample` MUST equal `value`; include only if `value` is an ID and ≠ `label`. Dynamic `defaultValue` requires `sample`. `extraValue` = hidden metadata supporting all data types (string, number, boolean, object, array, etc.), read via `context?.inputData?.{key}_extraValue` (group: `{group}?.{key}_extraValue`) inside visibility conditions, dynamic generators, or perform/trigger code blocks. It is extremely useful when the option's value is an ID and you want to pass extra info (like the resource type or category) to perform specific visibility logic or actions.
 
-**optionsGenerator invocation:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call that component function (e.g., `return await fetchComponent(param1, param2);`).
+**Custom Mapping Behavior (Dropdown, Multiselect & Boolean)**:
+In the UI, `dropdown`, `multiselect`, and `boolean` fields have two states:
+1. *Standard Mode (Selection)*: User sees the standard `label`, `help`, and `placeholder` (optional; if omitted, the backend defaults to `"Choose {{field label}}"`, but if provided, it overrides this default).
+2. *Custom Mapping Mode*: Toggled to accept dynamic mappings. The field switches to a plain text `string` field showing:
+   - `customInputLabel` in place of the standard `label` (required/mandatory; must be very short).
+   - `customHelp` in place of the standard `help` (required/mandatory; must be detailed, guiding the user to enter the manual value/ID rather than choosing it).
+   - `customPlaceholder` in place of `placeholder` (required/mandatory; must be a string containing a concrete value sample e.g. `"true"`, `"false"`, or a specific ID).
+
+**optionsGenerator invocation:** Any code block inside `optionsGenerator` (whether using inline code or calling a Reusable Component) must be wrapped in a parent `try...catch` block. The `catch` block must handle errors by calling `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`). If the function code is written inline, it must be explicitly defined, called inside the `try` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`).
 
 **Visibility + required**: visibility evaluated first — a hidden `required` field is skipped (not enforced). Optional parent revealing a required child → set child `required:true` AND throw in perform if parent set but child missing.
 
 # Minimalism
-Include an optional key only when it adds info beyond `label` + specific app + specific action. Optionals: `defaultValue` (sensible default exists) · `customHelp` (where to find a manual ID) · `sample` (value is ID ≠ label) · `visibilityCondition` (conditional) · `required` (mandatory; defaults false). (Note: `placeholder` and `customPlaceholder` are always required/must be included in the fields where applicable; they are never optional. `customInputLabel` is required for dropdown and multiselect fields, and optional for boolean fields). `help` is optional (do not flag if missing) — keep its value concise, short, plain, and non-technical.
+Include an optional key only when it adds info beyond `label` + specific app + specific action. Optionals: `defaultValue` (sensible default exists) · `customHelp` (required/mandatory for boolean, dropdown, and multiselect fields; where to find a manual ID or detailing true/false outcomes, phrasing must guide the user to enter the value, e.g., "Enter value..." or "Enter ID...", rather than selecting/choosing it; must be detailed) · `sample` (value is ID ≠ label) · `visibilityCondition` (conditional) · `required` (mandatory; defaults false). (Note: `placeholder` is optional for dropdown, multiselect static and dynamic, and boolean fields—defaulting to `"Choose {{field label}}"` in standard mode if omitted—but required/must be included in string, date, number, html, and markdown fields. `customPlaceholder` and `customInputLabel` are always required/mandatory in boolean, dropdown, and multiselect fields for custom mapping mode; `customInputLabel` must be very short). `help` must always be available (present) in all fields (it is not optional) — keep its value concise, short, plain, and non-technical. For dropdown and multiselect fields, `help` must focus on option selection, whereas `customHelp` must focus on entering the manual value/ID.
 
 # Visibility
 JS expression on `context?.inputData?.<path>`; must evaluate to boolean (supports `.includes()`, calcs).
@@ -161,6 +185,7 @@ try {
 - Read inputs via `context?.inputData?.<key>`. Validate every `required:true` field at top — `throw` before the API call if missing/empty/null.
 - `throw` **inside `try`** for validation and for 200-responses carrying an error body (viaSocket reads the final response code; this avoids a false success). Wrapper routes it to `errorComponent`.
 - Return `response.data` raw — don't reshape, don't add fields. Array return → flow iterates per item.
+- **Scheduled Trigger Perform vs Sample Output:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine automatically loops through that array and runs the workflow for each individual item. The Sample Code, however, must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 - No `console.log`. Handle API rate limits in loops (delay/retry/headers). GET uses `params`, POST uses `data`.
 
 ## Libraries
@@ -171,7 +196,7 @@ Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Bu
 |---|---|
 | `__executionStartTime__` | Scheduled Perform — run timestamp. Lookback: `new Date(__executionStartTime__ - scheduledTime*60000)` |
 | `context.inputData.scheduledTime` | Scheduled — interval (min) |
-| `context.paginationData` | Scheduled cursor across runs (init `0`/`null`; requires pagination enabled in UI). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks the loop. **Reassigning to `0`/`null` resets to start.** **CRITICAL WARNING:** NEVER assign `null`, `0`, or clear `context.paginationData` in an `else` block or when there are no more pages. Simply do NOT reassign or modify `context.paginationData` to stop the loop. |
+| `context.paginationData` | Scheduled cursor/state across runs (init `0`/`null`; requires pagination enabled in UI). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks loop. For multi-item inputs (via multiselect or `list:true` in `string`/`number` fields), structure as an object `{ cursors: { [itemId]: cursor }, activeForms: [itemId] }` to avoid pagination bleed. **Reassigning to `0`/`null` resets to start.** **CRITICAL WARNING:** NEVER assign `null`, `0`, or clear `context.paginationData` in an `else` block. Simply do NOT reassign or modify `context.paginationData` to stop the loop. |
 | `context.paginateData['<field>']` | Dynamic dropdown/multiselect `optionsGenerator` token. Group: `['group.field']`; nested: path order. |
 | `__searchText` | Generators when `enableSearchApi:true` |
 | `context.inputData.transferOption.offset` | Transfer |
@@ -204,6 +229,7 @@ await axios.delete(`<url>/subscribe/${context?.inputData?.performsubscribe?.id}`
 ```
 
 ## Sample (Instant & Scheduled)
+For scheduled triggers, the Sample Code must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 ```javascript
 const res = await axios.get('<url>/<resource>', { params: { limit: 1, sort: 'created_at:desc' } });
 const items = res.data?.results || res.data || [];
@@ -216,9 +242,10 @@ return { viasocket_help: SAMPLE /* + every expected key with empty/default */ };
 - Type→empty: `['array','list','multi_select']`→`[]`; `boolean`→`false`; `number`→`0`; else `""`.
 
 ## Transfer (New-event only)
+- **Transfer Limit**: The returned `data` array must have a limit of at most 200 items per batch.
 ```javascript
 const offset = context?.inputData?.transferOption?.offset || null;
-const params = { limit: 100 }; // ≤200
+const params = { limit: 100 }; // Maximum 200 items (limit <= 200)
 if (offset) params.cursor = offset;
 const res = await axios.get('<url>/<endpoint>', { params });
 return {
@@ -230,6 +257,8 @@ return {
 
 ## Scheduled Perform
 Time window (all variants): `const t = new Date(__executionStartTime__ - (context?.inputData?.scheduledTime || 15) * 60000);`
+- **Output Structure**: Returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
+- **Backend Limit**: Capped at a maximum of 1000 items (or the service's supported limit, whichever is smaller). The perform code must enforce this limit.
 - **Native filter (preferred)**: pass `created_at_min=t` (+ `fields=` from a Multiselect) to API; one call.
 - **Client filter — new items**: fetch page → `items.filter(i => new Date(i.created_time) >= t)` → sort oldest-first.
 - **Client filter — updated items**: filter `last_edited_time >= t && created_time !== last_edited_time` (drops never-edited / just-created) → sort ascending by `last_edited_time`.
@@ -237,6 +266,21 @@ Time window (all variants): `const t = new Date(__executionStartTime__ - (contex
   ```javascript
   if (filteredData.length !== 0 && response?.data?.next_cursor) {
       context.paginationData = response.data.next_cursor;
+  }
+  ```
+- **Multi-item Pagination Pattern**: If the input accepts multiple items (either via `list: true` in `string` or `number` fields, or as a `multiselect` field) and each item has separate pagination, track active items and cursors explicitly as an object to prevent bleed:
+  ```javascript
+  const activeForms = context?.paginationData?.activeForms || formIds;
+  const previousPagination = context?.paginationData?.cursors || {};
+  // ... loop & call API per item with previousPagination[formId] ...
+  // Only advance pagination for items that had new results AND a next cursor
+  if (newResultsFound && nextCursor) {
+      nextPagination[formId] = nextCursor;
+      nextActiveForms.push(formId);
+  }
+  // Only update paginationData if at least one item needs to continue paginating
+  if (nextActiveForms.length > 0) {
+      context.paginationData = { cursors: nextPagination, activeForms: nextActiveForms };
   }
   ```
 
@@ -255,7 +299,7 @@ return await <functionName>();
 | Category | Call | Notes |
 |---|---|---|
 | GET | `GET /resources/:id` | validate id; handle 404 |
-| LIST | `GET /resources?page,cursor` | pagination params; Multiselect → `fields` |
+| LIST | Fork by `mode` (List All, Search by..., Search by ID, Advance Search) | List All/Search (non-unique): paginated call or client loop if fetch-all; Search (unique): search API; Search by ID: get by ID; Advance Search: query. Multiselect filters fields. |
 | FIND/SEARCH | `GET /resources?q=` | native query first; client `.find()` fallback → `{results:[]}` |
 | CREATE | `POST /resources` | payload from `inputData`; normalize generated keys `.`→`_` |
 | UPDATE | `PATCH`/`PUT`/`POST /resources/:id` | partial: include key only if value `!== undefined/null/''` (unless explicit clear) |
@@ -263,9 +307,10 @@ return await <functionName>();
 | DELETE | `DELETE /resources/:id` (or `PATCH`/`POST` archive) | validate id; handle 404 already-deleted |
 
 # Reusable Components
-JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = raw JavaScript code starting directly with a `try`/`catch` block. Do NOT wrap the code in a function block. The parameters defined in the component's metadata are available as global variables directly inside this code block. Inside the catch block, you MUST use `throw error` or `throw e` instead of calling `errorComponent`). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields.
+JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = raw JavaScript code starting directly with a `try`/`catch` block. Do NOT wrap the code in a function block. The parameters defined in the component's metadata are available as global variables directly inside this code block. Inside the catch block, you MUST use `throw error` or `throw e` instead of calling `errorComponent`). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields. (Note: Inside the `optionsGenerator` that invokes/maps this component, the invocation must be wrapped in a parent `try-catch` block and the catch block must call `await errorComponent(error)`).
 - Accept ALL dependent inputs (search text, limit, every input-field path) as **parameters** — this enables `dependsOn` auto-detection. Always map the dynamic values to these parameters; never read `context.inputData`/`__searchText`/`context.paginateData` directly inside the component's code block.
 - Validate inputs at top (throw on missing). Return matches host field shape.
+- **Search-Pagination Offset Rule:** If a dynamic dropdown component supports both search and pagination (`enableSearchApi: true` and `canPaginate: true`), and the search parameter is active, if the search returns empty results, the returned `offset` must be the current cursor (`pageToken`/`offset` parameter). This ensures that if the user switches from searching back to pagination, the previous pagination offset is preserved (ignoring any search-returned offset).
 ```javascript
 // fetchResources(searchText, pageToken, pageSize)
 try {
@@ -279,11 +324,11 @@ try {
   throw error; // Reusable Components MUST use 'throw error' or 'throw e' in catch
 }
 ```
-Caller (in `optionsGenerator`): `return await fetchResources(__searchText, context?.paginateData?.['my_field'], 100);` — map the component's `id` correctly.
+Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText, context?.paginateData?.['my_field'], 100); } catch (error) { await errorComponent(error); }` — map the component's `id` correctly.
 - **Tool usage (`create_update_map_Reusable_components`)**: Use this tool to create, update, or map reusable components.
   - **Map**: Requires `actionVersionRowId`, `path` and `component_id`.
   - **Create**: Do not send `component_id` or `path`. Requires `function_name`, `params`, `code`, and `description`.
-  - **Update**: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`). Do not change `function_name`.
+  - **Update**: Requires `component_id`. Send only the fields to update (`params`, `code`, or `description`). Do not change the `function_name` or `params` if the reusable component is used (mapped/active) anywhere. If the component is not used anywhere, then the `function_name` and `params` can be updated. If the `params` and `code` both need to be updated (and the component is used), then a new component must be created. If only the `code` needs to be updated (even if the component is used), the existing component's `code` can be updated directly.
 
 # Generator Returns
 | Generator | Return |
@@ -304,13 +349,13 @@ Caller (in `optionsGenerator`): `return await fetchResources(__searchText, conte
 - **Reusable Component**:
   - *Create*: `function_name`, `description`, `params: [{name, sample}]` (where the `sample` key contains the parameter's sample value along with its data type; if the value is a string, it must be wrapped in double quotes e.g., `"sample":"\"field ID\""`, and for other types like number, object, boolean, or array, the value is direct/unwrapped), `code` (raw JS in try-catch parent format, not wrapped in a function, params are global), `pluginrecordid`, `function_code` (async JS wrapper function block wrapping the name, parameters, and code), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `functionId` (action version ID).
   - *Update*: `rowid`, `description`, `function_code` (async JS wrapper function block wrapping the name, parameters, and code), `componentgenerationsource: 'userGenerated'|'aiGenerated'`, `code` (raw JS in try-catch parent format, not wrapped in a function, params are global).
-- **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key).
+- **Mapping (action_version_component_table)**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (code block name e.g. `'perform'`/`'performsubscribe'` etc. or input field key). *Note: The mapping API acts as a toggle (boolean behavior) — first call creates mapping, second call with same parameters unmaps/removes mapping.*
 
 # Review
 
 ## Priorities & Rules
 - **P0 (Breaking)**:
-  - Catch must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). async function declaration and `return await <functionName>()` call or parent try catch.
+  - Catch must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). Any code block in `optionsGenerator` (whether inline code or calling a Reusable Component) must be wrapped in a parent `try-catch` block and call `await errorComponent(error)` in the `catch` block (do NOT throw error).
   - Every `context.inputData.<key>` must exist in input fields. No orphan fields. `visibilityCondition` must map to real keys.
   - Payload must match API schema.
   - Do not require URL extensions (use presence checks).
@@ -342,6 +387,6 @@ Validate against this file; output the raw `inputFields` array (never the `{"inp
 - **Fields & Text Quality**:
   - Each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
   - **Help Key**: `help` must be short, plain, and non-technical.
-  - **Labels & Placeholders**: Must be clear and grammatically correct. Do NOT use "E.g." or "e.g." in `placeholder` or `customPlaceholder` (such as using `"john@example.com"` instead of `"E.g. john@example.com"`); they must contain direct sample values only.
+  - **Labels & Placeholders**: Must be clear and grammatically correct. Do NOT use "E.g." or "e.g." in `placeholder` or `customPlaceholder` (such as using `"john@example.com"` instead of `"E.g. john@example.com"`); they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string, and must be wrapped in a string/quotes for number, array, object, and boolean values (e.g., `"10"`, `"true"`, `"[\"item\"]"`).
   - **Suggestions for Text**: Put the corrected value in "suggestions" for fixed help/label/placeholder.
   - **Consistency**: Ensure `help`/`label`/`placeholder` are consistent across all fields. Fix casing, wording, and punctuation mismatches (e.g., "Select option." vs "select Options" → "Select Option" (Title Case)).

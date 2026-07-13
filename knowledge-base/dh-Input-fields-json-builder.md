@@ -114,6 +114,7 @@ published: true
       - Example 1: Generic Example (Static Fields & Input Groups)
       - Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
   - Special Note: `required` key in the input fields
+  - Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
 
 # DH Input Fields Knowledge Base
 
@@ -127,7 +128,7 @@ The input fields, which are static, have fixed values. The depends on other feil
 
 **String | Date | Number | HTML | Markdown Purpose:**
 - A String is a basic input type used to capture plain text values such as names, titles, identifiers, or short descriptions. It is suitable when the input is textual and does not require numeric calculation or formatting.
-- A Date input type is used to capture calendar-based values such as dates, times, or date-time combinations. It ensures the input follows a valid date or time format.
+- A Date input type (`type: "date"`) is used to capture calendar-based values such as dates, times, or date-time combinations that match one of the four supported date formats. It parses and formats the input strictly according to the specified `dateFormat` before passing it to the perform code.
 - A Number input type is used to capture numeric values such as amounts, prices, counts, quantities, or any value that may be used in calculations or comparisons.
 - An HTML input type is used to capture rich text content that includes HTML tags. It is suitable when the input needs structured formatting and the HTML is required in the payload.
 - A Markdown input type is used to capture formatted text using Markdown syntax. It is ideal for content that needs lightweight formatting such as headings, lists, links, or emphasis.
@@ -137,7 +138,12 @@ Generate a JSON object strictly following the rules below.
 
 **When to Use**
 - Use **string** when capturing plain text values such as names, titles, identifiers, or short descriptions.
-- Use **string** (not a date type) when capturing date, time, or date-time values that must follow a specific format.
+- Use **date** when capturing date, time, or date-time values where the required format is one of the supported date formats:
+  1. `YYYY-MM-DDTHH:mm:ssZ`
+  2. `YYYY-MM-DD HH:mm:ss Z`
+  3. `MM-DD-YYYY HH:mm:ss Z`
+  4. `MM-DD-YYYY HH:mm:ss`
+- Use **string** (not a date type) when capturing date, time, or date-time values that require formats *other* than the four supported formats above.
 - Use **number** when capturing numeric values such as amounts, prices, counts, or quantities that may be used in calculations or comparisons.
 - Use **html** when the input requires rich text content with HTML tags and structured formatting.
 - Use **markdown** when the input requires lightweight formatted text using Markdown syntax (headings, lists, links, emphasis).
@@ -147,39 +153,48 @@ Generate a JSON object strictly following the rules below.
 - key must not contain a dot (.).
 
 **2. Type Selection**
-- If fieldPurpose contains date, time, DOB → type: "string"
+- If fieldPurpose contains date, time, DOB:
+  - If the required format is one of the supported date formats (listed above) → type: "date" and specify `dateFormat`.
+  - Otherwise → type: "string" (with clear instructions/warning in the help text).
 - If it contains amount, price, count, quantity, number → type: "number"
 - If the field supports HTML → type: "html"
 - If the field supports Markdown → type: "markdown"
 - Otherwise → type: "string"
 
-**3. Label, Help, Placeholder**
-- label: Clean, human-readable version of fieldPurpose
-- help: Clearly explain what the user should enter
-- placeholder: Provide a realistic example relevant to the purpose
+**3. Date Field Format Rules**
+- If type is **date**, you must define the `dateFormat` key using one of the four supported formats.
+- Difference between `type: "date"` and `type: "string"`:
+  - In `string` fields, the raw input enters the perform code as-is.
+  - In `date` fields, only the formatted date strictly matching the `dateFormat` is returned in the perform code.
+  - The input is expected to match the `dateFormat` format. Hence, the `placeholder` key **must** contain an example date value formatted exactly as the specified `dateFormat`.
 
-**4. Required Rule**
+**4. Label, Help, Placeholder**
+- label: Clean, human-readable version of fieldPurpose
+- help: Clearly explain what the user should enter. For date fields, note the expected format.
+- placeholder: Provide a realistic example relevant to the purpose. The value must always be a string; even for number or date fields, the placeholder value must be wrapped in a string (e.g. `"10"`, or `"07-11-2026 12:00:00"` for `"MM-DD-YYYY HH:mm:ss"`).
+
+**5. Required Rule**
 - Set required: true if fieldPurpose implies mandatory input
 - (e.g. name, email, amount, date)
 - Otherwise set required: false
 
-**5. Visibility Condition Rule**
+**6. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
 - Do not include this key otherwise
 
-**6. List Rule**
+**7. List Rule**
 - Set list: true if the user preconfigures multiple values as an array during setup
 - Set list: false if the value is single or needs to be dynamic later (comma-separated input allowed or multiple values allowed as an array)
   - Example : `[ "Option 1", "Option 2", "Option 3" ]` or `Option 1, Option 2, Option 3`
 
-**7. Limit Rule**
+**8. Limit Rule**
 - Set limit to a number representing the maximum number of list entries allowed.
 - Include limit only if list is true. Omit this key otherwise.
 
 > [!NOTE]
 > Refer to -> **Special Note: `list` and `limit` usage in the text and number field types**.
 
-**8. Output Constraint**
+**9. Output Constraint**
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
@@ -198,7 +213,7 @@ Generate a JSON object strictly following the rules below.
             },
             "type": {
                 "type": "string",
-                "enum": ["string", "number", "html", "markdown"],
+                "enum": ["string", "date", "number", "html", "markdown"],
                 "description": "The type of input field."
             },
             "label": {
@@ -211,7 +226,7 @@ Generate a JSON object strictly following the rules below.
             },
             "placeholder": {
                 "type": "string",
-                "description": "An example value relevant to the purpose."
+                "description": "An example value relevant to the purpose. Must be wrapped in a string."
             },
             "required": {
                 "type": "boolean",
@@ -232,6 +247,16 @@ Generate a JSON object strictly following the rules below.
             "defaultValue": {
                 "type": "string",
                 "description": "The default value. Omit if none."
+            },
+            "dateFormat": {
+                "type": "string",
+                "enum": [
+                    "YYYY-MM-DDTHH:mm:ssZ",
+                    "YYYY-MM-DD HH:mm:ss Z",
+                    "MM-DD-YYYY HH:mm:ss Z",
+                    "MM-DD-YYYY HH:mm:ss"
+                ],
+                "description": "Required when type is 'date'. The format the date field expects and returns."
             }
         },
         "required": [
@@ -256,7 +281,7 @@ schema:
       description: The unique identifier for the field. MUST NOT contain a dot (.).
     type:
       type: string
-      enum[4]: string,number,html,markdown
+      enum[5]: string,date,number,html,markdown
       description: The type of input field.
     label:
       type: string
@@ -284,6 +309,10 @@ schema:
     defaultValue:
       type: string
       description: The default value. Omit if none.
+    dateFormat:
+      type: string
+      enum[4]: YYYY-MM-DDTHH:mm:ssZ,YYYY-MM-DD HH:mm:ss Z,MM-DD-YYYY HH:mm:ss Z,MM-DD-YYYY HH:mm:ss
+      description: Required when type is 'date'. The format the date field expects and returns.
   required[4]: key,type,label,help
 ```
 
@@ -375,6 +404,15 @@ schema:
     "help": "Enter the content for the file. You can use Markdown syntax for formatting.",
     "placeholder": "# My Project\n\nThis is the readme content...",
     "required": true
+  },
+  {
+    "key": "created_date",
+    "type": "date",
+    "label": "Created Date",
+    "help": "Enter the creation date. Must follow the format: MM-DD-YYYY HH:mm:ss",
+    "required": true,
+    "placeholder": "07-11-2026 12:00:00",
+    "dateFormat": "MM-DD-YYYY HH:mm:ss"
   }
 ]
 ```
@@ -415,7 +453,7 @@ schema:
     help: Default it will fetch data upto 100. The maximum value is 100.
     type: number
     label: Page Limit
-    placeholder: 10
+    placeholder: "10"
     defaultValue: 100
   - key: feed_url
     help: Paste your RSS URL here. Must be publicly accessible. Multiple feed links can be given in a line item.
@@ -445,6 +483,13 @@ schema:
     help: Enter the content for the file. You can use Markdown syntax for formatting.
     placeholder: "# My Project\n\nThis is the readme content..."
     required: true
+  - key: created_date
+    type: date
+    label: Created Date
+    help: "Enter the creation date. Must follow the format: MM-DD-YYYY HH:mm:ss"
+    required: true
+    placeholder: 07-11-2026 12:00:00
+    dateFormat: MM-DD-YYYY HH:mm:ss
 ```
 
 ## Dictionary
@@ -808,9 +853,9 @@ Generate a JSON object strictly following the rules below for a boolean field.
 
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
-- Include customInputLabel only if manual/dynamic input mode needs a custom label (e.g. "Enter Boolean Value"). Omit if not applicable
-- Include customPlaceholder only if a placeholder is needed for manual input (such as "true"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. Omit if not applicable
-- Include customHelp only if manual/dynamic input mode needs guidance (e.g. "Enter \"true\" for Basic"). Omit if not applicable
+- **customInputLabel is always required/mandatory**: **It must be very short** (e.g. `"Enter Pagination Option"`).
+- **customPlaceholder is always required/mandatory**: Provide a relevant value sample (such as `"true"`). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
+- **customHelp is always required/mandatory**: **It must be detailed** (e.g. `"Enter 'true' to paginate results, or 'false' to fetch all users."`). It is like the `help` key but specifically explains when/what values to enter for the `true` and `false` states.
 
 **8. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
@@ -905,15 +950,15 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         },
                         "customInputLabel": {
                             "type": "string",
-                            "description": "Optional custom label for manual/dynamic input (e.g. 'Enter Boolean Value'). Omit if not applicable."
+                            "description": "Required custom label for manual/dynamic input (e.g. 'Enter Boolean Value')."
                         },
                         "customHelp": {
                             "type": "string",
-                            "description": "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
+                            "description": "Required helper text for manual/dynamic input, explaining when to enter true and false values (e.g., 'Enter \"true\" if you want to enable pagination else \"false\"')."
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Optional placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. Omit if not applicable."
+                            "description": "Required placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. The value must always be a string and wrapped in a string/quotes (e.g., '\"true\"')."
                         },
                         "visibilityCondition": {
                             "type": "string",
@@ -925,7 +970,10 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         "type",
                         "label",
                         "help",
-                        "options"
+                        "options",
+                        "customPlaceholder",
+                        "customInputLabel",
+                        "customHelp"
                     ]
                 }
             }
@@ -994,25 +1042,21 @@ schema:
                 description: "The value of the default option (e.g. false, true)."
             required[2]: label,value
           placeholder:
-
-
             type: string
             description: "Optional placeholder text shown before selection. Omit if not applicable."
           customInputLabel:
             type: string
-            description: "Optional custom label for manual/dynamic input (e.g. 'Enter Boolean Value'). Omit if not applicable."
+            description: "Required custom label for manual/dynamic input (e.g. 'Enter Boolean Value')."
           customHelp:
             type: string
-            description: "Optional helper text for manual/dynamic input (e.g., 'Enter \"true\" for Basic'). Omit if not applicable."
+            description: "Required helper text for manual/dynamic input, explaining when to enter true and false values (e.g., 'Enter \"true\" for Basic and \"false\" for Advance')."
           customPlaceholder:
-
-
             type: string
-            description: "Optional placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. Omit if not applicable."
+            description: "Required placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. The value must always be a string and wrapped in a string/quotes (e.g., '\"true\"')."
           visibilityCondition:
             type: string
             description: A JavaScript condition for visibility. Omit if always visible.
-        required[5]: key,type,label,help,options
+        required[8]: key,type,label,help,options,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
 ```
 
@@ -1220,9 +1264,10 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance. If the expected value is an ID, explain exactly where the user can find this ID for manual mapping. Omit if not applicable.
-- customInputLabel is required. If the expected value is an ID, use a format like "Enter ID" or "Enter [Entity] ID".
-- customPlaceholder is required. Provide a relevant numeric or text example (such as "15" if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only.
+- **help key**: Must focus on selection (e.g. "Select the Spreadsheet from the list.").
+- **customInputLabel is required**: **It must be very short** (e.g. `"Enter Spreadsheet ID"`).
+- **customPlaceholder is required**: Provide a relevant numeric or text example (such as `"15"` if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"15"`).
+- **customHelp is required**: **It must be detailed** (e.g. `"Enter the Spreadsheet ID manually. You can find the ID in the URL of your spreadsheet."`). The phrasing must guide the user to enter/paste the value rather than selecting/choosing it, and explain how/where to find the ID.
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the dropdown depends on another field.
 - Omit if always visible.
@@ -1371,7 +1416,8 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         "help",
                         "options",
                         "customInputLabel",
-                        "customPlaceholder"
+                        "customPlaceholder",
+                        "customHelp"
                     ]
                 }
             }
@@ -1467,7 +1513,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: An optional extra value for the default option. Omit if not needed.
             required[3]: label,value,sample
-        required[7]: key,type,label,help,options,customInputLabel,customPlaceholder
+        required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
 
@@ -1624,7 +1670,7 @@ schema:
     "placeholder": "Choose Category",
     "customInputLabel": "Enter the video category ID.",
     "customPlaceholder": "22",
-    "customHelp": "If you don't know the video category ID, you can choose the video category from the dropdown.Additionally you can get the category ID from the List Categories Action."
+    "customHelp": "If you don't know the video category ID, you can enter the video category ID manually. Additionally you can get the category ID from the List Categories Action."
   }
   ]
 ```
@@ -1683,7 +1729,7 @@ schema:
     placeholder: Choose Category
     customInputLabel: Enter the video category ID.
     customPlaceholder: "22"
-    customHelp: "If you don't know the video category ID, you can choose the video category from the dropdown.Additionally you can get the category ID from the List Categories Action."
+    customHelp: "If you don't know the video category ID, you can enter the video category ID manually. Additionally you can get the category ID from the List Categories Action."
 ```
 
 
@@ -1730,9 +1776,10 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- Include customHelp only if manual/dynamic input mode needs guidance. If expecting specific IDs, explain exactly where the user can find them for manual mapping. Omit if not applicable.
-- customInputLabel is required. Use a descriptive format (e.g. "Enter fields in array", "Enter output responses to include in array").
-- customPlaceholder is required. Provide a relevant array example (such as "[\"markdown\",\"block\"]" or "[\"first_name\",\"email\"]"). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only.
+- **help key**: Must focus on selection (e.g. "Select the fields to include in the output.").
+- **customInputLabel is required**: **It must be very short** (e.g. `"Enter Properties in Array"`).
+- **customPlaceholder is required**: Provide a relevant array example (such as `"[\"markdown\",\"block\"]"` or `"[\"first_name\",\"email\"]"`). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes.
+- **customHelp is required**: **It must be detailed** (e.g. `"Enter the property names in an array format manually. These are the fields that will be returned in the response API."`). The phrasing must guide the user to enter/paste the value rather than selecting/choosing it.
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the multiselect depends on another field.
 - Omit if always visible.
@@ -1865,7 +1912,8 @@ Generate a JSON object strictly following the rules below for a static multisele
                         "help",
                         "options",
                         "customInputLabel",
-                        "customPlaceholder"
+                        "customPlaceholder",
+                        "customHelp"
                     ]
                 }
             }
@@ -1957,7 +2005,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[7]: key,type,label,help,options,customInputLabel,customPlaceholder
+        required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
 
@@ -2107,7 +2155,7 @@ Generate a JSON object strictly following the rules below for an AI field.
 - Otherwise set `required: false`.
 
 **8. Placeholder Rule**
-- `placeholder`: Optional text showing an example input to guide the user. Can be an example query or expected value. Omit if not applicable.
+- `placeholder`: Optional text showing an example input to guide the user. Can be an example query or expected value. Omit if not applicable. The value must always be a string and wrapped in a string/quotes.
 
 **9. Visibility Condition Rule**
 - Include `visibilityCondition` only when the field depends on another field's state.
@@ -2669,7 +2717,7 @@ schema:
         "customHelp": "Enter Array of Property Name.",
         "placeholder": "Choose Property",
         "optionsGenerator": "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n",
-        "customPlaceholder": "['title','status']"
+        "customPlaceholder": "[\"title\",\"status\"]"
       },
       {
         "key": "start_cursor",
@@ -2745,7 +2793,7 @@ schema:
         "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
         "placeholder": "Choose Column",
         "customInputLabel": "Enter Column Name",
-        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "Name or A",
         "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
       },
@@ -2825,7 +2873,7 @@ schema:
         "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
         "placeholder": "Choose Columns",
         "customInputLabel": "Enter Column Name in Array.",
-        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "[\"Name\"]or [\"A\"]",
         "visibilityCondition": "context?.inputData?.search_filter?.search_filter_type"
       }
@@ -2868,11 +2916,11 @@ schema:
         "type": "dropdown",
         "label": "Media",
         "required": true,
-        "customHelp": "You can choose he media from the dropdown or can also find the media ID from the List Media aciton.",
+        "customHelp": "You can enter the media ID manually or can also find the media ID from the List Media action.",
         "canPaginate": true,
         "placeholder": "Choose Media",
         "customInputLabel": "Enter media ID.",
-        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  throw e;\n}",
+        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  await errorComponent(e);\n}",
         "customPlaceholder": "18062960995844908",
         "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' "
       },
@@ -2910,7 +2958,7 @@ schema:
           label: Default
           value: 100
           sample: "100"
-        customPlaceholder: 10
+        customPlaceholder: "10"
       - key: filter_properties
         help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
         type: multiselect
@@ -2919,13 +2967,13 @@ schema:
         customHelp: Enter Array of Property Name.
         placeholder: Choose Property
         optionsGenerator: "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n"
-        customPlaceholder: "['title','status']"
+        customPlaceholder: "[\"title\",\"status\"]"
       - key: start_cursor
         help: "A next_cursor value returned in a previous response. Treat this as an opaque value.  Defaults to undefined, which returns results from the beginning of the list."
         type: string
         label: Start Cursor
         required: false
-        placeholder: 13fe3a00-095c-81a5-b0dd-dd6ce042ebd3
+        placeholder: "13fe3a00-095c-81a5-b0dd-dd6ce042ebd3"
   - key: search_filter
     help: Filter configuration to return the sheet rows based on the condition met.
     type: input groups
@@ -2968,7 +3016,7 @@ schema:
         customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
         placeholder: Choose Column
         customInputLabel: Enter Column Name
-        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
         customPlaceholder: "Name or A"
         visibilityCondition: context?.inputData?.search_filter?.search_filter_type
       - key: lookupValue
@@ -3024,7 +3072,7 @@ schema:
         customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
         placeholder: Choose Columns
         customInputLabel: Enter Column Name in Array.
-        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+        optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
         customPlaceholder: "[\"Name\"]or [\"A\"]"
         visibilityCondition: context?.inputData?.search_filter?.search_filter_type
 ```
@@ -3091,7 +3139,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         },
                         "optionsGenerator": {
                             "type": "string",
-                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Option Properties: Objects must contain 'label' (string, display name), 'value' (string/number, internal API value). Optional: 'sample' (string, MUST be identical to value, shown in UI brackets), 'extraValue' (any JSON type, hidden data for scripts/visibility).\n2. Standard Format: Return `[{label, value, ...}]` if 'canPaginate' is false.\n3. Pagination Format: Return `{ data: [{label, value, ...}], offset: string|number }` if 'canPaginate' is true.\n4. UI Messages/Warnings: If no options are available, or to show an info box, return a message (supports markdown). Example A (Only message): `return { message: 'No options found' }`. Example B (Static option + message): `return { data: [{label: 'All Lead Gen Form', value: '0'}], offset: null, message: 'No forms found. Create one [here](link).' }`.\n5. Global Variables: Use `__searchText` if 'enableSearchApi' is true. Access pagination tokens via `context?.paginateData?.['your_field_key']`.If it is inside input group then input group key is included like `context?.paginateData?.['input_group_key.your_field_key']`. Additionally path supports in nested input groups,the input group keys added in the path in order."
+                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Option Properties: Objects must contain 'label' (string, display name), 'value' (string/number, internal API value). Optional: 'sample' (string, MUST be identical to value, shown in UI brackets), 'extraValue' (any JSON type, hidden data for scripts/visibility).\n2. Standard Format: Return `[{label, value, ...}]` if 'canPaginate' is false.\n3. Pagination Format: Return `{ data: [{label, value, ...}], offset: string|number }` if 'canPaginate' is true.\n4. UI Messages/Warnings: If no options are available, or to show an info box, return a message (supports markdown). Example A (Only message): `return { message: 'No options found' }`. Example B (Static option + message): `return { data: [{label: 'All Lead Gen Form', value: '0'}], offset: null, message: 'No forms found. Create one [here](link).' }`.\n5. Global Variables: Use `__searchText` if 'enableSearchApi' is true. Access pagination tokens via `context?.paginateData?.['your_field_key']`.If it is inside input group then input group key is included like `context?.paginateData?.['input_group_key.your_field_key']`. Additionally path supports in nested input groups,the input group keys added in the path in order.\n6. Try-Catch & Reusable Components: Any call to a Reusable Component or inline code in optionsGenerator must be wrapped in a parent try-catch block, and the catch block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(...); } catch (error) { await errorComponent(error); }`)."
                         },
                         "canPaginate": {
                             "type": "boolean",
@@ -3103,7 +3151,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         },
                         "customPlaceholder": {
                             "type": "string",
-                            "description": "Required placeholder for the manual input mode. Provide a relevant numeric or text example (e.g., '229a83a6-ccba-80f4...')."
+                            "description": "Required placeholder for the manual input mode. Provide a relevant numeric or text example wrapped in a string (e.g., '229a83a6-ccba-80f4...')."
                         },
                         "customInputLabel": {
                             "type": "string",
@@ -3161,7 +3209,8 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         "help",
                         "optionsGenerator",
                         "customPlaceholder",
-                        "customInputLabel"
+                        "customInputLabel",
+                        "customHelp"
                     ]
                 }
             }
@@ -3209,7 +3258,7 @@ schema:
             description: Optional placeholder text shown in the dropdown before selection (e.g. 'Choose Spreadsheet'). Omit if not applicable.
           optionsGenerator:
             type: string
-            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Option Properties: Objects must contain 'label' (string, display name), 'value' (string/number, internal API value). Optional: 'sample' (string, MUST be identical to value, shown in UI brackets), 'extraValue' (any JSON type, hidden data for scripts/visibility).\n2. Standard Format: Return `[{label, value, ...}]` if 'canPaginate' is false.\n3. Pagination Format: Return `{ data: [{label, value, ...}], offset: string|number }` if 'canPaginate' is true.\n4. UI Messages/Warnings: If no options are available, or to show an info box, return a message (supports markdown). Example A (Only message): `return { message: 'No options found' }`. Example B (Static option + message): `return { data: [{label: 'All Lead Gen Form', value: '0'}], offset: null, message: 'No forms found. Create one [here](link).' }`.\n5. Global Variables: Use `__searchText` if 'enableSearchApi' is true. Access pagination tokens via `context?.paginateData?.['your_field_key']`.If it is inside input group then input group key is included like `context?.paginateData?.['input_group_key.your_field_key']`. Additionally path supports in nested input groups,the input group keys added in the path in order."
+            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Option Properties: Objects must contain 'label' (string, display name), 'value' (string/number, internal API value). Optional: 'sample' (string, MUST be identical to value, shown in UI brackets), 'extraValue' (any JSON type, hidden data for scripts/visibility).\n2. Standard Format: Return `[{label, value, ...}]` if 'canPaginate' is false.\n3. Pagination Format: Return `{ data: [{label, value, ...}], offset: string|number }` if 'canPaginate' is true.\n4. UI Messages/Warnings: If no options are available, or to show an info box, return a message (supports markdown). Example A (Only message): `return { message: 'No options found' }`. Example B (Static option + message): `return { data: [{label: 'All Lead Gen Form', value: '0'}], offset: null, message: 'No forms found. Create one [here](link).' }`.\n5. Global Variables: Use `__searchText` if 'enableSearchApi' is true. Access pagination tokens via `context?.paginateData?.['your_field_key']`.If it is inside input group then input group key is included like `context?.paginateData?.['input_group_key.your_field_key']`. Additionally path supports in nested input groups,the input group keys added in the path in order.\n6. Try-Catch & Reusable Components: Any call to a Reusable Component or inline code in optionsGenerator must be wrapped in a parent try-catch block, and the catch block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(...); } catch (error) { await errorComponent(error); }`)."
           canPaginate:
             type: boolean
             description: "Set to true ONLY if the list API supports pagination/loading more (i.e., it accepts an offset/cursor parameter and returns a next-page token). If true, the optionsGenerator MUST return {data: [], offset: string|number|null}. Omit or set to false if the API does not support pagination — including this when unsupported will cause runtime errors."
@@ -3247,7 +3296,7 @@ schema:
                 type[5]: string,number,boolean,object,array
                 description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
             required[3]: label,value,sample
-        required[7]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel
+        required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
 ```
 
@@ -3266,7 +3315,7 @@ schema:
     "placeholder": "Choose Data Source",
     "enableSearchApi": true,
     "customInputLabel": "Enter Data Source ID.",
-    "optionsGenerator": "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  throw e;\n}",
+    "optionsGenerator": "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  await errorComponent(e);\n}",
     "customPlaceholder": "229a83a6-ccba-80f4-a654-000b91179e35"
   },
   {
@@ -3280,7 +3329,7 @@ schema:
     "placeholder": "Choose Spreadsheet ID",
     "enableSearchApi": true,
     "customInputLabel": "Enter Spreadsheet ID",
-    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}",
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}",
     "customPlaceholder": "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
   },
   {
@@ -3294,7 +3343,7 @@ schema:
     "placeholder": "Choose Sheet",
     "enableSearchApi": false,
     "customInputLabel": "Enter Sheet ID",
-    "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}",
+    "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nawait errorComponent(e);\n}",
     "customPlaceholder": "38470421"
   },
   {
@@ -3346,7 +3395,7 @@ schema:
     placeholder: Choose Data Source
     enableSearchApi: true
     customInputLabel: Enter Data Source ID.
-    optionsGenerator: "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  throw e;\n}"
+    optionsGenerator: "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "229a83a6-ccba-80f4-a654-000b91179e35"
   - key: spreadsheet_id
     help: Select or enter the ID of the spreadsheet .
@@ -3358,7 +3407,7 @@ schema:
     placeholder: Choose Spreadsheet ID
     enableSearchApi: true
     customInputLabel: Enter Spreadsheet ID
-    optionsGenerator: "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
+    optionsGenerator: "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
   - key: sheet_id
     help: Select the Sheet or Enter Sheet ID.
@@ -3370,7 +3419,7 @@ schema:
     placeholder: Choose Sheet
     enableSearchApi: false
     customInputLabel: Enter Sheet ID
-    optionsGenerator: "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}"
+    optionsGenerator: "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nawait errorComponent(e);\n}"
     customPlaceholder: "38470421"
   - key: channel_id
     help: Select the channel to send the message.
@@ -3388,7 +3437,7 @@ schema:
     placeholder: Select the Facebook page
     customInputLabel: Enter Page ID
     optionsGenerator: "async function fetchPagesWithPagination(context) {\n  // Get the offset (next page cursor) from context if it exists\n  const offset = context?.paginateData?.['page_id'];\n\n  const limit = 100;\n\n  // Build the API URL\n  let url = `https://graph.facebook.com/me/accounts?limit=${limit}`;\n  if (offset) {\n    url += `&after=${offset}`;\n  }\n\n  const config = {\n    method: 'get',\n    url: url\n  };\n\n  try {\n    const res = await axios.request(config);\n    const responseData = res.data;\n\n    // Check if there's any data\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        message: \"No pages found. Make sure manage access is given. Update the connection and select page to give access for the automation.\"\n      };\n    }\n    else if ((!responseData.data || responseData.data.length === 0) && offset){\n return {\n  message: \"All Pages fetched successfully..\"\n }\n   }\n\n    // Transform data into dropdown format\n    const data = responseData.data.map(account => ({\n      label: account.name,\n      value: account.id,\n      sample: account.id\n    }));\n\n    // Prepare response with current page data and next offset (if any)\n    const result = {\n      data: data\n    };\n\n    // Check if there's a next page\n    if (responseData.paging && responseData.paging.cursors && responseData.paging.cursors.after) {\n      result.offset = responseData.data.length < limit ? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    // Handle specific error cases if needed\n    if (error.response?.status === 400 || error.response?.status === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect.\" };\n    }\n\n    return { message: \"Enter page ID. E.g. 516470358708231\" };\n  }\n}\n\n// Call the function (assuming context is available in your environment)\nconst result = await fetchPagesWithPagination(context);\nreturn result;"
-    customPlaceholder: 516470358708231
+    customPlaceholder: "516470358708231"
   - key: form_id
     help: Select the lead form associated with the page.
     type: dropdown
@@ -3398,7 +3447,7 @@ schema:
     placeholder: Choose Lead Form
     customInputLabel: Enter Lead Form ID
     optionsGenerator: "async function fetchLeadFormsWithPagination(context) {\n  const selectedPage = context?.inputData?.page_id;\n  const offset = context?.paginateData?.['form_id'];\n  const limit = 100; // Max supported for leadgen_forms endpoint\n\n  if (!selectedPage) {\n    return { message: \"Please select a Facebook Page first.\" };\n  }\n\n  try {\n    // Get page access token using the provided getAccessToken function (empty permissions)\n    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);\n\n    if (!accessToken || !isPermission) {\n      return { message: \"Unable to get access to the selected Page. Please reconnect or check permissions.\" };\n    }\n\n    // Build the API URL for leadgen_forms with pagination\n    let url = `https://graph.facebook.com/v25.0/${selectedPage}/leadgen_forms`;\n    url += `?limit=${limit}&access_token=${accessToken}`;\n    if (offset) {\n      url += `&after=${offset}`;\n    }\n\n    const response = await axios.get(url);\n    const responseData = response.data;\n\n    // If no forms returned and this is the first request\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        data: [{ label: 'All Leadgen Forms', value: '0' }],\n        offset: null,\n        message: \"No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page.\"\n      };\n    }\n\n    // If no more forms on subsequent pages\n    if (!responseData.data || responseData.data.length === 0) {\n      return {\n        message: \"All Lead Forms fetched successfully.\"\n      };\n    }\n\n    // Transform forms into dropdown options\n    const data = responseData.data.map(form => ({\n      label: form.name,\n      value: form.id,\n      sample: form.id\n    }));\n\n    // Always include \"All Leadgen Forms\" as first option (only on first page)\n    if (!offset) {\n      data.unshift({ label: 'All Leadgen Forms', value: '0' });\n    }\n\n    // Prepare result\n    const result = { data };\n\n    // Add offset if there's a next page\n    if (responseData.paging?.cursors?.after) {\n      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    console.error(\"Error fetching lead forms:\", error);\n\n    // Specific OAuth/token errors\n    if (error.response?.data?.error?.code === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect your Facebook account.\" };\n    }\n\n    // Permission or page access issue\n    if (error.response?.status === 400 || error.response?.status === 403) {\n      return { message: \"Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted.\" };\n    }\n\n    // Fallback: return only \"All\" option\n    return {\n      data: [{ label: 'All Leadgen Forms', value: '0' }],\n       offset: null,\n      message: error?.message || \"Could not load forms. Using 'All Leadgen Forms' as default.\"\n    };\n  }\n}\n\n// Execute and return\nreturn await fetchLeadFormsWithPagination(context);"
-    customPlaceholder: 1161533432455827
+    customPlaceholder: "1161533432455827"
     visibilityCondition: context?.inputData?.page_id
 ```
 ### Reusable Component In Dropdown Dynamic:
@@ -3430,6 +3479,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Proper try/catch:** Must use a proper parent `try/catch` block for error handling. Inside the catch block, you MUST use `throw error` (or `throw e`) instead of calling `await errorComponent(error)`.
 - **Input Validations:** At the beginning of the code, add validations for missing input or dependent field paths by throwing an error.
 - **No Direct Globals:** Do NOT directly use `context.inputData`, `__searchText`, or `context?.paginateData` inside the reusable component code. You should always map these values to the component's parameters, which will be accessible as global variables in the code block.
+- **Search-Pagination Offset Rule:** If the dropdown supports both search and pagination (`enableSearchApi: true` and `canPaginate: true`), and the search is active/enabled (i.e. the search query parameter has a value), if the API/search returns empty results, the returned `offset` must be the current cursor (`pageToken`/`offset` parameter). This ensures that if the user switches from searching back to pagination, the previous pagination offset/cursor is preserved. Any offset returned by the search API in this case must be ignored.
 - Can use external libraries like `axios`. But Import is not allowed. You can use `axios` directly.
 
 **Below are supported libraries to use directly in component code:**
@@ -3453,6 +3503,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 **Rules for using the component inside a dynamic dropdown's `optionsGenerator`:**
 - Inside the dropdown's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
 - Output the final results using the `return` keyword (e.g., `return await fetchSpreadsheets(...)`).
+- **Error Handling wrapper**: When calling/mapping a reusable component in the `optionsGenerator`, the code must be wrapped in a parent `try-catch` block and the `catch` block must call `await errorComponent(error)` (it must NOT throw the error).
 - This keeps your dynamic dropdown logic clean, hidden, and reusable.
 - **Strict Parameter Usage:** Strictly do NOT use the dependent paths for the input hardcoded directly inside the reusable component code (like `context?.inputData?.key_name`). For such paths, always use parameters. Also, adding search, limit, and all input fields paths as parameters is the correct practice in case of the reusable component function. This will help in the auto detection of the `dependsOn` key, which is discussed in the **Understanding `dependsOn` vs `visibilityCondition`** section. For further reference, please see the **Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]** in the documentation.
 - **Alternative to Reusable Components (Inline Code):** If not using a Reusable Component, the function code and its invocation must be written directly inside the `optionsGenerator` (i.e., you must define the function and explicitly call/invoke it at the end, e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides inside the component itself, and `optionsGenerator` only needs to call that component function (e.g., `return await fetchComponent(param1, param2);`).
@@ -3549,7 +3600,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 Usage inside a dynamic dropdown's `optionsGenerator`:
 ```json
 {
- "optionsGenerator": "try{\n  const selectedPage = context?.inputData?.selectedPage;\nconst offset = context?.paginateData?.['page_id'];\nconst limit = context?.inputData?.limit;\nreturn await fetchLeadForms(selectedPage, offset, limit);\n}catch(e){\nthrow e;\n}"
+ "optionsGenerator": "try{\n  const selectedPage = context?.inputData?.selectedPage;\nconst offset = context?.paginateData?.['page_id'];\nconst limit = context?.inputData?.limit;\nreturn await fetchLeadForms(selectedPage, offset, limit);\n}catch(e){\nawait errorComponent(e);\n}"
 }
 ```
 ##### Example 2: Google Sheet Spreadsheet Dropdown Dynamic
@@ -3630,7 +3681,7 @@ Usage inside a dynamic dropdown's `optionsGenerator`:
 Usage inside a dynamic dropdown's `optionsGenerator`:
 ```json
 {
-    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}"
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}"
 }
 ```
 
@@ -3644,8 +3695,8 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
-- **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined and then called/invoked at the end (e.g., `async function getOptions() { ... }; return await getOptions();`). Alternatively, if a Reusable Component is used, the function code resides on the component itself, and `optionsGenerator` should only call the component function (e.g., `return await fetchComponent(param1, param2);`).
-- A proper manual input option must be configured. Both `customPlaceholder` (compulsory) and `customInputLabel` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks (e.g., `Eg. ['title','status']` or `E.g., ["Name"]`). `customInputLabel` must guide the user on what manual input is expected. Optionally provide `customHelp` to guide the user in array input formatting.
+- **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined, wrapped in a parent `try-catch` block with `await errorComponent(error);` in the `catch` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`). Similarly, if a Reusable Component is used, the invocation must be wrapped in a parent `try-catch` block, and the `catch` block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`).
+- A proper manual input option must be configured. All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. **The `customInputLabel` must be very short** (e.g. `"Enter Properties in Array"`), and **the `customHelp` must be detailed** (e.g. `"Enter the property names in an array format manually. These are the fields that will be returned in the response API."`), explaining the exact expected array format or manual mapping steps. The `help` key must focus on selection, and `customHelp` must focus on entering the manual value/ID.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
 ### Multi Select Dynamic JSON Schema:
@@ -3692,7 +3743,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         },
                         "optionsGenerator": {
                             "type": "string",
-                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
+                            "description": "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components & Try-Catch: Any call to a Reusable Component or inline code in optionsGenerator must be wrapped in a parent try-catch block, and the catch block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(...); } catch (error) { await errorComponent(error); }`)."
                         },
                         "customPlaceholder": {
                             "type": "string",
@@ -3747,7 +3798,8 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         "help",
                         "optionsGenerator",
                         "customPlaceholder",
-                        "customInputLabel"
+                        "customInputLabel",
+                        "customHelp"
                     ]
                 }
             }
@@ -3795,7 +3847,7 @@ schema:
             description: Optional placeholder text shown before selection (e.g. 'Choose Columns'). Omit if not applicable.
           optionsGenerator:
             type: string
-            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components: You may call predefined reusable functions (e.g., `return await fetchSheetColumns(...);`)."
+            description: "JavaScript code that fetches the dynamic options. MANDATORY RULES:\n1. Return Format: MUST return an array of objects `[{label, value, sample}]`.\n2. Properties: 'label' (string), 'value' (string/number), 'sample' (string, identical to value, shown in brackets in UI. MANDATORY RULE: If value is an ID, sample MUST be included. If label and sample are exactly the same, NO sample is needed. Omit otherwise).\n3. Reusable Components & Try-Catch: Any call to a Reusable Component or inline code in optionsGenerator must be wrapped in a parent try-catch block, and the catch block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(...); } catch (error) { await errorComponent(error); }`)."
           customPlaceholder:
 
 
@@ -3826,7 +3878,7 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-        required[7]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel
+        required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
   ```
 ### Multi Select Dynamic Examples:
@@ -3853,7 +3905,7 @@ schema:
         "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
         "placeholder": "Choose Columns",
         "customInputLabel": "Enter Column Name in Array.",
-        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}",
+        "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "[\"Name\"]or [\"A\"]"
       },
        {
@@ -3864,7 +3916,7 @@ schema:
         "required": false,
         "customHelp": "Enter an array of Property Name.",
         "placeholder": "Choose Property",
-        "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}",
+        "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}",
         "customPlaceholder": "['title','status']"
       }
 ]
@@ -3889,7 +3941,7 @@ schema:
     customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
     placeholder: Choose Columns
     customInputLabel: Enter Column Name in Array.
-    optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+    optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
     customPlaceholder: "[\"Name\"]or [\"A\"]"
   - key: filter_properties
     help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
@@ -3898,7 +3950,7 @@ schema:
     required: false
     customHelp: Enter an array of Property Name.
     placeholder: Choose Property
-    optionsGenerator: "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}"
+    optionsGenerator: "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "['title','status']"
 ```
 
@@ -3954,6 +4006,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 **Rules for using the component inside a dynamic multiselect's `optionsGenerator`:**
 - Inside the multiselect's `optionsGenerator`, invoke the reusable component and pass the necessary parameters.
 - Output the final results using the `return` keyword (e.g., `return await fetchSheetColumns(...)`).
+- **Error Handling wrapper**: When calling/mapping a reusable component in the `optionsGenerator`, the code must be wrapped in a parent `try-catch` block and the `catch` block must call `await errorComponent(error)` (it must NOT throw the error).
 - This keeps your dynamic multiselect logic clean, hidden, and reusable.
 - **Strict Parameter Usage:** Strictly do NOT use the dependent paths for the input hardcoded directly inside the reusable component code (like `context?.inputData?.key_name`). For such paths, always use parameters. Also, adding search, limit, and all input fields paths as parameters is the correct practice in case of the reusable component function. This will help in the auto detection of the `dependsOn` key, which is discussed in the **Understanding `dependsOn` vs `visibilityCondition`** section. For further reference, please see the **Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]** in the documentation.
 - **Alternative to Reusable Components:** If not using the reusable component, the code can be directly added the same way: the function and the function call can be written directly inside the `optionsGenerator`.
@@ -4053,7 +4106,7 @@ try {
 Usage inside a dynamic multiselect's `optionsGenerator`:
 ```json
 {
-    "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n throw error;\n}"
+    "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
 }
 ```
 ##### Example 2: Notion Data Source Property Multi Select Dynamic
@@ -4093,7 +4146,7 @@ return returnDropdown(first);
 Usage inside a dynamic multiselect's `optionsGenerator`:
 ```json
 {
-    "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  throw e;\n}"
+    "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}"
 }
 ```
 ## Help Dynamic
@@ -4503,11 +4556,11 @@ The `whereClause` feature allows you to display an input group as a readable sen
         "type": "dropdown",
         "label": "Media",
         "required": true,
-        "customHelp": "You can choose he media from the dropdown or can also find the media ID from the List Media aciton.",
+        "customHelp": "You can enter the media ID manually or can also find the media ID from the List Media action.",
         "canPaginate": true,
         "placeholder": "Choose Media",
         "customInputLabel": "Enter media ID.",
-        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  throw e;\n}",
+        "optionsGenerator": "try {\n  const limit = 100;\n  const after = context?.paginateData?.['settings.mediaId'];\n  return await fetchMedia(limit, after);\n} catch (e) {\n  await errorComponent(e);\n}",
         "customPlaceholder": "18062960995844908",
         "visibilityCondition": "context?.inputData?.settings?.comment === 'a specific media' "
       },
@@ -4789,4 +4842,17 @@ The following example illustrates how `dependsOn` is populated for dynamic field
 - **Dependent Required Fields:** If an optional parent field is selected/provided, and it reveals a dependent child field that is required for that specific selection, the child field **MUST** be marked as `required: true`. Additionally, the **perform code** must explicitly evaluate and enforce this requirement, throwing an error if the parent is provided but the required child field is missing.
 > [!NOTE]
 > **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
+
+## Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
+For `dropdown`, `multiselect`, and `boolean` fields, the user experience involves two modes in the UI:
+1. **Standard Mode (Dropdown/Toggle Selection)**:
+   - The user sees the standard **Label**, **Help**, and **Placeholder** (optional: if omitted, the backend defaults to `"Choose {{field label}}"`; if provided, it overrides this default).
+2. **Custom Mapping Mode**:
+   - When the user switches to custom mapping, the field becomes a plain text `string` input field.
+   - The UI then shows:
+     - `customInputLabel` in place of the standard `label` (this is the label shown for custom mapping, e.g. `"Enter Spreadsheet ID"`, `"Enter Boolean Value"`).
+     - `customHelp` in place of the standard `help` (explaining how to manually fetch the ID/value or detailing true/false outcomes).
+     - `customPlaceholder` in place of the standard `placeholder` (acting as the placeholder for the string input, and must represent a concrete value sample e.g., `"true"`, `"false"`, or a specific ID).
+3. **Mandatory Keys**:
+   - `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** keys for all `boolean`, `dropdown`, and `multiselect` fields (both static and dynamic).
 

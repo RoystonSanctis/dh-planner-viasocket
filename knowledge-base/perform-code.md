@@ -279,6 +279,9 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 
 ### Scheduled Trigger Perform Code Rules:
 
+- **Output Structure:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
+- **Backend Limit**: Capped at a maximum of 1000 items (or the service's supported limit, whichever is smaller). The perform code must enforce this limit.
+
 **Best Practice Algorithm:**
 Always check if the API natively supports filtering by a start date (e.g., `created_at_min`), updated date, or returning specific output item keys. **If the API supports these native query parameters, use them!** It is the most optimized approach. If the API does *not* support it natively, you must handle the logic on the client side: filtering the latest/updated items, filtering the fields, and sorting the results.
 
@@ -306,6 +309,23 @@ If enabled and the API supports pagination, use the global variable `context?.pa
 - **Loop Break:** The system automatically stops the pagination loop if it receives the *same* next page token or page number twice.
 > [!CRITICAL]
 > **NEVER** write code like `else { context.paginationData = null; }` or reset/clear it when pagination ends. To stop the loop, simply do not assign/reassign anything to `context.paginationData` (doing nothing lets the loop end naturally). Re-assigning `0` or `null` will reset pagination completely back to the start and cause infinite loops.
+
+- **Multi-item Pagination (Avoiding Bleed):**
+  If pagination is enabled and the input accepts multiple items (either via `list: true` in `string` or `number` fields, or as a `multiselect` field, e.g., a list of Form IDs), and each item has its own separate pagination:
+  1. Do not store a single cursor directly in `context.paginationData`.
+  2. Structure `context.paginationData` as an object to track active items/forms and their respective cursors explicitly:
+     ```javascript
+     context.paginationData = {
+       cursors: { [itemId]: nextCursor },
+       activeForms: [itemId1, itemId2, ...]
+     };
+     ```
+  3. Track active items and their cursors across ticks:
+     ```javascript
+     const activeForms = context?.paginationData?.activeForms || inputFormIds;
+     const previousPagination = context?.paginationData?.cursors || {};
+     ```
+  4. Only reassign/update `context.paginationData` at the end if at least one form/item needs to continue paginating (i.e. has more pages). If no forms/items have more pages, do not reassign or modify `context.paginationData` to stop the loop naturally.
 
 #### Scheduled Trigger Perform Code Patterns:
 
@@ -842,16 +862,134 @@ try {
 }
 ```
 
+##### Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
+- **Service:** Facebook Leads
+- **Trigger:** New Lead Created
+- **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
+
+```javascript
+async function pollNewLeads() {
+  try {
+    const selectedPage = context?.inputData?.page_id;
+    const formIds = context?.inputData?.form_id;
+
+    if (!selectedPage) {
+      throw new Error("Page is required.");
+    }
+
+    if (!Array.isArray(formIds) || formIds.length === 0) {
+      throw new Error("At least one Lead Form is required.");
+    }
+
+    // Get Page Access Token
+    const {
+      accessToken: pageAccessToken,
+      isPermission,
+    } = await getAccessToken(selectedPage, []);
+
+    if (!isPermission || !pageAccessToken) {
+      throw new Error(
+        "You don't have permission to access leads for this page."
+      );
+    }
+
+    const minutesAgo = new Date(
+      __executionStartTime__ -
+        (context?.inputData?.scheduledTime || 15) * 60 * 1000
+    );
+
+    // Track active forms and their cursors explicitly to prevent multi-form pagination bleed
+    const activeForms = context?.paginationData?.activeForms || formIds;
+    const previousPagination = context?.paginationData?.cursors || {};
+    const nextPagination = {};
+    const nextActiveForms = [];
+    const allLeads = [];
+
+    const fields =
+      "created_time,id,field_data,ad_id,ad_name,form_id,campaign_id,campaign_name,adset_id,adset_name,is_organic,platform";
+
+    for (const formId of activeForms) {
+      if (!formId || formId === "0") {
+        continue;
+      }
+
+      const params = {
+        access_token: pageAccessToken,
+        fields,
+        limit: 100,
+      };
+
+      if (previousPagination[formId]) {
+        params.after = previousPagination[formId];
+      }
+
+      const response = await axios.get(
+        `https://graph.facebook.com/v24.0/${formId}/leads`,
+        { params }
+      );
+
+      const leads = response.data?.data || [];
+      let newLeadsFoundInThisForm = false;
+
+      for (const lead of leads) {
+        const transformedLead = { ...lead };
+
+        if (Array.isArray(lead.field_data)) {
+          lead.field_data.forEach((field) => {
+            transformedLead[field.name] =
+              Array.isArray(field.values) && field.values.length > 0
+                ? field.values[0]
+                : "";
+          });
+          delete transformedLead.field_data;
+        }
+
+        if (new Date(transformedLead.created_time) >= minutesAgo) {
+          allLeads.push(transformedLead);
+          newLeadsFoundInThisForm = true;
+        }
+      }
+
+      const nextCursor = response.data?.paging?.cursors?.after;
+
+      // Only advance pagination for THIS form if it yielded new leads AND has a next page token
+      if (newLeadsFoundInThisForm && nextCursor) {
+        nextPagination[formId] = nextCursor;
+        nextActiveForms.push(formId);
+      }
+    }
+
+    // Update pagination only if at least one form needs to continue paginating
+    if (nextActiveForms.length > 0) {
+      context.paginationData = {
+        cursors: nextPagination,
+        activeForms: nextActiveForms,
+      };
+    }
+
+    return allLeads.sort(
+      (a, b) => new Date(a.created_time) - new Date(b.created_time)
+    );
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await pollNewLeads();
+```
+
 ### Schedule Trigger Sample Code:
 
 #### Schedule Trigger Sample Code Rules:
 
 Always follow these rules while creating a sample code for the Schedule Trigger:
-1. Get the latest 1 item or any one item.
-2. If an item exists, return it with the help text
-3. If no items exist, fetch the schema to dynamically build the fallback
-4. Map the exact schema properties to empty/default values
-5. Return the dynamic fallback item with an exact matching structure
+1. The Sample Code must return a single object `{ ... }` representing just one of those items. This ensures the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array. This single item can be retrieved through the GET code pattern.
+2. Get the latest 1 item or any one item.
+3. If an item exists, return it with the help text
+4. If no items exist, fetch the schema to dynamically build the fallback
+5. Map the exact schema properties to empty/default values
+6. Return the dynamic fallback item with an exact matching structure
 
 #### Schedule Trigger Sample Code Pattern:
 
@@ -1207,12 +1345,36 @@ Actions perform request/response operations on external services. Unlike schedul
 **Best Practice Algorithm:**
 First identify what the action is trying to do: read data, create data, update data, find-or-create data, or delete/archive data. Then choose the closest pseudo-code pattern below and adapt the endpoint, method, query params, body, and response path according to the service API.
 
+- **Scheduled Trigger Perform vs Sample Output:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine automatically loops through that array and runs the workflow for each individual item. The Sample Code, however, must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 - **Required Field Validation:** For every input field defined with `required: true` in the input fields JSON, validate the value at the top of the function before making any API call. If the value is missing, empty, `null`, or `undefined`, throw an error immediately.
 - **Input Reading:** Read all user inputs from `context?.inputData?.<key>`.
 - **HTTP Request:** Use `axios()` for all HTTP requests.
 - **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
 - **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
-- **Error Handling & Structure:** Wrap all perform code in a `try-catch` block. Both a direct parent-level `try { ... } catch (error) { await errorComponent(error); }` structure and a wrapping async function structure (e.g., `async function run() { try { ... } catch (error) { await errorComponent(error); } } return await run();`) are fully valid and supported. Do not modify the error in the catch block.
+- **Error Handling & Structure:** Wrap all perform code in a `try-catch` block. Both of the following structures are fully valid and supported:
+
+  **Format 1: Wrapping async function**
+  ```javascript
+  async function <functionName>() {
+    try {
+      // validate required fields; build request from context.inputData; call API
+    } catch (error) {
+      await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
+    }
+  }
+  return await <functionName>();
+  ```
+
+  **Format 2: Direct parent try-catch (no wrapping function)**
+  ```javascript
+  try {
+    // validate required fields; build request from context.inputData; call API
+  } catch (error) {
+    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
+  }
+  ```
+  Do not modify the error in the catch block.
+
 
 **Required Field Validation Pattern**
 ```javascript

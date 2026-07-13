@@ -365,9 +365,20 @@ componentgenerationsource: String ('userGenerated' | 'aiGenerated')
 code: String (raw JS body in try-catch parent format, not wrapped in a function; parameters are global; try-catch must throw error in catch)
 ```
 
+> [!IMPORTANT]
+> **Reusable Component Update Rules:**
+> - Do not change the `function_name` or `params` if the reusable component is used (mapped/active) anywhere.
+> - If the component is not used anywhere, then the `function_name` and `params` can be updated.
+> - If the `params` and `code` both need to be updated (and the component is used), then a new component must be created.
+> - If only the `code` needs to be updated (even if the component is used), the existing component's `code` can be updated directly.
+
 ## Reusable Component Action Version Mapping Schema
 
 When a reusable component (new or existing) is used within an action or trigger (e.g., in dropdown fields or code blocks like perform, subscribe, unsubscribe, performlist, or transfer option code), a mapping entry must be created to link the component to the specific action version and path.
+
+> [!WARNING]
+> The mapping API acts as a toggle (boolean behavior): calling the API the first time maps the reusable component to the path, and calling it again with the same parameters unmaps (removes the link) the reusable component from the path.
+
 
 ### Reusable Component Mapping JSON Schema
 ```json

@@ -8,6 +8,7 @@ published: true
 
 - UX Practices Knowledge Base
 - Triggers
+  - Trigger Selection & Priority Guidelines
   - Instant Trigger
     - Instant Trigger Purpose:
     - Instant Trigger UX Pattern:
@@ -75,12 +76,31 @@ published: true
   - General Copywriting Guidelines
 - Automation UX Builder & Architecture Instructions
   - Role & Core Design Philosophy
+    - Core Design Philosophy
+    - Decision Evaluation Dimensions
+    - Product & Use-Case Awareness
+    - Action Selection Principle
   - Pre-Design Analysis (Mandatory)
+    - Technical Reasoning Principles
   - Action Design Strategy
+    - The Unified Action Principle
+    - Identifier & Record Resolution
+    - Search Mode Evaluation
   - Field Design & Dynamic UI Rules
+    - General Principles
+    - Dropdown Design Rules
+    - Dynamic Schema Handling
+    - Workflow Simplicity Principles
+    - Structural Constraint Handling
   - Automation Safety & Overwrite Protection
+    - Idempotency Preservation
+    - Update Safety & Overwrite Protection
+    - Response Handling
+    - Backward Compatibility Rules
   - Required Output Structure
   - Behavior Constraints
+    - Trade-Off Evaluation Protocol
+    - Final Decision Reflection
 
 # UX Practices Knowledge Base
 
@@ -93,6 +113,25 @@ This document contains structured UX guidelines and best practices for creating 
 # Triggers
 
 Triggers initiate a workflow. There are three trigger types, each with distinct UX patterns and input field requirements.
+
+## Trigger Selection & Priority Guidelines
+
+When designing or planning triggers, follow this structured priority flow to determine the trigger type to implement, especially when the user has not specified their preferred type.
+
+**1. Trigger Type Priority Flow**
+If the trigger type is not specified, evaluate capabilities in this order:
+**Instant Trigger (`hook`)** → **Scheduled Trigger (`polling`)** → **Manual Trigger (`manual_webhook`)**
+
+*   **Step 1: Check for Instant Trigger (`hook`)**
+    *   Verify if the external service provides subscribe and unsubscribe API endpoints to programmatically manage webhooks. If yes, implement an **Instant Trigger**.
+*   **Step 2: Check for Scheduled/Polling Trigger (`polling`)**
+    *   If programmatic webhooks are not supported, check if there is a GET or LIST API to retrieve/poll the data.
+    *   Verify that the API response includes a created or updated timestamp, OR the endpoint supports a time filter configuration parameter. If yes, implement a **Scheduled Trigger**.
+*   **Step 3: Check for Manual Trigger (`manual_webhook`)**
+    *   If polling is not possible, check if the service supports manually adding a webhook URL in their platform dashboard/UI. If yes, implement a **Manual Trigger**.
+*   **Step 4: Ask the User**
+    *   If none of the above options are possible, ask the user for the trigger type and request the API documentation or cURL command.
+    *   *Note:* At the beginning of the design phase, you can also directly ask the user which trigger type they want to build (Instant, Scheduled, or Manual).
 
 ## Instant Trigger
 
@@ -123,7 +162,7 @@ The standard field ordering for an Instant Trigger follows this flow:
 - **Sample Code** (Required) - Used to fetch test data for the trigger configuration UI.
 - **Perform Code (Modify response)** (Optional) - Instant Triggers typically do **not** require perform code since the webhook handles data delivery. This is only used to modify the response data from the webhook if needed.
 - **Unsubscribe Code** (Required) - Used to unregister the webhook with the external service.
-- **Transfer Code** (Optional) - Enables bulk transfer of historical data by listing all previous trigger items and sending them to the flow. Users can pull all data from the beginning for triggers like "New Item".
+- **Transfer Code** (Optional) - Enables bulk transfer of historical data by listing all previous trigger items and sending them to the flow. Applicable for the "New Event" trigger only (not for "Update Event" triggers). Users can pull all data from the beginning for triggers like "New Item".
 - See [Perform Code Knowledge Base → Instant Trigger](perform-code.md) for sample code patterns.
 
 
@@ -189,7 +228,10 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 
 ### Scheduled Trigger Perform Code Reference:
 - Scheduled Triggers require **Perform Code** for polling, filtering, sorting, and pagination.
+  - **Output Limit**: The perform code must return an array of items. There is a hard limit of 1000 items in the backend; the perform code must add appropriate limits to ensure the returned array does not exceed 1000 items (or the service's supported limit, whichever is smaller).
 - They also require **Sample Code** for fetching test data or generating fallback schema.
+- They also require **Transfer Code** (Optional) for historical bulk data transfers (applicable for the "New Event" trigger only, not for "Update Event" triggers).
+  - **Transfer Output Limit**: The `data` key in the returned transfer object must contain a maximum of 200 items per batch.
 - See [Perform Code Knowledge Base → Scheduled Trigger](perform-code.md) for detailed rules, pseudo code, and examples.
 
 ### Scheduled Trigger Best Practices:
@@ -201,36 +243,43 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 - **Default values matter** — Provide sensible defaults for filter types (e.g., `defaultValue: Basic`).
 - **AI Field for complex filters** — When a service supports complex query syntax (like Notion's filter API), use an AI Field with a `suggestionGenerator` that fetches the schema.
 - **Clean labels** — Use "Select Data Source" not "Select Notion Data Source".
+- **Multi-item Pagination**: If pagination is enabled and the input accepts multiple items (either as a `multiselect` field, or via `list: true` in `string` or `number` fields, e.g. selecting multiple Form IDs), and each item has separate pagination, track active items and cursors explicitly as an object in `context.paginationData` to prevent pagination bleed across items.
 
 ---
 
 ## Manual Trigger
 
 ### Manual Trigger Purpose:
-A Manual Trigger is a one-time, user-initiated trigger. The user manually runs the workflow, typically to process specific data or perform a one-off action. There is no automatic scheduling or webhook — the user clicks "Run" to execute.
+A Manual Trigger (in viaSocket, this corresponds to `manual_webhook`) is used when the external service supports webhooks but does not have a programmatic subscribe/unsubscribe API. The user must manually copy the viaSocket webhook URL and paste it into the external service's platform dashboard.
 
 **When to use:**
-- When the workflow should only run on-demand.
-- When the user needs to manually initiate a process with specific inputs.
-- Example: Manually send a bulk email, manually sync records, manually process a file.
+- When the external service supports webhooks but lacks subscribe/unsubscribe APIs.
+- When scheduled polling is not possible or not preferred.
+- Example: WordPress form webhook submissions.
 
 ### Manual Trigger UX Pattern:
-The standard field ordering for a Manual Trigger follows this flow:
-
-1. **Help Static** → Instructions explaining what the manual trigger does and any prerequisites.
-2. **String / Number / Dropdown** → Simple input fields for the data the user provides at trigger time.
-3. **Dynamic Dropdown** *(optional)* → Resource selection if the trigger targets a specific resource.
+The `inputFields` array for a Manual Trigger must only contain a single field: a static `help` field. No other fields (strings, dropdowns, etc.) are allowed.
 
 ### Manual Trigger Common Input Fields:
-1. **Help Static** → Step-by-step webhook setup instructions (how to copy the webhook URL from viaSocket and paste it into the SaaS platform).
-- **Use HTML formatting** in help text for clear, scannable instructions (`<ul>`, `<li>`, `<strong>`).
+*   **Single Field Limit:** The `inputFields` array (inputjson) for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field. No other fields are allowed.
+*   **Help Content:** The `help` field must contain step-by-step instructions in HTML format showing the user how to configure the webhook in the external SaaS platform.
+*   **Example Manual Trigger JSON:**
+    ```json
+    [
+      {
+        "key": "help",
+        "help": "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",
+        "type": "help"
+      }
+    ]
+    ```
 
 ### Manual Trigger Perform Code Reference:
 - Manual Triggers use a direct API call pattern without scheduling or pagination logic.
 - See [Perform Code Knowledge Base → Manual Trigger](perform-code.md) for code patterns.
 
 ### Manual Trigger Best Practices:
-- **Always start with a Help block** that guides the user through webhook setup with numbered steps.
+- **Always use a single Help block** as the only input field to guide the user through webhook setup with HTML formatting.
 
 ---
 
@@ -277,30 +326,50 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 
 ### LIST UX Pattern:
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source).
-2. **Multiselect Dynamic** *(optional)* → Select which fields/properties to include in the response.
-3. **Input Group Static** → Pagination settings (Page Limit dropdown, Start Cursor string).
-4. **AI Field** *(optional)* → Advanced filter conditions.
-5. **Boolean** *(optional)* → Configuration toggles (e.g., include archived items).
+2. **Dropdown Static (Mode)** → Choose the retrieval mode:
+   - **List All**: Retrieve all records (with pagination options).
+   - **Search by... (identifier)**: Search by specific attributes (e.g. Email, Phone, Name).
+   - **Search by ID**: Retrieve a specific record by its unique ID.
+   - **Advance Search**: Provided only when the service supports multiple and advanced query filtering.
+3. **Conditional Fields based on Mode Selection**:
+   - **If Mode is "List All"**:
+     - **Boolean** → "Enable Pagination" toggle.
+     - **Input Group Static** (Conditional: visible when "Enable Pagination" is true) → Contains Page Limit (`limit`) and Start Cursor/Offset (`offset`) fields.
+     - Note: If pagination is disabled ("Fetch All"), the perform code handles client-side internal pagination (auto-looping all pages) to return all records.
+   - **If Mode is "Search by... (identifier)"**:
+     - **String** → Identifier input field (e.g., Search Email, Search Phone, Search Name).
+     - **Pagination Special Case**: If the search identifier is unique (i.e. no multiple entries are possible or the service enforces uniqueness), pagination options are not required. If the search identifier is NOT unique and can return multiple entries, then the pagination options ("Enable Pagination" toggle and Page Limit/Offset fields) must be provided in the UI.
+   - **If Mode is "Search by ID"**:
+     - **String/Dropdown** → Specific Record ID input field.
+     - Note: Pagination options (such as 'Enable Pagination', limit, offset) are not available in 'Search by ID' mode, as it is a direct GET request.
+   - **If Mode is "Advance Search"**:
+     - **AI Field** *(optional)* → Advanced filter conditions.
+4. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned.
 
 ### LIST Common Input Fields:
 - **Dropdown Dynamic** — For selecting the parent resource to list items from.
-- **Multiselect Dynamic** — For selecting which fields to include in the output. Uses Reusable Components in `optionsGenerator`.
-- **Input Group Static** — For grouping pagination settings (page limit, cursor/offset, sort order).
-- **Dropdown Static** — For fixed options like sort direction ("Ascending" / "Descending"), page size.
-- **String** — For pagination cursor or offset values.
-- **Number** — For page limit with a `defaultValue` (e.g., 100).
-- **AI Field** *(optional)* — For complex filter conditions.
+- **Dropdown Static (Mode)** — For choosing between "List All", "Search by... (identifier)", "Search by ID", or "Advance Search".
+- **Boolean** — "Enable Pagination" toggle (shown under Mode: "List All", or under Mode: "Search by... (identifier)" when the search identifier is not unique).
+- **Input Group Static** — For grouping pagination settings (page limit, cursor/offset), only shown when Enable Pagination is true.
+- **String / Number** — For identifier search values, ID input, or pagination settings.
+- **AI Field** — For advanced filter conditions (only shown under Mode: "Advance Search").
+- **Multiselect Dynamic** — Optional field chooser to select which fields/properties to return in the response.
 
 ### LIST Perform Code Reference:
-- LIST actions use `GET` or `POST` requests with query parameters for pagination and filtering.
-- Must handle pagination tokens/page numbers.
+- Code must fork dynamically based on the selected `mode`:
+  - **List All**: If "Enable Pagination" is true, execute a single paginated API request with `limit` and `offset`. If false, implement a client-side loop (internal pagination) using a `while` loop or recursion to fetch all records and return the consolidated list.
+  - **Search by... (identifier)**: Execute the search API using the provided identifier. If pagination is enabled (for non-unique search fields), handle pagination parameters accordingly.
+  - **Search by ID**: Call the get-by-ID API endpoint using the provided record ID.
+  - **Advance Search**: Execute search API with AI-constructed query conditions.
+- If the optional field-selection multiselect is populated, filter the returned response payload to only include selected keys/fields. Otherwise, return all keys.
 - See [Perform Code Knowledge Base → Actions → LIST](perform-code.md) for code patterns.
 
 ### LIST Best Practices:
-- **Always provide pagination controls** — Include Page Limit with a sensible default and a Start Cursor/Offset field.
-- **Group pagination fields** — Use `Input Group Static` to bundle pagination settings.
-- **Default page limit** — Set a reasonable default (e.g., 100) as `defaultValue` on the page limit dropdown.
-- **Field selection** — Offer a Multiselect Dynamic for users to choose which fields to return, reducing payload size.
+- **Combine operations** — Always combine listing ("List All"), searching (by specific identifiers), "Search by ID", and "Advance Search" (if supported) into a single LIST action using a Mode selector.
+- **Conditional pagination** — Offer pagination settings (limit, offset) only when Mode is 'List All' or when Mode is a non-unique search identifier, and "Enable Pagination" is enabled. Do not show pagination options for 'Search by ID' mode.
+- **Client-side pagination** — If Mode is 'List All' (or a non-unique search identifier) and "Enable Pagination" is disabled, the perform code must automatically iterate through all pages (internal pagination) to return all records.
+- **Optional field selection** — Provide an optional multiselect field chooser to specify which fields to return. If left empty, default to returning all fields/keys.
+- **Clear conditional visibility** — Use `visibilityCondition` to display mode-specific inputs (e.g., showing ID input only for "Search by ID", or AI Field only for "Advance Search").
 
 ---
 
@@ -537,6 +606,27 @@ Design workflows around a **mixture of non-technical simplicity and technical co
 *   **Prioritize Stable Identifiers:** Favor robust identifiers (e.g., email, external ID) over brittle or time-sensitive ones (e.g., database IDs).
 *   **Design for Deterministic Scale:** Automation configurations must run safely across thousands of executions without duplicate records or accidental data loss.
 
+### Decision Evaluation Dimensions
+Every design decision should be evaluated across five key dimensions (balanced dynamically based on context, rather than strictly prioritizing one):
+1.  **Accessibility:** Can a non-technical business owner configure this confidently?
+2.  **Workflow Simplicity:** Does the flow remain clean, pure, and minimal?
+3.  **Technical Feasibility:** Is this technically implementable and stable?
+4.  **Scalability:** Will this hold under worst-case usage and API rate limits?
+5.  **Structural Constraints:** Does this respect platform limitations?
+*The assistant should not blindly enforce simplicity; it must evaluate context and decide intelligently.*
+
+### Product & Use-Case Awareness
+Before proposing any trigger or action:
+*   Understand the purpose of the application.
+*   Identify practical, real-world user automation scenarios.
+*   Avoid exposing features that are technically possible but workflow-irrelevant. Focus on meaningful automation over feature completeness.
+
+### Action Selection Principle
+An action is strong when:
+*   It naturally fits into Trigger → Action workflows.
+*   It solves a repeatable automation problem.
+*   It does not introduce unnecessary complexity. Avoid priority for rarely used actions.
+
 ---
 
 ## Pre-Design Analysis (Mandatory)
@@ -554,6 +644,15 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 > *   Every documented API field must be either represented in the UX or handled implicitly by the backend code.
 > *   **Security Constraint:** Authentication parameters must **never** be exposed in the UX configuration.
 
+### Technical Reasoning Principles
+*   **Dynamic URL Awareness:** If base URLs differ per user, prefer programmatic retrieval. Avoid user-specific structures unless programmatic retrieval is too unstable.
+*   **Connection-Level Context Selection:** If a context (e.g., workspace, tenant, organization, or account) is required but no API is available to fetch options dynamically:
+    *   Capture the selection during connection/authentication setup.
+    *   Store it as part of the connection.
+    *   Actions must use this connection-level value automatically without repeatedly asking the user in every action.
+*   **Parameter Exposure:** Avoid exposing system-level complexity unless necessary. If exposure is unavoidable, provide guidance and clarity.
+*   **Endpoint Validation:** If endpoints are undocumented, attempt provider confirmation, or document the limitation clearly (avoid assumptions that cause unstable integrations).
+
 ---
 
 ## Action Design Strategy
@@ -562,7 +661,7 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 
 ### 1. The Unified Action Principle
 Consolidate operations whenever possible to simplify user choice and prevent workflow fragmentation:
-*   **Find + List → Unified Search:** Consolidate listing and lookup endpoints into a single intelligent search action.
+*   **List + Search + Get → Unified LIST Action:** Consolidate listing ("List All"), searching/filtering (by unique identifiers like email, phone, etc.), "Search by ID", and "Advance Search" (if supported) into a single unified LIST action using a Mode dropdown.
 *   **Create + Update → Intelligent Upsert:** Consolidate insertion and editing logic into a single action. Always prefer native Upsert endpoints if available.
 *   **No Manual Choice:** Users should never have to explicitly choose "Create" vs "Update". The system must automatically determine the appropriate behavior through identifier resolution.
 
@@ -585,7 +684,7 @@ Never assume referenced records exist.
 
 ## Field Design & Dynamic UI Rules
 
-*Principles for field ordering, dynamic dropdown rules, and custom module-specific schema handling.*
+*Principles for field ordering, dropdown rules, and custom module-specific schema handling.*
 
 ### 1. General Principles
 *   **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
@@ -593,12 +692,12 @@ Never assume referenced records exist.
 *   **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.
 
 ### 2. Dropdown Design Rules
-*   **Dropdown Preference:** Always prioritize dropdowns (static or dynamic) over direct text ID fields. Check if an API/endpoint is available to fetch options first, then reason about building the dropdown. Fall back to a text ID field only if no API is available or if dropdown nesting rules (see below) apply.
+*   **Dropdown Preference:** Always prioritize dropdowns (static or dynamic) over direct text ID fields. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no API is available or if dropdown nesting rules apply.
 *   **Use Dropdowns Only When:** The dataset is small, stable, and backed by a highly reliable, paginated `GET` API.
 *   **Avoid Dropdowns When:** Datasets are large, values shift frequently, or the options list depends dynamically on upstream trigger data. Use a direct **Identifier Input** (string field) instead.
-*   **UPDATE Record ID Selection Rule:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For all other triggers and actions, this exception does not apply (dropdowns always have higher priority than text ID fields).
+*   **UPDATE Record ID Selection Rule:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic).
     *   If the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created.
-    *   If fetching the ID options requires creating dependent parent dropdowns (e.g. needing to select a workspace, then a project, just to list page IDs to update), **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
+    *   If fetching the ID options requires creating dependent parent dropdowns, **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
     *   *Exceptions:* If the dropdown has static options for update, or if the parent dropdown is already required/selected by other fields in the action anyway, proceed with the dropdown selection.
 
 ### 3. Dynamic Schema Handling
@@ -606,6 +705,26 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 1. Allow the user to select the **Module / Resource** first.
 2. Dynamically retrieve the schema for that selection.
 3. Render only the fields relevant to the selected resource to prevent UI bloat and schema drift.
+
+### 4. Workflow Simplicity Principles
+*   **Workflow Purity:** Design flows as `Trigger → Action`. If a Javascript step is needed solely for formatting or mapping, move that logic internally inside the perform code.
+*   **Coded Value Handling:** If an API expects numeric codes or enums (e.g., `1 = Male`, `2 = Female`), prefer input fields with clear help text explaining the mapping, unless the mappings are guaranteed stable, in which case a dropdown is viable.
+*   **Format Abstraction Principle:** Users describe intent, not technical formatting. If a content format (e.g., HTML vs. plain text) can be safely inferred internally, detect it automatically in perform code instead of exposing format-selection fields.
+*   **Default Value Usage Rule:** Before using `defaultValue`, verify if the API has native default behavior. If the API applies a default when omitted, avoid setting `defaultValue` in the builder. Allow the API to apply its own default behavior unless there is a strong UX override benefit.
+*   **customHelp Writing Guidelines:** Focus on business meaning and explain what the user should provide rather than how the system stores it. Avoid explaining internal IDs or instructing users to copy task IDs from browser URLs.
+    *   *Good:* `"Select the parent task under which the subtask should be created."`
+    *   *Bad:* `"Open Asana, copy the task ID from the URL, and paste it here."`
+*   **Custom Mapping Behavior (Dropdown, Multiselect & Boolean):**
+    Ensure these fields support both standard selection mode and custom mapping mode:
+    *   *Standard Mode*: The field renders as a selection component (dropdown, list, or toggle switch) showing the standard `label`, `help`, and optional `placeholder`. If `placeholder` is omitted, the backend automatically defaults to `"Choose {{field label}}"`.
+    *   *Custom Mapping Mode*: When toggled, the field switches to a plain `string` input field showing:
+        *   `customInputLabel` in place of the standard `label` (required/mandatory; must be very short).
+        *   `customHelp` in place of the standard `help` (required/mandatory; must be detailed, guiding the user to enter the manual value/ID rather than choosing it).
+        *   `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
+    *   *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided.
+
+### 5. Structural Constraint Handling
+*   If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
 
 ---
 
@@ -626,6 +745,11 @@ Ensure that the design enforces repeat-run safety. Every action must explicitly 
 *   **Small & Flat Responses:** Return the entire API payload.
 *   **Large / Nested Responses:** Implement **Basic** vs **Detailed** response modes, returning key identifiers by default with optional detail expansion.
 
+### 4. Backward Compatibility Rules
+Field keys are stable contracts. When modifying an existing action, trigger, or field:
+*   **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
+*   **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
+
 ---
 
 ## Required Output Structure
@@ -635,7 +759,7 @@ Ensure that the design enforces repeat-run safety. Every action must explicitly 
 Your final proposed design must strictly output the following **five-part** structure:
 
 ### 1. API Understanding Summary
-A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, and enums.
+A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, enums, and response complexity.
 
 ### 2. Clarification Questions
 Ask clear, high-priority questions only when critical behavior, API limits, or lookup endpoints are ambiguous.
@@ -647,36 +771,32 @@ An organized JSON definition of the Input Fields, showing hierarchy, field group
 > Detailed field schemas, option generators, dynamic field builders, and allowed types **MUST** follow the rules defined in the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
 
 ### 4. API Configuration Perform Code
-JavaScript code that maps input fields to the API payload. It **MUST** strictly adhere to one of the following templates:
+JavaScript code that maps input fields to the API payload. Both of the following structures are fully valid and supported:
 
-**Format A: Direct parent try-catch (no wrapping function)**
-```javascript
-try {
-  const data = context.inputData;
-  return data;
-} catch (error) {
-  await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
-}
-```
-
-**Format B: Wrapping async function**
+**Format 1: Wrapping async function**
 ```javascript
 async function <functionName>() {
   try {
-    const data = context.inputData;
-    return data;
+    // validate required fields; build request from context.inputData; call API
   } catch (error) {
-    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`)
+    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
   }
 }
 return await <functionName>();
 ```
 
+**Format 2: Direct parent try-catch (no wrapping function)**
+```javascript
+try {
+  // validate required fields; build request from context.inputData; call API
+} catch (error) {
+  await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
+}
+```
+
 > [!WARNING]
 > #### Perform Code Constraints:
-> *   The outer `try/catch` block (either direct parent-level or wrapping async function) is **mandatory**.
-> *   `return data` must be within the `try` block.
-> *   The variable name **must** be `data` (do not rename it). Do not declare other variables before or after `const data = context.inputData` unless manual key mapping or payload transformations are strictly required due to mismatched field names.
+> *   Either of the two formats above is **mandatory**.
 > *   Authentication values must **never** be hardcoded or managed in the perform code.
 > *   The perform code should focus strictly on payload mapping and request dispatching.
 > *   For full perform code templates, pagination logic, sample API request wrappers, and helper generators, refer to the **[Perform Code Knowledge Base](perform-code.md)**.
@@ -695,3 +815,20 @@ A robust analysis explaining the duplicate prevention strategy, idempotency safe
 *   **No Direct System IDs:** Never force users to manage or copy internal system IDs (such as GUIDs or serial keys) manually when stable, user-friendly values exist.
 *   **Adherence to Real Schemas:** Do **not** invent or assume API parameter names, payloads, or field endpoints that are not explicitly documented.
 *   **Strict Review Validation:** All final configurations and perform codes must strictly be validated against the checklist in the **[DH Reviewer Instructions](dh-review.md)**.
+
+### Trade-Off Evaluation Protocol
+When conflicts arise during design, evaluate:
+1.  Does this increase complexity for non-technical users?
+2.  Does this increase system instability?
+3.  Does this increase API load risk?
+4.  Does this reduce long-term maintainability?
+*Choose the solution that minimizes long-term risk while preserving usability.*
+
+### Final Decision Reflection
+Before finalizing any design recommendation, internally validate:
+*   Is this usable by a traditional business owner?
+*   Is this unnecessarily exposing technical complexity?
+*   Is worst-case scaling acceptable?
+*   Is the workflow still logically clean?
+*   Are constraints handled responsibly?
+*If trade-offs exist, explicitly acknowledge them and explain the reasoning.*
