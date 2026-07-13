@@ -228,7 +228,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 
 ### Scheduled Trigger Perform Code Reference:
 - Scheduled Triggers require **Perform Code** for polling, filtering, sorting, and pagination.
-  - **Output Limit**: The perform code must return an array of items. There is a hard limit of 1000 items in the backend; the perform code must add appropriate limits to ensure the returned array does not exceed 1000 items (or the service's supported limit, whichever is smaller).
+  - **Output Limit**: The perform code must return an array of items from a **single page** fetch. Capped at a maximum of 1000 items per request (or the service's supported limit, whichever is smaller). The perform code must **not** perform internal client-side loops to fetch multiple pages or accumulate up to 1000 items; instead, fetch exactly one page and use `context.paginationData` to paginate across runs/executions. If the API supports a limit greater than 1000, specify a limit of 1000 or less.
 - They also require **Sample Code** for fetching test data or generating fallback schema.
 - They also require **Transfer Code** (Optional) for historical bulk data transfers (applicable for the "New Event" trigger only, not for "Update Event" triggers).
   - **Transfer Output Limit**: The `data` key in the returned transfer object must contain a maximum of 200 items per batch.
