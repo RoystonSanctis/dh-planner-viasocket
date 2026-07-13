@@ -366,7 +366,11 @@ code: String (raw JS body in try-catch parent format, not wrapped in a function;
 ```
 
 > [!IMPORTANT]
-> **Reusable Component Update Rules:**
+> **Reusable Component Reuse & Update Rules:**
+> - **Always search/look for an existing reusable component before creating a new one.**
+> - If a suitable reusable component is already present, reuse it.
+> - If the found component is missing required parameters: Do not modify its parameters if it is mapped/active elsewhere. Instead, explicitly inform the user that a component is already present, but suggest/propose creating a new reusable component to accommodate the additional parameters without breaking existing mappings.
+> - If the existing component's parameters are already satisfied, but the component's code needs to be updated: Update the existing component's code directly using the update tool, and inform the user that the update is happening on the existing reusable component.
 > - Do not change the `function_name` or `params` if the reusable component is used (mapped/active) anywhere.
 > - If the component is not used anywhere, then the `function_name` and `params` can be updated.
 > - If the `params` and `code` both need to be updated (and the component is used), then a new component must be created.
