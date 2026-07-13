@@ -152,7 +152,7 @@ The standard field ordering for an Instant Trigger follows this flow:
 4. **Conditional Fields** → Additional fields shown/hidden via `visibilityCondition` based on prior selections.
 
 ### Instant Trigger Common Input Fields:
-- **Dropdown Dynamic** — Used for selecting the resource to listen to (e.g., Page, Form, Channel). Typically uses `canPaginate: true` and `enableSearchApi: true` for large lists.
+- **Dropdown Dynamic** — Used for selecting the resource to listen to (e.g., Page, Form, Channel). Use `canPaginate: true` only if the list API supports pagination/offset parameters, and `enableSearchApi: true` only if the list API supports a search query parameter. Do not add either flag when the API does not support the feature.
 - **Input Group Static (whereClause)** — Used for sentence-based event configuration. Only contains `dropdown` and `multiselect` fields when `whereClause: true`.
 - **Help Dynamic** — Used for real-time permission checks or validation (e.g., checking if the user has admin access to a Facebook page).
 - **Boolean** — Used for toggling event subtypes or configuration modes.
@@ -211,7 +211,7 @@ A Scheduled Trigger runs at regular time intervals by repeatedly checking the ex
 ### Scheduled Trigger UX Pattern:
 The standard field ordering for a Scheduled Trigger follows this flow:
 
-1. **Dynamic Dropdown** → Primary resource selection (e.g., select Data Source, select Spreadsheet). Uses `canPaginate` and `enableSearchApi` for large lists.
+1. **Dynamic Dropdown** → Primary resource selection (e.g., select Data Source, select Spreadsheet). Use `canPaginate` only if the list API supports pagination/offset parameters, and `enableSearchApi` only if the list API supports a search query parameter.
 2. **Dynamic Dropdown** → Secondary/dependent resource selection (e.g., select Sheet within Spreadsheet). Uses `visibilityCondition` to depend on the first dropdown.
 3. **Boolean** *(optional)* → Configuration toggles (e.g., "Does your first row contain column name?"). *Note: Do not include an "Enable Pagination" toggle, as pagination is handled automatically via the trigger configuration.*
 4. **Multiselect Dynamic** *(optional)* → Field filtering (e.g., select which columns/properties to return in the output).
@@ -295,7 +295,7 @@ A GET action retrieves a **single specific record** by its unique identifier (ID
 **Examples:** Get Page by ID, Get User by ID, Get Order Details, Get Spreadsheet by ID.
 
 ### GET UX Pattern:
-1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet). Uses `canPaginate` and `enableSearchApi`.
+1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet). Use `canPaginate` only if the list API supports pagination/offset parameters, and `enableSearchApi` only if the list API supports a search query parameter.
 2. **Dynamic Dropdown / String** → Record ID selection. Either a searchable dropdown that lists records, or a plain string field where the user enters the ID directly.
 3. **Multiselect Dynamic** *(optional)* → Select which fields/properties to include in the response.
 4. **Input Group Static** *(optional)* → Additional options (e.g., output format, include metadata).
