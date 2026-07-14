@@ -114,6 +114,7 @@ published: true
       - Example 1: Generic Example (Static Fields & Input Groups)
       - Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
   - Special Note: `required` key in the input fields
+  - Special Note: Default Values for Boolean Keys
   - Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
 
 # DH Input Fields Knowledge Base
@@ -4882,6 +4883,15 @@ The following example illustrates how `dependsOn` is populated for dynamic field
 - **Dependent Required Fields:** If an optional parent field is selected/provided, and it reveals a dependent child field that is required for that specific selection, the child field **MUST** be marked as `required: true`. Additionally, the **perform code** must explicitly evaluate and enforce this requirement, throwing an error if the parent is provided but the required child field is missing.
 > [!NOTE]
 > **Exception for Input fields with visibility condition:** The visibility condition is evaluated first. If `required` is true but the field's visibility is false, the UI ignores the field during evaluation and it is not required.
+
+## Special Note: Default Values for Boolean Keys
+- If the following boolean keys are missing or not provided in the input fields JSON configuration, they are considered to be `false` by default:
+  - `whereClause`
+  - `required`
+  - `canPaginate`
+  - `enableSearchApi`
+  - `list`
+- During review or code generation, do not flag these keys as missing or incomplete; they are treated as `false` when omitted.
 
 ## Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
 For `dropdown`, `multiselect`, and `boolean` fields, the user experience involves two modes in the UI:
