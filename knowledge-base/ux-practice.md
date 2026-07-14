@@ -717,11 +717,16 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 *   **Custom Mapping Behavior (Dropdown, Multiselect & Boolean):**
     Ensure these fields support both standard selection mode and custom mapping mode:
     *   *Standard Mode*: The field renders as a selection component (dropdown, list, or toggle switch) showing the standard `label`, `help`, and optional `placeholder`. If `placeholder` is omitted, the backend automatically defaults to `"Choose {{field label}}"`.
+        - The `help` key value must start with `"Select"` (or start from `"select"`, e.g., `"Select yes/option label for [outcome]"` for booleans).
+        - It supports string format and markdown links like `[Lean More](https://example.com)`.
     *   *Custom Mapping Mode*: When toggled, the field switches to a plain `string` input field showing:
-        *   `customInputLabel` in place of the standard `label` (required/mandatory; must be very short).
-        *   `customHelp` in place of the standard `help` (required/mandatory; must be detailed, guiding the user to enter the manual value/ID rather than choosing it).
-        *   `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
-    *   *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided.
+        - `customInputLabel` in place of the standard `label` (required/mandatory; must be short and **must NOT start with "Enter"**; e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`; if it is not an ID field, standard label and `customInputLabel` must be the same).
+        - `customHelp` in place of the standard `help` (required/mandatory; must be crisp and guide manual input rather than selection):
+          - For dynamic dropdowns/multiselect: `"Enter the ID/value... You will get it from the actions like List, Find..."` (e.g. `"Enter the Spreadsheet ID manually. You can get the spreadsheet ID from actions like List Spreadsheets or Find Spreadsheet."`).
+          - For static dropdowns/multiselect and booleans: Specify the actual value in the help and explain what will happen (e.g. for boolean: `"Enter true for [outcome] and false for [outcome]"`).
+            - In static dropdown/multiselect: if options are few, mention them in `customHelp` and explain. If options are many, write `"Enter {{label name}} ...benefits of the field"` (e.g., `"Enter priority level... to filter tasks."`).
+        - `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
+    *   *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided. Both the `help` key and `customHelp` must be very crisp and to the point.
 
 ### 5. Structural Constraint Handling
 *   If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
