@@ -29,7 +29,6 @@ published: true
       - Scheduled Trigger Transfer Code Patterns:
   - Manual Trigger
     - Manual Trigger Perform Code Rules:
-    - Manual Trigger Perform Code Pattern:
     - Manual Trigger Perform Code (Modify data before send to flow) Rules:
     - Manual Trigger Sample Code Pattern:
 - Actions
