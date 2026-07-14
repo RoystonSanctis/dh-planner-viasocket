@@ -388,7 +388,7 @@ Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText,
   - Scan for typos, trailing spaces, and differences from sibling actions.
 
 ## General Guidelines
-Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers).
+Validate against all rules above. New checks: reusable-component `id` mapped correctly; FIND/SEARCH `.find()` fallback returns `{results:[]}`; clean generic labels; output the raw `inputFields` array only (no `steps`/`blocks`/`dependsOn`/auth/headers). If optional boolean keys like `whereClause`, `required`, `canPaginate`, `enableSearchApi`, or `list` are missing/not provided in the input fields JSON, they are considered to be `false` by default; do not flag to add them.
 Validate against this file; output the raw `inputFields` array (never the `{"inputFields":[...]}` wrapper); never expose auth or force users to manage internal IDs; don't ask the user for `pluginrecordid` or `authid`, as this is internally passed; don't invent undocumented params; every documented API field is in UX or handled in code.
 - **Perform**:
   - Wrapper correct (`async <functionName>()` matching the operation performed) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.

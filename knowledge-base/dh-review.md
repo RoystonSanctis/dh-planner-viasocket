@@ -123,7 +123,7 @@ Each input field must strictly adhere to the structure, formats, and validation 
 
 **Field Guidelines:**
 - **Clean Labels**: Labels must be clean and generic (e.g., "Select Board", NOT "Select Trello Board").
-- **Exclusions**: Do not include Auth fields. Ignore Headers. Validate ONLY `inputFields` (ignore auto-generated `steps`/`blocks`).
+- **Exclusions**: Do not include Auth fields. Ignore Headers. Validate ONLY `inputFields` (ignore auto-generated `steps`/`blocks`). If optional boolean keys like `whereClause`, `required`, `canPaginate`, `enableSearchApi`, or `list` are missing/not provided in the input fields JSON, they are considered to be `false` by default; do not flag to add them.
 - **Allowed Types**: Dropdown, Input Group, Multi-select (all static/dynamic), Boolean, Text Input, HTML, Markdown, Dictionary, AI Field, Number, Help, Help Static.
 
 - **Reusable Component Mapping**: Reusable Components are imported in dynamic dropdowns and multiselects. When generating the field JSON and using the fields key in the Reusable Component mapping list tool, ensure that the `"id"` key is correctly mapped to the reusable component's `"id"` key. Also, inside the `optionsGenerator` where the component is called (using component mapping), the call must be wrapped in a `try-catch` block and the `catch` block must call `await errorComponent(error)` (do NOT use `throw error` or `throw e`).
