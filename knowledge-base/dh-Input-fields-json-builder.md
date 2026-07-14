@@ -119,7 +119,14 @@ published: true
 
 # DH Input Fields Knowledge Base
 
-This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases.
+This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. This guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases.
+
+> [!IMPORTANT]
+> **Help Key Requirement & Exception:**
+> - In most cases, a `help` key is mandatory to guide users.
+> - **Exception:** If the field's `label` and `key` are completely self-explanatory (e.g., `label: "First Name"`, `key: "first_name"`), the `help` key can be omitted entirely.
+> - **Mandatory Cases:** If a field is not completely self-explanatory—for example, a date field with `label: "Date"` which requires explaining the purpose of the date and the accepted input format—the `help` key must be included.
+
 
 # Static Input Fields
 
