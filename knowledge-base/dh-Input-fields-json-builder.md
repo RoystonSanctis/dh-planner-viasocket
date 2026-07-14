@@ -170,7 +170,7 @@ Generate a JSON object strictly following the rules below.
 
 **4. Label, Help, Placeholder**
 - label: Clean, human-readable version of fieldPurpose
-- help: Clearly explain what the user should enter. For date fields, note the expected format.
+- help: Clearly explain what the user should enter. For date fields, note the expected format. **The value must start with "Enter"** (e.g., `"Enter description."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 - placeholder: Provide a realistic example relevant to the purpose. The value must always be a string; even for number or date fields, the placeholder value must be wrapped in a string (e.g. `"10"`, or `"07-11-2026 12:00:00"` for `"MM-DD-YYYY HH:mm:ss"`).
 
 **5. Required Rule**
@@ -508,7 +508,7 @@ Generate a JSON object strictly following the rules below for a dictionary.
 **2. Label Rules**
 - label must be a clean, human-readable version of fieldPurpose.
 **3. Help Rules**
-- help must clearly explain what key-value pairs the user should enter.
+- help must clearly explain what key-value pairs the user should enter. **The value must start with "Enter"** (e.g., `"Enter custom key-value pairs."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 **4. Required Rules**
 - Set required: true only if fieldPurpose implies mandatory input. 
 - Otherwise, set required: false.
@@ -832,7 +832,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 
 **3. Label, Help Rules**
 - label: Clean, human-readable question or description of the toggle (e.g. "Does your first row contain column name?")
-- help: Clearly explain what happens when the user enables or disables this option
+- help: Clearly explain what happens when the user enables or disables this option. **The value must start with "Select"** (or start from `"select"`, e.g., `"Select yes/option label for [outcome]"`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 
 **4. Required Rule**
 - Set required: true if the field implies a mandatory decision
@@ -853,9 +853,9 @@ Generate a JSON object strictly following the rules below for a boolean field.
 
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
-- **customInputLabel is always required/mandatory**: **It must be very short** (e.g. `"Enter Pagination Option"`).
+- **customInputLabel is always required/mandatory**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Does your first row contain column name?"` and customInputLabel `"Does your first row contain column name?"` since it is not an ID field). If not an ID field, standard label and `customInputLabel` must be the same.
 - **customPlaceholder is always required/mandatory**: Provide a relevant value sample (such as `"true"`). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"true"`, `"false"`).
-- **customHelp is always required/mandatory**: **It must be detailed** (e.g. `"Enter 'true' to paginate results, or 'false' to fetch all users."`). It is like the `help` key but specifically explains when/what values to enter for the `true` and `false` states.
+- **customHelp is always required/mandatory**: **It must specify the actual value and explain what will happen** (e.g. `"Enter 'true' to paginate results, or 'false' to fetch all users."`). It is like the `help` key but specifically explains when/what values to enter for the `true` and `false` states. Both `help` and `customHelp` must be very crisp and to the point.
 
 **8. Visibility Condition Rule**
 - Include visibilityCondition only if both parentKey and parentValue are provided
@@ -1067,7 +1067,7 @@ schema:
 [
    {
         "key": "column_key",
-        "help": "Determines how the data columns are labelled.",
+        "help": "Select yes if the first row contains the column name.",
         "type": "boolean",
         "label": "Does your first row contain column name?",
         "options": [
@@ -1082,7 +1082,7 @@ schema:
         ],
         "required": true,
         "placeholder": "Choose Option",
-        "customInputLabel": "Enter Column Key Option",
+        "customInputLabel": "Does your first row contain column name?",
         "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
         "defaultValue": {
           "label": "Yes",
@@ -1092,7 +1092,7 @@ schema:
       },
       {
         "key": "search_filter_type",
-        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns.",
+        "help": "Select the filter type.",
         "type": "boolean",
         "label": "Search Filter Type",
         "options": [
@@ -1106,6 +1106,7 @@ schema:
           }
         ],
         "required": true,
+        "customInputLabel": "Search Filter Type",
         "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
         "defaultValue": {
           "label": "Basic",
@@ -1113,9 +1114,9 @@ schema:
         },
         "customPlaceholder": "true"
       },
-            {
+      {
         "key": "is_pagination",
-        "help": "If yes, you can provide the page size and start cursor. If no you will receive all the page content.",
+        "help": "Select yes to enable pagination and enter page size, or no to fetch all content.",
         "type": "boolean",
         "label": "Enable Pagination",
         "options": [
@@ -1129,43 +1130,45 @@ schema:
           }
         ],
         "required": false,
-        "customHelp": "Enter \"true\" if you want to enable pagination else \"false\"",
+        "customInputLabel": "Enable Pagination",
+        "customHelp": "Enter \"true\" to enable pagination, or \"false\" to fetch all content.",
         "customPlaceholder": "true",
         "defaultValue": {
           "label": "No",
           "value": false
         }
       },
-        {
-    "key": "page_location",
-    "help": "Location of the datination page to be created.",
-    "type": "boolean",
-    "label": "Create page at",
-    "options": [
       {
-        "label": "Workspace",
-        "value": false
-      },
-      {
-        "label": "Parent Page",
-        "value": true
+        "key": "page_location",
+        "help": "Select Parent Page to create page under a parent, or Workspace to create a private page.",
+        "type": "boolean",
+        "label": "Create page at",
+        "options": [
+          {
+            "label": "Workspace",
+            "value": false
+          },
+          {
+            "label": "Parent Page",
+            "value": true
+          }
+        ],
+        "required": true,
+        "customPlaceholder": "true",
+        "defaultValue": {
+          "label": "Parent Page",
+          "value": true
+        },
+        "customInputLabel": "Create page at",
+        "customHelp": "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
       }
-    ],
-    "required": true,
-    "customPlaceholder": "true",
-    "defaultValue": {
-      "label": "Parent Page",
-      "value": true
-    },
-    "customHelp": "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
-  }
-]
-```
+    ]
+    ```
 #### Boolean TOON Example:
 ```toon
 [4]:
   - key: column_key
-    help: Determines how the data columns are labelled.
+    help: Select yes if the first row contains the column name.
     type: boolean
     label: Does your first row contain column name?
     options[2]{label,value}:
@@ -1173,40 +1176,42 @@ schema:
       No,false
     required: true
     placeholder: Choose Option
-    customInputLabel: Enter Column Key Option
+    customInputLabel: Does your first row contain column name?
     customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
     defaultValue:
       label: Yes
       value: true
     customPlaceholder: "true"
   - key: search_filter_type
-    help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns."
+    help: Select the filter type.
     type: boolean
     label: Search Filter Type
     options[2]{label,value}:
       Basic,true
       Advance,false
     required: true
+    customInputLabel: Search Filter Type
     customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
     defaultValue:
       label: Basic
       value: true
     customPlaceholder: "true"
   - key: is_pagination
-    help: "If yes, you can provide the page size and start cursor. If no you will receive all the page content."
+    help: Select yes to enable pagination and enter page size, or no to fetch all content.
     type: boolean
     label: Enable Pagination
     options[2]{label,value}:
       Yes,true
       No,false
     required: false
-    customHelp: "Enter \"true\" if you want to enable pagination else \"false\""
+    customInputLabel: Enable Pagination
+    customHelp: "Enter \"true\" to enable pagination, or \"false\" to fetch all content."
     customPlaceholder: "true"
     defaultValue:
       label: No
       value: false
   - key: page_location
-    help: Location of the datination page to be created.
+    help: Select Parent Page to create page under a parent, or Workspace to create a private page.
     type: boolean
     label: Create page at
     options[2]{label,value}:
@@ -1217,6 +1222,7 @@ schema:
     defaultValue:
       label: Parent Page
       value: true
+    customInputLabel: Create page at
     customHelp: "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
 ```
 
@@ -1243,7 +1249,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - type must always be "dropdown".
 **4. Label, Help Rules**
 - label: Clean, human-readable description of what the user is selecting (e.g. "Message Type"). It should describe the choice, not the technical value.
-- help: Guidance text explaining why the user is making this selection and how it affects behavior.
+- help: Guidance text explaining why the user is making this selection and how it affects behavior. **The value must start with "Select"** (or start from `"select"`, e.g., `"Select the message type."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 **5. Required Rule**
 - Set required: true if one option must be selected for the action to work.
 - Otherwise set required: false.
@@ -1264,10 +1270,12 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- **help key**: Must focus on selection (e.g. "Select the Spreadsheet from the list.").
-- **customInputLabel is required**: **It must be very short** (e.g. `"Enter Spreadsheet ID"`).
+- **help key**: Must focus on selection. **The value must start with "Select"** (e.g. `"Select the spreadsheet."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
+- **customInputLabel is required**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`). If not an ID field, standard label and `customInputLabel` must be the same.
 - **customPlaceholder is required**: Provide a relevant numeric or text example (such as `"15"` if expecting an ID). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes (e.g., `"15"`).
-- **customHelp is required**: **It must be detailed** (e.g. `"Enter the Spreadsheet ID manually. You can find the ID in the URL of your spreadsheet."`). The phrasing must guide the user to enter/paste the value rather than selecting/choosing it, and explain how/where to find the ID.
+- **customHelp is required**: **It must guide manual input, and should be very crisp and to the point**:
+  - **If options are few**: Specify the actual value in the help and explain what will happen (e.g. `"Enter 'text', 'image', or 'audio' to set message type."`).
+  - **If options are many**: Write `"Enter {{label name}} ...benefits of the field"` (e.g. `"Enter category ID to assign the video category."`).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the dropdown depends on another field.
 - Omit if always visible.
@@ -1524,7 +1532,7 @@ schema:
 [
   {
     "key": "message_type",
-    "help": "Select the type of message you want to send. Choose the appropriate option based on the media you are sending.",
+    "help": "Select the type of message to send based on your media.",
     "type": "dropdown",
     "label": "Message Type",
     "options": [
@@ -1555,12 +1563,13 @@ schema:
     ],
     "required": true,
     "placeholder": "Choose Message Type",
-    "customInputLabel": "Enter Message Type",
+    "customInputLabel": "Message Type",
+    "customHelp": "Enter 'text', 'image', 'audio', 'video', 'sticker', or 'media_share' based on media type.",
     "customPlaceholder": "text"
   },
   {
     "key": "video_status",
-    "help": "Choose the video visibility status (public, private, unlisted).",
+    "help": "Select the video visibility status.",
     "type": "dropdown",
     "label": "Video Status",
     "options": [
@@ -1582,11 +1591,14 @@ schema:
     "defaultValue": {
       "label": "Public",
       "value": "public"
-    }
+    },
+    "customInputLabel": "Video Status",
+    "customHelp": "Enter 'public', 'private', or 'unlisted' to set video status.",
+    "customPlaceholder": "public"
   },
    {
     "key": "category_id",
-    "help": "Choose video category or enter the video category ID.",
+    "help": "Select the video category.",
     "type": "dropdown",
     "label": "Category",
     "options":[
@@ -1668,9 +1680,9 @@ schema:
         ],
     "required": true,
     "placeholder": "Choose Category",
-    "customInputLabel": "Enter the video category ID.",
+    "customInputLabel": "Category ID",
     "customPlaceholder": "22",
-    "customHelp": "If you don't know the video category ID, you can enter the video category ID manually. Additionally you can get the category ID from the List Categories Action."
+    "customHelp": "Enter category ID to assign the video category."
   }
   ]
 ```
@@ -1678,7 +1690,7 @@ schema:
 ```toon
 [3]:
   - key: message_type
-    help: Select the type of message you want to send. Choose the appropriate option based on the media you are sending.
+    help: Select the type of message to send based on your media.
     type: dropdown
     label: Message Type
     options[6]{label,value}:
@@ -1690,10 +1702,11 @@ schema:
       Send Published Post,media_share
     required: true
     placeholder: Choose Message Type
-    customInputLabel: Enter Message Type
+    customInputLabel: Message Type
+    customHelp: "Enter 'text', 'image', 'audio', 'video', 'sticker', or 'media_share' based on media type."
     customPlaceholder: "text"
   - key: video_status
-    help: "Choose the video visibility status (public, private, unlisted)."
+    help: "Select the video visibility status."
     type: dropdown
     label: Video Status
     options[3]{label,value}:
@@ -1705,8 +1718,11 @@ schema:
     defaultValue:
       label: Public
       value: public
+    customInputLabel: Video Status
+    customHelp: "Enter 'public', 'private', or 'unlisted' to set video status."
+    customPlaceholder: "public"
   - key: category_id
-    help: Choose video category or enter the video category ID.
+    help: Select the video category.
     type: dropdown
     label: Category
     options[15]{label,value,sample}:
@@ -1727,9 +1743,9 @@ schema:
       Nonprofits & Activism,"29","29"
     required: true
     placeholder: Choose Category
-    customInputLabel: Enter the video category ID.
+    customInputLabel: Category ID
     customPlaceholder: "22"
-    customHelp: "If you don't know the video category ID, you can enter the video category ID manually. Additionally you can get the category ID from the List Categories Action."
+    customHelp: "Enter category ID to assign the video category."
 ```
 
 
@@ -1756,7 +1772,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 - type must always be "multiselect".
 **4. Label, Help Rules**
 - label: Clean, human-readable description of what the user is selecting (e.g. "Output Response"). It should describe the choice, not the technical value.
-- help: Guidance text explaining why the user is making this selection and how it affects behavior.
+- help: Guidance text explaining why the user is making this selection and how it affects behavior. **The value must start with "Select"** (or start from `"select"`, e.g., `"Select the output response format."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 **5. Required Rule**
 - Set required: true if at least one option must be selected for the action to work.
 - Otherwise set required: false.
@@ -1776,10 +1792,12 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
 - Omit defaultValue entirely if there is no default.
 **9. Custom Input Rules**
-- **help key**: Must focus on selection (e.g. "Select the fields to include in the output.").
-- **customInputLabel is required**: **It must be very short** (e.g. `"Enter Properties in Array"`).
+- **help key**: Must focus on selection. **The value must start with "Select"** (e.g. `"Select the fields to include in the output."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
+- **customInputLabel is required**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Output Response"`, customInputLabel `"Output Response"`). If not an ID field, standard label and `customInputLabel` must be the same.
 - **customPlaceholder is required**: Provide a relevant array example (such as `"[\"markdown\",\"block\"]"` or `"[\"first_name\",\"email\"]"`). Do NOT use "E.g." or "e.g." in custom placeholders; they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes.
-- **customHelp is required**: **It must be detailed** (e.g. `"Enter the property names in an array format manually. These are the fields that will be returned in the response API."`). The phrasing must guide the user to enter/paste the value rather than selecting/choosing it.
+- **customHelp is required**: **It must guide manual input, and should be very crisp and to the point**:
+  - **If options are few**: Specify the actual value in the help and explain what will happen (e.g. `"Enter 'markdown', 'blocks', or 'html' in an array format."`).
+  - **If options are many**: Write `"Enter {{label name}} ...benefits of the field"` (e.g. `"Enter priority levels in array... to filter tasks."`).
 **10. Visibility Condition Rule**
 - Include visibilityCondition only when the multiselect depends on another field.
 - Omit if always visible.
@@ -2014,7 +2032,7 @@ schema:
 [
   {
     "key": "output_response",
-    "help": "Choose response output possible markdown, notion blocks.",
+    "help": "Select the output response format (markdown, blocks, or html).",
     "type": "multiselect",
     "label": "Output Response",
     "options": [
@@ -2043,12 +2061,13 @@ schema:
         "sample": "markdown"
       }
     ],
-    "customInputLabel": "Enter output responses to include in array.",
+    "customInputLabel": "Output Response",
+    "customHelp": "Enter 'markdown', 'blocks', or 'html' in an array format to customize the output response.",
     "customPlaceholder": "[\"markdown\",\"block\"]"
   },
   {
     "key": "search_by",
-    "help": "Select fields to search from will return the result containing any of the matching fields",
+    "help": "Select the fields to search from.",
     "type": "multiselect",
     "label": "Search By",
     "options": [
@@ -2074,10 +2093,10 @@ schema:
       }
     ],
     "required": true,
-    "customHelp": "You can enter the required fields ID in the array to search from",
+    "customHelp": "Enter 'id', 'phone', 'email', or 'first_name' in an array format to select fields to search by.",
     "customPlaceholder": "[\"first_name\",\"email\"]",
-    "customInputLabel": "Enter fields ids in array",
-    "placeholder": "Choose Search Filelds"
+    "customInputLabel": "Search By",
+    "placeholder": "Choose Search Fields"
   }
 ]
 ```
@@ -2086,7 +2105,7 @@ schema:
 ```toon
 [2]:
   - key: output_response
-    help: "Choose response output possible markdown, notion blocks."
+    help: "Select the output response format (markdown, blocks, or html)."
     type: multiselect
     label: Output Response
     options[3]{label,value,sample}:
@@ -2097,10 +2116,11 @@ schema:
     placeholder: Choose Return Type
     defaultValue[1]{label,value,sample}:
       Markdown,markdown,markdown
-    customInputLabel: Enter output responses to include in array.
+    customInputLabel: Output Response
+    customHelp: "Enter 'markdown', 'blocks', or 'html' in an array format to customize the output response."
     customPlaceholder: "[\"markdown\",\"block\"]"
   - key: search_by
-    help: Select fields to search from will return the result containing any of the matching fields
+    help: Select the fields to search from.
     type: multiselect
     label: Search By
     options[4]{label,value,sample}:
@@ -2109,10 +2129,10 @@ schema:
       Email,email,email
       First Name,first_name,first_name
     required: true
-    customHelp: You can enter the required fields ID in the array to search from
+    customHelp: Enter 'id', 'phone', 'email', or 'first_name' in an array format to select fields to search by.
     customPlaceholder: "[\"first_name\",\"email\"]"
-    customInputLabel: Enter fields ids in array
-    placeholder: Choose Search Filelds
+    customInputLabel: Search By
+    placeholder: Choose Search Fields
 ```
 
 ## AI Field
@@ -2141,7 +2161,7 @@ Generate a JSON object strictly following the rules below for an AI field.
 
 **4. Label & Help Rules**
 - `label`: A human-readable display name explaining the field.
-- `help`: Instructional guidance text for the user on how to use this field. Can include markdown links.
+- `help`: Instructional guidance text for the user on how to use this field. **The value must start with "Enter"** (e.g., `"Enter query to generate content."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 
 **5. Prompt Rule**
 - `prompt`: The system prompt or instructions sent to the AI. This defines the AI's behavior, task, or role, telling it how to process the user's input and format the output (e.g. "Convert the input into a JSON array...").
@@ -2515,7 +2535,7 @@ Generate a JSON object strictly following the rules below for an input group.
 
 **4. Label & Help Rules**
 - `label`: A human-readable display name summarizing the group (e.g., "Search Filter").
-- `help`: Guidance text explaining the entire group's purpose. Can be an empty string if no guidance is needed.
+- `help`: Guidance text explaining the entire group's purpose. Can be an empty string if no guidance is needed. **When specified, the value must start with "Enter"** (e.g., `"Enter search filters."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 
 **5. Where Clause Rule**
 - `whereClause`: A boolean flag (`true`/`false`).
@@ -3098,7 +3118,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
   4. **Neither supported:** If the API supports neither search nor pagination, set `"canPaginate": false` and `"enableSearchApi": false`.
   - **Existing Reusable Component Rule:** If a reusable component is already present and implements pagination or search or both, make `"canPaginate"` and/or `"enableSearchApi"` `true` in the dropdown field configuration accordingly.
   - **API Verification Rule:** When researching an API, perform a web search or check official API documentation to confirm support for pagination/search parameters. Only proceed with creating a component or enabling these flags if the API explicitly supports them; never assume or guess support.
-- All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included for the manual input mode. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes. The `help` key must focus on selection. **The `customInputLabel` must be very short** (e.g. `"Enter Spreadsheet ID"`), and **the `customHelp` must be detailed** (e.g. `"Enter the Spreadsheet ID manually. You can find the ID in the URL of your spreadsheet."`), explaining how/where to find the ID or guide manual entry.
+- All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included for the manual input mode. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes. The `help` key must focus on selection and start with "Select" (e.g. "Select the spreadsheet."). It supports string format and markdown links like `[Lean More](https://example.com)`. **The `customInputLabel` must be short and must NOT start with "Enter"** (e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`). If not an ID field, standard label and `customInputLabel` must be the same. **The `customHelp` must guide manual input with "Enter the ID/value... You will get it from the actions like List, Find..."** (e.g. `"Enter the Spreadsheet ID manually. You can get the spreadsheet ID from actions like List Spreadsheets or Find Spreadsheet."`). Both `help` and `customHelp` must be very crisp and to the point.
 - **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (e.g., `[{label, value, sample}]` or `{data: [{label, value, sample}], offset: ...}`). MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 
 ### Dropdown Dynamic JSON Schema:
@@ -3312,56 +3332,59 @@ schema:
 [
   {
     "key": "data_source_id",
-    "help": "If you don’t see your expected Data Source, please check that it is shared with the same integration that you’re using to authenticate with. Update the connection and grant the page access or give the access in notion UI under integrations.",
+    "help": "Select the Notion data source.",
     "type": "dropdown",
     "label": "Data Source",
     "required": true,
-    "customHelp": "You can get the data source id from the action list data source or from the find data source by title action. ",
+    "customHelp": "Enter the Data Source ID manually. You can get the Data Source ID from actions like List Data Sources or Find Data Source.",
     "canPaginate": true,
     "placeholder": "Choose Data Source",
     "enableSearchApi": true,
-    "customInputLabel": "Enter Data Source ID.",
+    "customInputLabel": "Data Source ID",
     "optionsGenerator": "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  await errorComponent(e);\n}",
     "customPlaceholder": "229a83a6-ccba-80f4-a654-000b91179e35"
   },
   {
     "key": "spreadsheet_id",
-    "help": "Select or enter the ID of the spreadsheet .",
+    "help": "Select the Google Spreadsheet.",
     "type": "dropdown",
     "label": "Spreadsheet",
     "required": true,
-    "customHelp": "You will find the Spreadsheet ID on the spreadsheet URL https://docs.google.com/spreadsheets/d/{spreadsheet_Id}/ or you can use the action like search spreadsheet or list spreadsheet.",
+    "customHelp": "Enter the Spreadsheet ID manually. You can get the Spreadsheet ID from the URL of your spreadsheet, or from actions like Search Spreadsheet or List Spreadsheets.",
     "canPaginate": true,
     "placeholder": "Choose Spreadsheet ID",
     "enableSearchApi": true,
-    "customInputLabel": "Enter Spreadsheet ID",
+    "customInputLabel": "Spreadsheet ID",
     "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}",
     "customPlaceholder": "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
   },
   {
     "key": "sheet_id",
-    "help": "Select the Sheet or Enter Sheet ID.",
+    "help": "Select the Google Sheet.",
     "type": "dropdown",
     "label": "Sheet",
     "required": true,
-    "customHelp": "You will find the sheet ID on the spreadsheet URL gid=, or you can use the action like search sheet or list sheet.",
+    "customHelp": "Enter the Sheet ID manually. You can get the Sheet ID from the URL (gid parameter) or from actions like List Sheets.",
     "canPaginate": false,
     "placeholder": "Choose Sheet",
     "enableSearchApi": false,
-    "customInputLabel": "Enter Sheet ID",
+    "customInputLabel": "Sheet ID",
     "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nawait errorComponent(e);\n}",
     "customPlaceholder": "38470421"
   },
   {
-  "key": "channel_id",
-  "help": "Select the channel to send the message.",
-  "type": "dropdown",
-  "label": "Channel",
-  "required": true,
-  "canPaginate": true,
-  "optionsGenerator": "try {\n function convertToDesiredFormat(allChannels) {\n return allChannels\n ?.map(channel => ({\n label: channel.name,\n sample: channel.id,\n value: channel.id\n }))\n .sort((a, b) => a.label.localeCompare(b.label));\n }\n\n function replaceEqualsWithPercent3D(inputString) {\n return inputString.replace(/=/g, '');\n }\n\n let response = await axios.get(\n 'https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=999'\n );\n\n let channelArray = response?.data?.channels || [];\n\n while (response?.data?.response_metadata?.next_cursor) {\n const next_cursor = replaceEqualsWithPercent3D(response.data.response_metadata.next_cursor);\n\n response = await axios.get(\n https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&cursor=${next_cursor}&limit=999\n );\n\n channelArray = [...channelArray, ...(response?.data?.channels || [])];\n }\n\n return convertToDesiredFormat(channelArray);\n\n} catch (error) {\n switch (error?.response?.status) {\n case 401:\n if (error?.response?.data?.error === 'token_revoked') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'Token has been revoked. Please check your credentials and try again.'\n };\n }\n break;\n case 429:\n if (error?.response?.data?.error === 'ratelimited') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'You have made too many requests in a short period. Please wait before trying again.'\n };\n }\n break;\n default:\n throw error;\n }\n}"
-},
- {
+    "key": "channel_id",
+    "help": "Select the channel to send the message.",
+    "type": "dropdown",
+    "label": "Channel",
+    "required": true,
+    "canPaginate": true,
+    "optionsGenerator": "try {\n function convertToDesiredFormat(allChannels) {\n return allChannels\n ?.map(channel => ({\n label: channel.name,\n sample: channel.id,\n value: channel.id\n }))\n .sort((a, b) => a.label.localeCompare(b.label));\n }\n\n function replaceEqualsWithPercent3D(inputString) {\n return inputString.replace(/=/g, '');\n }\n\n let response = await axios.get(\n 'https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=999'\n );\n\n let channelArray = response?.data?.channels || [];\n\n while (response?.data?.response_metadata?.next_cursor) {\n const next_cursor = replaceEqualsWithPercent3D(response.data.response_metadata.next_cursor);\n\n response = await axios.get(\n https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&cursor=${next_cursor}&limit=999\n );\n\n channelArray = [...channelArray, ...(response?.data?.channels || [])];\n }\n\n return convertToDesiredFormat(channelArray);\n\n} catch (error) {\n switch (error?.response?.status) {\n case 401:\n if (error?.response?.data?.error === 'token_revoked') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'Token has been revoked. Please check your credentials and try again.'\n };\n }\n break;\n case 429:\n if (error?.response?.data?.error === 'ratelimited') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'You have made too many requests in a short period. Please wait before trying again.'\n };\n }\n break;\n default:\n throw error;\n }\n}",
+    "customInputLabel": "Channel ID",
+    "customHelp": "Enter the Channel ID manually. You can get the Channel ID from actions like List Channels.",
+    "customPlaceholder": "C12345678"
+  },
+  {
     "key": "page_id",
     "help": "Select the Facebook page.",
     "type": "dropdown",
@@ -3369,9 +3392,10 @@ schema:
     "required": true,
     "canPaginate": true,
     "placeholder": "Select the Facebook page",
-    "customInputLabel": "Enter Page ID",
+    "customInputLabel": "Page ID",
     "optionsGenerator": "async function fetchPagesWithPagination(context) {\n  // Get the offset (next page cursor) from context if it exists\n  const offset = context?.paginateData?.['page_id'];\n\n  const limit = 100;\n\n  // Build the API URL\n  let url = `https://graph.facebook.com/me/accounts?limit=${limit}`;\n  if (offset) {\n    url += `&after=${offset}`;\n  }\n\n  const config = {\n    method: 'get',\n    url: url\n  };\n\n  try {\n    const res = await axios.request(config);\n    const responseData = res.data;\n\n    // Check if there's any data\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        message: \"No pages found. Make sure manage access is given. Update the connection and select page to give access for the automation.\"\n      };\n    }\n    else if ((!responseData.data || responseData.data.length === 0) && offset){\n return {\n  message: \"All Pages fetched successfully..\"\n }\n   }\n\n    // Transform data into dropdown format\n    const data = responseData.data.map(account => ({\n      label: account.name,\n      value: account.id,\n      sample: account.id\n    }));\n\n    // Prepare response with current page data and next offset (if any)\n    const result = {\n      data: data\n    };\n\n    // Check if there's a next page\n    if (responseData.paging && responseData.paging.cursors && responseData.paging.cursors.after) {\n      result.offset = responseData.data.length < limit ? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    // Handle specific error cases if needed\n    if (error.response?.status === 400 || error.response?.status === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect.\" };\n    }\n\n    return { message: \"Enter page ID. E.g. 516470358708231\" };\n  }\n}\n\n// Call the function (assuming context is available in your environment)\nconst result = await fetchPagesWithPagination(context);\nreturn result;",
-    "customPlaceholder": "516470358708231"
+    "customPlaceholder": "516470358708231",
+    "customHelp": "Enter the Page ID manually. You can get the Page ID from actions like List Pages."
   },
   {
     "key": "form_id",
@@ -3381,10 +3405,11 @@ schema:
     "required": true,
     "canPaginate": true,
     "placeholder": "Choose Lead Form",
-    "customInputLabel": "Enter Lead Form ID",
+    "customInputLabel": "Lead Form ID",
     "optionsGenerator": "async function fetchLeadFormsWithPagination(context) {\n  const selectedPage = context?.inputData?.page_id;\n  const offset = context?.paginateData?.['form_id'];\n  const limit = 100; // Max supported for leadgen_forms endpoint\n\n  if (!selectedPage) {\n    return { message: \"Please select a Facebook Page first.\" };\n  }\n\n  try {\n    // Get page access token using the provided getAccessToken function (empty permissions)\n    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);\n\n    if (!accessToken || !isPermission) {\n      return { message: \"Unable to get access to the selected Page. Please reconnect or check permissions.\" };\n    }\n\n    // Build the API URL for leadgen_forms with pagination\n    let url = `https://graph.facebook.com/v25.0/${selectedPage}/leadgen_forms`;\n    url += `?limit=${limit}&access_token=${accessToken}`;\n    if (offset) {\n      url += `&after=${offset}`;\n    }\n\n    const response = await axios.get(url);\n    const responseData = response.data;\n\n    // If no forms returned and this is the first request\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        data: [{ label: 'All Leadgen Forms', value: '0' }],\n        offset: null,\n        message: \"No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page.\"\n      };\n    }\n\n    // If no more forms on subsequent pages\n    if (!responseData.data || responseData.data.length === 0) {\n      return {\n        message: \"All Lead Forms fetched successfully.\"\n      };\n    }\n\n    // Transform forms into dropdown options\n    const data = responseData.data.map(form => ({\n      label: form.name,\n      value: form.id,\n      sample: form.id\n    }));\n\n    // Always include \"All Leadgen Forms\" as first option (only on first page)\n    if (!offset) {\n      data.unshift({ label: 'All Leadgen Forms', value: '0' });\n    }\n\n    // Prepare result\n    const result = { data };\n\n    // Add offset if there's a next page\n    if (responseData.paging?.cursors?.after) {\n      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    console.error(\"Error fetching lead forms:\", error);\n\n    // Specific OAuth/token errors\n    if (error.response?.data?.error?.code === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect your Facebook account.\" };\n    }\n\n    // Permission or page access issue\n    if (error.response?.status === 400 || error.response?.status === 403) {\n      return { message: \"Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted.\" };\n    }\n\n    // Fallback: return only \"All\" option\n    return {\n      data: [{ label: 'All Leadgen Forms', value: '0' }],\n       offset: null,\n      message: error?.message || \"Could not load forms. Using 'All Leadgen Forms' as default.\"\n    };\n  }\n}\n\n// Execute and return\nreturn await fetchLeadFormsWithPagination(context);",
     "customPlaceholder": "1161533432455827",
-    "visibilityCondition": "context?.inputData?.page_id"
+    "visibilityCondition": "context?.inputData?.page_id",
+    "customHelp": "Enter the Lead Form ID manually. You can get the Lead Form ID from actions like List Lead Forms."
   }
 ]
 ```
@@ -3392,39 +3417,39 @@ schema:
 ```toon
 [6]:
   - key: data_source_id
-    help: "If you don’t see your expected Data Source, please check that it is shared with the same integration that you’re using to authenticate with. Update the connection and grant the page access or give the access in notion UI under integrations."
+    help: Select the Notion data source.
     type: dropdown
     label: Data Source
     required: true
-    customHelp: "You can get the data source id from the action list data source or from the find data source by title action. "
+    customHelp: "Enter the Data Source ID manually. You can get the Data Source ID from actions like List Data Sources or Find Data Source."
     canPaginate: true
     placeholder: Choose Data Source
     enableSearchApi: true
-    customInputLabel: Enter Data Source ID.
+    customInputLabel: Data Source ID
     optionsGenerator: "try{\n return  await fetchDataSources(__searchText,context?.paginateData?.['data_source_id'], 30) ;\n}\ncatch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "229a83a6-ccba-80f4-a654-000b91179e35"
   - key: spreadsheet_id
-    help: Select or enter the ID of the spreadsheet .
+    help: Select the Google Spreadsheet.
     type: dropdown
     label: Spreadsheet
     required: true
-    customHelp: "You will find the Spreadsheet ID on the spreadsheet URL https://docs.google.com/spreadsheets/d/{spreadsheet_Id}/ or you can use the action like search spreadsheet or list spreadsheet."
+    customHelp: "Enter the Spreadsheet ID manually. You can get the Spreadsheet ID from the URL of your spreadsheet, or from actions like Search Spreadsheet or List Spreadsheets."
     canPaginate: true
     placeholder: Choose Spreadsheet ID
     enableSearchApi: true
-    customInputLabel: Enter Spreadsheet ID
+    customInputLabel: Spreadsheet ID
     optionsGenerator: "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 100;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
   - key: sheet_id
-    help: Select the Sheet or Enter Sheet ID.
+    help: Select the Google Sheet.
     type: dropdown
     label: Sheet
     required: true
-    customHelp: "You will find the sheet ID on the spreadsheet URL gid=, or you can use the action like search sheet or list sheet."
+    customHelp: "Enter the Sheet ID manually. You can get the Sheet ID from the URL (gid parameter) or from actions like List Sheets."
     canPaginate: false
     placeholder: Choose Sheet
     enableSearchApi: false
-    customInputLabel: Enter Sheet ID
+    customInputLabel: Sheet ID
     optionsGenerator: "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nawait errorComponent(e);\n}"
     customPlaceholder: "38470421"
   - key: channel_id
@@ -3434,6 +3459,9 @@ schema:
     required: true
     canPaginate: true
     optionsGenerator: "try {\n function convertToDesiredFormat(allChannels) {\n return allChannels\n ?.map(channel => ({\n label: channel.name,\n sample: channel.id,\n value: channel.id\n }))\n .sort((a, b) => a.label.localeCompare(b.label));\n }\n\n function replaceEqualsWithPercent3D(inputString) {\n return inputString.replace(/=/g, '');\n }\n\n let response = await axios.get(\n 'https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=999'\n );\n\n let channelArray = response?.data?.channels || [];\n\n while (response?.data?.response_metadata?.next_cursor) {\n const next_cursor = replaceEqualsWithPercent3D(response.data.response_metadata.next_cursor);\n\n response = await axios.get(\n https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&cursor=${next_cursor}&limit=999\n );\n\n channelArray = [...channelArray, ...(response?.data?.channels || [])];\n }\n\n return convertToDesiredFormat(channelArray);\n\n} catch (error) {\n switch (error?.response?.status) {\n case 401:\n if (error?.response?.data?.error === 'token_revoked') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'Token has been revoked. Please check your credentials and try again.'\n };\n }\n break;\n case 429:\n if (error?.response?.data?.error === 'ratelimited') {\n throw {\n success: false,\n status: error?.response?.status,\n message: 'You have made too many requests in a short period. Please wait before trying again.'\n };\n }\n break;\n default:\n throw error;\n }\n}"
+    customInputLabel: Channel ID
+    customHelp: "Enter the Channel ID manually. You can get the Channel ID from actions like List Channels."
+    customPlaceholder: "C12345678"
   - key: page_id
     help: Select the Facebook page.
     type: dropdown
@@ -3441,9 +3469,10 @@ schema:
     required: true
     canPaginate: true
     placeholder: Select the Facebook page
-    customInputLabel: Enter Page ID
+    customInputLabel: Page ID
     optionsGenerator: "async function fetchPagesWithPagination(context) {\n  // Get the offset (next page cursor) from context if it exists\n  const offset = context?.paginateData?.['page_id'];\n\n  const limit = 100;\n\n  // Build the API URL\n  let url = `https://graph.facebook.com/me/accounts?limit=${limit}`;\n  if (offset) {\n    url += `&after=${offset}`;\n  }\n\n  const config = {\n    method: 'get',\n    url: url\n  };\n\n  try {\n    const res = await axios.request(config);\n    const responseData = res.data;\n\n    // Check if there's any data\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        message: \"No pages found. Make sure manage access is given. Update the connection and select page to give access for the automation.\"\n      };\n    }\n    else if ((!responseData.data || responseData.data.length === 0) && offset){\n return {\n  message: \"All Pages fetched successfully..\"\n }\n   }\n\n    // Transform data into dropdown format\n    const data = responseData.data.map(account => ({\n      label: account.name,\n      value: account.id,\n      sample: account.id\n    }));\n\n    // Prepare response with current page data and next offset (if any)\n    const result = {\n      data: data\n    };\n\n    // Check if there's a next page\n    if (responseData.paging && responseData.paging.cursors && responseData.paging.cursors.after) {\n      result.offset = responseData.data.length < limit ? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    // Handle specific error cases if needed\n    if (error.response?.status === 400 || error.response?.status === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect.\" };\n    }\n\n    return { message: \"Enter page ID. E.g. 516470358708231\" };\n  }\n}\n\n// Call the function (assuming context is available in your environment)\nconst result = await fetchPagesWithPagination(context);\nreturn result;"
     customPlaceholder: "516470358708231"
+    customHelp: "Enter the Page ID manually. You can get the Page ID from actions like List Pages."
   - key: form_id
     help: Select the lead form associated with the page.
     type: dropdown
@@ -3451,10 +3480,11 @@ schema:
     required: true
     canPaginate: true
     placeholder: Choose Lead Form
-    customInputLabel: Enter Lead Form ID
+    customInputLabel: Lead Form ID
     optionsGenerator: "async function fetchLeadFormsWithPagination(context) {\n  const selectedPage = context?.inputData?.page_id;\n  const offset = context?.paginateData?.['form_id'];\n  const limit = 100; // Max supported for leadgen_forms endpoint\n\n  if (!selectedPage) {\n    return { message: \"Please select a Facebook Page first.\" };\n  }\n\n  try {\n    // Get page access token using the provided getAccessToken function (empty permissions)\n    const { accessToken, isPermission } = await getAccessToken(selectedPage, []);\n\n    if (!accessToken || !isPermission) {\n      return { message: \"Unable to get access to the selected Page. Please reconnect or check permissions.\" };\n    }\n\n    // Build the API URL for leadgen_forms with pagination\n    let url = `https://graph.facebook.com/v25.0/${selectedPage}/leadgen_forms`;\n    url += `?limit=${limit}&access_token=${accessToken}`;\n    if (offset) {\n      url += `&after=${offset}`;\n    }\n\n    const response = await axios.get(url);\n    const responseData = response.data;\n\n    // If no forms returned and this is the first request\n    if ((!responseData.data || responseData.data.length === 0) && !offset) {\n      return {\n        data: [{ label: 'All Leadgen Forms', value: '0' }],\n        offset: null,\n        message: \"No Lead Forms found on this Page. You can create the lead form [here](https://business.facebook.com/latest/instant_forms/forms/). Make sure the form is created in the selected page.\"\n      };\n    }\n\n    // If no more forms on subsequent pages\n    if (!responseData.data || responseData.data.length === 0) {\n      return {\n        message: \"All Lead Forms fetched successfully.\"\n      };\n    }\n\n    // Transform forms into dropdown options\n    const data = responseData.data.map(form => ({\n      label: form.name,\n      value: form.id,\n      sample: form.id\n    }));\n\n    // Always include \"All Leadgen Forms\" as first option (only on first page)\n    if (!offset) {\n      data.unshift({ label: 'All Leadgen Forms', value: '0' });\n    }\n\n    // Prepare result\n    const result = { data };\n\n    // Add offset if there's a next page\n    if (responseData.paging?.cursors?.after) {\n      result.offset = responseData.data.length< limit? null : responseData.paging.cursors.after;\n    }\n\n    return result;\n\n  } catch (error) {\n    console.error(\"Error fetching lead forms:\", error);\n\n    // Specific OAuth/token errors\n    if (error.response?.data?.error?.code === 190) {\n      return { message: \"Invalid or expired access token. Please reconnect your Facebook account.\" };\n    }\n\n    // Permission or page access issue\n    if (error.response?.status === 400 || error.response?.status === 403) {\n      return { message: \"Insufficient permissions to access Lead Forms. Ensure 'leads_retrieval' permission is granted.\" };\n    }\n\n    // Fallback: return only \"All\" option\n    return {\n      data: [{ label: 'All Leadgen Forms', value: '0' }],\n       offset: null,\n      message: error?.message || \"Could not load forms. Using 'All Leadgen Forms' as default.\"\n    };\n  }\n}\n\n// Execute and return\nreturn await fetchLeadFormsWithPagination(context);"
     customPlaceholder: "1161533432455827"
     visibilityCondition: context?.inputData?.page_id
+    customHelp: "Enter the Lead Form ID manually. You can get the Lead Form ID from actions like List Lead Forms."
 ```
 ### Reusable Component In Dropdown Dynamic:
 
@@ -3702,7 +3732,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 - **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined, wrapped in a parent `try-catch` block with `await errorComponent(error);` in the `catch` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`). Similarly, if a Reusable Component is used, the invocation must be wrapped in a parent `try-catch` block, and the `catch` block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`).
-- A proper manual input option must be configured. All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. **The `customInputLabel` must be very short** (e.g. `"Enter Properties in Array"`), and **the `customHelp` must be detailed** (e.g. `"Enter the property names in an array format manually. These are the fields that will be returned in the response API."`), explaining the exact expected array format or manual mapping steps. The `help` key must focus on selection, and `customHelp` must focus on entering the manual value/ID.
+- A proper manual input option must be configured. All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. The `help` key must focus on selection and start with "Select" (e.g. "Select the fields to include in the response."). It supports string format and markdown links like `[Lean More](https://example.com)`. **The `customInputLabel` must be short and must NOT start with "Enter"** (e.g. standard label `"Properties"`, customInputLabel `"Properties in Array"`). If not an ID field, standard label and `customInputLabel` must be the same. **The `customHelp` must guide manual input with "Enter the ID/value... You will get it from the actions like List, Find..."** (e.g. `"Enter the properties manually in array format. You can get the property IDs from actions like List Properties."`). Both `help` and `customHelp` must be very crisp and to the point.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
 ### Multi Select Dynamic JSON Schema:
@@ -3893,37 +3923,39 @@ schema:
 [
    {
         "key": "filter_properties",
-        "help": "Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.",
+        "help": "Select the properties to filter from the response. Leave blank to return all.",
         "type": "multiselect",
         "label": "Filter Properties",
         "required": false,
-        "customHelp": "Enter Array of Property Name.",
+        "customHelp": "Enter the property names in an array format manually. You can get the property names from actions like List Properties.",
         "placeholder": "Choose Property",
         "optionsGenerator": "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n",
-        "customPlaceholder": "['title','status']"
+        "customPlaceholder": "['title','status']",
+        "customInputLabel": "Filter Properties in Array"
       },
-         {
+      {
         "key": "return_column",
-        "help": "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns.",
+        "help": "Select the columns to return in response.",
         "type": "multiselect",
         "label": "Return Columns",
         "required": false,
-        "customHelp": "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\"",
+        "customHelp": "Enter column names or letters manually in an array format (e.g. [\"Name\"] or [\"A\"]).",
         "placeholder": "Choose Columns",
-        "customInputLabel": "Enter Column Name in Array.",
+        "customInputLabel": "Return Columns in Array",
         "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
         "customPlaceholder": "[\"Name\"]or [\"A\"]"
       },
-       {
+      {
         "key": "filter_properties",
-        "help": "Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.",
+        "help": "Select the properties to filter from the response. Leave blank to return all.",
         "type": "multiselect",
         "label": "Filter Properties",
         "required": false,
-        "customHelp": "Enter an array of Property Name.",
+        "customHelp": "Enter the property names in an array format manually. You can get the property names from actions like List Properties.",
         "placeholder": "Choose Property",
         "optionsGenerator": "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}",
-        "customPlaceholder": "['title','status']"
+        "customPlaceholder": "['title','status']",
+        "customInputLabel": "Filter Properties in Array"
       }
 ]
 ```
@@ -3931,33 +3963,35 @@ schema:
 ```toon
 [3]:
   - key: filter_properties
-    help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
+    help: Select the properties to filter from the response. Leave blank to return all.
     type: multiselect
     label: Filter Properties
     required: false
-    customHelp: Enter Array of Property Name.
+    customHelp: "Enter the property names in an array format manually. You can get the property names from actions like List Properties."
     placeholder: Choose Property
     optionsGenerator: "const returnDropdown = (array) => {\n    const a = array.map((key) => {\n        return {\n            label: key?.name,\n            sample: key?.type,\n            value: key?.name\n        };\n    });\n    return a;\n};\n\ntry{\n    const columnsApiUrl = `https://api.notion.com/v1/data_sources/${context.inputData.data_source_id}`;\nconst response = await axios.get(columnsApiUrl, {                 headers: {\n            'Notion-Version': '2025-09-03', // Use the current API version\n        }  } \n);\n//   return response.data\nconst arr = response.data.properties;\nconst first = Object.values(arr);\n\nreturn returnDropdown(first);\n}catch(error) {\n        throw {\n            message: error?.response?.data?.message || error?.message || 'An unknown error occurred while fetching properties'\n        };\n    }\n"
     customPlaceholder: "['title','status']"
+    customInputLabel: Filter Properties in Array
   - key: return_column
-    help: "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns."
+    help: Select the columns to return in response.
     type: multiselect
     label: Return Columns
     required: false
-    customHelp: "In order determine to enter the first row column name or column letter you can setup in the field \"Does your first row contain column name?*\""
+    customHelp: "Enter column names or letters manually in an array format (e.g. [\"Name\"] or [\"A\"])."
     placeholder: Choose Columns
-    customInputLabel: Enter Column Name in Array.
+    customInputLabel: Return Columns in Array
     optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"
     customPlaceholder: "[\"Name\"]or [\"A\"]"
   - key: filter_properties
-    help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
+    help: Select the properties to filter from the response. Leave blank to return all.
     type: multiselect
     label: Filter Properties
     required: false
-    customHelp: Enter an array of Property Name.
+    customHelp: "Enter the property names in an array format manually. You can get the property names from actions like List Properties."
     placeholder: Choose Property
     optionsGenerator: "try{\n  const data_source_id =context.inputData.data_source_id\n  return await fetchDatasourceProperties(data_source_id) \n}catch(e){\n  await errorComponent(e);\n}"
     customPlaceholder: "['title','status']"
+    customInputLabel: Filter Properties in Array
 ```
 
 ### Reusable Component In Multi Select Dynamic:
@@ -4389,7 +4423,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
                         },
                         "help": {
                             "type": "string",
-                            "description": "Optional guidance text for the user regarding this entire group. Omit this field entirely if not applicable."
+                            "description": "Optional guidance text for the user regarding this entire group. Omit this field entirely if not applicable. When specified, the value must start with 'Enter', and supports string format and markdown links."
                         },
                         "required": {
                             "type": "boolean",
