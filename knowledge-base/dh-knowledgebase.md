@@ -396,7 +396,7 @@ Validate against this file; output the raw `inputFields` array (never the `{"inp
   - **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.
 - **Fields & Text Quality**:
   - Each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
-  - **Help Key**: `help` must be short, plain, and non-technical.
+  - **Help Key**: `help` is generally required and must be short, plain, and non-technical. If `label` and `key` are completely self-explanatory (e.g. `label: "First Name"`, `key: "first_name"`), the `help` key can be omitted entirely. Otherwise, it is mandatory (especially for date fields to explain the purpose and accepted format).
   - **Labels & Placeholders**: Must be clear and grammatically correct. Do NOT use "E.g." or "e.g." in `placeholder` or `customPlaceholder` (such as using `"john@example.com"` instead of `"E.g. john@example.com"`); they must contain direct sample values only. The value of `placeholder` and `customPlaceholder` must always be a string, and must be wrapped in a string/quotes for number, array, object, and boolean values (e.g., `"10"`, `"true"`, `"[\"item\"]"`).
   - **Suggestions for Text**: Put the corrected value in "suggestions" for fixed help/label/placeholder.
   - **Consistency**: Ensure `help`/`label`/`placeholder` are consistent across all fields. Fix casing, wording, and punctuation mismatches (e.g., "Select option." vs "select Options" → "Select Option" (Title Case)).
