@@ -37,5 +37,8 @@ A valid JSON object representing the Reusable Component, containing:
   * **Standard:** Must return an array of objects `[{label, value, sample}]`.
   * **Paginated:** Must return an object `{ data: [{label, value, sample}], offset: string|number, message: string }`.
   * **Sample Rule:** If `value` is an ID, the `sample` field MUST be included and identical to the value (shown in brackets in the UI). If the `label` and `sample` are identical, omit the `sample` property.
-* **Try/Catch Block:** Wrap all code in a `try/catch` block for proper error handling.
+* **Try/Catch Block:** Wrap all code in a `try/catch` block for proper error handling. Inside the `catch` block, you **MUST** throw the error (e.g., `throw error;` or `throw e;`). **Never** call `await errorComponent(error);` directly inside the reusable component code. The calling code block (e.g., `optionsGenerator`) is responsible for catching this thrown error and calling `await errorComponent(error);`.
 * **Input Validations:** At the beginning of the component code, validate that required parameters are present and throw descriptive errors if they are missing.
+
+## 4. Mapping / Importing Rules
+* **Map in All Code Blocks:** When a reusable component is created or used, it must be explicitly mapped/imported in all code blocks (such as `optionsGenerator`, `fieldsGenerator`, etc.) that call it. Ensure you invoke the mapping tool for each target field path to link the component correctly.
