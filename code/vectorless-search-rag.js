@@ -4,13 +4,20 @@
 */
 
 // (Helpers and KB_URLS kept minimal)
+
+
 const KB_URLS = {
-  "dh-knowledgebase": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md",
-  "ux-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-practice.md",
-  "dh-Input-fields-json-builder": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-Input-fields-json-builder.md",
-  "perform-code": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/perform-code.md",
-  "dh-review": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-review.md",
-  "dh-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-database-schema.md",
+  "dh_action_trigger": {
+    "dh-knowledgebase": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md",
+    "dh-Input-fields-json-builder": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-Input-fields-json-builder.md",
+    "perform-code": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/perform-code.md",
+    "dh-review": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-review.md",
+    "ux-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-practice.md",
+    "dh-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-database-schema.md",
+  },
+  "dh_connection": {
+    "connection": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/dh-connection.md"
+  }
 };
 
 function parseFrontmatter(mdContent) {
@@ -45,16 +52,16 @@ function createMarkdownChunks(mdContent) {
   return { chunks };
 }
 
-async function extractKnowledgeBaseSections(knowledge_base, query) {
+async function extractKnowledgeBaseSections(module, knowledge_base, query) {
   let kbsToFetch = [];
-  if (Array.isArray(knowledge_base) && knowledge_base.includes('All')) kbsToFetch = Object.keys(KB_URLS);
-  else kbsToFetch = Array.isArray(knowledge_base) ? knowledge_base.filter(k => KB_URLS[k]) : [];
-
+  const moduleKBs = KB_URLS[module] || {};
+  if (Array.isArray(knowledge_base) && knowledge_base.includes("All")) kbsToFetch = Object.keys(moduleKBs);
+  else kbsToFetch = Array.isArray(knowledge_base) ? knowledge_base.filter(k => moduleKBs[k]) : [];
   const results = [];
 
   for (const kb of kbsToFetch) {
     try {
-      const response = await fetch(KB_URLS[kb]);
+      const response = await fetch(moduleKBs[kb]);
       if (!response.ok) throw new Error(`Failed to fetch status: ${response.status}`);
       const rawMd = await response.text();
       const { metadata, body } = parseFrontmatter(rawMd);
@@ -89,4 +96,4 @@ async function extractKnowledgeBaseSections(knowledge_base, query) {
 }
 
 // Execute and return the promise so the workflow receives the output
-return extractKnowledgeBaseSections(knowledge_base, query);
+return extractKnowledgeBaseSections(module, knowledge_base, input_query);
