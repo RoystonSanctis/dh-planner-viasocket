@@ -64,6 +64,12 @@ published: true
     - FIND OR CREATE Common Input Fields:
     - FIND OR CREATE Perform Code Reference:
     - FIND OR CREATE Best Practices:
+  - FIND + UPDATE
+    - FIND + UPDATE Purpose:
+    - FIND + UPDATE UX Pattern:
+    - FIND + UPDATE Common Input Fields:
+    - FIND + UPDATE Perform Code Reference:
+    - FIND + UPDATE Best Practices:
   - DELETE
     - DELETE Purpose:
     - DELETE UX Pattern:
@@ -92,6 +98,7 @@ published: true
     - Dynamic Schema Handling
     - Workflow Simplicity Principles
     - Structural Constraint Handling
+    - Cross-Cutting UX Patterns
   - Automation Safety & Overwrite Protection
     - Idempotency Preservation
     - Update Safety & Overwrite Protection
@@ -337,14 +344,16 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
      - **Input Group Static** (Conditional: visible when "Enable Pagination" is true) → Contains Page Limit (`limit`) and Start Cursor/Offset (`offset`) fields.
      - Note: If pagination is disabled ("Fetch All"), the perform code handles client-side internal pagination (auto-looping all pages) to return all records.
    - **If Mode is "Search by... (identifier)"**:
-     - **String** → Identifier input field (e.g., Search Email, Search Phone, Search Name).
+     - **Static Dropdown (Find By)** *(optional)* → Sub-mode selector when multiple search attributes are available (e.g., "Name / Email" vs "Employee ID / Number"). Visible only when mode is "Search by...".
+     - **String** → Identifier input field (e.g., Search Email, Search Phone, Search Name). Use `visibilityCondition` chained on both `mode` and `find_by` to show the correct input.
      - **Pagination Special Case**: If the search identifier is unique (i.e. no multiple entries are possible or the service enforces uniqueness), pagination options are not required. If the search identifier is NOT unique and can return multiple entries, then the pagination options ("Enable Pagination" toggle and Page Limit/Offset fields) must be provided in the UI.
    - **If Mode is "Search by ID"**:
      - **String/Dropdown** → Specific Record ID input field.
      - Note: Pagination options (such as 'Enable Pagination', limit, offset) are not available in 'Search by ID' mode, as it is a direct GET request.
    - **If Mode is "Advance Search"**:
      - **AI Field** *(optional)* → Advanced filter conditions.
-4. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned.
+4. **Input Group Static (Filters)** *(optional)* → Grouped filter fields (e.g., status multiselect, date filters) visible for modes that support narrowing (e.g., "List All", "Recently Updated"). May contain an **AI Field** for natural-language date normalization.
+5. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned. Pre-select a curated set of ~10-12 essential fields as `defaultValue`.
 
 ### LIST Common Input Fields:
 - **Dropdown Dynamic** — For selecting the parent resource to list items from.
@@ -368,8 +377,11 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 - **Combine operations** — Always combine listing ("List All"), searching (by specific identifiers), "Search by ID", and "Advance Search" (if supported) into a single LIST action using a Mode selector.
 - **Conditional pagination** — Offer pagination settings (limit, offset) only when Mode is 'List All' or when Mode is a non-unique search identifier, and "Enable Pagination" is enabled. Do not show pagination options for 'Search by ID' mode.
 - **Client-side pagination** — If Mode is 'List All' (or a non-unique search identifier) and "Enable Pagination" is disabled, the perform code must automatically iterate through all pages (internal pagination) to return all records.
-- **Optional field selection** — Provide an optional multiselect field chooser to specify which fields to return. If left empty, default to returning all fields/keys.
+- **Optional field selection** — Provide an optional multiselect field chooser to specify which fields to return. Pre-select a curated set of essential fields as `defaultValue` so the output is useful out of the box. If left empty, default to returning all fields/keys.
 - **Clear conditional visibility** — Use `visibilityCondition` to display mode-specific inputs (e.g., showing ID input only for "Search by ID", or AI Field only for "Advance Search").
+- **Sub-mode selector for search** — When "Search by..." mode supports multiple search attributes (e.g., Name/Email vs Employee ID/Number), add a secondary **Static Dropdown** (`find_by`) to pick the attribute, then show the matching input field via chained `visibilityCondition`.
+- **Comma-separated multi-values** — Accept comma-separated values in a single **String** field for quick multi-lookups (e.g., "John Doe,john@company.com") and split them in perform code.
+- **Filter groups for narrowing** — For modes like "List All" or "Recently Updated", offer an **Input Group Static** with status filters, date filters, and other narrowing criteria. Use `visibilityCondition` on each filter to show only mode-relevant options.
 
 ---
 
@@ -387,11 +399,14 @@ A FIND/SEARCH action searches for records matching specific criteria. It may ret
 4. **Input Group Static (Search Filter)** → Grouped search criteria fields:
    - **Boolean** → Configuration toggles (e.g., column naming mode).
    - **Dynamic Dropdown** → Column/field selector for lookup (visible in Basic mode).
+   - **Static Dropdown (Operator)** *(optional)* → Comparison operator (e.g., Equals, Contains/LIKE, Greater Than, Less Than). Visible in Basic mode when the API supports multiple operators.
    - **String** → Lookup value (visible in Basic mode).
    - **AI Field** → Advanced filter prompt with `suggestionGenerator` (visible in Advanced mode).
    - **Help Static** → Contextual info about the search mode.
-5. **Input Group Static (Sorting & Limit)** *(optional)* → Sort order, row count, return columns.
-6. **Multiselect Dynamic** *(optional)* → Select which columns/properties to return.
+5. **Boolean (Bulk Mode)** *(optional)* → Toggle for exhaustive/paginated fetch of all matching records. When enabled, reveals a bulk limit field; when disabled, reveals a standard limit field.
+6. **Input Group Static (Sorting & Limit)** *(optional)* → Sort field (dynamic dropdown), sort direction (static dropdown), row count.
+7. **Static Dropdown (Response Mode)** *(optional)* → Controls response shape (e.g., Basic / Custom Columns / Full Raw Data). "Custom" reveals a **Dynamic Multiselect** for column selection.
+8. **Multiselect Dynamic** *(optional)* → Select which columns/properties to return.
 
 ### FIND/SEARCH Common Input Fields:
 - **Dropdown Dynamic** — For selecting the resource to search within.
@@ -416,6 +431,10 @@ A FIND/SEARCH action searches for records matching specific criteria. It may ret
 - **AI Field for complex queries** — When the search logic is complex, use an AI Field with a `suggestionGenerator` that fetches the schema (column names, types) from the API.
 - **Help blocks for context** — Add Help Static fields to explain search behavior (e.g., "The result rows returned will be the exact match (case sensitive) of the Lookup Value").
 - **Return column selection** — Always offer a Multiselect for choosing which columns to return.
+- **Operator selection** — When the API supports multiple comparison operators (=, LIKE, >, <, >=, <=, <>), expose them via a **Static Dropdown** alongside the lookup field and value.
+- **Sort controls** — When the API supports sorting, add a **Dynamic Dropdown** for the sort field and a **Static Dropdown** for sort direction (Ascending/Descending).
+- **Bulk mode toggle** — When the action supports exhaustive fetch of all matching records, use a **Boolean** toggle that forks two different limit fields (bulk limit vs standard limit) via mirrored `visibilityCondition`s.
+- **Response mode control** — For large/nested responses, use a **Static Dropdown** (Basic / Custom / Full) to control payload size. "Custom" reveals a column multiselect.
 
 ---
 
@@ -449,11 +468,14 @@ A CREATE action creates a **new record** in the external service. The user provi
 - See [Perform Code Knowledge Base → Actions → CREATE](perform-code.md) for code patterns.
 
 ### CREATE Best Practices:
-- **Dynamic Input Groups for schema-driven fields** — Use `fieldsGenerator` to query the API schema and dynamically generate typed fields (string, number, dropdown, multiselect, boolean) based on the resource structure.
+- **Dynamic Input Groups for schema-driven fields** — Use `fieldsGenerator` to query the API schema and dynamically generate typed fields (string, number, dropdown, multiselect, boolean) based on the resource structure. Map API property types to the correct viaSocket field type instead of dumping everything as strings.
 - **Key normalization** — When generating keys from external data (e.g., column names), always normalize by replacing dots (`.`) with underscores (`_`).
-- **Field chooser pattern** — Use a Multiselect Dynamic before the Dynamic Input Group so users can select which fields to fill, keeping the form clean.
+- **Field chooser pattern** — Use a Multiselect Dynamic before the Dynamic Input Group so users can select which fields to fill, keeping the form clean. Pre-select the fields 90% of users need as `defaultValue`.
 - **Cascade dependencies** — Dynamic Input Groups should depend on prior dropdown selections via `visibilityCondition`.
 - **Error/empty fallback** — The `fieldsGenerator` should return `{ message: "Please select a resource first." }` when dependencies are missing.
+- **Force-include mandatory fields** — When the API requires certain identifier fields (e.g., email, phone), always include them in the generated inputs and mark them `required: true`, even if the user didn't select them in the field chooser.
+- **Repeating line items** — For invoice/order-style payloads with repeating item rows, use a repeating **Input Group** with per-item fields (name, quantity, amount, etc.).
+- **Existing-vs-inline fork** — When a payload can reference an existing record (by ID) OR carry inline details, use a **Boolean** or **Static Dropdown** to branch and gate each branch with `visibilityCondition`.
 
 ---
 
@@ -527,6 +549,38 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Default to create** — Set the Boolean toggle's default to `true` (Yes) so the action creates by default.
 - **Reuse search patterns** — The search section follows the same patterns as FIND/SEARCH.
 - **Reuse create patterns** — The create section follows the same patterns as CREATE.
+- **Search-by selector** — When the API supports lookup by multiple stable identifiers (e.g., email vs phone), add a **Static Dropdown** to let the user choose the search attribute.
+- **Static + dynamic field split** — Keep standard identity fields (email, name, phone) as static inputs alongside a **Dynamic Input Group** for account-specific custom fields. This cleanly separates fixed schema from dynamic schema.
+
+---
+
+## FIND + UPDATE
+
+### FIND + UPDATE Purpose:
+A FIND + UPDATE action first searches for a record by criteria (e.g., email, phone, subject), then performs a mutation on the found record (e.g., add/remove tags, apply labels, update fields). Unlike UPDATE (which takes a known ID), the user provides search criteria and the action resolves the record internally.
+
+**Examples:** Add Tags on Contact (search by email → tag), Add Label to Email (search by sender/subject → label), Add or Remove Tag on Contact.
+
+### FIND + UPDATE UX Pattern:
+1. **Static Dropdown** → Search criteria selector (e.g., "Search by Email" / "Search by Phone").
+2. **String** → The lookup value (e.g., email address, phone number). Label/placeholder adapts to the chosen criteria.
+3. **Dynamic Multiselect / Dynamic Dropdown** → The mutation payload (e.g., tags to add, labels to apply). Options fetched from a list API.
+4. **Boolean** *(optional)* → Operation mode toggle when the action supports opposing operations (e.g., "Add" vs "Remove"). The mutation field's `optionsGenerator` changes based on this toggle.
+
+### FIND + UPDATE Common Input Fields:
+- **Dropdown Static** — For selecting the search/lookup criteria.
+- **String** — For the lookup value.
+- **Multiselect Dynamic / Dropdown Dynamic** — For the mutation payload (tags, labels, values to apply).
+- **Boolean** — For toggling operation mode (add vs remove) when applicable.
+
+### FIND + UPDATE Perform Code Reference:
+- FIND + UPDATE actions combine a search request (to resolve the record) followed by an update/mutation request on the found record.
+- See [Perform Code Knowledge Base → Actions](perform-code.md) for code patterns.
+
+### FIND + UPDATE Best Practices:
+- **Search-first resolution** — Resolve the record internally using a stable identifier (email, phone). Never ask the user for raw record IDs.
+- **Adaptive option source** — When the action supports opposing operations (add vs remove), the mutation field's `optionsGenerator` should return different options based on the operation toggle (e.g., "Add" → all available tags; "Remove" → only tags currently on the record).
+- **Single lookup value field** — Use one **String** field whose label/placeholder adapts to the search criteria selector, rather than showing multiple always-visible fields.
 
 ---
 
@@ -730,6 +784,17 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 
 ### 5. Structural Constraint Handling
 *   If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
+
+### 6. Cross-Cutting UX Patterns
+*   **Existing-vs-Inline Fork** — When a payload can reference an existing record OR carry inline details, use a **Boolean** or **Static Dropdown** to branch. Gate each branch with `visibilityCondition`. Never show both branches simultaneously.
+*   **"Same As" Duplicate-Section Toggle** — When two input groups collect similar data (e.g., billing vs shipping address), use a **Boolean** toggle to hide the duplicate group when toggled on. Avoids redundant data entry.
+*   **Human Units Over Machine Units** — Accept user-friendly units (days, relative dates) via **String** or **Number**. Convert to machine units (UNIX timestamps, ISO dates) in perform code. Never make the user compute timestamps.
+*   **Label Options as `Display Name (key)`** — When the human label differs from the API key in dynamic dropdowns/multiselects, format option labels as `"Display Name (schemaKey)"` so users pick by meaning while the correct key is submitted.
+*   **Multi-Target Dispatch** — When an action targets multiple recipients/resources, accept targets via **Dynamic Multiselect** or comma-separated **String**. Iterate and dispatch to each target in perform code.
+*   **Consolidate Related Actions** — Fold related behavioral variants (e.g., "schedule message" as a toggle inside "send message") into a single action using a **Boolean** or **Static Dropdown**, rather than shipping separate near-duplicate actions.
+*   **Preset Duration/Expiry Dropdown** — When an API accepts a small set of common duration or expiry values, use a **Static Dropdown** with preset options instead of a free number field.
+*   **AI Field for Date Normalization** — When users need to provide dates the API requires in ISO/epoch format, use an **AI Field** with a prompt that converts natural-language inputs (e.g., "yesterday", "3 days ago") to the required format.
+*   **Normalize Flexible ID Inputs** — ID fields may arrive as `{ label, value }` objects (select mode) or comma-separated strings (custom-input mode). Normalize both formats in perform code. Also support comma-separated multi-values in a single **String** field for quick multi-lookups.
 
 ---
 
