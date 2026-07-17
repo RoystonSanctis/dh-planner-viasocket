@@ -265,4 +265,5 @@ strict: true
 Review `{{actionName}}` of `{{service}}` (`{{domain}}`):
 - **Input Fields**: `{{inputFields}}`
 - **Perform Code**: `{{performCode}}`
+- **module**: `dh_action_trigger` (use this in the DH Knowledge Base)
 
