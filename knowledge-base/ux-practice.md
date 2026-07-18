@@ -470,12 +470,13 @@ A CREATE action creates a **new record** in the external service. The user provi
 ### CREATE Best Practices:
 - **Dynamic Input Groups for schema-driven fields** — Use `fieldsGenerator` to query the API schema and dynamically generate typed fields (string, number, dropdown, multiselect, boolean) based on the resource structure. Map API property types to the correct viaSocket field type instead of dumping everything as strings.
 - **Key normalization** — When generating keys from external data (e.g., column names), always normalize by replacing dots (`.`) with underscores (`_`).
-- **Field chooser pattern** — Use a Multiselect Dynamic before the Dynamic Input Group so users can select which fields to fill, keeping the form clean. Pre-select the fields 90% of users need as `defaultValue`.
+- **Field chooser pattern (Complex Actions)** — For complex actions with numerous fields or nested objects (like CRM Create), use a "Fields to Create" Multiselect chooser. List major top-level fields and distinct sections (e.g., Billing Address, Contacts, Advanced Options). The user selects only what they want to populate. This cleanly reveals dedicated Input Groups for each selected section via `visibilityCondition`, preventing UI bloat. Pre-select the fields 90% of users need as `defaultValue`.
 - **Cascade dependencies** — Dynamic Input Groups should depend on prior dropdown selections via `visibilityCondition`.
 - **Error/empty fallback** — The `fieldsGenerator` should return `{ message: "Please select a resource first." }` when dependencies are missing.
 - **Force-include mandatory fields** — When the API requires certain identifier fields (e.g., email, phone), always include them in the generated inputs and mark them `required: true`, even if the user didn't select them in the field chooser.
 - **Repeating line items** — For invoice/order-style payloads with repeating item rows, use a repeating **Input Group** with per-item fields (name, quantity, amount, etc.).
 - **Existing-vs-inline fork** — When a payload can reference an existing record (by ID) OR carry inline details, use a **Boolean** or **Static Dropdown** to branch and gate each branch with `visibilityCondition`.
+- **Address/Data Duplication Toggles** — Use Boolean toggles (e.g., `same_as_billing`) to conditionally hide and skip redundant nested Input Groups (like Shipping Address) when they mirror previous inputs.
 
 ---
 
@@ -506,7 +507,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 
 ### UPDATE Best Practices:
 - **Partial updates** — Only send fields the user has filled. Don't send empty fields as `null` unless explicitly intended.
-- **Field chooser before dynamic group** — Use a Multiselect to let users select which fields they want to update, then pass that selection to the `fieldsGenerator` to render only those fields.
+- **Field chooser before dynamic group (Complex Actions)** — For complex actions with numerous fields or nested objects (like CRM Update), use a "Fields to Update" Multiselect chooser. List major top-level fields and distinct sections (e.g., Billing Address, Contacts). The user selects only what they want to update. This triggers the `fieldsGenerator` to render those specific fields, and reveals dedicated Input Groups for complex sections via `visibilityCondition`. This prevents UI bloat and ensures a step-by-step entry.
 - **Record selection & parent dropdown bypass** — This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For the rest of the triggers and actions, it is not applicable (dropdowns always have higher priority than string ID fields). Prioritize dropdowns over text ID fields if an options API is available. For UPDATE actions: if the ID field supports a dropdown and no parent dropdown is required to fetch the options, the dropdown should be created. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options). Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
 - **Preserve existing values** — Help text should clarify that unfilled fields will remain unchanged.
 
@@ -551,6 +552,8 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Reuse create patterns** — The create section follows the same patterns as CREATE.
 - **Search-by selector** — When the API supports lookup by multiple stable identifiers (e.g., email vs phone), add a **Static Dropdown** to let the user choose the search attribute.
 - **Static + dynamic field split** — Keep standard identity fields (email, name, phone) as static inputs alongside a **Dynamic Input Group** for account-specific custom fields. This cleanly separates fixed schema from dynamic schema.
+- **Dynamic Field Selection for Search & Update** — For complex upserts with massive schemas, use Multiselect field choosers (e.g., "Search By Fields", "Fields to Update") paired with dynamic Input Groups to render exactly the specific fields the user wants to use for matching and updating.
+- **Conditionally Link or Create Related Modules** — Use a Boolean toggle to branch between linking an existing related record (via dropdown) or rendering an input group to generate fields for a new related record inline.
 
 ---
 
