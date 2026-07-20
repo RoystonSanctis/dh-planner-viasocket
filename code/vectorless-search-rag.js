@@ -1,10 +1,7 @@
 /*
   Uses KB_URLS and helper functions (parseFrontmatter, createMarkdownChunks, extractKnowledgeBaseSections)
-  Assumes the config provides: knowledge_base (array) and query (array)
+  Assumes the config provides: knowledge_base (array), input_query (array), module (string), and allow_partial_match (boolean)
 */
-
-// (Helpers and KB_URLS kept minimal)
-
 
 const KB_URLS = {
   "dh_action_trigger": {
@@ -16,7 +13,8 @@ const KB_URLS = {
     "dh-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-database-schema.md",
   },
   "dh_connection": {
-    "connection": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/dh-connection.md"
+    "connection-knowledgebase": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/main/knowledge-base/dh-connection-practice.md",
+    "connection-database-schema": 'https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-schema.md',
   }
 };
 
@@ -52,11 +50,14 @@ function createMarkdownChunks(mdContent) {
   return { chunks };
 }
 
-async function extractKnowledgeBaseSections(module, knowledge_base, query) {
+// Added allowPartialMatch as a parameter
+async function extractKnowledgeBaseSections(module, knowledge_base, query, allowPartialMatch = false) {
   let kbsToFetch = [];
   const moduleKBs = KB_URLS[module] || {};
+  
   if (Array.isArray(knowledge_base) && knowledge_base.includes("All")) kbsToFetch = Object.keys(moduleKBs);
   else kbsToFetch = Array.isArray(knowledge_base) ? knowledge_base.filter(k => moduleKBs[k]) : [];
+  
   const results = [];
 
   for (const kb of kbsToFetch) {
@@ -74,7 +75,15 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query) {
       (Array.isArray(query) ? query : []).forEach(q => {
         const qLower = String(q || '').toLowerCase();
         if (qLower === 'page index') isPageIndexRequested = true;
-        const matches = chunks.filter(c => c.vectorSource.toLowerCase().includes(qLower));
+        
+        // Updated filtering logic based on the boolean
+        const matches = chunks.filter(c => {
+          const headerLower = c.vectorSource.toLowerCase();
+          return allowPartialMatch 
+            ? headerLower.includes(qLower) 
+            : headerLower === qLower;
+        });
+        
         matchedSections.push(...matches.map(m => m.text));
       });
 
@@ -95,5 +104,8 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query) {
   return results;
 }
 
+// Define the boolean here, or map it to a variable provided by your environment. This will enable searching for partial heading matches.
+const isPartialMatchAllowed = false;
+
 // Execute and return the promise so the workflow receives the output
-return extractKnowledgeBaseSections(module, knowledge_base, input_query);
+return await extractKnowledgeBaseSections(module, knowledge_base, input_query, isPartialMatchAllowed);
