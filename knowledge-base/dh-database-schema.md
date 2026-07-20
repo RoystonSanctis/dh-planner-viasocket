@@ -11,13 +11,13 @@ published: true
   - Action TOON Schema
 - 2. Trigger Object Schema
   - Trigger JSON Schema (Common Fields)
-  - 2.1. Instant Trigger Schema (triggertype: "hook")
+  - 2.1. Instant Trigger Schema (`triggertype: "hook"`)
     - Instant Trigger JSON Schema
     - Instant Trigger TOON Schema
-  - 2.2. Schedule Trigger Schema (triggertype: "polling")
+  - 2.2. Schedule Trigger Schema (`triggertype: "polling"`)
     - Schedule Trigger JSON Schema
     - Schedule Trigger TOON Schema
-  - 2.3. Manual Trigger Schema (triggertype: "manual_webhook")
+  - 2.3. Manual Trigger Schema (`triggertype: "manual_webhook"`)
     - Manual Trigger JSON Schema
     - Manual Trigger TOON Schema
 - 3. Reusable Component Object Schema

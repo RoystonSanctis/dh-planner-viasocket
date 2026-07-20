@@ -70,17 +70,17 @@ published: true
     - Identifier & Token Resolution
     - Grant Type Evaluation
   - Field Design & Dynamic UI Rules
-    - General Principles
-    - Field Type Design Rules
-    - Dynamic Context Handling
-    - Workflow Simplicity Principles
-    - Structural Constraint Handling
-    - Cross-Cutting UX Patterns
+    - 1. General Principles
+    - 2. Field Type Design Rules
+    - 3. Dynamic Context Handling
+    - 4. Workflow Simplicity Principles
+    - 5. Structural Constraint Handling
+    - 6. Cross-Cutting UX Patterns
   - Connection Safety & Token Protection
-    - Secret Protection
-    - Token Lifecycle Safety
-    - Response Handling
-    - Backward Compatibility Rules
+    - 1. Secret Protection
+    - 2. Token Lifecycle Safety
+    - 3. Response Handling
+    - 4. Backward Compatibility Rules
   - Required Output Structure
   - Behavior Constraints
     - Trade-Off Evaluation Protocol
