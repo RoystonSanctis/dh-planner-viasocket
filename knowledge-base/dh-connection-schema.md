@@ -6,12 +6,16 @@ published: true
 ---
 
 # Page Index
+- Agent Variable ↔ Schema Field Alias Reference
 - 1. Connection Object Schema (Response)
   - Connection Response JSON Schema
   - Connection Response TOON Schema
 - 2. Create Connection Payload
   - Create Connection JSON Schema
   - Create Connection TOON Schema
+- Common Fields (Plugin-Level, applicable to Create & Update)
+  - Common Fields JSON Schema
+  - Common Fields TOON Schema
 - 3. Update Connection Payload
   - 3.1. Basic Auth Update Schema
     - Basic Auth Update JSON Schema
@@ -32,6 +36,21 @@ published: true
   - 3.3. Auth1.0 Update Schema
     - Auth1.0 Update JSON Schema
     - Auth1.0 Update TOON Schema
+
+---
+
+# Agent Variable ↔ Schema Field Alias Reference
+
+Mapping of agent-provided runtime variables to their corresponding schema field names used in connection payloads.
+
+| Agent Variable Name       | Schema Field Name (in payloads)       | Where it lives          | Notes                                                                 |
+|---------------------------|---------------------------------------|-------------------------|-----------------------------------------------------------------------|
+| `pluginId`                | `pluginrecordid`                      | Plugin record & all connection payloads | Same value, different name. Use `pluginrecordid` in payloads. |
+| `connection_version_id`   | `rowid` of the connection version     | Connection version record | The ID of the connection version being updated.                     |
+| `functionId`              | Same as `connection_version_id`        | Connection version record | Alias for the connection version row ID; same value.                |
+| `threadId`                | Internal chat thread ID               | Metadata only           | Not used in connection payloads.                                     |
+| `orgId`                   | `orgid`                               | Connection response     | Organization ID; auto-injected.                                      |
+| `preferedauthversion`     | `preferedauthversion`                 | Plugin record (not connection version) | Row ID of the connection version currently set as preferred on the plugin; empty string means none is set. |
 
 ---
 
@@ -285,6 +304,28 @@ accesstokencode: String (stringified JSON, e.g. '{"source":null}')
 refreshtokencode: String (stringified JSON, e.g. '{"source":null}')
 revokeapicode: String (stringified JSON, e.g. '{"source":null}')
 testcode: String (stringified JSON, e.g. '{"source":null}')
+```
+
+---
+
+# Common Fields (Plugin-Level)
+
+Plugin-level fields that can be included in a Create or Update payload alongside any auth-type-specific fields.
+
+## Common Fields JSON Schema
+
+```json
+{
+  "preferedauthversion": "String | null (Row ID of the connection version set as the plugin's default authentication version, e.g., \"row0c2kywqza\"; null or empty string means no preferred version is set)",
+  "description": "String | null (Human-readable description of this connection version, e.g., \"OAuth 2.0 Authorization Code flow for Notion API v2026-03-11\")"
+}
+```
+
+## Common Fields TOON Schema
+
+```toon
+preferedauthversion: String | null (row ID of the preferred connection version; null or empty = none set)
+description: String | null (optional description of the connection version)
 ```
 
 ---
