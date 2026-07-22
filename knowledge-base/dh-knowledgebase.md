@@ -319,15 +319,19 @@ return await <functionName>();
 # Reusable Components
 JS stored once (three parts: **Name** unique+permanent once used, **Parameters**, **Code** = raw JavaScript code starting directly with a `try`/`catch` block. Do NOT wrap the code in a function block. The parameters defined in the component's metadata are available as global variables directly inside this code block. Inside the catch block, you MUST use `throw error` or `throw e` instead of calling `errorComponent`). Invoked only from `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator` — never static fields. (Note: Inside the `optionsGenerator` that invokes/maps this component, the invocation must be wrapped in a parent `try-catch` block and the catch block must call `await errorComponent(error)`). When a reusable component is created, it must be explicitly mapped/imported in all the action version code blocks (such as `optionsGenerator`, `fieldsGenerator`, etc.) that call it using the mapping tool.
 - Accept ALL dependent inputs (search text, limit, every input-field path) as **parameters** — this enables `dependsOn` auto-detection. Always map the dynamic values to these parameters; never read `context.inputData`/`__searchText`/`context.paginateData` directly inside the component's code block.
-- Validate inputs at top (throw on missing). Return matches host field shape.
+- Validate inputs at top (throw on missing). Return matches host field shape. **Zero Results**: If the list/results fetched are empty/zero, the component must return an object with a `"message"` key containing a user-friendly descriptive message (e.g. `{ message: "No folders found." }` or `{ data: [], message: "No data available." }`).
 - **Search-Pagination Offset Rule:** If a dynamic dropdown component supports both search and pagination (`enableSearchApi: true` and `canPaginate: true`), and the search parameter is active, if the search returns empty results, the returned `offset` must be the current cursor (`pageToken`/`offset` parameter). This ensures that if the user switches from searching back to pagination, the previous pagination offset is preserved (ignoring any search-returned offset).
 ```javascript
 // fetchResources(searchText, pageToken, pageSize)
 try {
   if (!pageSize) throw new Error('pageSize required');
   const res = await axios.get('<url>/<endpoint>', { params: { q: searchText, cursor: pageToken, limit: pageSize } });
+  const items = res.data?.items || [];
+  if (items.length === 0) {
+    return { message: "No resources found." };
+  }
   return {
-    data: (res.data?.items || []).map(i => ({ label: i.name, value: i.id, sample: i.id })),
+    data: items.map(i => ({ label: i.name, value: i.id, sample: i.id })),
     offset: res.data?.next_cursor || null
   };
 } catch (error) {
