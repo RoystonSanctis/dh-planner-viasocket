@@ -491,13 +491,14 @@ An UPDATE action modifies an **existing record** in the external service. The us
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet).
 2. **Dynamic Dropdown** → Secondary resource selection (e.g., select Sheet). Uses `visibilityCondition`.
 3. **Dynamic Dropdown / String** → Record ID selection (e.g., select the specific row, page, or record to update).
-4. **Multiselect Dynamic** *(optional)* → Select which fields/columns to update (field chooser).
-5. **Dynamic Input Group** → Schema-based fields for the selected record. Only shows fields the user chose to update. Uses `fieldsGenerator`.
+4. **Multiselect** *(optional)* → Select which fields/columns to update (field chooser). Can be static or dynamic.
+5. **Fields Input Group** → Inputs for the selected fields. If the fields are static, organize them inside a static input group where each field has a `visibilityCondition` based on the multiselect choice. If the fields are truly dynamic/schema-driven, use a dynamic input group with a `fieldsGenerator`.
 
 ### UPDATE Common Input Fields:
 - **Dropdown Dynamic** — For selecting the resource and the specific record to update.
 - **String** — For directly entering a record ID.
-- **Multiselect Dynamic** — For selecting which fields/columns to update (acts as field chooser).
+- **Multiselect** — For selecting which fields/columns to update (acts as field chooser).
+- **Input Group Static** — With conditional visibility for static fields to allow user selection without dynamic generation.
 - **Input Group Dynamic** — Uses `fieldsGenerator` to generate fields based on the resource schema, filtered by the user's field selection.
 - **String / Number / HTML / Markdown** — For direct value fields when the schema is known.
 
@@ -507,7 +508,9 @@ An UPDATE action modifies an **existing record** in the external service. The us
 
 ### UPDATE Best Practices:
 - **Partial updates** — Only send fields the user has filled. Don't send empty fields as `null` unless explicitly intended.
-- **Field chooser before dynamic group (Complex Actions)** — For complex actions with numerous fields or nested objects (like CRM Update), use a "Fields to Update" Multiselect chooser. List major top-level fields and distinct sections (e.g., Billing Address, Contacts). The user selects only what they want to update. This triggers the `fieldsGenerator` to render those specific fields, and reveals dedicated Input Groups for complex sections via `visibilityCondition`. This prevents UI bloat and ensures a step-by-step entry.
+- **Field chooser for complex updates (Static vs. Dynamic Fields)** — For complex actions with numerous fields or nested objects (such as a CRM Update):
+  - **If the fields are static/known**: Use a static "Fields to Update" Multiselect chooser and organize the fields in static input groups, using a `visibilityCondition` on each field or group to only show what the user selected. This avoids using a dynamic `fieldsGenerator` for known static fields, preventing UI bloat and ensuring a clean step-by-step entry.
+  - **If the fields are truly dynamic** (e.g. custom fields, spreadsheet columns whose names are fetched from the API): Use a dynamic fields generator (`fieldsGenerator`) to render/fetch fields based on the resource's schema.
 - **Record selection & parent dropdown bypass** — This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For the rest of the triggers and actions, it is not applicable (dropdowns always have higher priority than string ID fields). Prioritize dropdowns over text ID fields if an options API is available. For UPDATE actions: if the ID field supports a dropdown and no parent dropdown is required to fetch the options, the dropdown should be created. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options). Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
 - **Preserve existing values** — Help text should clarify that unfilled fields will remain unchanged.
 

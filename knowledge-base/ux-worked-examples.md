@@ -4009,7 +4009,7 @@ async function sendMessage() {
 }  
 return await sendMessage();  
 
-### 6. Cin 7 Core — Update Customer (Advanced)
+### 6. Cin7 Core — Update Customer (Advanced)
 Category – Inventory / CRM
 
 #### 6.1 API Usage
@@ -4025,8 +4025,8 @@ A chooser that lists sections (e.g., Billing Address, Shipping Address, Contacts
 **Input Groups – Sectional Fields**
 Dedicated Input Groups (e.g., Billing Address, Contacts) that are conditionally visible only if the user selected them in the "Fields to Update" multiselect. Inside these groups, individual fields capture the nested data. 
 
-**Input Group Dynamic / Generator – Selected Field Values**
-For top-level fields (like Name, Currency, Tax Rule), a dynamic fieldsGenerator renders the inputs based on the multiselect choice.
+**Input Group - Selected Field Values**
+For top-level fields (like Name, Currency, Tax Rule), a static input groups with conditional visibility renders the inputs based on the multiselect choice.
 
 #### 6.3 API Flow
 The Perform Code conditionally extracts data based on the user's multiselect choices. It cleans out empty addresses or objects and submits only the updated properties, honoring the partial update pattern.
@@ -4044,8 +4044,8 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
     "canPaginate": true,
     "placeholder": "Select customer",
     "customInputLabel": "Customer ID",
-    "optionsGenerator": "const page = context?.paginateData?.['customer'] || 1;\nconst limit = 10\nreturn await list_customers(page,limit) ",
-    "customPlaceholder": "Customer ID"
+    "optionsGenerator": "try {\n  const page = context?.paginateData?.['customer'] || 1;\n  const limit = 100;\n  return await list_customers(page, limit);\n} catch (error) {\n  await errorComponent(error);\n}",
+    "customPlaceholder": "00000000-0000-0000-0000-000000000000"
   },
   {
     "key": "fields_to_update",
@@ -4153,16 +4153,248 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
   },
   {
     "key": "selected_field_values",
-    "help": "Fill in the new values for the fields selected above for updation.",
+    "help": "Enter the new values for the fields selected above to update the customer.",
     "type": "input groups",
     "label": "Selected Field Values",
     "required": false,
-    "fieldsGenerator": "try {\n  return await generateUpdateCustomerFields(context.inputData?.\[\"fields_to_update\"]);\n  \n} catch (error) {\n  await errorComponent(error);\n}",
-    "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.some(k => ['name','display_name','currency','payment_term','tax_rule','account_receivable','revenue_account','status','discount','price_tier','credit_limit','is_on_credit_hold','is_legal_entity','tax_number','location','carrier','sales_representative','comments'].includes(k))"
+    "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.some(function (f) { return ['name','display_name','currency','payment_term','tax_rule','account_receivable','revenue_account','status','discount','price_tier','credit_limit','is_on_credit_hold','is_legal_entity','tax_number','location','carrier','sales_representative','comments'].includes(f); })",
+    "fields": [
+      {
+        "key": "name",
+        "help": "Enter the customer name.",
+        "type": "string",
+        "label": "Customer Name",
+        "required": false,
+        "placeholder": "Acme Pty Ltd",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('name')"
+      },
+      {
+        "key": "display_name",
+        "help": "Enter the display name for the customer.",
+        "type": "string",
+        "label": "Display Name",
+        "required": false,
+        "placeholder": "Acme",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('display_name')"
+      },
+      {
+        "key": "currency",
+        "help": "Enter the currency code.",
+        "type": "string",
+        "label": "Currency",
+        "required": false,
+        "placeholder": "AUD",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('currency')"
+      },
+      {
+        "key": "payment_term",
+        "help": "Select the payment terms.",
+        "type": "dropdown",
+        "label": "Payment Terms",
+        "required": false,
+        "customHelp": "Enter the payment term name manually. You can get it from actions like List Payment Terms.",
+        "canPaginate": true,
+        "placeholder": "Select payment terms",
+        "customInputLabel": "Payment Terms",
+        "optionsGenerator": "try {\n  const page = context?.paginateData?.['selected_field_values.payment_term'] || 1;\n  return await list_payment_terms(page, 100);\n} catch (error) {\n  await errorComponent(error);\n}",
+        "customPlaceholder": "Net 30",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('payment_term')"
+      },
+      {
+        "key": "tax_rule",
+        "help": "Select the tax rule.",
+        "type": "dropdown",
+        "label": "Tax Rule",
+        "required": false,
+        "customHelp": "Enter the tax rule name manually. You can get it from actions like List Tax Rules.",
+        "canPaginate": true,
+        "placeholder": "Select tax rule",
+        "customInputLabel": "Tax Rule",
+        "optionsGenerator": "try {\n  const page = context?.paginateData?.['selected_field_values.tax_rule'] || 1;\n  return await list_tax_rules(page, 100);\n} catch (error) {\n  await errorComponent(error);\n}",
+        "customPlaceholder": "GST",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('tax_rule')"
+      },
+      {
+        "key": "account_receivable",
+        "help": "Select the accounts receivable account.",
+        "type": "dropdown",
+        "label": "Accounts Receivable Account",
+        "required": false,
+        "customHelp": "Enter the account code manually. You can get it from actions like List Accounts Receivable.",
+        "canPaginate": true,
+        "placeholder": "Select accounts receivable account",
+        "customInputLabel": "Accounts Receivable Account Code",
+        "optionsGenerator": "try {\n  const page = context?.paginateData?.['selected_field_values.account_receivable'] || 1;\n  return await list_accounts_receivable(page, 100);\n} catch (error) {\n  await errorComponent(error);\n}",
+        "customPlaceholder": "610",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('account_receivable')"
+      },
+      {
+        "key": "revenue_account",
+        "help": "Select the revenue account.",
+        "type": "dropdown",
+        "label": "Revenue Account",
+        "required": false,
+        "customHelp": "Enter the account code manually. You can get it from actions like List Revenue Accounts.",
+        "canPaginate": true,
+        "placeholder": "Select revenue account",
+        "customInputLabel": "Revenue Account Code",
+        "optionsGenerator": "try {\n  const page = context?.paginateData?.['selected_field_values.revenue_account'] || 1;\n  return await list_accounts_revenue(page, 100);\n} catch (error) {\n  await errorComponent(error);\n}",
+        "customPlaceholder": "200",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('revenue_account')"
+      },
+      {
+        "key": "status",
+        "help": "Select the customer status.",
+        "type": "dropdown",
+        "label": "Status",
+        "options": [
+          {
+            "label": "Active",
+            "value": "Active"
+          },
+          {
+            "label": "Deprecated",
+            "value": "Deprecated"
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter Active or Deprecated.",
+        "customInputLabel": "Status",
+        "customPlaceholder": "Active",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('status')"
+      },
+      {
+        "key": "discount",
+        "help": "Enter the default discount percentage (0-100).",
+        "type": "number",
+        "label": "Default Discount (%)",
+        "required": false,
+        "placeholder": "0",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('discount')"
+      },
+      {
+        "key": "price_tier",
+        "help": "Select the price tier.",
+        "type": "dropdown",
+        "label": "Price Tier",
+        "required": false,
+        "customHelp": "Enter the price tier name manually. You can get it from actions like List Price Tiers.",
+        "canPaginate": true,
+        "placeholder": "Select price tier",
+        "customInputLabel": "Price Tier",
+        "optionsGenerator": "try {\n  const page = context?.paginateData?.['selected_field_values.price_tier'] || 1;\n  return await list_price_tiers(page, 100);\n} catch (error) {\n  await errorComponent(error);\n}",
+        "customPlaceholder": "Tier 1",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('price_tier')"
+      },
+      {
+        "key": "credit_limit",
+        "help": "Enter the credit limit.",
+        "type": "number",
+        "label": "Credit Limit",
+        "required": false,
+        "placeholder": "0",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('credit_limit')"
+      },
+      {
+        "key": "is_on_credit_hold",
+        "help": "Select yes to place the customer on credit hold.",
+        "type": "boolean",
+        "label": "On Credit Hold?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter true for on hold, or false for not.",
+        "defaultValue": {
+          "label": "No",
+          "value": false
+        },
+        "customInputLabel": "On Credit Hold?",
+        "customPlaceholder": "false",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('is_on_credit_hold')"
+      },
+      {
+        "key": "is_legal_entity",
+        "help": "Select yes if the customer is a legal entity.",
+        "type": "boolean",
+        "label": "Is a Legal Entity?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter true for legal entity, or false for not.",
+        "defaultValue": {
+          "label": "No",
+          "value": false
+        },
+        "customInputLabel": "Is a Legal Entity?",
+        "customPlaceholder": "false",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('is_legal_entity')"
+      },
+      {
+        "key": "tax_number",
+        "help": "Enter the tax number.",
+        "type": "number",
+        "label": "Tax Number",
+        "required": false,
+        "placeholder": "123456789",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('tax_number')"
+      },
+      {
+        "key": "location",
+        "help": "Enter the default dispatch location.",
+        "type": "string",
+        "label": "Default Dispatch Location",
+        "required": false,
+        "placeholder": "Main Warehouse",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('location')"
+      },
+      {
+        "key": "carrier",
+        "help": "Enter the default carrier.",
+        "type": "string",
+        "label": "Default Carrier",
+        "required": false,
+        "placeholder": "DEFAULT Carrier",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('carrier')"
+      },
+      {
+        "key": "sales_representative",
+        "help": "Enter the sales representative.",
+        "type": "string",
+        "label": "Sales Representative",
+        "required": false,
+        "placeholder": "Mary Jane",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('sales_representative')"
+      },
+      {
+        "key": "comments",
+        "help": "Enter any comments.",
+        "type": "string",
+        "label": "Comments",
+        "required": false,
+        "placeholder": "Customer notes",
+        "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('comments')"
+      }
+    ]
   },
   {
     "key": "billing_address",
-    "help": "Click to add or update the billing address.",
+    "help": "Enter the billing address details to add or update.",
     "type": "input groups",
     "label": "Billing Address",
     "required": false,
@@ -4223,36 +4455,12 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         "label": "Country",
         "required": false,
         "placeholder": "Australia"
-      },
-      {
-        "key": "DefaultForType",
-        "help": "Select yes to set this as the default billing address.",
-        "type": "boolean",
-        "label": "Default billing address?",
-        "options": [
-          {
-            "label": "Yes",
-            "value": true
-          },
-          {
-            "label": "No",
-            "value": false
-          }
-        ],
-        "required": false,
-        "customHelp": "Enter true to set as default, or false to not.",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
-        "customInputLabel": "Default billing address?",
-        "customPlaceholder": "true"
       }
     ]
   },
   {
     "key": "shipping_address",
-    "help": "Click to add or update the shipping address.",
+    "help": "Enter the shipping address details to add or update.",
     "type": "input groups",
     "label": "Shipping Address",
     "required": false,
@@ -4313,36 +4521,12 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         "label": "Country",
         "required": false,
         "placeholder": "Australia"
-      },
-      {
-        "key": "DefaultForType",
-        "help": "Select yes to set this as the default shipping address.",
-        "type": "boolean",
-        "label": "Default shipping address?",
-        "options": [
-          {
-            "label": "Yes",
-            "value": true
-          },
-          {
-            "label": "No",
-            "value": false
-          }
-        ],
-        "required": false,
-        "customHelp": "Enter true to set as default, or false to not.",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
-        "customInputLabel": "Default shipping address?",
-        "customPlaceholder": "true"
       }
     ]
   },
   {
     "key": "business_address",
-    "help": "Click to add or update the business address.",
+    "help": "Enter the business address details to add or update.",
     "type": "input groups",
     "label": "Business Address",
     "required": false,
@@ -4403,36 +4587,12 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         "label": "Country",
         "required": false,
         "placeholder": "Australia"
-      },
-      {
-        "key": "DefaultForType",
-        "help": "Select yes to set this as the default business address.",
-        "type": "boolean",
-        "label": "Default business address?",
-        "options": [
-          {
-            "label": "Yes",
-            "value": true
-          },
-          {
-            "label": "No",
-            "value": false
-          }
-        ],
-        "required": false,
-        "customHelp": "Enter true to set as default, or false to not.",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
-        "customInputLabel": "Default business address?",
-        "customPlaceholder": "true"
       }
     ]
   },
   {
     "key": "contacts",
-    "help": "Enter contact details. Leave ID blank to add a new contact. Existing contacts not referenced here are left untouched.",
+    "help": "Enter the contact details to add or update. Leave ID blank to add a new contact. Existing contacts not referenced here are left untouched.",
     "type": "input groups",
     "label": "Contacts",
     "required": false,
@@ -4548,13 +4708,13 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         "type": "number",
         "label": "Marketing Consent",
         "required": false,
-        "placeholder": "Leave unchanged"
+        "placeholder": "1"
       }
     ]
   },
   {
     "key": "advanced_options",
-    "help": "Configure tags, attribute sets, and parent customer settings.",
+    "help": "Enter the tags, attribute set, and parent customer settings.",
     "type": "input groups",
     "label": "Advanced Options",
     "required": false,
@@ -4562,11 +4722,11 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
     "fields": [
       {
         "key": "tags",
-        "help": "Enter tags separated by commas, or leave blank to keep unchanged.",
+        "help": "Enter tags separated by commas, e.g. vip, wholesale.",
         "type": "string",
         "label": "Tags",
         "required": false,
-        "placeholder": "Leave unchanged"
+        "placeholder": "vip, wholesale"
       },
       {
         "key": "attribute_set",
@@ -4601,7 +4761,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         "placeholder": "Leave unchanged",
         "customInputLabel": "Parent Customer ID",
         "optionsGenerator": "try {\n  const page = context?.paginateData?.['advanced_options.customer_parent'] || 1;\n  return await list_customers(page, 100);\n} catch (error) {\n  await errorComponent(error);\n}",
-        "customPlaceholder": "Customer ID"
+        "customPlaceholder": "00000000-0000-0000-0000-000000000000"
       },
       {
         "key": "is_bill_parent",
@@ -4657,7 +4817,7 @@ async function updateCustomer() {
 
     const cleanAddress = function (address, type) {
       if (isBlankObject(address)) return null;
-      const cleaned = { Type: type };
+      const cleaned = { Type: type, DefaultForType: true };
       Object.keys(address).forEach(function (key) {
         if (!isBlank(address[key])) {
           cleaned[key] = address[key];
@@ -4667,16 +4827,16 @@ async function updateCustomer() {
     };
 
     const selected = context.inputData.selected_field_values || {};
+
+    if (selected.discount !== undefined && selected.discount !== null && selected.discount !== '') {
+      const discountValue = Number(selected.discount);
+      if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+        throw new Error('Default Discount must be between 0 and 100.');
+      }
+    }
+
     const includeAdvanced = fieldsToUpdate.includes('advanced_options');
     const advancedOptions = includeAdvanced ? (context.inputData.advanced_options || {}) : {};
-
-    let tagsArray = undefined;
-    const tagsValue = advancedOptions.tags;
-    if (typeof tagsValue === 'string' && tagsValue.trim()) {
-      tagsArray = tagsValue.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
-    } else if (Array.isArray(tagsValue) && tagsValue.length) {
-      tagsArray = tagsValue;
-    }
 
     const rawPayload = {
       ID: context.inputData.customer,
@@ -4701,7 +4861,7 @@ async function updateCustomer() {
     };
 
     if (includeAdvanced) {
-      rawPayload.Tags = tagsArray;
+      rawPayload.Tags = advancedOptions.tags;
       rawPayload.AttributeSet = advancedOptions.attribute_set;
       rawPayload.AdditionalAttribute1 = advancedOptions.additional_attributes_dynamic?.additional_attribute_1;
       rawPayload.AdditionalAttribute2 = advancedOptions.additional_attributes_dynamic?.additional_attribute_2;
@@ -4713,8 +4873,10 @@ async function updateCustomer() {
       rawPayload.AdditionalAttribute8 = advancedOptions.additional_attributes_dynamic?.additional_attribute_8;
       rawPayload.AdditionalAttribute9 = advancedOptions.additional_attributes_dynamic?.additional_attribute_9;
       rawPayload.AdditionalAttribute10 = advancedOptions.additional_attributes_dynamic?.additional_attribute_10;
-      rawPayload.CustomerParentID = advancedOptions.customer_parent;
-      rawPayload.IsBillParent = advancedOptions.is_bill_parent;
+      if (!isBlank(advancedOptions.customer_parent)) {
+        rawPayload.CustomerParentID = advancedOptions.customer_parent;
+        rawPayload.IsBillParent = advancedOptions.is_bill_parent;
+      }
     }
 
     const addresses = [];
@@ -4753,7 +4915,7 @@ async function updateCustomer() {
       throw new Error(data.map(function (e) { return e.Exception; }).join('; '));
     }
 
-    return data;
+    return response.data;
   } catch (error) {
     await errorComponent(error);
   }
