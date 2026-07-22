@@ -10,49 +10,49 @@ published: true
 - Connections
   - Connection Selection & Priority Guidelines
   - Basic Auth
-    - Basic Auth Purpose:
-    - Basic Auth UX Pattern:
-    - Basic Auth Common Auth Fields:
-    - Basic Auth Perform Code Reference:
-    - Basic Auth Best Practices:
+    - Basic Auth Purpose
+    - Basic Auth UX Pattern
+    - Basic Auth Common Auth Fields
+    - Basic Auth Perform Code Reference
+    - Basic Auth Best Practices
   - OAuth 2.0
     - OAuth 2.0 Grant Type Selection Guidelines
     - Authorization Code
-      - Authorization Code Purpose:
-      - Authorization Code UX Pattern:
-      - Authorization Code Common Auth Fields:
-      - Authorization Code Perform Code Reference:
-      - Authorization Code Best Practices:
+      - Authorization Code Purpose
+      - Authorization Code UX Pattern
+      - Authorization Code Common Auth Fields
+      - Authorization Code Perform Code Reference
+      - Authorization Code Best Practices
     - Implicit
-      - Implicit Purpose:
-      - Implicit UX Pattern:
-      - Implicit Common Auth Fields:
-      - Implicit Perform Code Reference:
-      - Implicit Best Practices:
+      - Implicit Purpose
+      - Implicit UX Pattern
+      - Implicit Common Auth Fields
+      - Implicit Perform Code Reference
+      - Implicit Best Practices
     - Client Credentials
-      - Client Credentials Purpose:
-      - Client Credentials UX Pattern:
-      - Client Credentials Common Auth Fields:
-      - Client Credentials Perform Code Reference:
-      - Client Credentials Best Practices:
+      - Client Credentials Purpose
+      - Client Credentials UX Pattern
+      - Client Credentials Common Auth Fields
+      - Client Credentials Perform Code Reference
+      - Client Credentials Best Practices
     - Password Credentials
-      - Password Credentials Purpose:
-      - Password Credentials UX Pattern:
-      - Password Credentials Common Auth Fields:
-      - Password Credentials Perform Code Reference:
-      - Password Credentials Best Practices:
+      - Password Credentials Purpose
+      - Password Credentials UX Pattern
+      - Password Credentials Common Auth Fields
+      - Password Credentials Perform Code Reference
+      - Password Credentials Best Practices
   - OAuth 1.0
-    - OAuth 1.0 Purpose:
-    - OAuth 1.0 UX Pattern:
-    - OAuth 1.0 Common Auth Fields:
-    - OAuth 1.0 Perform Code Reference:
-    - OAuth 1.0 Best Practices:
+    - OAuth 1.0 Purpose
+    - OAuth 1.0 UX Pattern
+    - OAuth 1.0 Common Auth Fields
+    - OAuth 1.0 Perform Code Reference
+    - OAuth 1.0 Best Practices
   - No Auth
-    - No Auth Purpose:
-    - No Auth UX Pattern:
-    - No Auth Common Auth Fields:
-    - No Auth Perform Code Reference:
-    - No Auth Best Practices:
+    - No Auth Purpose
+    - No Auth UX Pattern
+    - No Auth Common Auth Fields
+    - No Auth Perform Code Reference
+    - No Auth Best Practices
 - Connection Label & Field Naming Guidelines
   - Connection Label Naming & Description
   - Field Naming & Description
@@ -118,7 +118,7 @@ If the auth method is not specified, evaluate capabilities in this order:
 
 ## Basic Auth
 
-### Basic Auth Purpose:
+### Basic Auth Purpose
 Basic Auth is a simple authentication method where credentials (username + password, or API key + secret) are sent with every API request. Easy to set up, widely used by developer-first APIs and internal systems.
 
 **When to use:**
@@ -126,7 +126,7 @@ Basic Auth is a simple authentication method where credentials (username + passw
 - OAuth is not supported by the service.
 - A simple, fast setup is preferred and acceptable for the risk profile of the data.
 
-### Basic Auth UX Pattern:
+### Basic Auth UX Pattern
 The standard field ordering/section flow for a Basic Auth Connection follows this sequence:
 
 1. **Configure your Fields** → Credential Auth fields the user fills to authenticate (e.g. `api_key`, `username`, `password`). Values become available as `context.authData.<field_key>`.
@@ -136,12 +136,12 @@ The standard field ordering/section flow for a Basic Auth Connection follows thi
 5. **Add Urls to Whitelist** → Base domains this Connection is authorized to call.
 6. **Set Request Parameters** *(Final, Required)* → Dynamic functions that inject the credential into every request's Header, Query Param, or Body — so it never needs to be re-specified inside individual Actions/Triggers.
 
-### Basic Auth Common Auth Fields:
+### Basic Auth Common Auth Fields
 - **String** — For non-sensitive credential parts (e.g. `username`, `account_id`).
 - **Password** — For sensitive credential parts (e.g. `api_key`, `password`, `access_token`); obscures input.
 - Each field supports: `key` (required, must match the API's expected parameter name), `label` (required, user-friendly), `type` (`string` | `password` | `dropdown` | `help`), `placeholder` (placeholder for the auth field, e.g. for email — `joy@gmail.com`), `required` (boolean), `help` (Markdown-enabled instructions with a direct link to where the credential is generated), `input format` (optional pattern hint), `default value` (optional).
 
-### Basic Auth Perform Code Reference:
+### Basic Auth Perform Code Reference
 - Basic Auth Connections inject credentials automatically via **Set Request Parameters** — Actions/Triggers do not need to manually attach auth headers.
 - Test (Me) API and Request Parameter functions reference credentials via `context.authData.<field_key>`.
 
@@ -162,7 +162,7 @@ async function testcode() {
 return await testcode();
 ```
 
-### Basic Auth Best Practices:
+### Basic Auth Best Practices
 - **Match API field names exactly** — the `key` of each field must match what the target API expects as a parameter name.
 - **Use `password` type for anything sensitive** — API keys, secrets, and tokens must obscure input.
 - **Always link to the credential source in `help`** — e.g. `` `Get your API key` `` linking to the app's settings/developer page.
@@ -190,14 +190,14 @@ OAuth 2.0 is not a single flow — it has four Grant Types, each suited to a dif
 
 ### Authorization Code
 
-#### Authorization Code Purpose:
+#### Authorization Code Purpose
 The standard, most secure OAuth 2.0 method. Users authenticate via the provider's own consent screen; viaSocket never sees the user's password. A short-lived authorization code is exchanged server-side for an access token (and refresh token). viaSocket adds PKCE on top for additional protection in browser-based/plugin contexts.
 
 **When to use:**
 - Any production-grade SaaS integration involving real end-users.
 - The service documents an Authorization Endpoint and a Token Endpoint supporting `grant_type=authorization_code`.
 
-#### Authorization Code UX Pattern:
+#### Authorization Code UX Pattern
 The standard 13-step section flow:
 
 1. **Configure your Fields** *(optional)* → Extra pre-auth info the Authorization/Token URLs may depend on (e.g. subdomain, region, environment, tenant ID). Available as `context.authData.<fieldName>`. Skip if the provider's endpoints don't depend on user-entered values.
@@ -214,12 +214,12 @@ The standard 13-step section flow:
 12. **Add Unique Connection Identifier** *(optional)* → Stable field from the Test/Token response (e.g. `user_id`, `workspace_id`) used to prevent duplicate connections for the same account; enables update-instead-of-duplicate behavior. Leave blank if no reliable stable field exists.
 13. **Set Request Parameters** *(Final, Required)* → Dynamic JS functions building Headers (e.g. `Authorization: Bearer ${context.authData?.accesstokencode?.access_token}`), Query Params, and Body defaults for every request.
 
-#### Authorization Code Common Auth Fields:
+#### Authorization Code Common Auth Fields
 - **String / Password / Dropdown** *(Step 1 only)* — Pre-auth contextual values (subdomain, region, environment, tenant ID).
 - **String / Password** *(Step 3)* — `Client ID`, `Client Secret`.
 - **Key-Value pairs** *(Steps 4–7, 13)* — Authorization params, token request/response mapping, refresh/revoke request bodies, and request-parameter functions.
 
-#### Authorization Code Perform Code Reference:
+#### Authorization Code Perform Code Reference
 - Token exchange, refresh, and revoke each use a `POST` request built via `axios` returning `response.data` / `res.data`.
 - Request Parameters use small functions referencing `context.authData.<key>` so the latest token is always used, including seamlessly after a refresh.
 - The authorization `code` path is `context?.authData?.Authorization?.code`, used inside `accesstokencode`.
@@ -292,7 +292,7 @@ async function testcode() {
 return await testcode();
 ```
 
-#### Authorization Code Best Practices:
+#### Authorization Code Best Practices
 - **Always enable PKCE** (`code_challenge_method=S256`) when the provider supports it.
 - **Request minimal scopes at the Connection level** — put broader/specific scopes at the individual Action/Trigger level instead of requesting everything upfront.
 - **Never hardcode tokens in Request Parameters** — always resolve dynamically via `context.authData.<key>` so token refresh is respected transparently.
@@ -303,14 +303,14 @@ return await testcode();
 
 ### Implicit
 
-#### Implicit Purpose:
+#### Implicit Purpose
 Legacy OAuth 2.0 method originally designed for pure frontend apps with no backend. The access token is returned directly in the redirect URL — no authorization-code exchange step exists.
 
 **When to use:**
 - Only if the application is 100% frontend, has no backend at all, the provider still supports Implicit, and the accessed data is not highly sensitive.
 - **Deprecated** — always prefer Authorization Code + PKCE if any backend exists.
 
-#### Implicit UX Pattern:
+#### Implicit UX Pattern
 Identical to Authorization Code's 13-step flow **minus the "Configure Access Token API" step** (12 steps total), since the access token is delivered directly via the redirect — there is nothing to exchange server-side:
 
 1. Configure your Fields *(optional)*
@@ -326,10 +326,10 @@ Identical to Authorization Code's 13-step flow **minus the "Configure Access Tok
 11. Add Unique Connection Identifier *(optional)*
 12. Set Request Parameters *(Final, Required)*
 
-#### Implicit Common Auth Fields:
+#### Implicit Common Auth Fields
 - Same field types as Authorization Code, minus anything specific to the Access Token API step.
 
-#### Implicit Perform Code Reference:
+#### Implicit Perform Code Reference
 - No server-side token-exchange code is written; the token is captured directly from the redirect and stored under `context.authData`.
 - `accesstokencode` and `refreshtokencode` are not applicable for this grant type (no exchange step, and typically no refresh token issued).
 
@@ -364,7 +364,7 @@ async function testcode() {
 return await testcode();
 ```
 
-#### Implicit Best Practices:
+#### Implicit Best Practices
 - **Warn the user this is legacy** — surface a note in the design output that Implicit is deprecated and recommend Authorization Code if any backend capability exists.
 - **Expect no refresh token** — design the Refresh Token API step as optional/absent unless the provider explicitly documents one.
 - **Never persist the token in browser storage insecurely** — flag this as a known risk in the Automation Safety section of the design output.
@@ -373,14 +373,14 @@ return await testcode();
 
 ### Client Credentials
 
-#### Client Credentials Purpose:
+#### Client Credentials Purpose
 Machine-to-machine authentication with no end-user involved. The application authenticates itself with its own `client_id` + `client_secret` and receives an access token representing the application, not a user.
 
 **When to use:**
 - Server-to-server sync, background jobs, webhooks processing, scheduled automation, microservice communication.
 - **Never use** for user login, mobile/frontend auth, or any scenario where human identity matters.
 
-#### Client Credentials UX Pattern:
+#### Client Credentials UX Pattern
 A reduced 10-step flow — no redirect, consent screen, or per-user credentials are needed:
 
 1. **Configure your Fields** *(optional)* → Any pre-auth context values (rare for this grant type).
@@ -394,11 +394,11 @@ A reduced 10-step flow — no redirect, consent screen, or per-user credentials 
 9. **Add Unique Connection Identifier** *(optional)* → Stable app/workspace-level identifier to prevent duplicate connections.
 10. **Set Request Parameters** *(Final, Required)* → Dynamic functions injecting the Bearer token into every request.
 
-#### Client Credentials Common Auth Fields:
+#### Client Credentials Common Auth Fields
 - **String / Password** — `Client ID`, `Client Secret` (may be collected in Configure your Fields if not handled as global App Credentials).
 - **Key-Value pairs** — Token request/response mapping, revoke request body, request-parameter functions.
 
-#### Client Credentials Perform Code Reference:
+#### Client Credentials Perform Code Reference
 - Access Token, "Refresh" (re-request), and Revoke all follow the same `POST` pattern with form-encoded or JSON bodies.
 
 **accesstokencode (Access Token API):**
@@ -463,7 +463,7 @@ async function testcode() {
 return await testcode();
 ```
 
-#### Client Credentials Best Practices:
+#### Client Credentials Best Practices
 - **Never expose the client secret in frontend-reachable code** — it must remain strictly backend/perform-code only.
 - **Do not build a user-identity Connection Label** — there is no user; use an app, workspace, or tenant-level identifier instead.
 - **Confirm no user data is being accessed** before selecting this grant type — if the target data is user-scoped, this is the wrong flow; use Authorization Code instead.
@@ -472,14 +472,14 @@ return await testcode();
 
 ### Password Credentials
 
-#### Password Credentials Purpose:
+#### Password Credentials Purpose
 The application collects the user's raw username and password directly and exchanges them for a token. No redirect, no consent screen. **Deprecated** — breaks the core OAuth principle that apps should never see user passwords.
 
 **When to use:**
 - Only for high-trust, first-party, legacy, or fully internal systems where the app and the authorization server are owned by the same organization and no safer alternative is available.
 - **Never propose this for a new production integration if Authorization Code is supported.**
 
-#### Password Credentials UX Pattern:
+#### Password Credentials UX Pattern
 Structurally identical to Client Credentials (10 steps), since neither flow involves a redirect/consent screen — but the credential-gathering step now collects the end-user's real username and password directly:
 
 1. **Configure your Fields** *(Required)* → `username` and `password` fields (marked `required: true`, `password` type for the password field).
@@ -493,12 +493,12 @@ Structurally identical to Client Credentials (10 steps), since neither flow invo
 9. **Add Unique Connection Identifier** *(optional)* → Stable user identifier to prevent duplicates.
 10. **Set Request Parameters** *(Final, Required)* → Dynamic functions injecting the Bearer token into every request.
 
-#### Password Credentials Common Auth Fields:
+#### Password Credentials Common Auth Fields
 - **String** — `username`.
 - **Password** — `password` (must obscure input).
 - **Key-Value pairs** — Token request/response mapping, refresh/revoke bodies, request-parameter functions.
 
-#### Password Credentials Perform Code Reference:
+#### Password Credentials Perform Code Reference
 - Same request/response pattern as Client Credentials, with `username`/`password` added to the Access Token API payload and a genuine refresh-token cycle available.
 
 **accesstokencode (Access Token API):**
@@ -566,7 +566,7 @@ async function testcode() {
 return await testcode();
 ```
 
-#### Password Credentials Best Practices:
+#### Password Credentials Best Practices
 - **Flag deprecation explicitly in the design output** — recommend Authorization Code + PKCE if the provider supports it at all.
 - **Never log or persist the raw password** anywhere outside the immediate token-exchange call.
 - **Use `password` field type** to obscure the credential in the UI at minimum, even though this flow is inherently riskier than others.
@@ -575,14 +575,14 @@ return await testcode();
 
 ## OAuth 1.0
 
-### OAuth 1.0 Purpose:
+### OAuth 1.0 Purpose
 The original OAuth protocol, built around cryptographically signed requests rather than bearer tokens. Every request is signed using a `Consumer Key`, `Consumer Secret`, `Access Token`, and `Token Secret`, combined with a timestamp, nonce, and a hash generated per the connection's chosen `signatureMethod`.
 
 **When to use:**
 - Only for legacy platforms that do not support OAuth 2.0 (e.g. older Trello/Twitter-style APIs).
 - **Legacy** — OAuth 2.0 (Authorization Code or Client Credentials) is the modern replacement and should always be preferred for new integrations.
 
-### OAuth 1.0 UX Pattern:
+### OAuth 1.0 UX Pattern
 The standard 9-step section flow:
 
 1. **Enter Application Credentials** → `Consumer Key` and `Consumer Secret` from the provider's developer console.
@@ -595,13 +595,13 @@ The standard 9-step section flow:
 8. **Add Unique Connection Identifier** *(optional)* → Stable identifier to prevent duplicate connections.
 9. **Set Request Parameters** *(Final, Required)* → Signing logic applied to every request's Header/Query/Body so every Action/Trigger is automatically signed and authenticated.
 
-### OAuth 1.0 Common Auth Fields:
+### OAuth 1.0 Common Auth Fields
 - **String / Password** — `Consumer Key`, `Consumer Secret` (Step 1).
 - **String (URL)** — `Request Token URL`, `Authorize URL`, `Access Token URL` (Step 3).
 - **Radio / Select** — `signatureMethod`: `HMAC-SHA1` | `RSA-SHA1` | `PLAINTEXT` (Step 3).
 - **Key-Value pairs** — Signature/request-parameter functions applied at the final step.
 
-### OAuth 1.0 Perform Code Reference:
+### OAuth 1.0 Perform Code Reference
 - **`accesstokencode` requires no custom perform code.** Once `Request Token URL`, `Authorize URL`, `Access Token URL`, and `signatureMethod` are configured in **Configure OAuth1 Endpoint**, viaSocket runs the full request-token → authorize → access-token exchange internally when the user clicks **Authorize**; the result is stored under `context.authData.accesstokencode`.
 - Every outbound request (Test API, and every Action/Trigger request) must be signed: HTTP method + full URL + all request parameters + Consumer Secret + Token Secret → hashed per `signatureMethod` (`HMAC-SHA1`, `RSA-SHA1`, or `PLAINTEXT`) → `oauth_signature`.
 - There is no universal revoke standard; token invalidation is typically handled via the provider's dashboard, so `revokeapicode` is usually omitted.
@@ -644,7 +644,7 @@ return await testcode();
 
 *Note: `generateOAuth1Signature` is a reusable signing helper (HTTP method + URL + params + Consumer Secret + Token Secret → hash per `signatureMethod` → Base64) — define it once as a Reusable Component and reference it across the Test (Me) API step and the Set Request Parameters signing function.*
 
-### OAuth 1.0 Best Practices:
+### OAuth 1.0 Best Practices
 - **Recommend OAuth 2.0 first** — only propose OAuth 1.0 if the service documentation offers no OAuth 2.0 or Basic Auth path.
 - **Choose the correct `signatureMethod`** per the provider's documentation — `HMAC-SHA1` is most common; `RSA-SHA1` requires a private key; `PLAINTEXT` should only be used over HTTPS and only if the provider requires it.
 - **Trust the built-in Authorize exchange** — do not attempt to hand-write `accesstokencode` logic; only the Test (Me) API and Set Request Parameters steps require custom signing code.
@@ -658,7 +658,7 @@ return await testcode();
 
 ## No Auth
 
-### No Auth Purpose:
+### No Auth Purpose
 Used when accessing public APIs or endpoints that do not require verifying the identity of the requester. Appropriate only for openly accessible resources where no user-specific or sensitive data is involved.
 
 **When to use:**
@@ -669,20 +669,20 @@ Used when accessing public APIs or endpoints that do not require verifying the i
 - Any endpoint returning user-specific, private, or sensitive data.
 - Any endpoint requiring account context.
 
-### No Auth UX Pattern:
+### No Auth UX Pattern
 No credential collection step is required. The Connection is limited to the shared, non-auth sections only:
 
 1. **Add URLs to Whitelist** → Restrict which domains this Connection is permitted to call.
 2. **Set Request Parameters** *(optional)* → Static headers/query/body defaults common to every request (e.g. `Content-Type: application/json`), since there is no credential to inject dynamically.
 
-### No Auth Common Auth Fields:
+### No Auth Common Auth Fields
 - None. No credential-collecting `Configure your Fields` step is shown, since there is nothing for the user to authenticate with.
 
-### No Auth Perform Code Reference:
+### No Auth Perform Code Reference
 - Actions/Triggers built on a No Auth Connection call the API directly with no `Authorization` header or signed request.
 - No credential-based perform code (Access Token / Refresh / Revoke / Test) is applicable, since there is no credential to exchange or validate.
 
-### No Auth Best Practices:
+### No Auth Best Practices
 - **Confirm true public access** — verify with the API docs that genuinely no auth is required before proposing this; do not default to No Auth just because a quick test endpoint returned data without a key.
 - **Still whitelist domains** — even with no credentials, restrict allowed domains to reduce the blast radius of a misconfigured or malicious perform-code call.
 - **Recommend rate-limit awareness** — flag in the design notes that public/no-auth endpoints are prone to abuse and rate limiting.

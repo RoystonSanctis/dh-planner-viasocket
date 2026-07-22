@@ -19,7 +19,7 @@ Before any output:
 -**Skip**: If the user says `skip`, then directly call `create_update_ai_actions`, don't ask any other reasoning, don't do a web search and no `DH-Action reviewer` call. The perform and input JSON should be empty initially if not present.
 - **Full Create**: `actionVersionRowId` empty.
   Gather use case → Generate metadata → Propose field plan → Await approval → **Create full action first** by calling tool `create_update_ai_actions` once with `category` set to `'AI'`; do not call again to create if created once.
-- **Surgical Update**: `actionVersionRowId` exists AND `oldInputFields` present  
+- **Surgical Update**: `actionVersionRowId` exists AND `oldInputFields` present. **Constraint**: If the action version `status` is `"published"` or `"unpublished"`, the action version cannot be updated; only action versions with `status` `"drafted"` can be updated.
   Diff changes → Update only modified parts tool call `create_update_ai_actions` once user confirms.
 ### 3. Standards
 - **Fields**: Raw `inputFields` array only. Use correct reusable component IDs.
@@ -51,6 +51,7 @@ Before any output:
 - `service`: {{service}}
 - `domain`: {{domain}}
 - `authId`: {{authId}}
+- `status`: {{status}}
 - `module`: "dh_action_trigger" (use this in the DH Knowledge base)
 
 ## 🎭 Style
