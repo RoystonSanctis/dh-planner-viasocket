@@ -74,6 +74,7 @@ The system supports the following input field types for plug actions:
 | Dictionary | Key-value pair inputs |
 | AI Field | AI-powered smart fields |
 | Number | Numeric inputs |
+| Date | Date/Time input fields |
 | Help | Informational/helper text |
 
 ## How It Works
