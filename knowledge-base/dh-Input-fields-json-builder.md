@@ -3739,6 +3739,22 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
+- **No canPaginate or enableSearchApi Support (CRITICAL):** In `multiselect` fields, the properties `canPaginate` and `enableSearchApi` are **not supported**. If you are using reusable components that require pagination limit/cursors or search capabilities, the `optionsGenerator` for the multiselect must implement client-side pagination (looping internally to fetch and aggregate all pages/results) and return the aggregated array directly.
+  - **Example of client-side pagination in multiselect `optionsGenerator`:**
+    ```json
+    {
+      "key": "removeTagIds",
+      "help": "Tags to remove from the contact.",
+      "type": "multiselect",
+      "label": "Tags to Remove",
+      "required": true,
+      "customHelp": "Tags are fetched from your account (or team if Team ID is set). Get Tag IDs from the **Get Tags** action (tags[].tagId).",
+      "placeholder": "Select",
+      "customInputLabel": "Tag IDs",
+      "optionsGenerator": "const teamId = context?.inputData?.teamId;\nlet allTags = [];\nlet cursor = undefined; \n\ndo {\n  // Fetch the current page of tags\n  const response = await List_tags(teamId, cursor);\n  \n  // Spread and push the new data into our aggregated array\n  if (response?.data) {\n    allTags.push(...response.data);\n  }\n  \n  // Set the cursor to the offset returned for the next iteration\n  cursor = response?.offset;\n  \n} while (cursor); // Loop stops when offset is null/undefined\n\n// Return the completely aggregated array\nreturn allTags;",
+      "customPlaceholder": "d4f37f25-79cd-11f1-b9df-1274a11ff999"
+    }
+    ```
 - **optionsGenerator Function Calling:** If the function code is written inline inside `optionsGenerator`, it must be explicitly defined, wrapped in a parent `try-catch` block with `await errorComponent(error);` in the `catch` block, and called/invoked at the end (e.g., `async function getOptions() { ... }; try { return await getOptions(); } catch (error) { await errorComponent(error); }`). Similarly, if a Reusable Component is used, the invocation must be wrapped in a parent `try-catch` block, and the `catch` block must call `await errorComponent(error);` (e.g., `try { return await fetchComponent(param1, param2); } catch (error) { await errorComponent(error); }`).
 - A proper manual input option must be configured. All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. The `help` key must focus on selection and start with "Select" (e.g. "Select the fields to include in the response."). It supports string format and markdown links like `[Lean More](https://example.com)`. **The `customInputLabel` must be short and must NOT start with "Enter"** (e.g. standard label `"Properties"`, customInputLabel `"Properties in Array"`). If not an ID field, standard label and `customInputLabel` must be the same. **The `customHelp` must guide manual input with "Enter the ID/value... You will get it from the actions like List, Find..."** (e.g. `"Enter the properties manually in array format. You can get the property IDs from actions like List Properties."`). Both `help` and `customHelp` must be very crisp and to the point.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.

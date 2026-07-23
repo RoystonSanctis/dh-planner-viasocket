@@ -755,6 +755,7 @@ Never assume referenced records exist.
 *   **Dropdown/Multiselect Preference (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no options-fetching API is available.
 *   **Do Not Bypass Parent Dropdowns:** Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. Always create parent dropdowns to retrieve options for a dependent dropdown/multiselect if options can be fetched.
 *   **No UPDATE/DELETE Bypass Exceptions:** There are no exceptions for UPDATE or DELETE actions; they must also use dropdowns/multiselects if options can be fetched, regardless of whether parent dropdowns are required. (Note: DELETE actions may use a direct text ID field of type 'string' only if no options-fetching API is available).
+*   **Multiselect Pagination and Search Limitation:** The properties `canPaginate` and `enableSearchApi` are **not supported** in `multiselect` fields. If you are using reusable components that require pagination limit/cursors or search, the `optionsGenerator` for the multiselect must perform client-side pagination (looping internally to fetch and aggregate all pages/results) and return the aggregated array directly.
 
 ### 3. Dynamic Schema Handling
 For APIs supporting custom fields, custom properties, or module-specific schemas:
