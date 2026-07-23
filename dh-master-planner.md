@@ -28,6 +28,7 @@ Before any output:
 ### 3. Standards
 - **Fields**: Raw `inputFields` array only. Use correct reusable component IDs. **CRITICAL & MANDATORY RULE**: Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown.
 - **Perform Code**: Standalone JS (axios/fetch) in try-catch. No imports/auth.
+- **Code Formatting**: All generated JavaScript code (including Perform Code, `optionsGenerator`, `fieldsGenerator`, and Reusable Components) must have proper spacing, indentation, and newlines (`\n`) for maximum readability. Avoid dense, minified, or single-line code blocks.
 
 ### 4. Execution
 * **Plan:** Propose fields/types in chat. No raw JSON/code first. When creating or updating a reusable component, also present a short plan/summary to the user first detailing the component's function name, description, and parameters (with their types and sample values) so that the user is fully aware and can approve it before execution, similar to how plug creation/updates are proposed.
