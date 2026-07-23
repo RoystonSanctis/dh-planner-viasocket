@@ -126,7 +126,7 @@ Base keys (every field): `key` (unique, no `.`, pattern `^[^.]*$` ) · `type` ·
 | `help` static | — (`key`·`type`·`help` only) | `help` = content (text/HTML/MD + links). No `label`/`required`/`placeholder` allowed. Optional: `visibilityCondition`. Placement: Must be positioned below the field it is referring to. |
 | `help` dynamic | `source` | `source` JS → `{message}` (text/HTML/MD). Not `optionsGenerator`. Optional: `label` (header text), `visibilityCondition`. No `required`, `placeholder`, or `help` key allowed. Placement: Must be positioned below the field it is referring to. |
 | `input groups` static | `fields` | `fields[]` each independently valid (nestable). `whereClause:true` (static only) → inline sentence UI; recommend dropdown/multiselect children; `label`/`help` optional then. |
-| `input groups` dynamic | `label`, `fieldsGenerator` | `fieldsGenerator` → field array, or `{message}` if deps missing (renders warning block). Generated children: any type incl. nested input groups, static+dynamic. Normalize keys: drop `.` → `_` (`label.replace(/\./g,'_')`). Optional: `required`, `help`, `visibilityCondition`. |
+| `input groups` dynamic | `label`, `fieldsGenerator` | `fieldsGenerator` → field array, or `{message}` if deps missing (renders warning block). Generated children: any type incl. nested input groups, static+dynamic (generated child keys CAN contain dots; normalization is not required). Optional: `required`, `help`, `visibilityCondition`. |
 
 **Options metadata**: `sample` MUST equal `value`; include only if `value` is an ID and ≠ `label`. Dynamic `defaultValue` requires `sample`. `extraValue` = hidden metadata supporting all data types (string, number, boolean, object, array, etc.), read via `context?.inputData?.{key}_extraValue` (group: `{group}?.{key}_extraValue`) inside visibility conditions, dynamic generators, or perform/trigger code blocks. It is extremely useful when the option's value is an ID and you want to pass extra info (like the resource type or category) to perform specific visibility logic or actions.
 
@@ -311,7 +311,7 @@ return await <functionName>();
 | GET | `GET /resources/:id` | validate id; handle 404 |
 | LIST | Fork by `mode` (List All, Search by..., Search by ID, Advance Search) | List All/Search (non-unique): paginated call or client loop if fetch-all; Search (unique): search API; Search by ID: get by ID; Advance Search: query. Multiselect filters fields. |
 | FIND/SEARCH | `GET /resources?q=` | native query first; client `.find()` fallback → `{results:[]}` |
-| CREATE | `POST /resources` | payload from `inputData`; normalize generated keys `.`→`_` |
+| CREATE | `POST /resources` | payload from `inputData` |
 | UPDATE | `PATCH`/`PUT`/`POST /resources/:id` | partial: include key only if value `!== undefined/null/''` (unless explicit clear) |
 | FIND OR CREATE | `GET` search → `POST` if none | search by stable ID first; never assume record exists |
 | DELETE | `DELETE /resources/:id` (or `PATCH`/`POST` archive) | validate id; handle 404 already-deleted |
