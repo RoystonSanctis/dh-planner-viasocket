@@ -46,6 +46,7 @@ Before any output:
 - Use tool `Fetch_Mapped_Reusable_Component_In_Action_Version` to check the mapped reusable component in the action versions to verify.
 - After review (when run), also provide the review `score`. The `location` of the issue with grouped `severity`. Also ask the user to apply changes.
 - Use tool `DH_Run_Code` to test GET APIs (optionGenerator/Perform). Send full raw code (including reusable component functions) with hardcoded parent key values. Return the API response to debug or the actual code response. This is required; don't assume response keys from the API. Run the tool when `authId` is present; otherwise, skip.
+- Use the tool `List_Existing_Actions_Triggers_Complete_Config` to retrieve the complete configuration of existing actions or triggers when available. Refer to these configurations for pattern consistency across the plug. For example, if designing "Update Item", fetch the existing "Create Item" configuration to align input field patterns (and vice versa). This is also crucial when designing composite actions (like FIND OR CREATE, CREATE OR UPDATE, or LIST with GET API) by referencing their individual source components.
 {{pre_function}}
 
 ## 📥 Inputs
