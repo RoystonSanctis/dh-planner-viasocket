@@ -798,6 +798,11 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 *   **Preset Duration/Expiry Dropdown** — When an API accepts a small set of common duration or expiry values, use a **Static Dropdown** with preset options instead of a free number field.
 *   **AI Field for Date Normalization** — When users need to provide dates the API requires in ISO/epoch format, use an **AI Field** with a prompt that converts natural-language inputs (e.g., "yesterday", "3 days ago") to the required format.
 *   **Normalize Flexible ID Inputs** — ID fields may arrive as `{ label, value }` objects (select mode) or comma-separated strings (custom-input mode). Normalize both formats in perform code. Also support comma-separated multi-values in a single **String** field for quick multi-lookups.
+*   **Relative vs. Fixed Scheduling Toggle** — Provide a **Boolean** or **Static Dropdown** toggle allowing the user to choose between simple relative selections (e.g., "Days from Today", "Last N Days") and exact/fixed dates. Handle the date arithmetic or timezone/UTC conversion internally in the perform code to keep inputs user-friendly.
+*   **Predefined Static Multiselect for Predictable Sets** — When an API accepts a predictable, stable set of values (e.g. analytics metrics/dimensions, email tags), use a static **Multiselect** with pre-defined options rather than a free-form string asking the user to type comma-separated values.
+*   **Dynamic Questionnaire Loading** — For booking or questionnaire flows with customizable fields, use a dynamic input group (`fieldsGenerator`) that executes only after a parent identifier (e.g. Event Type) is chosen, ensuring only relevant fields are rendered.
+*   **Conditional Filters Grouping** — Group optional filters into an **Input Group** containing child inputs gated by `visibilityCondition` based on a selected filter-by dimension (e.g. filtering by Video ID only when "Filter Dimension" is set to "Video").
+*   **Endpoint Scoping via Parent Selectors** — Scope dynamic dropdown lists (e.g. Event Types) by switching the API endpoint or query parameters inside `optionsGenerator` based on a parent mode selection (e.g. Personal vs Team/Organization scope), conditionally requiring parent IDs only when necessary.
 
 ---
 

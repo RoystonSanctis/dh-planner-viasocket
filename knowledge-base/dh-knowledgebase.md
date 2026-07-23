@@ -79,6 +79,11 @@ Single Perform call mapped from `context.inputData`. Categories: GET · LIST · 
 - **Human Units Over Machine Units**: Accept user-friendly units (days, relative dates) via String or Number. Convert to machine units (UNIX timestamps, ISO dates) in perform code. Never make the user compute timestamps.
 - **Label Options Format**: When the human label differs from the API key in dynamic dropdowns/multiselects, format option labels as `"Display Name (schemaKey)"` so users pick by meaning while the correct key is submitted.
 - **Preset Duration/Expiry**: When an API accepts a small set of common duration or expiry values, use a Static Dropdown with preset options instead of a free number field.
+- **Relative vs. Fixed Scheduling Toggle**: Provide a toggle (Boolean or Static Dropdown) to choose between relative dates/offsets (e.g., "Days from Today", "Last N Days") and exact/fixed datetimes. Perform all arithmetic and formatting internally in the perform code to keep inputs simple.
+- **Predefined Static Multiselect**: For stable, predictable sets of API parameters (e.g. metrics, dimensions, tags), use a static Multiselect instead of asking the user to manually type comma-separated strings.
+- **Dynamic Questionnaire/Form Loading**: Use dynamic input groups (`fieldsGenerator`) to fetch custom fields only after the parent resource/event type is selected, ensuring the UI remains clean and uncluttered.
+- **Grouped Conditional Filters**: Group filters inside an Input Group, gating specific filter value fields with `visibilityCondition` based on the selected filter dimension.
+- **Dynamic Endpoint and Param Scoping**: Dynamically adjust endpoints or API parameters in `optionsGenerator` based on a parent scope selector (e.g., Personal vs Organization/Team).
 
 # Naming
 | Item | Format |
