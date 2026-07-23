@@ -18,6 +18,8 @@ published: true
   - Google Task — Create Task
   - Livestorm — Create Registration
   - Xero — Create Invoice
+  - Cal ID — Create Booking
+  - Calendly — Create Booking
 - LIST Examples
   - Keka — List All Employees
 - FIND / SEARCH Examples
@@ -27,6 +29,7 @@ published: true
   - ActiveCampaign — Add or Remove Tag on Contact
 - GET Examples
   - LeadSquared — Get Lead by ID
+  - YouTube — Get Channel Analytics
 - FIND OR CREATE (Upsert) Examples
   - LeadSquared — Create or Update Lead
 - Composite / Advanced Action Examples
@@ -755,6 +758,897 @@ return await performAction();
 
 ---
 
+## Cal ID — Create Booking
+
+**Metadata**
+- **App:** Cal ID · **Category:** Scheduling · **Action:** Create Booking · **Action Type:** CREATE
+
+**Supporting API Usage**
+- **List Teams API** — fetches available teams for a user to select from in the dropdown.
+- **List Event Types API** — fetches event types (filtered by team if team scope is selected).
+- **Get Event Type Custom Fields API** — fetches custom fields configured for the specific event type.
+
+**UX Components & Field Design**
+- **Dropdown (Static) — Event Type Scope** — allows user to choose between personal event types and team event types.
+- **Dropdown (Dynamic) — Team** — dynamically lists teams, visible only when Event Type Scope is "team".
+- **Dropdown (Dynamic) — Event Type** — dynamically lists event types based on the selected scope and team.
+- **Boolean — Schedule Booking Using** — toggles between relative date ("Days from Today") and fixed date/time ("Exact Date & Time").
+- **Number — Start Date (Days from Today)** and **String — Start Time (HH:mm)** — visible when scheduling using "Days from Today".
+- **String — Start Date & Time** — visible when scheduling using "Exact Date & Time".
+- **Dropdown — Time Zone** — dropdown with common timezones to interpret the start time.
+- **Input Group — Attendee Details** — groups attendee's name, email, and phone.
+- **Dropdown (Static) — Meeting Location** — options for meeting location, revealing location details if custom option is chosen.
+- **String — Location Detail** — visible when a custom location option is chosen.
+- **Input Group — Booking Questionnaire** — dynamically renders questionnaire fields using `fieldsGenerator` after Event Type is selected.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "event_scope",
+    "help": "Select Personal for your own event types or Team for a shared team event.",
+    "type": "dropdown",
+    "label": "Event Type Scope",
+    "options": [
+      {
+        "label": "Personal",
+        "value": "personal"
+      },
+      {
+        "label": "Team",
+        "value": "team"
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "Personal",
+      "value": "personal"
+    }
+  },
+  {
+    "key": "team_id",
+    "help": "Select the team whose event type you want to book.",
+    "type": "dropdown",
+    "label": "Team",
+    "required": true,
+    "customInputLabel": "Enter Team ID manually",
+    "optionsGenerator": "try {\n  const res = await axios.get('https://api.cal.id/teams/', { params: { limit: 100 } });\n  const teams = res.data?.data || [];\n  if (!teams.length) {\n    return { message: 'No teams found. Make sure you are a member or admin of at least one team.' };\n  }\n  return teams.map(t => ({\n    label: t.name || `Team ${t.id}`,\n    value: String(t.id),\n    sample: String(t.id)\n  }));\n} catch (error) {\n  throw error;\n}",
+    "customPlaceholder": "1234",
+    "visibilityCondition": "context.inputData.event_scope === 'team'"
+  },
+  {
+    "key": "event_type",
+    "help": "Select the event type you want to book.",
+    "type": "dropdown",
+    "label": "Event Type",
+    "required": true,
+    "customInputLabel": "Enter Event Type ID manually",
+    "optionsGenerator": "try {\n  const scope = context.inputData?.event_scope;\n  const teamId = context.inputData?.team_id;\n\n  if (scope === 'team') {\n    if (!teamId) {\n      return { message: 'Please select a Team first.' };\n    }\n    const res = await axios.get(`https://api.cal.id/teams/${teamId}/event-types`, {\n      params: { limit: 100, orderBy: 'id', orderDir: 'desc', hidden: false }\n    });\n    const collection = res.data?.data || [];\n    if (!collection.length) {\n      return { message: 'No event types found for this team.' };\n    }\n    return collection.map(e => ({\n      label: e.title || e.slug || String(e.id),\n      value: String(e.id),\n      sample: String(e.id)\n    }));\n  }\n\n  const res = await axios.get('https://api.cal.id/event-types/', {\n    params: { limit: 100, orderBy: 'id', orderDir: 'desc', hidden: false }\n  });\n  const collection = res.data?.data || [];\n  if (!collection.length) {\n    return { message: 'No event types found. Please create an event type in Cal.id first.' };\n  }\n  return collection.map(e => ({\n    label: e.title || e.slug || String(e.id),\n    value: String(e.id),\n    sample: String(e.id)\n  }));\n\n} catch (error) {\n  throw error;\n}",
+    "customPlaceholder": "123456"
+  },
+  {
+    "key": "date_selection_mode",
+    "help": "Use Days from Today for relative scheduling or Exact Date & Time for a fixed slot.",
+    "type": "boolean",
+    "label": "Schedule Booking Using",
+    "options": [
+      {
+        "label": "Days from Today",
+        "value": true
+      },
+      {
+        "label": "Exact Date & Time",
+        "value": false
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "Days from Today",
+      "value": true
+    }
+  },
+  {
+    "key": "start_no_of_days",
+    "help": "Enter 0 for today, 1 for tomorrow, and so on.",
+    "type": "number",
+    "label": "Start Date (Days from Today)",
+    "required": true,
+    "placeholder": "0 for today, 1 for tomorrow",
+    "visibilityCondition": "context.inputData.date_selection_mode === true"
+  },
+  {
+    "key": "start_time",
+    "help": "Enter time in 24-hour format.",
+    "type": "string",
+    "label": "Start Time (HH:mm)",
+    "required": true,
+    "placeholder": "14:30",
+    "visibilityCondition": "context.inputData.date_selection_mode === true"
+  },
+  {
+    "key": "start_date",
+    "help": "Enter date and time in YYYY-MM-DD HH:mm format or paste an ISO 8601 string from a trigger.",
+    "type": "string",
+    "label": "Start Date & Time",
+    "required": true,
+    "placeholder": "2026-05-18 14:30",
+    "visibilityCondition": "context.inputData.date_selection_mode === false"
+  },
+  {
+    "key": "timeZone",
+    "help": "The start time will be interpreted in this timezone.",
+    "type": "dropdown",
+    "label": "Time Zone",
+    "options": [
+      {
+        "label": "India Standard Time (Asia/Kolkata)",
+        "value": "Asia/Kolkata"
+      },
+      {
+        "label": "US Eastern Time (America/New_York)",
+        "value": "America/New_York"
+      },
+      {
+        "label": "US Central Time (America/Chicago)",
+        "value": "America/Chicago"
+      },
+      {
+        "label": "US Mountain Time (America/Denver)",
+        "value": "America/Denver"
+      },
+      {
+        "label": "US Pacific Time (America/Los_Angeles)",
+        "value": "America/Los_Angeles"
+      },
+      {
+        "label": "UTC",
+        "value": "UTC"
+      },
+      {
+        "label": "UK Time (Europe/London)",
+        "value": "Europe/London"
+      },
+      {
+        "label": "Central European Time (Europe/Berlin)",
+        "value": "Europe/Berlin"
+      },
+      {
+        "label": "Eastern European Time (Europe/Helsinki)",
+        "value": "Europe/Helsinki"
+      },
+      {
+        "label": "Moscow Time (Europe/Moscow)",
+        "value": "Europe/Moscow"
+      },
+      {
+        "label": "Gulf Standard Time (Asia/Dubai)",
+        "value": "Asia/Dubai"
+      },
+      {
+        "label": "Pakistan Standard Time (Asia/Karachi)",
+        "value": "Asia/Karachi"
+      },
+      {
+        "label": "Bangladesh Time (Asia/Dhaka)",
+        "value": "Asia/Dhaka"
+      },
+      {
+        "label": "Indochina Time (Asia/Bangkok)",
+        "value": "Asia/Bangkok"
+      },
+      {
+        "label": "China / Singapore Time (Asia/Singapore)",
+        "value": "Asia/Singapore"
+      },
+      {
+        "label": "Japan / Korea Time (Asia/Tokyo)",
+        "value": "Asia/Tokyo"
+      },
+      {
+        "label": "Australia Eastern Time (Australia/Sydney)",
+        "value": "Australia/Sydney"
+      },
+      {
+        "label": "Australia Central Time (Australia/Adelaide)",
+        "value": "Australia/Adelaide"
+      },
+      {
+        "label": "Australia Western Time (Australia/Perth)",
+        "value": "Australia/Perth"
+      },
+      {
+        "label": "New Zealand Time (Pacific/Auckland)",
+        "value": "Pacific/Auckland"
+      },
+      {
+        "label": "Brazil Time (America/Sao_Paulo)",
+        "value": "America/Sao_Paulo"
+      },
+      {
+        "label": "Argentina Time (America/Argentina/Buenos_Aires)",
+        "value": "America/Argentina/Buenos_Aires"
+      },
+      {
+        "label": "Mexico City Time (America/Mexico_City)",
+        "value": "America/Mexico_City"
+      },
+      {
+        "label": "Canada Eastern Time (America/Toronto)",
+        "value": "America/Toronto"
+      },
+      {
+        "label": "Canada Pacific Time (America/Vancouver)",
+        "value": "America/Vancouver"
+      },
+      {
+        "label": "West Africa Time (Africa/Lagos)",
+        "value": "Africa/Lagos"
+      },
+      {
+        "label": "East Africa Time (Africa/Nairobi)",
+        "value": "Africa/Nairobi"
+      },
+      {
+        "label": "South Africa Time (Africa/Johannesburg)",
+        "value": "Africa/Johannesburg"
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "India Standard Time (Asia/Kolkata)",
+      "value": "Asia/Kolkata"
+    },
+    "customInputLabel": "Enter Timezone",
+    "customPlaceholder": "America/New_York"
+  },
+  {
+    "key": "attendee",
+    "help": "Details of the person being booked into this meeting.",
+    "type": "input groups",
+    "label": "Attendee Details",
+    "required": true,
+    "fields": [
+      {
+        "key": "name",
+        "help": "Full name of the attendee.",
+        "type": "string",
+        "label": "Full Name",
+        "required": true,
+        "placeholder": "John Doe"
+      },
+      {
+        "key": "email",
+        "help": "Booking confirmation will be sent to this email.",
+        "type": "string",
+        "label": "Email Address",
+        "required": true,
+        "placeholder": "john@example.com"
+      },
+      {
+        "key": "phone",
+        "help": "Required only if the event uses Attendee Phone as the meeting location.",
+        "type": "string",
+        "label": "Phone Number",
+        "required": false,
+        "placeholder": "+91XXXXXXXXXX"
+      }
+    ]
+  },
+  {
+    "key": "location_kind",
+    "help": "Select the meeting location. Ensure the integration is connected in your Cal.id account.",
+    "type": "dropdown",
+    "label": "Meeting Location",
+    "options": [
+      {
+        "label": "Google Meet",
+        "value": "integrations:google:meet"
+      },
+      {
+        "label": "Zoom",
+        "value": "integrations:zoom:video"
+      },
+      {
+        "label": "Microsoft Teams",
+        "value": "integrations:office365_video:video"
+      },
+      {
+        "label": "In Person — Attendee Address",
+        "value": "attendeeInPerson"
+      },
+      {
+        "label": "Attendee Phone",
+        "value": "attendeePhone"
+      },
+      {
+        "label": "Host Phone",
+        "value": "userPhone"
+      },
+      {
+        "label": "Somewhere Else",
+        "value": "somewhereElse"
+      }
+    ],
+    "required": false,
+    "defaultValue": {
+      "label": "Google Meet",
+      "value": "integrations:google:meet"
+    },
+    "customInputLabel": "Enter location value manually",
+    "customPlaceholder": "integrations:zoom:video"
+  },
+  {
+    "key": "location_detail",
+    "help": "Enter the address, phone number, or custom location text.",
+    "type": "string",
+    "label": "Location Detail",
+    "required": true,
+    "placeholder": "123 Main Street or +14155551234",
+    "visibilityCondition": "context.inputData.location_kind === 'attendeeInPerson' || context.inputData.location_kind === 'somewhereElse' || context.inputData.location_kind === 'attendeePhone' || context.inputData.location_kind === 'userPhone'"
+  },
+  {
+    "key": "guests",
+    "help": "Enter comma-separated email addresses. Each guest will receive a calendar invite.",
+    "type": "string",
+    "label": "Additional Guests",
+    "required": false,
+    "placeholder": "guest1@example.com, guest2@example.com"
+  },
+  {
+    "key": "notes",
+    "help": "Any notes or context the attendee wants to share for this booking.",
+    "type": "string",
+    "label": "Notes",
+    "required": false,
+    "placeholder": "Please bring the project brief"
+  },
+  {
+    "key": "custom_booking_fields",
+    "help": "Additional questions configured for this event type.",
+    "type": "input groups",
+    "label": "Booking Questionnaire",
+    "required": false,
+    "fieldsGenerator": "try {\n  const scope = context.inputData?.event_scope;\n  const teamId = Number(context.inputData?.team_id);\n  const eventTypeId = Number(context.inputData?.event_type);\n\n  if (!eventTypeId) {\n    return [{ key: '_info', label: 'Please select an Event Type above to load its custom fields.', type: 'string', required: false }];\n  }\n\n  const fetchUrl = scope === 'team' && teamId\n    ? `https://api.cal.id/teams/${teamId}/event-types/${eventTypeId}`\n    : `https://api.cal.id/event-types/${eventTypeId}`;\n\n  const response = await axios.get(fetchUrl);\n  const bookingFields = response.data?.data?.bookingFields;\n\n  if (!Array.isArray(bookingFields)) {\n    return [{ message: 'Could not load booking fields for this event type. Please re-select the event type.' }];\n  }\n\n  const alreadyCovered = new Set(['name', 'email', 'attendeePhoneNumber', 'location', 'guests', 'notes', 'rescheduleReason', 'title']);\n\n  const typeMap = {\n    text: 'string', textarea: 'string', address: 'string', phone: 'string',\n    number: 'number', boolean: 'boolean', checkbox: 'boolean',\n    multiemail: 'string', select: 'dropdown', multiselect: 'multiselect'\n  };\n\n  const fields = bookingFields\n    .filter(field => {\n      if (alreadyCovered.has(field.name)) return false;\n      if (field.hidden === true) return false;\n      if (field.type === 'radioInput') return false;\n      if (Array.isArray(field.views) && field.views.every(v => v.id === 'reschedule')) return false;\n      return true;\n    })\n    .map((field, index) => {\n      const safeKey = `cf__${index}__${field.name}`;\n      const mapped = {\n        key: safeKey,\n        label: field.label || field.defaultLabel || field.name,\n        type: typeMap[field.type] || 'string',\n        required: field.required === true\n      };\n      const rawPlaceholder = field.placeholder || field.defaultPlaceholder || '';\n      const isI18nKey = /^[a-z][a-z0-9_]*$/.test(rawPlaceholder) && rawPlaceholder.includes('_');\n      if (rawPlaceholder && !isI18nKey) mapped.placeholder = rawPlaceholder;\n      if ((field.type === 'select' || field.type === 'multiselect') && Array.isArray(field.options)) {\n        mapped.options = field.options.map(opt => ({ label: opt.label || opt, value: opt.value || opt }));\n      }\n      return mapped;\n    });\n\n  if (!fields.length) {\n    return { message: 'No additional custom fields found for this event type.' };\n  }\n\n  return fields;\n\n} catch (err) {\n  throw err;\n}"
+  },
+  {
+    "key": "language",
+    "help": "Language for booking confirmation emails sent to the attendee.",
+    "type": "dropdown",
+    "label": "Confirmation Email Language",
+    "options": [
+      {
+        "label": "English",
+        "value": "en"
+      },
+      {
+        "label": "French",
+        "value": "fr"
+      },
+      {
+        "label": "German",
+        "value": "de"
+      },
+      {
+        "label": "Spanish",
+        "value": "es"
+      },
+      {
+        "label": "Portuguese",
+        "value": "pt"
+      },
+      {
+        "label": "Italian",
+        "value": "it"
+      },
+      {
+        "label": "Japanese",
+        "value": "ja"
+      },
+      {
+        "label": "Arabic",
+        "value": "ar"
+      }
+    ],
+    "required": false,
+    "defaultValue": {
+      "label": "English",
+      "value": "en"
+    }
+  },
+  {
+    "key": "show_advanced",
+    "help": "Attach custom metadata to this booking for tracking or CRM purposes.",
+    "type": "boolean",
+    "label": "Add Custom Metadata?",
+    "options": [
+      {
+        "label": "Yes",
+        "value": true
+      },
+      {
+        "label": "No",
+        "value": false
+      }
+    ],
+    "required": false,
+    "defaultValue": {
+      "label": "No",
+      "value": false
+    }
+  },
+  {
+    "key": "metadata",
+    "help": "Custom key-value data attached to this booking.",
+    "type": "dictionary",
+    "label": "Custom Metadata",
+    "required": false,
+    "template": {
+      "key": {
+        "help": "Metadata key.",
+        "type": "string",
+        "placeholder": "source"
+      },
+      "value": {
+        "help": "Metadata value.",
+        "type": "string",
+        "placeholder": "crm-automation"
+      }
+    },
+    "visibilityCondition": "context.inputData.show_advanced === true"
+  }
+]
+```
+
+**API Configuration Perform Code**
+```javascript
+try {
+  const data = context.inputData;
+
+  const tzOffsets = {
+    "Asia/Kolkata": 330, "America/New_York": -300, "America/Chicago": -360,
+    "America/Denver": -420, "America/Los_Angeles": -480, "UTC": 0,
+    "Europe/London": 0, "Europe/Berlin": 60, "Europe/Helsinki": 120,
+    "Europe/Moscow": 180, "Asia/Dubai": 240, "Asia/Karachi": 300,
+    "Asia/Dhaka": 360, "Asia/Bangkok": 420, "Asia/Singapore": 480,
+    "Asia/Tokyo": 540, "Australia/Sydney": 600, "Australia/Adelaide": 570,
+    "Australia/Perth": 480, "Pacific/Auckland": 720, "America/Sao_Paulo": -180,
+    "America/Argentina/Buenos_Aires": -180, "America/Mexico_City": -360,
+    "America/Toronto": -300, "America/Vancouver": -480, "Africa/Lagos": 60,
+    "Africa/Nairobi": 180, "Africa/Johannesburg": 120
+  };
+
+  const offsetMinutes = tzOffsets[data.timeZone] ?? 0;
+
+  const buildLocalISO = (utcMs) => {
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    const absMin = Math.abs(offsetMinutes);
+    const hh = String(Math.floor(absMin / 60)).padStart(2, "0");
+    const mm = String(absMin % 60).padStart(2, "0");
+    const offsetStr = `${sign}${hh}:${mm}`;
+    const localMs = utcMs + offsetMinutes * 60000;
+    const d = new Date(localMs);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}${offsetStr}`;
+  };
+
+  const resolveStartUtcMs = () => {
+    if (data.date_selection_mode === true) {
+      const [h, m] = data.start_time.split(":").map(Number);
+      const d = new Date();
+      d.setDate(d.getDate() + Number(data.start_no_of_days));
+      const [year, month, day] = d.toISOString().split("T")[0].split("-").map(Number);
+      return Date.UTC(year, month - 1, day, h, m, 0) - offsetMinutes * 60000;
+    } else {
+      const trimmed = data.start_date.trim();
+      if (trimmed.includes("T")) return new Date(trimmed).getTime();
+      const [datePart, timePart] = trimmed.split(" ");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [h, m] = timePart.split(":").map(Number);
+      return Date.UTC(year, month - 1, day, h, m, 0) - offsetMinutes * 60000;
+    }
+  };
+
+  const eventTypeId = Number(data.event_type);
+  const scope = data.event_scope || "personal";
+  const teamId = data.team_id ? Number(data.team_id) : null;
+
+  const fetchUrl = scope === "team" && teamId
+    ? `https://api.cal.id/teams/${teamId}/event-types/${eventTypeId}`
+    : `https://api.cal.id/event-types/${eventTypeId}`;
+
+  const eventTypeRes = await axios.request({
+    method: "get",
+    url: fetchUrl
+  });
+
+  const eventTypeData = eventTypeRes.data?.data;
+  const eventDurationMinutes = eventTypeData?.length || 30;
+
+  const startUtcMs = resolveStartUtcMs();
+  const endUtcMs = startUtcMs + eventDurationMinutes * 60000;
+
+  const start = buildLocalISO(startUtcMs);
+  const end = buildLocalISO(endUtcMs);
+
+  const guestList = data.guests
+    ? data.guests.split(",").map(g => g.trim()).filter(Boolean)
+    : [];
+
+  const needsDetail = new Set(["attendeeInPerson", "somewhereElse", "attendeePhone", "userPhone"]);
+  const locationValue = data.location_kind || "integrations:google:meet";
+
+  const location = {
+    value: locationValue,
+    optionValue: needsDetail.has(locationValue) ? (data.location_detail || "") : ""
+  };
+
+  const responses = {
+    name: data.attendee.name,
+    email: data.attendee.email,
+    location,
+    guests: guestList
+  };
+
+  if (data.attendee.phone) responses.phone = data.attendee.phone;
+  if (data.notes) responses.notes = data.notes;
+
+  if (data.custom_booking_fields && typeof data.custom_booking_fields === "object") {
+    Object.entries(data.custom_booking_fields).forEach(([safeKey, value]) => {
+      if (!safeKey.startsWith("cf__")) return;
+      const parts = safeKey.split("__");
+      if (parts.length < 3) return;
+      const originalName = parts.slice(2).join("__");
+      if (value !== undefined && value !== null && value !== "") {
+        responses[originalName] = value;
+      }
+    });
+  }
+
+  const payload = {
+    eventTypeId,
+    start,
+    end,
+    timeZone: data.timeZone,
+    responses,
+    language: data.language || "en",
+    metadata: data.show_advanced === true && data.metadata ? data.metadata : {}
+  };
+
+  const response = await axios.request({
+    method: "post",
+    url: "https://api.cal.id/booking/",
+    headers: { "Content-Type": "application/json" },
+    data: payload
+  });
+
+  const apiData = response.data || {};
+  const booking = apiData.data || {};
+
+  return {
+    success: apiData.success === undefined ? true : apiData.success,
+    message: apiData.message || "",
+    id: booking.id,
+    uid: booking.uid,
+    userId: booking.userId,
+    status: booking.status,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    paymentRequired: booking.paymentRequired,
+    isDryRun: booking.isDryRun,
+    idempotencyKey: booking.idempotencyKey,
+    userPrimaryEmail: booking.userPrimaryEmail,
+    eventTypeId: booking.eventTypeId,
+    title: booking.title,
+    description: booking.description,
+    customInputs: booking.customInputs,
+    responses: booking.responses,
+    location: booking.location,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+    paid: booking.paid,
+    destinationCalendarId: booking.destinationCalendarId,
+    cancellationReason: booking.cancellationReason,
+    rejectionReason: booking.rejectionReason,
+    reassignReason: booking.reassignReason,
+    reassignById: booking.reassignById,
+    dynamicEventSlugRef: booking.dynamicEventSlugRef,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef,
+    rescheduled: booking.rescheduled,
+    fromReschedule: booking.fromReschedule,
+    recurringEventId: booking.recurringEventId,
+    smsReminderNumber: booking.smsReminderNumber,
+    scheduledJobs: booking.scheduledJobs,
+    metadata: booking.metadata,
+    isRecorded: booking.isRecorded,
+    iCalUID: booking.iCalUID,
+    iCalSequence: booking.iCalSequence,
+    rating: booking.rating,
+    ratingFeedback: booking.ratingFeedback,
+    noShowHost: booking.noShowHost,
+    oneTimePassword: booking.oneTimePassword,
+    cancelledBy: booking.cancelledBy,
+    rescheduledBy: booking.rescheduledBy,
+    creationSource: booking.creationSource,
+    user: booking.user,
+    attendees: booking.attendees,
+    payment: booking.payment,
+    references: booking.references,
+    appsStatus: booking.appsStatus,
+    luckyUsers: booking.luckyUsers,
+    videoCallUrl: booking.videoCallUrl
+  };
+
+} catch (error) {
+  throw error;
+}
+```
+
+**UX Takeaways**
+- **Relative Scheduling Options:** Provide a toggle between simple relative date entry ("Days from Today") and exact datetime inputs, doing UTC/timezone conversion internally in the perform code to keep scheduling simple.
+- **Dynamic Questionnaire Loading via `fieldsGenerator`:** Use `fieldsGenerator` to retrieve custom booking questionnaire fields only after the Event Type has been selected, preventing empty or irrelevant fields from showing initially.
+- **Hierarchical Dynamic Parent Options:** Scope the Event Types list to the selected event scope (Personal vs Team), requiring `team_id` only if Event Scope is "Team".
+
+---
+
+## Calendly — Create Booking
+
+**Metadata**
+- **App:** Calendly · **Category:** Scheduling · **Action:** Create Booking · **Action Type:** CREATE
+
+**Supporting API Usage**
+- **Get Current User API** (`GET /users/me`) — gets the user's URI and current organization to scope event types.
+- **List Event Types API** (`GET /event_types`) — fetches available personal or organization event types.
+
+**UX Components & Field Design**
+- **Dropdown (Static) — Event Scope** — allows user to choose between personal event types and organization event types.
+- **Dropdown (Dynamic) — Event Type** — dynamically lists event types based on the selected scope and user's organization.
+- **String — Start Time (UTC)** — allows entering the booking time in UTC.
+- **String — Invitee Full Name & Email** — invitee's contact details.
+- **Dropdown — Invitee Timezone** — timezone for the invitee.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "scope",
+    "help": "Choose 'My Events' to view your personal events or 'All Organization Events' if you have admin access.",
+    "type": "dropdown",
+    "label": "Event Scope",
+    "options": [
+      {
+        "label": "My Events (Personal)",
+        "value": "personal"
+      },
+      {
+        "label": "All Organization Events (Admin)",
+        "value": "organization"
+      }
+    ],
+    "required": true
+  },
+  {
+    "key": "event_type",
+    "type": "dropdown",
+    "label": "Event Type",
+    "required": true,
+    "canPaginate": true,
+    "customInputLabel": "Paste Event Type URI",
+    "optionsGenerator": "try {\n  const user = await axios.get('https://api.calendly.com/users/me');\n  const u = user.data.resource;\n\n  let params = { active: true };\n\n  if (context.inputData.scope === 'organization') {\n    params.organization = u.current_organization;\n  } else {\n    params.user = u.uri;\n  }\n\n  const pageToken = context?.paginateData?.event_type || null;\n\n  const res = await axios.get('https://api.calendly.com/event_types', {\n    params: {\n      ...params,\n      count: 100,\n      page_token: pageToken\n    }\n  });\n\n  const collection = res.data.collection || [];\n\n  if (!collection.length) {\n    return {\n      data: [],\n      offset: null,\n      message: context.inputData.scope === 'organization'\n        ? 'No organization events found or insufficient permissions.'\n        : 'No personal events found. Please create an event in Calendly first.'\n    };\n  }\n\n  const data = collection.map(e => ({\n    label: e.name,\n    value: e.uri,\n    sample: e.uri\n  }));\n\n  return {\n    data,\n    offset: res.data.pagination?.next_page_token || null\n  };\n\n} catch (error) {\n  if (error.response?.status === 403) {\n    return {\n      data: [],\n      offset: null,\n      message: 'You do not have permission to view organization events. Switch to My Events.'\n    };\n  }\n  throw error;\n}",
+    "customPlaceholder": "https://api.calendly.com/event_types/XXXXXXXX"
+  },
+  {
+    "key": "start_time",
+    "help": "Enter the meeting start time in UTC format (YYYY-MM-DDTHH:MM:SSZ). The time slot must be available on your Calendly calendar. Use the List Available Event Slots action to find valid time slots.",
+    "type": "string",
+    "label": "Start Time (UTC)",
+    "required": true,
+    "placeholder": "2026-04-25T10:00:00Z"
+  },
+  {
+    "key": "invitee_name",
+    "type": "string",
+    "label": "Invitee Full Name",
+    "required": true,
+    "placeholder": "John Smith"
+  },
+  {
+    "key": "invitee_email",
+    "type": "string",
+    "label": "Invitee Email",
+    "required": true,
+    "placeholder": "john.smith@company.com"
+  },
+  {
+    "key": "invitee_timezone",
+    "type": "dropdown",
+    "label": "Invitee Timezone",
+    "options": [
+      {
+        "label": "Asia/Kolkata (IST, UTC+5:30)",
+        "value": "Asia/Kolkata"
+      },
+      {
+        "label": "Asia/Dubai (GST, UTC+4)",
+        "value": "Asia/Dubai"
+      },
+      {
+        "label": "Asia/Singapore (SGT, UTC+8)",
+        "value": "Asia/Singapore"
+      },
+      {
+        "label": "Asia/Tokyo (JST, UTC+9)",
+        "value": "Asia/Tokyo"
+      },
+      {
+        "label": "Asia/Hong_Kong (HKT, UTC+8)",
+        "value": "Asia/Hong_Kong"
+      },
+      {
+        "label": "Asia/Bangkok (ICT, UTC+7)",
+        "value": "Asia/Bangkok"
+      },
+      {
+        "label": "Asia/Karachi (PKT, UTC+5)",
+        "value": "Asia/Karachi"
+      },
+      {
+        "label": "Asia/Dhaka (BST, UTC+6)",
+        "value": "Asia/Dhaka"
+      },
+      {
+        "label": "Asia/Riyadh (AST, UTC+3)",
+        "value": "Asia/Riyadh"
+      },
+      {
+        "label": "Asia/Jakarta (WIB, UTC+7)",
+        "value": "Asia/Jakarta"
+      },
+      {
+        "label": "Asia/Kuala_Lumpur (MYT, UTC+8)",
+        "value": "Asia/Kuala_Lumpur"
+      },
+      {
+        "label": "Asia/Seoul (KST, UTC+9)",
+        "value": "Asia/Seoul"
+      },
+      {
+        "label": "Asia/Taipei (CST, UTC+8)",
+        "value": "Asia/Taipei"
+      },
+      {
+        "label": "Asia/Colombo (SLST, UTC+5:30)",
+        "value": "Asia/Colombo"
+      },
+      {
+        "label": "Asia/Kathmandu (NPT, UTC+5:45)",
+        "value": "Asia/Kathmandu"
+      },
+      {
+        "label": "Asia/Tashkent (UZT, UTC+5)",
+        "value": "Asia/Tashkent"
+      },
+      {
+        "label": "Europe/London (GMT/BST, UTC+0/+1)",
+        "value": "Europe/London"
+      },
+      {
+        "label": "Europe/Berlin (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Berlin"
+      },
+      {
+        "label": "Europe/Paris (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Paris"
+      },
+      {
+        "label": "Europe/Madrid (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Madrid"
+      },
+      {
+        "label": "Europe/Rome (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Rome"
+      },
+      {
+        "label": "Europe/Amsterdam (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Amsterdam"
+      },
+      {
+        "label": "Europe/Stockholm (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Stockholm"
+      },
+      {
+        "label": "Europe/Moscow (MSK, UTC+3)",
+        "value": "Europe/Moscow"
+      },
+      {
+        "label": "Europe/Istanbul (TRT, UTC+3)",
+        "value": "Europe/Istanbul"
+      },
+      {
+        "label": "Europe/Zurich (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Zurich"
+      },
+      {
+        "label": "Europe/Warsaw (CET/CEST, UTC+1/+2)",
+        "value": "Europe/Warsaw"
+      },
+      {
+        "label": "Europe/Lisbon (WET/WEST, UTC+0/+1)",
+        "value": "Europe/Lisbon"
+      },
+      {
+        "label": "America/New_York (EST/EDT, UTC-5/-4)",
+        "value": "America/New_York"
+      },
+      {
+        "label": "America/Chicago (CST/CDT, UTC-6/-5)",
+        "value": "America/Chicago"
+      },
+      {
+        "label": "America/Denver (MST/MDT, UTC-7/-6)",
+        "value": "America/Denver"
+      },
+      {
+        "label": "America/Los_Angeles (PST/PDT, UTC-8/-7)",
+        "value": "America/Los_Angeles"
+      },
+      {
+        "label": "America/Toronto (EST/EDT, UTC-5/-4)",
+        "value": "America/Toronto"
+      },
+      {
+        "label": "America/Vancouver (PST/PDT, UTC-8/-7)",
+        "value": "America/Vancouver"
+      },
+      {
+        "label": "America/Sao_Paulo (BRT, UTC-3)",
+        "value": "America/Sao_Paulo"
+      },
+      {
+        "label": "America/Mexico_City (CST/CDT, UTC-6/-5)",
+        "value": "America/Mexico_City"
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "Asia/Kolkata (IST, UTC+5:30)",
+      "value": "Asia/Kolkata"
+    },
+    "customInputLabel": "Enter Timezone",
+    "customPlaceholder": "Asia/Kolkata"
+  }
+]
+```
+
+**API Configuration Perform Code**
+```javascript
+try {
+  const data = context.inputData;
+
+  const payload = {
+    event_type: data.event_type,
+    start_time: data.start_time,
+    invitee: {
+      email: data.invitee_email,
+      name: data.invitee_name,
+      timezone: data.invitee_timezone
+    }
+  };
+
+  const response = await axios.post('https://api.calendly.com/invitees', payload);
+  const invitee = response.data?.resource || {};
+
+  return invitee;
+} catch (error) {
+  await errorComponent(error);
+}
+```
+
+**UX Takeaways**
+- **Dynamic Endpoint Parameter Scoping:** Switch endpoint query parameters (Personal vs Organization) in optionsGenerator based on the Event Scope dropdown selection.
+- **Dropdown with Custom Mapping Fallback:** Always provide standard dropdown options with custom Input fields for manual input fallback (e.g. for Event Type and Timezone).
+
+---
+
 # LIST Examples
 
 LIST actions return multiple records. The defining UX move is a **Mode selector** ("Fetch All" / "Find Specific" / "Recently Updated") that reshapes the form, plus a **field-selection multiselect** so the response isn't bloated with every column.
@@ -1396,6 +2290,691 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
 
 **UX Takeaways**
 - For GET, always support **custom-input mode** on the ID dropdown (`customInputLabel`/`customHelp`/`customPlaceholder`) so users can map an ID coming from a trigger, not only pick from the list.
+
+---
+
+## YouTube — Get Channel Analytics
+
+**Metadata**
+- **App:** YouTube · **Category:** Video/Analytics · **Action:** Get Channel Analytics · **Action Type:** GET
+
+**Supporting API Usage**
+- **List Channels API** — populates a searchable/paginated dropdown of channels (`channel_id`) so the user can select a channel by name.
+
+**UX Components & Field Design**
+- **Dropdown (with custom input) — Select Channel or Enter Channel ID** — pick a channel or manually map a channel ID.
+- **Dropdown (Static) — Date Range Type** — allows user to choose between relative range (Last N Days) or fixed date range.
+- **Number — Last N Days** — visible only when Date Range Type is "relative".
+- **String — Start Date & End Date** — visible only when Date Range Type is "fixed".
+- **Multiselect (Static) — Metrics & Dimensions** — static list of options instead of requiring manual comma-separated text entry.
+- **Input Groups — Filters** — groups all dimension filtering fields (e.g. video, playlist, country) conditionally shown based on the selected filter dimension.
+- **Multiselect (Static) — Sort By & Dropdown (Static) — Sort Order** — allows sorting based on selected metrics or dimensions.
+- **Input Groups — Advanced Options** — groups secondary settings like currency, max results, and start index.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "channel_id",
+    "help": "Select the YouTube channel to fetch analytics for.",
+    "type": "dropdown",
+    "label": "Channel",
+    "required": true,
+    "customHelp": "Enter the channel ID manually. You can get the channel ID from actions like List Channels.",
+    "canPaginate": true,
+    "placeholder": "Select channel",
+    "enableSearchApi": false,
+    "customInputLabel": "Channel ID",
+    "optionsGenerator": "try {\n  return await channel_ID(context?.paginateData?.['channel_id']);\n} catch (error) {\n  await errorComponent(error);\n}",
+    "customPlaceholder": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+  },
+  {
+    "key": "date_mode",
+    "help": "Select how you'd like to specify the reporting date range.",
+    "type": "dropdown",
+    "label": "Date Range Type",
+    "options": [
+      {
+        "label": "Relative (Last N Days)",
+        "value": "relative",
+        "sample": "relative"
+      },
+      {
+        "label": "Fixed Dates",
+        "value": "fixed",
+        "sample": "fixed"
+      }
+    ],
+    "required": true,
+    "customHelp": "Enter 'relative' for Last N Days or 'fixed' for specific start and end dates.",
+    "placeholder": "Select date range type",
+    "defaultValue": {
+      "label": "Relative (Last N Days)",
+      "value": "relative",
+      "sample": "relative"
+    },
+    "customInputLabel": "Date Range Type",
+    "customPlaceholder": "relative"
+  },
+  {
+    "key": "relative_days",
+    "help": "Enter the number of past days to include in the report (e.g., 7, 28, 90).",
+    "type": "number",
+    "label": "Last N Days",
+    "required": true,
+    "placeholder": "28",
+    "defaultValue": 28,
+    "visibilityCondition": "context?.inputData?.date_mode === 'relative'"
+  },
+  {
+    "key": "start_date",
+    "help": "Enter the start date for the report in YYYY-MM-DD format.",
+    "type": "string",
+    "label": "Start Date",
+    "required": true,
+    "placeholder": "2024-01-01",
+    "visibilityCondition": "context?.inputData?.date_mode === 'fixed'"
+  },
+  {
+    "key": "end_date",
+    "help": "Enter the end date for the report in YYYY-MM-DD format.",
+    "type": "string",
+    "label": "End Date",
+    "required": true,
+    "placeholder": "2026-01-01",
+    "visibilityCondition": "context?.inputData?.date_mode === 'fixed'"
+  },
+  {
+    "key": "metrics",
+    "help": "Select the metrics to retrieve. Revenue metrics (e.g., Estimated Revenue) need the yt-analytics-monetary.readonly scope.",
+    "type": "multiselect",
+    "label": "Metrics",
+    "options": [
+      {
+        "label": "Views",
+        "value": "views",
+        "sample": "views"
+      },
+      {
+        "label": "Likes",
+        "value": "likes",
+        "sample": "likes"
+      },
+      {
+        "label": "Dislikes",
+        "value": "dislikes",
+        "sample": "dislikes"
+      },
+      {
+        "label": "Comments",
+        "value": "comments",
+        "sample": "comments"
+      },
+      {
+        "label": "Shares",
+        "value": "shares",
+        "sample": "shares"
+      },
+      {
+        "label": "Estimated Minutes Watched",
+        "value": "estimatedMinutesWatched",
+        "sample": "estimatedMinutesWatched"
+      },
+      {
+        "label": "Average View Duration",
+        "value": "averageViewDuration",
+        "sample": "averageViewDuration"
+      },
+      {
+        "label": "Subscribers Gained",
+        "value": "subscribersGained",
+        "sample": "subscribersGained"
+      },
+      {
+        "label": "Subscribers Lost",
+        "value": "subscribersLost",
+        "sample": "subscribersLost"
+      },
+      {
+        "label": "Estimated Revenue",
+        "value": "estimatedRevenue",
+        "sample": "estimatedRevenue"
+      }
+    ],
+    "required": true,
+    "customHelp": "Enter the metric names as a comma-separated list or array. Revenue metrics require the yt-analytics-monetary.readonly scope.",
+    "placeholder": "Select metrics",
+    "customInputLabel": "Metric(s)",
+    "customPlaceholder": "[\"views\",\"likes\"]"
+  },
+  {
+    "key": "dimensions",
+    "help": "Select dimensions to break down metrics by. day and month cannot be used together.",
+    "type": "multiselect",
+    "label": "Dimensions",
+    "options": [
+      {
+        "label": "Day",
+        "value": "day",
+        "sample": "day"
+      },
+      {
+        "label": "Month",
+        "value": "month",
+        "sample": "month"
+      },
+      {
+        "label": "Video",
+        "value": "video",
+        "sample": "video"
+      },
+      {
+        "label": "Country",
+        "value": "country",
+        "sample": "country"
+      },
+      {
+        "label": "Age Group",
+        "value": "ageGroup",
+        "sample": "ageGroup"
+      },
+      {
+        "label": "Gender",
+        "value": "gender",
+        "sample": "gender"
+      },
+      {
+        "label": "Device Type",
+        "value": "deviceType",
+        "sample": "deviceType"
+      },
+      {
+        "label": "Traffic Source Type",
+        "value": "trafficSourceType",
+        "sample": "trafficSourceType"
+      }
+    ],
+    "required": false,
+    "customHelp": "Enter the dimension names as a comma-separated list or array. Note: day and month cannot be used together.",
+    "placeholder": "Select dimensions",
+    "customInputLabel": "Dimension(s)",
+    "customPlaceholder": "[\"day\",\"country\"]"
+  },
+  {
+    "key": "filters",
+    "help": "Enter filters to narrow the report to specific values (optional).",
+    "type": "input groups",
+    "label": "Filters",
+    "required": false,
+    "fields": [
+      {
+        "key": "dimension",
+        "help": "Select the dimension to filter by.",
+        "type": "dropdown",
+        "label": "Filter Dimension",
+        "options": [
+          {
+            "label": "Video",
+            "value": "video",
+            "sample": "video"
+          },
+          {
+            "label": "Playlist",
+            "value": "playlist",
+            "sample": "playlist"
+          },
+          {
+            "label": "Channel",
+            "value": "channel",
+            "sample": "channel"
+          },
+          {
+            "label": "Country",
+            "value": "country",
+            "sample": "country"
+          },
+          {
+            "label": "Age Group",
+            "value": "ageGroup",
+            "sample": "ageGroup"
+          },
+          {
+            "label": "Gender",
+            "value": "gender",
+            "sample": "gender"
+          },
+          {
+            "label": "Device Type",
+            "value": "deviceType",
+            "sample": "deviceType"
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter the dimension to filter by, such as 'video', 'playlist', 'channel', 'country', 'ageGroup', 'gender', or 'deviceType'.",
+        "customInputLabel": "Filter Dimension",
+        "customPlaceholder": "video"
+      },
+      {
+        "key": "video_value",
+        "help": "Enter the video ID(s) to filter by. You may enter multiple values separated by commas.",
+        "type": "string",
+        "label": "Video ID(s)",
+        "required": true,
+        "customHelp": "Use the 'List Videos' action to get all Videos along with their IDs and then map the retrieved data accordingly",
+        "placeholder": "dMH0bHeiRNg,Zhawgd0REhA",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'video'"
+      },
+      {
+        "key": "playlist_value",
+        "help": "Enter the playlist ID(s) to filter by. You may enter multiple values separated by commas (max 500).",
+        "type": "string",
+        "label": "Playlist ID(s)",
+        "required": true,
+        "customHelp": "Use the 'List Playlists' action to get all Playlists along with their IDs and then map the retrieved data accordingly",
+        "placeholder": "PLxxxxxx,PLyyyyyy",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'playlist'"
+      },
+      {
+        "key": "channel_value",
+        "help": "Enter the channel ID(s) to filter by. You may enter multiple values separated by commas (max 500).",
+        "type": "string",
+        "label": "Channel ID(s)",
+        "required": true,
+        "customHelp": "Use the 'List Channels' action to get all Channels along with their IDs and then map the retrieved data accordingly",
+        "placeholder": "UC_x5XG1OV2P6uZZ5FSM9Ttw,UCxxxxxxx",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'channel'"
+      },
+      {
+        "key": "country_value",
+        "help": "Enter the two-letter ISO-3166-1 country code. See [country code list](https://countrycode.org/).",
+        "type": "string",
+        "label": "Country",
+        "required": true,
+        "placeholder": "IN",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'country'"
+      },
+      {
+        "key": "gender_value",
+        "help": "Select the gender to filter by.",
+        "type": "dropdown",
+        "label": "Gender",
+        "options": [
+          {
+            "label": "Female",
+            "value": "female",
+            "sample": "female"
+          },
+          {
+            "label": "Male",
+            "value": "male",
+            "sample": "male"
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter 'female' or 'male' to filter by gender.",
+        "placeholder": "Select gender",
+        "customInputLabel": "Gender",
+        "customPlaceholder": "female",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'gender'"
+      },
+      {
+        "key": "age_group_value",
+        "help": "Select the age group to filter by.",
+        "type": "dropdown",
+        "label": "Age Group",
+        "options": [
+          {
+            "label": "13-17",
+            "value": "age13-17",
+            "sample": "age13-17"
+          },
+          {
+            "label": "18-24",
+            "value": "age18-24",
+            "sample": "age18-24"
+          },
+          {
+            "label": "25-34",
+            "value": "age25-34",
+            "sample": "age25-34"
+          },
+          {
+            "label": "35-44",
+            "value": "age35-44",
+            "sample": "age35-44"
+          },
+          {
+            "label": "45-54",
+            "value": "age45-54",
+            "sample": "age45-54"
+          },
+          {
+            "label": "55-64",
+            "value": "age55-64",
+            "sample": "age55-64"
+          },
+          {
+            "label": "65+",
+            "value": "age65-",
+            "sample": "age65-"
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter the age group to filter by, such as 'age13-17', 'age18-24', 'age25-34', 'age35-44', 'age45-54', 'age55-64', or 'age65-'.",
+        "placeholder": "Select age group",
+        "customInputLabel": "Age Group",
+        "customPlaceholder": "age18-24",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'ageGroup'"
+      },
+      {
+        "key": "device_type_value",
+        "help": "Select the device type to filter by.",
+        "type": "dropdown",
+        "label": "Device Type",
+        "options": [
+          {
+            "label": "Desktop",
+            "value": "DESKTOP",
+            "sample": "DESKTOP"
+          },
+          {
+            "label": "Mobile",
+            "value": "MOBILE",
+            "sample": "MOBILE"
+          },
+          {
+            "label": "Tablet",
+            "value": "TABLET",
+            "sample": "TABLET"
+          },
+          {
+            "label": "TV",
+            "value": "TV",
+            "sample": "TV"
+          },
+          {
+            "label": "Game Console",
+            "value": "GAME_CONSOLE",
+            "sample": "GAME_CONSOLE"
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter the device type to filter by, such as 'DESKTOP', 'MOBILE', 'TABLET', 'TV', or 'GAME_CONSOLE'.",
+        "placeholder": "Select device type",
+        "customInputLabel": "Device Type",
+        "customPlaceholder": "DESKTOP",
+        "visibilityCondition": "context?.inputData?.filters?.dimension === 'deviceType'"
+      }
+    ]
+  },
+  {
+    "key": "sort_fields",
+    "help": "Select fields to sort results by. Must be one of the selected metrics or dimensions.",
+    "type": "multiselect",
+    "label": "Sort By",
+    "options": [
+      {
+        "label": "Views",
+        "value": "views",
+        "sample": "views"
+      },
+      {
+        "label": "Likes",
+        "value": "likes",
+        "sample": "likes"
+      },
+      {
+        "label": "Estimated Minutes Watched",
+        "value": "estimatedMinutesWatched",
+        "sample": "estimatedMinutesWatched"
+      },
+      {
+        "label": "Day",
+        "value": "day",
+        "sample": "day"
+      },
+      {
+        "label": "Month",
+        "value": "month",
+        "sample": "month"
+      },
+      {
+        "label": "Video",
+        "value": "video",
+        "sample": "video"
+      },
+      {
+        "label": "Country",
+        "value": "country",
+        "sample": "country"
+      }
+    ],
+    "required": false,
+    "customHelp": "Enter the sort field names as a comma-separated list or array. Each sort field must also be selected in Metrics or Dimensions.",
+    "placeholder": "Select fields to sort by",
+    "customInputLabel": "Sort Field(s)",
+    "customPlaceholder": "[\"views\",\"day\"]"
+  },
+  {
+    "key": "sort_order",
+    "help": "Select the sort direction to apply to all selected sort fields.",
+    "type": "dropdown",
+    "label": "Sort Order",
+    "options": [
+      {
+        "label": "Ascending",
+        "value": "asc",
+        "sample": "asc"
+      },
+      {
+        "label": "Descending",
+        "value": "desc",
+        "sample": "desc"
+      }
+    ],
+    "required": false,
+    "customHelp": "Enter 'asc' for ascending or 'desc' for descending sort order.",
+    "defaultValue": {
+      "label": "Descending",
+      "value": "desc",
+      "sample": "desc"
+    },
+    "customInputLabel": "Sort Order",
+    "customPlaceholder": "desc",
+    "visibilityCondition": "Array.isArray(context?.inputData?.sort_fields) && context.inputData.sort_fields.length > 0"
+  },
+  {
+    "key": "advanced_options",
+    "help": "Enter advanced options like currency, max results, and start index (optional).",
+    "type": "input groups",
+    "label": "Advanced Options",
+    "required": false,
+    "fields": [
+      {
+        "key": "currency",
+        "help": "Enter the currency code for revenue metrics. Defaults to USD. See [supported currency codes](https://www.iban.com/currency-codes).",
+        "type": "string",
+        "label": "Currency",
+        "required": false,
+        "placeholder": "USD"
+      },
+      {
+        "key": "max_results",
+        "help": "Enter the maximum number of rows to return.",
+        "type": "number",
+        "label": "Max Results",
+        "required": false,
+        "placeholder": "100"
+      },
+      {
+        "key": "start_index",
+        "help": "Enter the 1-based row index to start from, for pagination.",
+        "type": "number",
+        "label": "Start Index",
+        "required": false,
+        "placeholder": "1",
+        "defaultValue": 1
+      }
+    ]
+  }
+]
+```
+
+**API Configuration Perform Code**
+```javascript
+async function getYouTubeReport() {
+  try {
+    const data = context?.inputData || {};
+
+    if (!data.channel_id) {
+      throw new Error('Channel is required.');
+    }
+
+    const metricsRaw = data.metrics;
+    if (!metricsRaw || (Array.isArray(metricsRaw) && metricsRaw.length === 0)) {
+      throw new Error('At least one metric is required.');
+    }
+    const metrics = Array.isArray(metricsRaw) ? metricsRaw : [metricsRaw];
+    const metricsStr = metrics.join(',');
+
+    let startDate, endDate;
+    if (data.date_mode === 'relative') {
+      const days = Number(data.relative_days) || 28;
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - days);
+      endDate = end.toISOString().split('T')[0];
+      startDate = start.toISOString().split('T')[0];
+    } else {
+      startDate = data.start_date;
+      endDate = data.end_date;
+      if (!startDate) throw new Error('Start date is required.');
+      if (!endDate) throw new Error('End date is required.');
+    }
+
+    if (startDate > endDate) {
+      throw new Error('Start date must be before or equal to end date.');
+    }
+
+    const dimensionsRaw = data.dimensions;
+    const dimensions = dimensionsRaw && dimensionsRaw.length > 0
+      ? (Array.isArray(dimensionsRaw) ? dimensionsRaw : [dimensionsRaw])
+      : [];
+    const dimensionsStr = dimensions.length ? dimensions.join(',') : undefined;
+
+    if (dimensions.includes('day') && dimensions.includes('month')) {
+      throw new Error('day and month dimensions cannot be used together. Please select only one time-based dimension.');
+    }
+
+    if (dimensions.includes('month')) {
+      const normalizeMonthStart = (dateStr) => {
+        const [y, m] = dateStr.split('-');
+        return `${y}-${m}-01`;
+      };
+      startDate = normalizeMonthStart(startDate);
+      endDate = normalizeMonthStart(endDate);
+    }
+
+    const allowedSortFields = new Set([...metrics, ...dimensions]);
+    const sortFieldsRaw = data.sort_fields;
+    let sortFields = [];
+    if (sortFieldsRaw && sortFieldsRaw.length > 0) {
+      sortFields = Array.isArray(sortFieldsRaw) ? sortFieldsRaw : [sortFieldsRaw];
+      const invalidSortFields = sortFields.filter(f => !allowedSortFields.has(f));
+      if (invalidSortFields.length > 0) {
+        throw new Error(`Sort field(s) "${invalidSortFields.join(', ')}" are not selected in Metrics or Dimensions. Please add them to Metrics or Dimensions first.`);
+      }
+    }
+
+    const monetaryMetrics = ['estimatedRevenue', 'estimatedAdRevenue', 'grossRevenue', 'estimatedRedPartnerRevenue', 'estimatedShortsRevenue', 'estimatedTransactionRevenue'];
+    const usedMonetaryMetrics = metrics.filter(m => monetaryMetrics.includes(m));
+    if (usedMonetaryMetrics.length > 0) {
+      // Note: monetary metrics require yt-analytics-monetary.readonly scope.
+      // If this scope is missing, the API will return an insufficient permission error.
+    }
+
+    // ---------- FILTER RESOLUTION (per selected dimension) ----------
+    let filters;
+    const filterDimension = data.filters?.dimension;
+    if (filterDimension) {
+      const filterValueMap = {
+        video: data.filters?.video_value,
+        playlist: data.filters?.playlist_value,
+        channel: data.filters?.channel_value,
+        country: data.filters?.country_value,
+        gender: data.filters?.gender_value,
+        ageGroup: data.filters?.age_group_value,
+        deviceType: data.filters?.device_type_value
+      };
+
+      const filterValue = filterValueMap[filterDimension];
+
+      if (!filterValue) {
+        throw new Error(`A value is required for the "${filterDimension}" filter.`);
+      }
+
+      filters = `${filterDimension}==${filterValue}`;
+    }
+
+    const params = {
+      ids: `channel==${data.channel_id}`,
+      startDate,
+      endDate,
+      metrics: metricsStr,
+      maxResults: Number(data.advanced_options?.max_results) || 25
+    };
+
+    if (dimensionsStr) {
+      params.dimensions = dimensionsStr;
+    }
+
+    if (filters) {
+      params.filters = filters;
+    }
+
+    if (sortFields.length > 0) {
+      const sortPrefix = data.sort_order === 'asc' ? '' : '-';
+      params.sort = sortFields.map(field => `${sortPrefix}${field}`).join(',');
+    }
+
+    if (data.advanced_options?.currency) {
+      params.currency = data.advanced_options.currency;
+    }
+
+    if (data.advanced_options?.start_index) {
+      params.startIndex = Number(data.advanced_options.start_index);
+    }
+
+    const response = await axios.get('https://youtubeanalytics.googleapis.com/v2/reports', { params });
+
+    const headers = response.data?.columnHeaders || [];
+    const rows = response.data?.rows || [];
+
+    if (!rows.length) {
+      return { message: 'No analytics data found for the selected metrics, dimensions, and date range.' };
+    }
+
+    const results = rows.map(row => {
+      const obj = {};
+      headers.forEach((col, i) => {
+        obj[col.name] = row[i];
+      });
+      return obj;
+    });
+
+    return results;
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await getYouTubeReport();
+```
+
+**UX Takeaways**
+- **Date Mode Selection UX:** Provide a static `date_mode` dropdown to let non-technical users choose between easy relative selections (e.g. "Last N Days") and fixed dates, doing date arithmetic internally in the perform code rather than exposing complicated date fields.
+- **Static Multiselect over Comma-Separated Input:** For predefined values like metrics or dimensions, use static multiselect fields with curated options. This prevents typos and avoids asking users to type comma-separated values manually.
+- **Grouped Conditional Filters:** Group all filter values inside an Input Group with `visibilityCondition` fields keyed on the selected dimension, allowing a clean, step-by-step UI.
 
 ---
 
