@@ -33,6 +33,7 @@ Execute these steps *before* generating any fields, code, or recommendations:
 
 ### 3. Field Generation
 *   **UI Schema:** Map out `Keys` (API identifiers), `Types` (String, Dropdown, Boolean, etc.), and `Labels` (human-readable names).
+*   **Dropdown/Multiselect Priority (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown/multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown.
 *   **Output Format:** Even for the smallest instruction or simple field generation, always output/generate the final raw array value of `inputFields` directly, rather than an outer wrapper object containing the `inputFields` key. Incorrect: `{"inputFields": [...]}`. Correct: `[...]`
 *   **Dynamic Elements:** Explicitly instruct sub-agents on how to construct dynamic dropdown logic (e.g., fetching remote IDs).
 

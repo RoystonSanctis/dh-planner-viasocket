@@ -11,6 +11,7 @@ Fetch **DH_Knowledge_Base → Page Index**, then the sections you need by exact 
 - Match each request payload against the documented body — exact key names, required vs optional, types.
 - Flag keys not in the schema, missing required keys, and type mismatches. This is the top source of silent failures.
 - If no schema is available, list payload shape under `unverified` — never assume it's correct.
+- **Dropdown/Multiselect Priority Check (CRITICAL & MANDATORY)**: Ensure dropdown/multiselect fields are used with the highest priority wherever possible. Flag any field that asks the user for manual entry (e.g., string field) if a dropdown or multiselect field could have been used instead (unless a dropdown/multiselect is absolutely not possible). Do not bypass parent dropdowns even if they are required to fetch options for a dropdown.
 
 # Review Tools
 - Use tool `Fetch_Reusable_Components` for available components.

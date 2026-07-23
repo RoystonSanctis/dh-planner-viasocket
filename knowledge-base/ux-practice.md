@@ -511,7 +511,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Field chooser for complex updates (Static vs. Dynamic Fields)** — For complex actions with numerous fields or nested objects (such as a CRM Update):
   - **If the fields are static/known**: Use a static "Fields to Update" Multiselect chooser and organize the fields in static input groups, using a `visibilityCondition` on each field or group to only show what the user selected. This avoids using a dynamic `fieldsGenerator` for known static fields, preventing UI bloat and ensuring a clean step-by-step entry.
   - **If the fields are truly dynamic** (e.g. custom fields, spreadsheet columns whose names are fetched from the API): Use a dynamic fields generator (`fieldsGenerator`) to render/fetch fields based on the resource's schema.
-- **Record selection & parent dropdown bypass** — This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic). For the rest of the triggers and actions, it is not applicable (dropdowns always have higher priority than string ID fields). Prioritize dropdowns over text ID fields if an options API is available. For UPDATE actions: if the ID field supports a dropdown and no parent dropdown is required to fetch the options, the dropdown should be created. However, if fetching the record ID requires adding dependent parent dropdowns, bypass the parent dropdowns and use a simple text ID field instead (unless the parent dropdown is already required/selected, or the ID dropdown has static options). Provide a dynamic dropdown for selecting the record when possible, with `customHelp` explaining how to find the record ID manually.
+- **Record selection & dropdown priority (CRITICAL & MANDATORY)** — Dropdowns and multiselects have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. You must prioritize dropdowns/multiselects over text ID fields if an options API is available (even if dependent parent dropdowns are required). Do not bypass parent dropdowns even if they are required to fetch the record ID. (Note: DELETE actions may use a direct text ID field of type 'string' only if no options-fetching API is available).
 - **Preserve existing values** — Help text should clarify that unfilled fields will remain unchanged.
 
 ---
@@ -602,7 +602,7 @@ A DELETE action removes or archives a **specific record** from the external serv
 2. **Help Static** *(optional)* → Warning message about the permanence of the deletion.
 
 ### DELETE Common Input Fields:
-- **String** — For directly entering a record ID. No dropdown or parent dropdown is allowed.
+- **Dropdown/String** — Prioritize dropdowns/multiselects for record ID selection if an options-fetching API is available. Fall back to a string field for directly entering the record ID only if no options-fetching API is available.
 - **Help Static** *(optional)* — For displaying warnings about irreversible actions.
 - **Boolean** *(optional)* — For confirming the delete action or choosing between "delete" and "archive".
 
@@ -612,7 +612,7 @@ A DELETE action removes or archives a **specific record** from the external serv
 - See [Perform Code Knowledge Base → Actions → DELETE](perform-code.md) for code patterns.
 
 ### DELETE Best Practices:
-- **Keep it minimal** — DELETE actions must only require the record ID directly. Do not use dropdowns or resource/parent selection dropdowns.
+- **Keep it minimal** — DELETE actions must require the record ID. Prioritize dropdowns/multiselects for record ID selection if an options-fetching API is available. Fall back to a string field only if no options-fetching API is available.
 - **Warn about permanence** — Use a Help Static field to warn users if the deletion is irreversible.
 - **Archive vs Delete** — If the service supports archiving, offer a Boolean toggle ("Delete permanently" vs "Move to archive").
 - **Error handling** — Handle 404 (already deleted) gracefully in the perform code.
@@ -752,13 +752,9 @@ Never assume referenced records exist.
 *   **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.
 
 ### 2. Dropdown Design Rules
-*   **Dropdown Preference:** Always prioritize dropdowns (static or dynamic) over direct text ID fields. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no API is available or if dropdown nesting rules apply.
-*   **Use Dropdowns Only When:** The dataset is small, stable, and backed by a highly reliable, paginated `GET` API.
-*   **Avoid Dropdowns When:** Datasets are large, values shift frequently, or the options list depends dynamically on upstream trigger data. Use a direct **Identifier Input** (string field) instead.
-*   **UPDATE Record ID Selection Rule:** This applies strictly to UPDATE Actions (DELETE actions must always use a direct text ID field of type 'string' with no dropdown logic).
-    *   If the ID field supports a dropdown and no parent dropdown is required to fetch options, the dropdown should be created.
-    *   If fetching the ID options requires creating dependent parent dropdowns, **do not create the parent dropdowns**. Instead, just create a **text field** asking the user for the ID directly.
-    *   *Exceptions:* If the dropdown has static options for update, or if the parent dropdown is already required/selected by other fields in the action anyway, proceed with the dropdown selection.
+*   **Dropdown/Multiselect Preference (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no options-fetching API is available.
+*   **Do Not Bypass Parent Dropdowns:** Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. Always create parent dropdowns to retrieve options for a dependent dropdown/multiselect if options can be fetched.
+*   **No UPDATE/DELETE Bypass Exceptions:** There are no exceptions for UPDATE or DELETE actions; they must also use dropdowns/multiselects if options can be fetched, regardless of whether parent dropdowns are required. (Note: DELETE actions may use a direct text ID field of type 'string' only if no options-fetching API is available).
 
 ### 3. Dynamic Schema Handling
 For APIs supporting custom fields, custom properties, or module-specific schemas:
