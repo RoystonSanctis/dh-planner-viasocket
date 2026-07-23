@@ -354,7 +354,7 @@ Caller (in `optionsGenerator`): `try { return await fetchResources(__searchText,
 |---|---|
 | `optionsGenerator` standard | `[{label, value, sample?, extraValue?}]` |
 | `optionsGenerator` paginated (`canPaginate:true`) | `{data, offset: string\|number\|null}` |
-| `optionsGenerator` empty/info | `{message}` (hybrid: `{data, offset, message}`) |
+| `optionsGenerator` empty/info | `{message}` (if no pagination/search, or only search), `{data:[], offset:null, message}` (if only pagination), `{data:[], offset:previous_offset, message}` (if both pagination and search) |
 | `fieldsGenerator` | field-object array, or `{message}` if deps missing |
 | `suggestionGenerator` | schema/context shape the AI can consume |
 | Help dynamic `source` | `{message}` |
@@ -402,7 +402,11 @@ Validate against this file; output the raw `inputFields` array (never the `{"inp
 - **Perform**:
   - Wrapper correct (`async <functionName>()` matching the operation performed) · `axios`/`fetch` only, no imports · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards (`throw` before call) · `errorComponent` in catch · rate-limit handled · no auth · no `console.log` · returns raw `response.data`.
   - **No Hard-coded Input Values**: No hard-coded input values are allowed (except documented default fallbacks).
-  - **Zero Results for Generators**: For `fieldsGenerator` / `optionsGenerator` only: on zero results, return `{message: <user message>}`.
+  - **Zero Results for Generators**: For `fieldsGenerator`/`optionsGenerator` and dynamic dropdown Reusable Components, return a message key based on the configuration when no options are found:
+    - **Only pagination is enabled** (`canPaginate: true`, `enableSearchApi: false`): Return `{ data: [], offset: null, message: <user message> }`.
+    - **Neither pagination nor search is enabled**: Return `{ message: <user message> }` instead of an array.
+    - **Only search is enabled** (`enableSearchApi: true`, `canPaginate: false`): Return `{ message: <user message> }`.
+    - **Both search and pagination are enabled**: Return `{ data: [], offset: <previous_offset>, message: <user message> }`. In search mode, the search-returned offset is ignored and the previous pagination offset is preserved (given priority), so that exiting search resumes pagination correctly from the previous page.
 - **Fields & Text Quality**:
   - Each field matches its type's required keys · `sample`==`value` rule · clean labels · only `inputFields` (no `steps`/`blocks`/auth/headers) · reusable-component `id` mapped.
   - **Help Key**: `help` is generally required and must be short, plain, and non-technical. If `label` and `key` are completely self-explanatory (e.g. `label: "First Name"`, `key: "first_name"`), the `help` key can be omitted entirely. Otherwise, it is mandatory (especially for date fields to explain the purpose and accepted format).
