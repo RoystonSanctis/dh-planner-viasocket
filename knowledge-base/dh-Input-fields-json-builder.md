@@ -158,7 +158,7 @@ Generate a JSON object strictly following the rules below.
 
 **1. Key Rules**
 - key must be unique.
-- key must not contain a dot (.).
+- key must not contain a dot (.) or square brackets ([]).
 
 **2. Type Selection**
 - If fieldPurpose contains date, time, DOB:
@@ -216,8 +216,8 @@ Generate a JSON object strictly following the rules below.
         "properties": {
             "key": {
                 "type": "string",
-                "pattern": "^[^.]*$",
-                "description": "The unique identifier for the field. MUST NOT contain a dot (.)."
+                "pattern": "^[^.\\[\\]]*$",
+                "description": "The unique identifier for the field. must not contain a dot (.) or square brackets ([])."
             },
             "type": {
                 "type": "string",
@@ -285,8 +285,8 @@ schema:
   properties:
     key:
       type: string
-      pattern: "^[^.]*$"
-      description: The unique identifier for the field. MUST NOT contain a dot (.).
+      pattern: "^[^.\[\]]*$"
+      description: The unique identifier for the field. must not contain a dot (.) or square brackets ([]).
     type:
       type: string
       enum[5]: string,date,number,html,markdown
@@ -512,7 +512,7 @@ Generate a JSON object strictly following the rules below for a dictionary.
 - Use a dictionary when users need to dynamically define custom key-value pairs and the structure of input data is variable or unknown in advance.
 **1. Key Rules**
 - key must be unique.
-- key must not contain a dot (.).
+- key must not contain a dot (.) or square brackets ([]).
 **2. Label Rules**
 - label must be a clean, human-readable version of fieldPurpose.
 **3. Help Rules**
@@ -552,8 +552,8 @@ Return only valid JSON.
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field. The key MUST NOT contain a dot (.)"
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field. The key must not contain a dot (.) or square brackets ([])"
                         },
                         "label": {
                             "type": "string",
@@ -660,8 +660,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: Unique identifier for the field. The key MUST NOT contain a dot (.)
+            pattern: "^[^.\[\]]*$"
+            description: Unique identifier for the field. The key must not contain a dot (.) or square brackets ([])
           label:
             type: string
             description: A user-friendly label derived from the fieldPurpose.
@@ -833,7 +833,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 
 **1. Key Rules**
 - key must be unique.
-- key must not contain a dot (.).
+- key must not contain a dot (.) or square brackets ([]).
 
 **2. Type Rule**
 - type must always be "boolean".
@@ -889,8 +889,8 @@ Generate a JSON object strictly following the rules below for a boolean field.
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'isActive', 'showLabels'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'isActive', 'showLabels'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -1008,8 +1008,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'isActive', 'showLabels'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'isActive', 'showLabels'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: boolean
@@ -1251,7 +1251,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - Only single selection is allowed.
 **2. Key Rules**
 - key must be unique within inputFields.
-- key must not contain a dot (.).
+- key must not contain a dot (.) or square brackets ([]).
 - key must be a stable identifier (e.g. message_type, priority_level).
 **3. Type Rule**
 - type must always be "dropdown".
@@ -1308,8 +1308,8 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'message_type', 'priority_level'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'message_type', 'priority_level'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -1459,8 +1459,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'message_type', 'priority_level'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'message_type', 'priority_level'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: dropdown
@@ -1774,7 +1774,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Multiple selections are allowed.
 **2. Key Rules**
 - key must be unique within inputFields.
-- key must not contain a dot (.).
+- key must not contain a dot (.) or square brackets ([]).
 - key must be a stable identifier (e.g. search_by, output_response).
 **3. Type Rule**
 - type must always be "multiselect".
@@ -1830,8 +1830,8 @@ Generate a JSON object strictly following the rules below for a static multisele
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'search_by', 'output_response'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'search_by', 'output_response'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -1965,8 +1965,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'search_by', 'output_response'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'search_by', 'output_response'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: multiselect
@@ -2210,8 +2210,8 @@ Generate a JSON object strictly following the rules below for an AI field.
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'filter_conditions', 'content_block'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'filter_conditions', 'content_block'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -2282,8 +2282,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'filter_conditions', 'content_block'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'filter_conditions', 'content_block'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: aifield
@@ -2422,8 +2422,8 @@ Generate a JSON object strictly following the rules below for a static help fiel
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'help_webhook', 'help_send_message'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'help_webhook', 'help_send_message'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -2470,8 +2470,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'help_webhook', 'help_send_message'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'help_webhook', 'help_send_message'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: help
@@ -2581,8 +2581,8 @@ Generate a JSON object strictly following the rules below for an input group.
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the group (e.g. 'search_filter', 'settings'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the group (e.g. 'search_filter', 'settings'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -2616,7 +2616,7 @@ Generate a JSON object strictly following the rules below for an input group.
                                 "properties": {
                                     "key": {
                                         "type": "string",
-                                        "pattern": "^[^.]*$"
+                                        "pattern": "^[^.\\[\\]]*$"
                                     },
                                     "type": {
                                         "type": "string",
@@ -2670,8 +2670,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the group (e.g. 'search_filter', 'settings'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the group (e.g. 'search_filter', 'settings'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: input groups
@@ -2697,7 +2697,7 @@ schema:
               properties:
                 key:
                   type: string
-                  pattern: "^[^.]*$"
+                  pattern: "^[^.\[\]]*$"
                 type:
                   type: string
                   enum[8]: string,number,boolean,dropdown,multiselect,aifield,help,"input groups"
@@ -3145,8 +3145,8 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'spreadsheet_id', 'data_source_id'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'spreadsheet_id', 'data_source_id'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -3270,8 +3270,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'spreadsheet_id', 'data_source_id'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'spreadsheet_id', 'data_source_id'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: dropdown
@@ -3759,8 +3759,8 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'filter_properties', 'return_column'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'filter_properties', 'return_column'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -3869,8 +3869,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'filter_properties', 'return_column'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'filter_properties', 'return_column'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: multiselect
@@ -4260,8 +4260,8 @@ Generate a JSON object strictly following the rules below for a dynamic help fie
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the field (e.g. 'help_dynamic', 'help_page_status'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the field (e.g. 'help_dynamic', 'help_page_status'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -4312,8 +4312,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the field (e.g. 'help_dynamic', 'help_page_status'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the field (e.g. 'help_dynamic', 'help_page_status'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: help
@@ -4415,8 +4415,8 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
                     "properties": {
                         "key": {
                             "type": "string",
-                            "pattern": "^[^.]*$",
-                            "description": "Unique identifier for the group (e.g. 'dynamic_field', 'column_name'). The key MUST NOT contain a dot (.)."
+                            "pattern": "^[^.\\[\\]]*$",
+                            "description": "Unique identifier for the group (e.g. 'dynamic_field', 'column_name'). The key must not contain a dot (.) or square brackets ([])."
                         },
                         "type": {
                             "type": "string",
@@ -4476,8 +4476,8 @@ schema:
         properties:
           key:
             type: string
-            pattern: "^[^.]*$"
-            description: "Unique identifier for the group (e.g. 'dynamic_field', 'column_name'). The key MUST NOT contain a dot (.)."
+            pattern: "^[^.\[\]]*$"
+            description: "Unique identifier for the group (e.g. 'dynamic_field', 'column_name'). The key must not contain a dot (.) or square brackets ([])."
           type:
             type: string
             enum[1]: input groups
