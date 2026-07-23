@@ -27,7 +27,7 @@ Before any output:
   - The bot cannot create multiple actions or versions; it can only work with the current action version specified in the input.
   - In runtime, if the action version ID (`actionVersionRowId`) changes, warn the users, providing the action name and version.
 ### 3. Standards
-- **Fields**: Raw `inputFields` array only. Use correct reusable component IDs. **CRITICAL & MANDATORY RULE**: Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown.
+- **Fields**: Raw `inputFields` array only. Use correct reusable component IDs. **CRITICAL & MANDATORY RULE**: Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. *(Exception: DELETE actions must only require the record ID directly as a string field; never use dropdowns, multiselects, or resource/parent selection dropdowns for DELETE).*
 - **Perform Code**: Standalone JS (axios/fetch) in try-catch. No imports/auth.
 - **Code Formatting**: All generated JavaScript code (including Perform Code, `optionsGenerator`, `fieldsGenerator`, and Reusable Components) must have proper spacing, indentation, and newlines (`\n`) for maximum readability. Avoid dense, minified, or single-line code blocks.
 
