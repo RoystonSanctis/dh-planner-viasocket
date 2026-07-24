@@ -42,7 +42,7 @@ Your response **MUST** be a single, valid JSON object that strictly follows this
   "revisedInputFields": [ { "key": "field_key", "...": "..." } ],
   "revisedPerformCode": "string",
   "unverified": ["things not confirmable, e.g. payload shape with no schema, undocumented response fields"],
-  "testcases": ["high-value manual test scenarios"]
+  "testcases": [ { "scenario": "test scenario description", "status": "success|failed" } ]
 }
 ```
 **Issues, review, suggestions, revisedInputFields, revisedPerformCode, unverified, and testcases are optional** (if there are no issues/fixes/testcases, return empty array/object or unchanged code).
@@ -151,7 +151,20 @@ Your response **MUST** be a single, valid JSON object that strictly follows this
       "testcases": {
         "type": "array",
         "items": {
-          "type": "string"
+          "type": "object",
+          "properties": {
+            "scenario": {
+              "type": "string",
+              "description": "Description of the manual test scenario."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["success", "failed"],
+              "description": "Expected outcome status of the test scenario."
+            }
+          },
+          "required": ["scenario", "status"],
+          "additionalProperties": false
         },
         "description": "Up to 5 high-value test scenarios for manual verification before release (only generated when approved is true and no blocking issues exist)."
       }
@@ -236,7 +249,17 @@ schema:
     testcases:
       type: array
       items:
-        type: string
+        type: object
+        properties:
+          scenario:
+            type: string
+            description: Description of the manual test scenario.
+          status:
+            type: string
+            enum: [success, failed]
+            description: Expected outcome status of the test scenario.
+        required[2]: scenario,status
+        additionalProperties: false
       description: Up to 5 high-value test scenarios for manual verification.
   required[9]: approved,issues,review,suggestions,revisedInputFields,revisedPerformCode,score,unverified,testcases
   additionalProperties: false
@@ -276,9 +299,14 @@ strict: true
     "Payload shape with no schema"
   ],
   "testcases": [
-    "Verify project_id dynamic dropdown successfully loads list of projects.",
-    "Verify perform call successfully retrieves a project's details using valid project_id.",
-    "Verify perform handles 404 project not found error from the API gracefully."
+    {
+      "scenario": "Verify project_id dynamic dropdown successfully loads list of projects.",
+      "status": "success"
+    },
+    {
+      "scenario": "Verify perform handles 404 project not found error from the API gracefully.",
+      "status": "failed"
+    }
   ]
 }
 ```
@@ -289,7 +317,7 @@ When the action has no blocking issues (P0/P1) and you believe it is ready to pu
 - Focus on edge cases, validation failures, API failures, and code paths that could realistically fail.
 - Prioritize scenarios that are most likely to fail with the current implementation instead of generic happy-path tests.
 - Focus on branches, validations, optional fields, dynamic mappings, API failures, empty responses, pagination, rate limits, null/undefined values, and other edge cases that could expose bugs.
-- Include both successful and failure scenarios when applicable.
+- Include both successful (expected status: 'success') and failure (expected status: 'failed') scenarios when applicable.
 - If no meaningful test cases can be derived, return an empty array `[]` for `"testcases"`.
 
 # DH Knowledge Base:
