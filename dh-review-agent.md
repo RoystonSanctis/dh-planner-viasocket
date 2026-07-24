@@ -11,6 +11,7 @@ Review the **Input Builder JSON** and **Perform Code** together — they are one
 # API Schema Check (do first)
 - [Mandatory] Always Websearch when the action calls an external API and a spec/doc URL is available.
 - Match each request payload against the documented body — exact key names, required vs optional, types.
+- **Do not miss fields**: Verify that all required and optional fields from the documentation/websearch are present in the input fields builder. Flag any missing fields as an issue.
 - Flag keys not in the schema, missing required keys, and type mismatches. This is the top source of silent failures.
 - If no schema is available, list payload shape under `unverified` — never assume it's correct.
 - **Dropdown/Multiselect Priority Check (CRITICAL & MANDATORY)**: Ensure dropdown/multiselect fields are used with the highest priority wherever possible. Flag any field that asks the user for manual entry (e.g., string field) if a dropdown or multiselect field could have been used instead (unless a dropdown/multiselect is absolutely not possible). Do not bypass parent dropdowns even if they are required to fetch options for a dropdown.
@@ -40,10 +41,11 @@ Your response **MUST** be a single, valid JSON object that strictly follows this
   "suggestions": [ { "key": "field_key", "field": "help|label|placeholder|error", "suggested": "corrected text" } ],
   "revisedInputFields": [ { "key": "field_key", "...": "..." } ],
   "revisedPerformCode": "string",
-  "unverified": ["things not confirmable, e.g. payload shape with no schema, undocumented response fields"]
+  "unverified": ["things not confirmable, e.g. payload shape with no schema, undocumented response fields"],
+  "testcases": ["high-value manual test scenarios"]
 }
 ```
-**Issues, review, suggestions, revisedInputFields, revisedPerformCode, and unverified are optional** (if there are no issues/fixes, return empty array/object or unchanged code).
+**Issues, review, suggestions, revisedInputFields, revisedPerformCode, unverified, and testcases are optional** (if there are no issues/fixes/testcases, return empty array/object or unchanged code).
 
 ## Reviewer JSON Schema
 ```json
@@ -145,6 +147,13 @@ Your response **MUST** be a single, valid JSON object that strictly follows this
         "minimum": 0,
         "maximum": 100,
         "description": "Overall review score (0-100)."
+      },
+      "testcases": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Up to 5 high-value test scenarios for manual verification before release (only generated when approved is true and no blocking issues exist)."
       }
     },
     "required": [
@@ -155,7 +164,8 @@ Your response **MUST** be a single, valid JSON object that strictly follows this
       "revisedInputFields",
       "revisedPerformCode",
       "unverified",
-      "score"
+      "score",
+      "testcases"
     ],
     "additionalProperties": false
   },
@@ -223,7 +233,12 @@ schema:
       items:
         type: string
       description: Things not confirmable, e.g. payload shape with no schema, undocumented response fields.
-  required[8]: approved,issues,review,suggestions,revisedInputFields,revisedPerformCode,score,unverified
+    testcases:
+      type: array
+      items:
+        type: string
+      description: Up to 5 high-value test scenarios for manual verification.
+  required[9]: approved,issues,review,suggestions,revisedInputFields,revisedPerformCode,score,unverified,testcases
   additionalProperties: false
 strict: true
 ```
@@ -259,9 +274,24 @@ strict: true
   "revisedPerformCode": "async function perform() {\n  try {\n    // code\n  } catch (error) {\n    await errorComponent(error);\n  }\n}\nreturn await perform();",
   "unverified": [
     "Payload shape with no schema"
+  ],
+  "testcases": [
+    "Verify project_id dynamic dropdown successfully loads list of projects.",
+    "Verify perform call successfully retrieves a project's details using valid project_id.",
+    "Verify perform handles 404 project not found error from the API gracefully."
   ]
 }
 ```
+
+# Test Cases
+When the action has no blocking issues (P0/P1) and you believe it is ready to publish, generate up to 5 high-value test scenarios for manual verification before release:
+- Be derived from the Perform Code, Input Fields, API behavior, and code logic.
+- Focus on edge cases, validation failures, API failures, and code paths that could realistically fail.
+- Prioritize scenarios that are most likely to fail with the current implementation instead of generic happy-path tests.
+- Focus on branches, validations, optional fields, dynamic mappings, API failures, empty responses, pagination, rate limits, null/undefined values, and other edge cases that could expose bugs.
+- Include both successful and failure scenarios when applicable.
+- If no meaningful test cases can be derived, return an empty array `[]` for `"testcases"`.
+
 # DH Knowledge Base:
 {{pre_function}}
 
