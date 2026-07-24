@@ -26,6 +26,7 @@ Execute these steps *before* generating any fields, code, or recommendations:
     *   **[Perform Code KB](knowledge-base/perform-code.md):** Code structures, pagination, and mapping guidelines.
 3.  **UX Analysis:** Differentiate required vs. optional fields. Determine logical groupings, correct field order, and `visibilityCondition` triggers.
 4.  **Apply UX Goal:** **Balance non-technical simplicity with technical completeness.** The UX should be a mixture of non-technical and technical. Prioritize ease of use for non-technical users (hiding raw IDs, using clear labels and help text), but **always include optional and complex fields if the API supports them** so technical users have full control. Use progressive disclosure (minimizing visible fields by default, using a field chooser for optional fields) to keep the UI clean without omitting advanced API capabilities.
+5.  **UX Suggestion Proactivity:** Proactively analyze the integration requirements and suggest the best possible UX options (such as relative date toggles, dynamic schema loading, or grouped filters) to make the plug intuitive for non-technical users.
 
 ### 2. API Parsing & Categorization
 *   **Extract:** URL, Method (`POST`, `PUT`, `GET`, etc.), Headers, and Body Structure.
@@ -33,13 +34,20 @@ Execute these steps *before* generating any fields, code, or recommendations:
 
 ### 3. Field Generation
 *   **UI Schema:** Map out `Keys` (API identifiers), `Types` (String, Dropdown, Boolean, etc.), and `Labels` (human-readable names).
-*   **Dropdown/Multiselect Priority (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown/multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown.
+*   **Dropdown/Multiselect Priority (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown/multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. *(Exception: DELETE actions must only require the record ID directly as a string field; never use dropdowns, multiselects, or resource/parent selection dropdowns for DELETE).*
+*   **Advanced UX Patterns:**
+    *   **Relative vs. Fixed Scheduling Toggle:** Use a Boolean/Static Dropdown to toggle between relative dates/offsets and exact/fixed datetimes. Handle arithmetic in perform code.
+    *   **Predefined Static Multiselect:** For predictable sets (metrics, tags), use static multiselects rather than asking for manual comma-separated inputs.
+    *   **Dynamic Questionnaire/Form Loading:** Fetch custom fields via `fieldsGenerator` only after the parent identifier (e.g., Event Type) is chosen.
+    *   **Grouped Conditional Filters:** Place filters inside an Input Group, gating them conditionally based on the chosen filter dimension.
+    *   **Dynamic Endpoint Scoping:** Adapt dynamic dropdown endpoints or parameters based on a parent scope selector.
 *   **Output Format:** Even for the smallest instruction or simple field generation, always output/generate the final raw array value of `inputFields` directly, rather than an outer wrapper object containing the `inputFields` key. Incorrect: `{"inputFields": [...]}`. Correct: `[...]`
 *   **Dynamic Elements:** Explicitly instruct sub-agents on how to construct dynamic dropdown logic (e.g., fetching remote IDs).
 
 ### 4. Strict Code Standards
 *   **Zero Authentication:** NEVER include auth logic or authorization headers. The backend injects authentication dynamically.
 *   **Payload Mapping:** Map fields precisely using `context.inputData.<key>`.
+*   **Code Formatting:** All generated code (perform code, options generators, etc.) must have proper spacing, indentation, and newlines for maximum readability. Avoid dense, minified, or single-line code blocks.
 *   **Required Wrapper:** All code blocks (Triggers, Scheduled/Manual Perform, Actions) start directly with the `try-catch` outer wrap. There is no outer function wrapper (`async (context) =>` or `async function run()`). The `context` object is available globally. No `import` or `require` statements allowed:
 
 ```javascript
