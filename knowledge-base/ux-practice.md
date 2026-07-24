@@ -268,6 +268,7 @@ A Manual Trigger (in viaSocket, this corresponds to `manual_webhook`) is used wh
 The `inputFields` array for a Manual Trigger must only contain a single field: a static `help` field. No other fields (strings, dropdowns, etc.) are allowed.
 
 ### Manual Trigger Common Input Fields:
+*   **No Auth Rule:** Manual webhook triggers always use 'No Auth'; do not request or configure any authentication/authid.
 *   **Single Field Limit:** The `inputFields` array (inputjson) for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field. No other fields are allowed.
 *   **Help Content:** The `help` field must contain step-by-step instructions in HTML format showing the user how to configure the webhook in the external SaaS platform.
 *   **Example Manual Trigger JSON:**

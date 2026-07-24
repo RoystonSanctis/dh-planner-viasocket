@@ -251,7 +251,7 @@ sampledata: Object (optional)
 
 ### 2.3. Manual Trigger Schema (`triggertype: "manual_webhook"`)
 
-Manual Webhook Triggers are user-configured webhooks where the user manually copies the webhook URL into the external service.
+Manual Webhook Triggers are user-configured webhooks where the user manually copies the webhook URL into the external service. Note: For Manual Webhook Triggers, authentication is always 'No Auth'; therefore, `authid` must not be sent or configured.
 
 #### Manual Trigger JSON Schema
 ```json

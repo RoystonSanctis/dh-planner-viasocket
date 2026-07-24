@@ -29,7 +29,7 @@ Before outputting any design or code:
 - **Output Format**: Always output the raw `inputFields` array directly: `[...]` (never wrap in an outer object `{"inputFields": [...]}`).
 
 ### 3. Strict Code Standards
-- **No Auth**: Do not include authentication headers or logic.
+- **No Auth**: Do not include authentication headers or logic. Note: Manual webhook triggers (`manual_webhook`) always use 'No Auth'; do not prompt for, pass, or configure any authentication/authid.
 - **Mapping**: Map fields using `context.inputData.<key>`.
 - **Formatting**: Format JS code with proper spacing, indentation, and newlines (`\n`) for maximum readability. No minification.
 - **Required Wrapper**: Wrap all perform code blocks directly in a named async function try-catch skeleton:

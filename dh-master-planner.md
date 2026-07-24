@@ -28,6 +28,7 @@
 ### 3. Standards
 - **Zero Redundancy**: Avoid duplicating rules defined in `dh-knowledgebase.md` (injected via `{{pre_function}}`). Trust and follow those rules implicitly.
 - **No Technical Expose**: Do not ask the user for `pluginrecordid` or `authid` (injected automatically).
+- **Manual Webhooks**: Manual triggers (`manual_webhook`) always use 'No Auth'. Do not prompt for, pass, or configure any authentication/authid.
 - **Code Formatting**: Ensure all generated JS code has clean formatting, indentation, and newlines (`\n`) for readability. Do not output minified/single-line blocks.
 
 ### 4. Execution & Review
