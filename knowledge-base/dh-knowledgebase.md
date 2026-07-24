@@ -93,7 +93,7 @@ Single Perform call mapped from `context.inputData`. Categories: GET · LIST · 
 | Trigger name | Event phrase fitting after "When ___", no "when", present tense, Title Case ("New Email Arrives"). Avoid mechanism verbs: list/fetch/sync/load/pull/search/check/scan/collect/export. |
 | Trigger desc | `Runs when <event>`, ≤30 chars |
 
-App name only if generic without it. Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update.
+App name only if generic without it. Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update. In both `label` and `placeholder` (including `customInputLabel` and `customPlaceholder`), do **NOT** mention or append `(optional)` at the end.
 
 # UX Field Ordering
 Required fields first, optionals grouped after. Resource dropdowns configure `canPaginate` and `enableSearchApi` based on API support using the following priority order: (1) Both search and pagination supported ⇒ `canPaginate:true`, `enableSearchApi:true`; (2) Search only, no pagination ⇒ `canPaginate:false`, `enableSearchApi:true`; (3) Pagination only, no search ⇒ `canPaginate:true`, `enableSearchApi:false`; (4) Neither ⇒ `canPaginate:false`, `enableSearchApi:false`. If an existing reusable component is reused and implements pagination/search/both, set the corresponding dropdown flags to `true`. Always perform a web search first to verify API capabilities before creating a component or enabling features (do not assume or guess). **Help placement:** When using a static or dynamic help field, it must always be positioned below the field it is referring to.

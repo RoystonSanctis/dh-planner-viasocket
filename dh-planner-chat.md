@@ -36,6 +36,7 @@ Execute these steps *before* generating any fields, code, or recommendations:
 
 ### 3. Field Generation
 *   **UI Schema:** Map out `Keys` (API identifiers), `Types` (String, Dropdown, Boolean, etc.), and `Labels` (human-readable names).
+*   **Labels & Placeholders:** Do **NOT** mention or append `(optional)` at the end of any `label` or `placeholder` (including `customInputLabel` and `customPlaceholder`) fields, as the system UI handles optional markers automatically.
 *   **Dropdown/Multiselect Priority (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown/multiselect is absolutely not possible. Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. *(Exception: DELETE actions must only require the record ID directly as a string field; never use dropdowns, multiselects, or resource/parent selection dropdowns for DELETE).*
 *   **Advanced UX Patterns:**
     *   **Relative vs. Fixed Scheduling Toggle:** Use a Boolean/Static Dropdown to toggle between relative dates/offsets and exact/fixed datetimes. Handle arithmetic in perform code.

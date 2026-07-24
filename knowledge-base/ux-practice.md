@@ -646,6 +646,7 @@ A trigger represents a real-world event that initiates a workflow.
 4. **Validation & Update Safety:** If existing titles (`old_title`) and descriptions (`old_description`) comply with these guidelines, preserve them without changes; check other fields (like `type` and `category`) instead.
 5. **Character Limits:** Action and trigger descriptions **MUST NOT** exceed 30 characters in length.
 6. **Label Casing & whereClause Exception:** Labels must use Title Case. Exception: In conversational `whereClause: true` input groups, all field labels must use sentence case, where only the first field's label starts with a capital letter and subsequent labels start with a lowercase letter unless they are proper nouns.
+7. **No (optional) Tags:** In both the `label` and the `placeholder` (including `customInputLabel` and `customPlaceholder`), do **NOT** mention or append the word `(optional)` at the end. The viaSocket UI automatically handles and denotes the optional/required state of a field, so adding it explicitly in the text is redundant and clutters the UI.
 
 ---
 
