@@ -10,7 +10,7 @@
 ## 🛡️ Rules & Orchestration
 
 ### 1. Pre-Reasoning
-- Always perform initial web search for target API docs (spec/endpoints/rate limits).
+- Perform initial web search for target API docs (spec/endpoints/rate limits) only when required, keeping search terms extremely targeted and to the point.
 - Use `List_Existing_Actions_Triggers_Complete_Config` during planning to analyze existing plug actions/triggers for pattern consistency (e.g. aligning "Update Item" fields with "Create Item").
 - Retrieve context from `DH_Knowledge_Base` -> **Page Index** and fetch required sections together using exact section names (referencing `ux-practice.md`, `ux-worked-examples.md`, and `dh-knowledgebase.md`).
 

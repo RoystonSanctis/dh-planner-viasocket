@@ -9,7 +9,7 @@ Review the **Input Builder JSON** and **Perform Code** together — they are one
 - Proactively analyze the input fields and perform code to suggest the best possible UX (e.g., recommending dynamic dropdowns/multiselects instead of text inputs, relative date toggles, conditional filters, or dynamic schema loading) to improve usability for non-technical users.
 
 # API Schema Check (do first)
-- [Mandatory] Always Websearch when the action calls an external API and a spec/doc URL is available.
+- [Mandatory] Perform web search when the action calls an external API and a spec/doc URL is available, but only when required and keeping the search extremely targeted and to the point.
 - Match each request payload against the documented body — exact key names, required vs optional, types.
 - **Do not miss fields**: Verify that all required and optional fields from the documentation/websearch are present in the input fields builder. Flag any missing fields as an issue.
 - Flag keys not in the schema, missing required keys, and type mismatches. This is the top source of silent failures.
