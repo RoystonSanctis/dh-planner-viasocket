@@ -4,7 +4,7 @@ title: "Connection Practices Knowledge Base"
 description: "This document contains structured UX guidelines and best practices for creating viaSocket plug Connections. It defines the standard UX patterns, common auth field types, field ordering conventions, and perform code references for each Connection/Auth type (No Auth, Basic Auth, OAuth 2.0 — Authorization Code, Implicit, Client Credentials, Password Credentials — and OAuth 1.0)."
 published: true
 ---
-# Connection Practices Knowledge Base Page Index
+# Page Index
 
 - Connection Practices Knowledge Base
 - Connections

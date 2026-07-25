@@ -4,7 +4,7 @@ title: "UX Worked Examples Knowledge Base"
 description: "Real-world worked examples of viaSocket plug actions, organized by action category. Each example pairs the UX rationale (supporting API usage, UI components, field-design reasoning) with the concrete implementation (input fields JSON + perform code) so the AI can pattern-match when building and reviewing action UIs. Companion to the UX Practices Knowledge Base (theory/rules) and the Perform Code Knowledge Base (code patterns)."
 published: true
 ---
-# UX Worked Examples Knowledge Base Page Index
+# Page Index
 
 - UX Worked Examples Knowledge Base
 - How to Use This Document

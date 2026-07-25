@@ -4,7 +4,7 @@ title: "UX Practices Knowledge Base"
 description: "This document contains structured UX guidelines and best practices for creating viaSocket plug triggers and actions. It defines the standard UX patterns, common input field types, field ordering conventions, and perform code references for each trigger type (Instant, Scheduled, Manual) and action category (GET, LIST, FIND/SEARCH, CREATE, UPDATE, FIND OR CREATE, DELETE)."
 published: true
 ---
-# UX Practices Knowledge Base Page Index
+# Page Index
 
 - UX Practices Knowledge Base
 - Triggers
