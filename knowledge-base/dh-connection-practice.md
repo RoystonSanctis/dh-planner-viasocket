@@ -203,6 +203,9 @@ The standard 13-step section flow:
 1. **Configure your Fields** *(optional)* → Extra pre-auth info the Authorization/Token URLs may depend on (e.g. subdomain, region, environment, tenant ID). Available as `context.authData.<fieldName>`. Skip if the provider's endpoints don't depend on user-entered values.
 2. **Copy your OAuth Redirect URL** → viaSocket-generated callback URL; pasted into the provider's "Redirect/Callback URL" dashboard setting.
 3. **Enter Application Credentials** → `Client ID` and `Client Secret` from the provider's developer console. Used during Token Exchange (Step 5) and Refresh (Step 6). Secret is stored securely, never exposed to end users.
+   * **Global/Internal vs. Manual Setup:** Always prefer the global/internal setup (developer pre-configures `clientid` and `clientsecret` globally on the connection model) so that no credentials input fields are created for the end-user. Do not create client ID and client secret input fields under `authfields` unless manual client-side credentials entry is explicitly requested.
+   * **Manual Setup Requirements:** If the user specifies that customers will manually add client ID and client secret, the root-level `clientid` and `clientsecret` properties will be empty (`null`). Instead, define `clientid` (key: `"clientid"`, type: `"string"`, placeholder: `"Enter Client id"`, required: `true`, disableField: `true`) and `clientsecret` (key: `"clientsecret"`, type: `"string"`, placeholder: `"Enter Client Secret"`, required: `true`, disableField: `true`) inside `authfields.authentication.fields`. 
+   * **Mandatory Redirect URL field:** In a manual setup, the `redirectUrl` field (e.g. `{"key": "redirectUrl", "value": "https://dev-auth.viasocket.com/redirect/auth2.0"}`) **must** also be present in `authfields.authentication.fields`. If `redirectUrl` is not present, the user-supplied credentials are invalid, and the `clientid` and `clientsecret` fields will be disabled.
 4. **Configure Authorization Endpoint** *(Required)* → Authorization URL, requested Scopes (space- or comma-joined), core param `response_type=code`, PKCE params (`code_challenge_method=S256` recommended), and any additional provider-specific params (`access_type=offline`, `prompt=consent`, `audience=api`, etc.). Some providers require Base64-encoded client credentials — verify against the API docs.
 5. **Configure Access Token API** *(Required)* → `POST` to the Token Endpoint exchanging the authorization code for `access_token` (+ optional `refresh_token`). Built with `axios`, returning `response.data`. Stored under a key such as `context.authData?.accesstokencode?.access_token`. The authorization code is read from `context?.authData?.Authorization?.code`. When PKCE is enabled, the code verifier is read from `context?.authData?.code_verifier` and must be included as `code_verifier` in the request body.
 6. **Configure Refresh Token API** → `POST` to the Token Endpoint with `grant_type=refresh_token` and the stored `refresh_token`, returning a fresh `access_token`. Same code pattern as Step 5.
@@ -216,7 +219,7 @@ The standard 13-step section flow:
 
 #### Authorization Code Common Auth Fields
 - **String / Password / Dropdown** *(Step 1 only)* — Pre-auth contextual values (subdomain, region, environment, tenant ID).
-- **String / Password** *(Step 3)* — `Client ID`, `Client Secret`.
+- **String / Password** *(Step 3)* — `Client ID`, `Client Secret` (configured globally at root level by default, or inside `authfields.authentication.fields` under keys `"clientid"` and `"clientsecret"` along with `"redirectUrl"` for manual setup).
 - **Key-Value pairs** *(Steps 4–7, 13)* — Authorization params, token request/response mapping, refresh/revoke request bodies, and request-parameter functions.
 
 #### Authorization Code Perform Code Reference
@@ -298,6 +301,8 @@ return await testcode();
 - **Never hardcode tokens in Request Parameters** — always resolve dynamically via `context.authData.<key>` so token refresh is respected transparently.
 - **Use a stable Unique Connection Identifier when available** — prevents duplicate connections and keeps token management clean.
 - **Verify Base64 client-credential encoding requirements** in the provider's docs before building the Access Token API step.
+- **Prefer Global/Internal Client Setup:** Always prefer setting up `clientid` and `clientsecret` globally/internally. Do not create client ID and client secret input fields unless manual/client-side setup is explicitly specified.
+- **Mandatory `redirectUrl` in Manual Setup:** If manual setup is used, `redirectUrl` (e.g. `{"key": "redirectUrl", "value": "https://dev-auth.viasocket.com/redirect/auth2.0"}`) must be included inside `authfields.authentication.fields` alongside `clientid` and `clientsecret`. Without it, user-entered client credentials will not be validated and will be disabled.
 
 ---
 

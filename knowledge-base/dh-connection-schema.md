@@ -92,8 +92,8 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "needsdynamicdata": "null (Flag for dynamic data fetching during setup; always null in observed data)",
   "type": "String (Top-level auth type: \"Basic\" | \"Auth2.0\" | \"Auth1\" | \"NoAuth\")",
   "granttype": "String | null (OAuth2 sub-flow type: \"Authorization Code\" | \"Implicit\" | \"Client Credentials\" | \"Password Credentials\"; null for Basic, Auth1, NoAuth)",
-  "clientid": "String | null (OAuth2 Client ID or OAuth1 Consumer Key stored at root level; null for Basic, NoAuth, and Password Credentials)",
-  "clientsecret": "String | null (OAuth2 Client Secret or OAuth1 Consumer Secret; encrypted string when isencrypted=true; null for Implicit, Basic, NoAuth, and Password Credentials)",
+  "clientid": "String | null (OAuth2 Client ID or OAuth1 Consumer Key stored at root level; null for Basic, NoAuth, Password Credentials, or for Authorization Code flow when custom client-side/manual credentials are used)",
+  "clientsecret": "String | null (OAuth2 Client Secret or OAuth1 Consumer Secret; encrypted string when isencrypted=true; null for Implicit, Basic, NoAuth, Password Credentials, or for Authorization Code flow when custom client-side/manual credentials are used)",
   "authrequrl": "String | null (Authorization endpoint URL for OAuth redirect flows; supports context template interpolation; null for Basic, Auth1, NoAuth, and Password Credentials)",
   "redirecturl": "String | null (ViaSocket OAuth callback URL: \"https://auth.viasocket.com/redirect/auth2.0\" | \"https://auth.viasocket.com/redirect/auth1\" | null)",
   "queryparams": "String (Stringified JSON of static query params appended to authrequrl; \"{}\" when no params needed, e.g., \"{\\\"response_type\\\":\\\"code\\\"}\")",
@@ -452,6 +452,18 @@ skipwhitelistvalidation: null (null if not set)
 
 ### 3.2.1. Authorization Code
 
+> [!IMPORTANT]
+> **Client Credentials Setup Modes (Global/Internal vs. Manual/User-provided):**
+> * **Default (Global/Internal Setup - Recommended):** The developer configures the `clientid` and `clientsecret` globally in the connection model. End-users do not see any Client ID or Client Secret input fields. Root-level `clientid` and `clientsecret` properties hold the values, and `authfields.authentication.fields` does not contain `clientid`, `clientsecret`, or `redirectUrl` fields.
+> * **Special Case (Manual/User-provided Setup):** If the developer allows customers to supply their own custom `clientid` and `clientsecret` manually (to set up the application on the service themselves):
+>   - The root-level `clientid` and `clientsecret` properties on the connection record must be `null` or empty.
+>   - The credentials must instead be entered by the user, and the following fields MUST be defined inside `authfields.authentication.fields`:
+>     - `clientid` (key: `"clientid"`, type: `"string"`, label: `"Client Id"`, placeholder: `"Enter Client id"`, required: `true`, disableField: `true`)
+>     - `clientsecret` (key: `"clientsecret"`, type: `"string"`, label: `"Client Secret"`, placeholder: `"Enter Client Secret"`, required: `true`, disableField: `true`)
+>     - `redirectUrl` (key: `"redirectUrl"`, value: `"https://dev-auth.viasocket.com/redirect/auth2.0"` or the appropriate callback URL).
+>     > [!WARNING]
+>     > Including `redirectUrl` in `authfields` is **mandatory** for manual setups. If `redirectUrl` is not present, the user-entered `clientid` and `clientsecret` will not be valid, and the keys will be disabled.
+
 #### Authorization Code Update JSON Schema
 
 ```json
@@ -461,8 +473,8 @@ skipwhitelistvalidation: null (null if not set)
   "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"authorizationEndPointConfiguration\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"authUniqueKey\" | \"appeandHeaders\")",
   "isScopeSeperatorChanged": "Boolean (Whether scope separator was changed, e.g., false)",
 
-  "clientid": "String (OAuth client ID, e.g., \"123\")",
-  "clientsecret": "String (OAuth client secret, e.g., \"1234565432\")",
+  "clientid": "String | null (OAuth client ID, e.g., \"123\"; null/empty if client credentials are entered manually by users under authfields)",
+  "clientsecret": "String | null (OAuth client secret, e.g., \"1234565432\"; null/empty if client credentials are entered manually by users under authfields)",
 
   "authfields": {
     "authentication": {
@@ -543,8 +555,8 @@ skipwhitelistvalidation: null (null if not set)
 granttype: String ('Authorization Code')
 componentToRender: String ('authfields' | 'auth2Credentials' | 'authorizationEndPointConfiguration' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'authUniqueKey' | 'appeandHeaders')
 isScopeSeperatorChanged: Boolean
-clientid: String
-clientsecret: String
+clientid: String | null (null for manual client-side setup)
+clientsecret: String | null (null for manual client-side setup)
 authfields: Object
   - authentication: Object
     - type: String ('Auth2.0')

@@ -21,6 +21,15 @@ Review the **Input Builder JSON** and **Perform Code** together — they are one
 - Use tool `Fetch_Mapped_Reusable_Component_In_Action_Version` to check the mapped reusable component in the action versions to verify.
 - Use tool `DH_Run_Code` to test GET APIs (optionGenerator/Perform). Send full raw code (including reusable component functions) with hardcoded parent key values. Return the API response to debug or the actual code response.
 
+# Test Cases
+When the action has no blocking issues (P0/P1) and you believe it is ready to publish, generate up to 5 high-value test scenarios for manual verification before release:
+- Be derived from the Perform Code, Input Fields, API behavior, and code logic.
+- Focus on edge cases, validation failures, API failures, and code paths that could realistically fail.
+- Prioritize scenarios that are most likely to fail with the current implementation instead of generic happy-path tests.
+- Focus on branches, validations, optional fields, dynamic mappings, API failures, empty responses, pagination, rate limits, null/undefined values, and other edge cases that could expose bugs.
+- Include both successful (expected status: 'success') and failure (expected status: 'failed') scenarios when applicable.
+- If no meaningful test cases can be derived, return an empty array `[]` for `"testcases"`.
+
 # Corrections
 - `suggestions` = fixed string only.
 - `revisedInputFields`/`revisedPerformCode` = full corrected artifact, not a diff.
@@ -311,14 +320,7 @@ strict: true
 }
 ```
 
-# Test Cases
-When the action has no blocking issues (P0/P1) and you believe it is ready to publish, generate up to 5 high-value test scenarios for manual verification before release:
-- Be derived from the Perform Code, Input Fields, API behavior, and code logic.
-- Focus on edge cases, validation failures, API failures, and code paths that could realistically fail.
-- Prioritize scenarios that are most likely to fail with the current implementation instead of generic happy-path tests.
-- Focus on branches, validations, optional fields, dynamic mappings, API failures, empty responses, pagination, rate limits, null/undefined values, and other edge cases that could expose bugs.
-- Include both successful (expected status: 'success') and failure (expected status: 'failed') scenarios when applicable.
-- If no meaningful test cases can be derived, return an empty array `[]` for `"testcases"`.
+
 
 # DH Knowledge Base:
 {{pre_function}}
