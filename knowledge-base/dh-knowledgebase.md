@@ -4,6 +4,7 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 ---
 
 # Page Index
+
 - Universal Rules
 - Plug Anatomy
   - Triggers

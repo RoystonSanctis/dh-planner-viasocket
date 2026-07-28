@@ -35,14 +35,48 @@ published: true
 - Composite / Advanced Action Examples
   - Slack — Send Message
   - Slack — Schedule Message
-  - Sangam CRM — Insert or Update Data with Linking Module
-  - Razorpay — Create an Invoice with Customer Details (Advanced)
-  - LeadSquared — Create or Update a Lead (Advanced)
-  - Keka — List all Employees (Advanced)
-  - Cin 7 Core — Update Customer (Advanced)
 - SCHEDULED TRIGGER Examples
   - Google Calendar — New Upcoming Events (Scheduled Trigger)
+    - Rationale
+    - Input Fields JSON
+    - Perform Code
 - Cross-Cutting UX Patterns (Extracted)
+- Advanced Best Approaches for Actions
+  - 1. Action - Insert or Update Data with Linking Module (Sangam CRM)
+    - 1.1 API Usage
+    - 1.2 UI Components
+    - 1.3 Input Fields JSON
+    - 1.4 API Configuration Perform Code
+  - 2. Create an Invoice with Customer Details (Razorpay)
+    - 2.1 API Usage
+    - 2.2 UI Components
+    - 2.3 API Flow
+    - 2.4 Input Fields JSON
+    - 2.5 API Configuration Perform Code
+  - 3. Create or Update a Lead (LeadSquared)
+    - 3.1 API Usage
+    - 3.2 UI Components
+    - 3.3 API Flow
+    - 3.4 Input Fields JSON
+    - 3.5 API Configuration Perform Code
+  - 4. List all Employees (Keka)
+    - 4.1 API Usage
+    - 4.2 UI Components
+    - 4.3 API Flow
+    - 4.4 Input Fields JSON
+    - 4.5 API Configuration Perform Code
+  - 5. Send Message (Slack)
+    - 5.1 API Usage
+    - 5.2 UI Components
+    - 5.3 API Flow
+    - 5.4 Input Fields JSON
+    - 5.5 API Configuration Perform Code
+  - 6. Cin7 Core — Update Customer (Advanced)
+    - 6.1 API Usage
+    - 6.2 UI Components
+    - 6.3 API Flow
+    - 6.4 Input Fields JSON
+    - 6.5 API Configuration Perform Code
 
 # UX Worked Examples Knowledge Base
 
@@ -3487,14 +3521,17 @@ These are the reusable moves that recur across the examples above. When designin
 
  
 
-### 1\. Action - Insert or Update Data with Linking Module (Sangam CRM)
+## 1. Action - Insert or Update Data with Linking Module (Sangam CRM)
 
-#### Category - Sales & CRM
+
+- **Category:** Sales & CRM
+
 
 https://documenter.getpostman.com/view/25213259/2s93RNxuis#d310844b-da65-4f03-83a3-168e46e0619e   
  
 
-#### 1.1 API Usage 
+### 1.1 API Usage
+
 
 - Module List API:   
   Fetches a list of modules enabled for integration, allowing the user to select the primary module and related module.   
@@ -3502,151 +3539,153 @@ https://documenter.getpostman.com/view/25213259/2s93RNxuis#d310844b-da65-4f03-83
 - Field List API:   
   Retrieves all fields available for the selected module, including dropdown values for fields that support them. 
 
-#### 1.2 UI Components 
+### 1.2 UI Components
 
-1\. Dropdown - Select Module Name:   
+
+1. Dropdown - Select Module Name:
    - Allows the user to select the primary module (e.g., Contacts, Accounts, Leads) from the list retrieved using the Module List API.   
    
-2\. Dynamic Multiselect Dropdown - Fields in Module:   
+2. Dynamic Multiselect Dropdown - Fields in Module:
    - Displays fields from the selected module, fetched using the Field List API.   
    - Users can select the fields they want to include.   
    - Default Fields: Email and Phone are pre-selected and included by default.   
    
-3\. Input Group - Selected Fields:   
+3. Input Group - Selected Fields:
    - Dynamically renders input fields corresponding to the selected fields from the multiselect dropdown.   
    - Includes inputs for the default fields (Email and Phone).   
    
-4\. Boolean Toggle - Create or Link Related Module:   
+4. Boolean Toggle - Create or Link Related Module:
    - Option 1: Create New Related Module:   
      Displays a dropdown to select the related module and multiselect fields from the related module for data input.   
    - Option 2: Link Existing Related Module:   
      Displays a dropdown to select the related module, allowing the user to establish a relationship with an existing record. 
 
-#### 1.3 Input Fields
+### 1.3 Input Fields JSON
 
-[  
- {  
- "key": "main_module",  
- "help": "Select the module in which you want to insert the record.",  
- "type": "dropdown",  
- "label": "Select Main Module",  
- "required": true,  
- "optionsGenerator": "async function fetchModules() {\\n const config = {\\n method: 'post',\\n url: `${context.authData.subdomain}/api/v1/modulelist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n }\\n };\\n try {\\n const response = await axios.request(config);\\n return response.data.module_list.map(module => ({\\n label: module,\\n value: module\\n }));\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchModules();"  
- },  
- {  
- "key": "main_module_fields",  
- "help": "Select the fields of the main module you want to insert.",  
- "type": "multiselect",  
- "label": "Main Module Fields",  
- "required": true,  
- "optionsGenerator": "async function fetchFields() {\\n const data = JSON.stringify({ module_name: context.inputData.main_module });\\n const config = {\\n method: 'post',\\n maxBodyLength: Infinity,\\n url: `${context.authData.subdomain}/api/v1/fieldlist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n },\\n data: data\\n };\\n\\n try {\\n const response = await axios.request(config);\\n \\n // Filter out the key 'address' from the field list\\n const fields = Object.entries(response.data.field_list || {})\\n .filter(([key]) => key !== 'address') // Remove 'address' key\\n .map(([key, value]) => ({\\n label: value.display_name || key,\\n value: key\\n }));\\n \\n return fields;\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchFields();\\n"  
- },  
- {  
- "key": "main_module_field_inputs",  
- "help": "Provide values for the fields you selected for the main module.",  
- "type": "input groups",  
- "label": "Main Module Field Values",  
- "fieldsGenerator": "async function fetchSelectedFields() {\\n const selectedFields = context?.inputData?.main_module_fields || [];\\n const mandatoryFields = [\"phone\", \"email\"];\\n const allFields = Array.from(new Set([...selectedFields, ...mandatoryFields]));\\n\\n const data = JSON.stringify({ module_name: context?.inputData?.main_module });\\n const config = {\\n method: 'post',\\n maxBodyLength: Infinity,\\n url: `${context.authData.subdomain}/api/v1/fieldlist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n },\\n data: data\\n };\\n try {\\n const response = await axios.request(config);\\n return Object.entries(response.data.field_list || {})\\n .filter(([key]) => allFields.includes(key))\\n .map(([key, value]) => {\\n if (value.options) {\\n return {\\n key: key,\\n label: value.display_name || key,\\n type: 'dropdown',\\n required: mandatoryFields.includes(key),\\n options: Object.entries(value.options).map(([val, label]) => ({ label, value: val }))\\n };\\n } else {\\n return {\\n key: key,\\n label: value.display_name || key,\\n type: 'string',\\n required: mandatoryFields.includes(key)\\n };\\n }\\n });\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchSelectedFields();"  
- },  
- {  
- "key": "create_new_related_module",  
- "help": "Do you want to create a new related module or link an existing one?",  
- "type": "boolean",  
- "label": "Create or Link to existing",  
- "options": [  
- {  
- "label": "Create New",  
- "value": true  
- },  
- {  
- "label": "Link to Existing ",  
- "value": false  
- }  
- ],  
- "required": true  
- },  
- {  
- "key": "related_modules",  
- "help": "Select the related modules you want to link.",  
- "type": "multiselect",  
- "label": "Select Related Modules",  
- "required": false,  
- "optionsGenerator": "async function fetchModules() {\\n const config = {\\n method: 'post',\\n url: `${context.authData.subdomain}/api/v1/modulelist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n }\\n };\\n try {\\n const response = await axios.request(config);\\n return response.data.module_list.map(module => ({\\n label: module,\\n value: module\\n }));\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchModules();",  
- "visibilityCondition": "context.inputData.create_new_related_module === true || context.inputData.create_new_related_module === false "  
- },  
- {  
- "key": "related_module_fields",  
- "help": "Select the fields for each related module you want to insert.",  
- "type": "multiselect",  
- "label": "Fields for Related Modules",  
- "optionsGenerator": "async function fetchFields() {\\\\n const selectedModules \= context.inputData.related\\_modules || \\[\\];\\\\n\\\\n const fetchFieldsForModule \= async (module) \=\\> {\\\\n const data \= JSON.stringify({ module\\_name: module });\\\\n const config \= {\\\\n method: 'post',\\\\n maxBodyLength: Infinity,\\\\n url: \\`{context.authData.subdomain}/api/v1/fieldlist\\`,\\\\n headers: {\\\\n 'Content-Type': 'application/json',\\\\n Accept: 'application/json',\\\\n \\\"Authorization\\\": \\`Bearer ${context?.authData?.apitoken}\\`\\\\n },\\\\n data: data\\\\n };\\\\n\\\\n try {\\\\n const response \= await axios.request(config);\\\\n \\\\n // Filter out the 'address' field from the list\\\\n return Object.entries(response.data.field\\_list || {})\\\\n .filter((\\[key\\]) \=\\> key \\!== 'address') // Remove 'address' field\\\\n .map((\\[key, value\\]) \=\\> ({\\\\n label: \\` {module} \- {value.display\\_name || key}\\`,\\\\n value: \\` {module}:${key}\\`\\\\n }));\\\\n } catch (error) {\\\\n throw error\\\\n }\\\\n };\\\\n\\\\n // Fetch fields for all selected modules\\\\n const allFields \= await Promise.all(selectedModules.map(fetchFieldsForModule));\\\\n\\\\n // Flatten the array of fields for all modules and return\\\\n return allFields.flat();\\\\n}\\\\n\\\\nreturn await fetchFields();\\\\n",  
- "visibilityCondition": "context.inputData.create_new_related_module === true"  
- },  
- {  
- "key": "related_module_field_inputs",  
- "help": "Provide values for the fields you selected for related modules.",  
- "type": "input groups",  
- "label": "Related Module Field Values",  
- "fieldsGenerator": "async function generateRelatedFieldInputs() {\\n const selectedFields = context.inputData.related_module_fields || [];\\n const mandatoryFields = [\"phone\", \"email\"];\\n \\n // Step 1: Group fields by module\\n const fieldsByModule = selectedFields.reduce((acc, field) => {\\n const [module, fieldName] = field.split(':');\\n if (!acc[module]) acc[module] = [];\\n acc[module].push(fieldName);\\n return acc;\\n }, {});\\n\\n // Step 2: Create input groups\\n const inputGroups = await Promise.all(\\n Object.entries(fieldsByModule).map(async ([module, fields]) => {\\n // Remove duplicates from fields\\n const uniqueFields = Array.from(new Set(fields));\\n\\n const fieldInputs = await Promise.all(\\n uniqueFields.map(async (field) => {\\n // Fetch the field's details (e.g., options for dropdown)\\n const data = JSON.stringify({ module_name: module });\\n const config = {\\n method: 'post',\\n maxBodyLength: Infinity,\\n url: `${context.authData.subdomain}/api/v1/fieldlist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n },\\n data: data\\n };\\n\\n let fieldData = {};\\n try {\\n const response = await axios.request(config);\\n fieldData = response.data.field_list ? response.data.field_list[field] : {};\\n } catch (error) {\\n console.error(`Error fetching field details for ${field} in module ${module}:`, error);\\n }\\n\\n // If field has options, create a dropdown\\n if (fieldData.options) {\\n return {\\n key: field,\\n label: fieldData.display_name || field,\\n type: 'dropdown',\\n required: mandatoryFields.includes(field),\\n options: Object.entries(fieldData.options).map(([val, label]) => ({\\n label,\\n value: val\\n }))\\n };\\n } else {\\n // Otherwise, it's a string type input\\n return {\\n key: field,\\n label: fieldData.display_name || field,\\n type: 'string',\\n required: mandatoryFields.includes(field)\\n };\\n }\\n })\\n );\\n\\n return {\\n key: module,\\n label: module,\\n type: 'input groups',\\n fields: fieldInputs\\n };\\n })\\n );\\n\\n return inputGroups;\\n}\\n\\nreturn await generateRelatedFieldInputs();\\n",  
- "visibilityCondition": "context.inputData.create_new_related_module === true && context.inputData.related_modules && context.inputData.related_modules.length > 0"  
- }  
- ]
+```json
+[
+  {
+    "key": "main_module",
+    "help": "Select the module in which you want to insert the record.",
+    "type": "dropdown",
+    "label": "Select Main Module",
+    "required": true,
+    "optionsGenerator": "async function fetchModules() {\\n const config = {\\n method: 'post',\\n url: `${context.authData.subdomain}/api/v1/modulelist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n }\\n };\\n try {\\n const response = await axios.request(config);\\n return response.data.module_list.map(module => ({\\n label: module,\\n value: module\\n }));\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchModules();"
+  },
+  {
+    "key": "main_module_fields",
+    "help": "Select the fields of the main module you want to insert.",
+    "type": "multiselect",
+    "label": "Main Module Fields",
+    "required": true,
+    "optionsGenerator": "async function fetchFields() {\\n const data = JSON.stringify({ module_name: context.inputData.main_module });\\n const config = {\\n method: 'post',\\n maxBodyLength: Infinity,\\n url: `${context.authData.subdomain}/api/v1/fieldlist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n },\\n data: data\\n };\\n\\n try {\\n const response = await axios.request(config);\\n \\n // Filter out the key 'address' from the field list\\n const fields = Object.entries(response.data.field_list || {})\\n .filter(([key]) => key !== 'address') // Remove 'address' key\\n .map(([key, value]) => ({\\n label: value.display_name || key,\\n value: key\\n }));\\n \\n return fields;\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchFields();\\n"
+  },
+  {
+    "key": "main_module_field_inputs",
+    "help": "Provide values for the fields you selected for the main module.",
+    "type": "input groups",
+    "label": "Main Module Field Values",
+    "fieldsGenerator": "async function fetchSelectedFields() {\\n const selectedFields = context?.inputData?.main_module_fields || [];\\n const mandatoryFields = [\"phone\", \"email\"];\\n const allFields = Array.from(new Set([...selectedFields, ...mandatoryFields]));\\n\\n const data = JSON.stringify({ module_name: context?.inputData?.main_module });\\n const config = {\\n method: 'post',\\n maxBodyLength: Infinity,\\n url: `${context.authData.subdomain}/api/v1/fieldlist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n },\\n data: data\\n };\\n try {\\n const response = await axios.request(config);\\n return Object.entries(response.data.field_list || {})\\n .filter(([key]) => allFields.includes(key))\\n .map(([key, value]) => {\\n if (value.options) {\\n return {\\n key: key,\\n label: value.display_name || key,\\n type: 'dropdown',\\n required: mandatoryFields.includes(key),\\n options: Object.entries(value.options).map(([val, label]) => ({ label, value: val }))\\n };\\n } else {\\n return {\\n key: key,\\n label: value.display_name || key,\\n type: 'string',\\n required: mandatoryFields.includes(key)\\n };\\n }\\n });\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchSelectedFields();"
+  },
+  {
+    "key": "create_new_related_module",
+    "help": "Do you want to create a new related module or link an existing one?",
+    "type": "boolean",
+    "label": "Create or Link to existing",
+    "options": [
+      {
+        "label": "Create New",
+        "value": true
+      },
+      {
+        "label": "Link to Existing ",
+        "value": false
+      }
+    ],
+    "required": true
+  },
+  {
+    "key": "related_modules",
+    "help": "Select the related modules you want to link.",
+    "type": "multiselect",
+    "label": "Select Related Modules",
+    "required": false,
+    "optionsGenerator": "async function fetchModules() {\\n const config = {\\n method: 'post',\\n url: `${context.authData.subdomain}/api/v1/modulelist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n }\\n };\\n try {\\n const response = await axios.request(config);\\n return response.data.module_list.map(module => ({\\n label: module,\\n value: module\\n }));\\n } catch (error) {\\n throw error\\n }\\n}\\n\\nreturn await fetchModules();",
+    "visibilityCondition": "context.inputData.create_new_related_module === true || context.inputData.create_new_related_module === false "
+  },
+  {
+    "key": "related_module_fields",
+    "help": "Select the fields for each related module you want to insert.",
+    "type": "multiselect",
+    "label": "Fields for Related Modules",
+    "optionsGenerator": "async function fetchFields() {\\\\n const selectedModules = context.inputData.related\_modules || \[\];\\\\n\\\\n const fetchFieldsForModule = async (module) =\> {\\\\n const data = JSON.stringify({ module\_name: module });\\\\n const config = {\\\\n method: 'post',\\\\n maxBodyLength: Infinity,\\\\n url: \`{context.authData.subdomain}/api/v1/fieldlist\`,\\\\n headers: {\\\\n 'Content-Type': 'application/json',\\\\n Accept: 'application/json',\\\\n \\\"Authorization\\\": \`Bearer ${context?.authData?.apitoken}\`\\\\n },\\\\n data: data\\\\n };\\\\n\\\\n try {\\\\n const response = await axios.request(config);\\\\n \\\\n // Filter out the 'address' field from the list\\\\n return Object.entries(response.data.field\_list || {})\\\\n .filter((\[key\]) =\> key \!== 'address') // Remove 'address' field\\\\n .map((\[key, value\]) =\> ({\\\\n label: \` {module} - {value.display\_name || key}\`,\\\\n value: \` {module}:${key}\`\\\\n }));\\\\n } catch (error) {\\\\n throw error\\\\n }\\\\n };\\\\n\\\\n // Fetch fields for all selected modules\\\\n const allFields = await Promise.all(selectedModules.map(fetchFieldsForModule));\\\\n\\\\n // Flatten the array of fields for all modules and return\\\\n return allFields.flat();\\\\n}\\\\n\\\\nreturn await fetchFields();\\\\n",
+    "visibilityCondition": "context.inputData.create_new_related_module === true"
+  },
+  {
+    "key": "related_module_field_inputs",
+    "help": "Provide values for the fields you selected for related modules.",
+    "type": "input groups",
+    "label": "Related Module Field Values",
+    "fieldsGenerator": "async function generateRelatedFieldInputs() {\\n const selectedFields = context.inputData.related_module_fields || [];\\n const mandatoryFields = [\"phone\", \"email\"];\\n \\n // Step 1: Group fields by module\\n const fieldsByModule = selectedFields.reduce((acc, field) => {\\n const [module, fieldName] = field.split(':');\\n if (!acc[module]) acc[module] = [];\\n acc[module].push(fieldName);\\n return acc;\\n }, {});\\n\\n // Step 2: Create input groups\\n const inputGroups = await Promise.all(\\n Object.entries(fieldsByModule).map(async ([module, fields]) => {\\n // Remove duplicates from fields\\n const uniqueFields = Array.from(new Set(fields));\\n\\n const fieldInputs = await Promise.all(\\n uniqueFields.map(async (field) => {\\n // Fetch the field's details (e.g., options for dropdown)\\n const data = JSON.stringify({ module_name: module });\\n const config = {\\n method: 'post',\\n maxBodyLength: Infinity,\\n url: `${context.authData.subdomain}/api/v1/fieldlist`,\\n headers: {\\n 'Content-Type': 'application/json',\\n Accept: 'application/json',\\n \"Authorization\": `Bearer ${context?.authData?.apitoken}`\\n },\\n data: data\\n };\\n\\n let fieldData = {};\\n try {\\n const response = await axios.request(config);\\n fieldData = response.data.field_list ? response.data.field_list[field] : {};\\n } catch (error) {\\n console.error(`Error fetching field details for ${field} in module ${module}:`, error);\\n }\\n\\n // If field has options, create a dropdown\\n if (fieldData.options) {\\n return {\\n key: field,\\n label: fieldData.display_name || field,\\n type: 'dropdown',\\n required: mandatoryFields.includes(field),\\n options: Object.entries(fieldData.options).map(([val, label]) => ({\\n label,\\n value: val\\n }))\\n };\\n } else {\\n // Otherwise, it's a string type input\\n return {\\n key: field,\\n label: fieldData.display_name || field,\\n type: 'string',\\n required: mandatoryFields.includes(field)\\n };\\n }\\n })\\n );\\n\\n return {\\n key: module,\\n label: module,\\n type: 'input groups',\\n fields: fieldInputs\\n };\\n })\\n );\\n\\n return inputGroups;\\n}\\n\\nreturn await generateRelatedFieldInputs();\\n",
+    "visibilityCondition": "context.inputData.create_new_related_module === true && context.inputData.related_modules && context.inputData.related_modules.length > 0"
+  }
+]
+```
 
-          --- END of INPUT fields ---
+### 1.4 API Configuration Perform Code
 
-#### 1.4 API Configuration Perform Code:
-
- async function buildAndSendPayload(context) {  
+```javascript
+async function buildAndSendPayload(context) {  
    
 // Step 1: Main Module Fields    
-const mainModule \= context.inputData.main\\_module;    
-const mainModuleFields \= context.inputData.main\\_module\\_fields || \\[\\];    
-const mainModuleFieldInputs \= context.inputData.main\\_module\\_field\\_inputs || {};
+const mainModule = context.inputData.main_module;    
+const mainModuleFields = context.inputData.main_module_fields || [];    
+const mainModuleFieldInputs = context.inputData.main_module_field_inputs || {};
 
 // Ensure phone and email are included in the main module    
-const mandatoryFields \= \\["phone", "email"\\];    
-mandatoryFields.forEach(field \=\\> {    
-    if (\\!mainModuleFields.includes(field)) {    
+const mandatoryFields = ["phone", "email"];    
+mandatoryFields.forEach(field => {    
+    if (!mainModuleFields.includes(field)) {    
         mainModuleFields.push(field);    
     }    
 });
 
 // Build the main module field list for the API    
-const fieldNameList \= {};    
-mainModuleFields.forEach(field \=\\> {    
-    fieldNameList\\[field\\] \= mainModuleFieldInputs\\[field\\] || null;    
+const fieldNameList = {};    
+mainModuleFields.forEach(field => {    
+    fieldNameList[field] = mainModuleFieldInputs[field] || null;    
 });
 
 // Step 2: Related Modules    
-const relatedModules \= context.inputData.related\\_modules || \\[\\];    
-const createNewRelatedModule \= context.inputData.create\\_new\\_related\\_module;    
-const relatedModuleFields \= context.inputData.related\\_module\\_fields || \\[\\];    
-const relatedModuleFieldInputs \= context.inputData.related\\_module\\_field\\_inputs || {};
+const relatedModules = context.inputData.related_modules || [];    
+const createNewRelatedModule = context.inputData.create_new_related_module;    
+const relatedModuleFields = context.inputData.related_module_fields || [];    
+const relatedModuleFieldInputs = context.inputData.related_module_field_inputs || {};
 
 // Build the related models    
-const relatedModels \= \\[\\];    
+const relatedModels = [];    
 for (let module of relatedModules) {    
-    let relatedModel \= {};    
-    let attach \= \\[\\];
+    let relatedModel = {};    
+    let attach = [];
 
-    // Construct the related module name: 'contact\\_lead'    
-    const relatedModuleName \= \\`${module.toLowerCase()}\\_${mainModule.toLowerCase()}\\`;
+    // Construct the related module name: 'contact_lead'    
+    const relatedModuleName = `${module.toLowerCase()}_${mainModule.toLowerCase()}`;
 
     // Add attach fields (phone, email)    
-    relatedModel\\[relatedModuleName\\] \= \\[{    
-        attach: \\[{    
+    relatedModel[relatedModuleName] = [{    
+        attach: [{    
             phone: mainModuleFieldInputs.phone,    
             email: mainModuleFieldInputs.email    
-        }\\],    
-        data: \\[\\]  // Default empty data array    
-    }\\];
+        }],    
+        data: []  // Default empty data array    
+    }];
 
     // If creating a new related module, add the related fields' values to the data array    
     if (createNewRelatedModule) {    
-        const data \= relatedModuleFieldInputs\\[module\\] || {};    
+        const data = relatedModuleFieldInputs[module] || {};    
         // Ensure the data isn't empty before pushing    
-        if (Object.keys(data).length \\> 0\\) {    
-            relatedModel\\[relatedModuleName\\]\\[0\\].data.push(data);    
+        if (Object.keys(data).length > 0\) {    
+            relatedModel[relatedModuleName][0].data.push(data);    
         }    
     }
 
@@ -3654,19 +3693,19 @@ for (let module of relatedModules) {
 }
 
 // Step 3: Construct the Payload    
-const payload \= {    
-    module\\_name: mainModule,    
-    field\\_name\\_list: fieldNameList,    
-    related\\_models: relatedModels    
+const payload = {    
+    module_name: mainModule,    
+    field_name_list: fieldNameList,    
+    related_models: relatedModels    
 };
 
 // Step 4: Send the Request    
 try {    
-    const response \= await axios.post(\\`${context.authData.subdomain}/api/v1/save-data\\`, payload, {    
+    const response = await axios.post(`${context.authData.subdomain}/api/v1/save-data`, payload, {    
         headers: {    
             'Content-Type': 'application/json',    
             'Accept': 'application/json',    
-            "Authorization": \\`Bearer ${context?.authData?.apitoken}\\`    
+            "Authorization": `Bearer ${context?.authData?.apitoken}`    
         }    
     });
 
@@ -3677,20 +3716,22 @@ try {
 }  
 }  
 return await buildAndSendPayload(context);
+```
 
-    --- END of Perform Code ---
+## 2. Create an Invoice with Customer Details (Razorpay)
 
-### 2\. Create an Invoice with Customer Details (Razorpay)
 
 https://razorpay.com/docs/api/payments/invoices/create-with-details   
  
 
-#### 2.1 API Usage 
+### 2.1 API Usage
+
 
 No API Usage:   
 This action does not require additional API usage beyond creating the invoice with the collected customer details. 
 
-#### 2.2 UI Components 
+### 2.2 UI Components
+
 
 Input Field - Description: 
 
@@ -3774,7 +3815,8 @@ Input Field - Notes:
 
 A text field for entering any additional notes related to the invoice. 
 
-#### 2.3 API Flow 
+### 2.3 API Flow
+
 
 Set Invoice Type: 
 
@@ -3804,304 +3846,308 @@ Return Invoice Details:
 
 Once the invoice is created, the system returns the invoice ID, URL, and other relevant details. 
 
-#### 2.4 Input Fields
+### 2.4 Input Fields JSON
 
-{  
- "key": "use_customer_id",  
- "help": "Choose whether to use an existing Customer ID or enter new customer details.",  
- "type": "boolean",  
- "label": "Generate invoice with?",  
- "options": [  
- {  
- "label": "Use Customer ID",  
- "value": true  
- },  
- {  
- "label": "Use Customer Details",  
- "value": false  
- }  
- ],  
- "required": true,  
- "defaultValue": {  
- "label": "Use Customer Details",  
- "value": false  
- }  
- },  
- {  
- "key": "customer_id",  
- "help": "Enter the existing Razorpay Customer ID.",  
- "type": "string",  
- "label": "Customer ID",  
- "required": true,  
- "placeholder": "cust_E7q0trFqXgExmT",  
- "visibilityCondition": "context.inputData.use_customer_id === true"  
- },  
- {  
- "key": "customer",  
- "help": "Provide the customer's details.",  
- "type": "input groups",  
- "label": "Customer Details",  
- "required": true,  
- "visibilityCondition": "context.inputData.use_customer_id === false",  
- "fields": [  
- {  
- "key": "name",  
- "help": "Enter the customer's full name (3-50 characters, alphabets, periods, apostrophes, and parentheses allowed).",  
- "type": "string",  
- "label": "Customer Name",  
- "required": true,  
- "placeholder": "John Doe"  
- },  
- {  
- "key": "contact",  
- "help": "Enter the customer's contact number including country code (max 15 characters).",  
- "type": "string",  
- "label": "Contact Number",  
- "required": true,  
- "placeholder": "+919000090000"  
- },  
- {  
- "key": "email",  
- "help": "Enter the customer's email address (max 64 characters).",  
- "type": "string",  
- "label": "Email Address",  
- "required": true,  
- "placeholder": "john.doe@example.com"  
- }  
- ]  
- },  
- {  
- "key": "description",  
- "help": "Enter a brief description for the invoice (max 2048 characters).",  
- "type": "string",  
- "label": "Invoice Description",  
- "required": false,  
- "placeholder": "Invoice for Web Development Services"  
- },  
- {  
- "key": "expire_by_days",  
- "help": "Enter the number of days after which the invoice should expire.",  
- "type": "number",  
- "label": "Expiry (in days)",  
- "required": true,  
- "placeholder": "30 for 30 days",  
- "defaultValue": "120"  
- },  
- {  
- "key": "billing_address",  
- "help": "Provide the customer's billing address.",  
- "type": "input groups",  
- "label": "Billing Address",  
- "required": true,  
- "fields": [  
- {  
- "key": "line1",  
- "help": "Enter the first line of the billing address.",  
- "type": "string",  
- "label": "Street Address Line 1",  
- "required": true  
- },  
- {  
- "key": "line2",  
- "help": "Enter the second line of the billing address (optional).",  
- "type": "string",  
- "label": "Street Address Line 2",  
- "required": false  
- },  
- {  
- "key": "zipcode",  
- "help": "Enter the postal code.",  
- "type": "string",  
- "label": "Zipcode",  
- "required": true  
- },  
- {  
- "key": "city",  
- "help": "Enter the city name.",  
- "type": "string",  
- "label": "City",  
- "required": true  
- },  
- {  
- "key": "state",  
- "help": "Enter the state or province.",  
- "type": "string",  
- "label": "State",  
- "required": true  
- },  
- {  
- "key": "country",  
- "help": "IN",  
- "type": "string",  
- "label": "Country Code",  
- "required": true,  
- "placeholder": "IN"  
- }  
- ]  
- },  
- {  
- "key": "same_as_billing",  
- "help": "Is the shipping address the same as the billing address?",  
- "type": "boolean",  
- "label": "Billing Address Same as Shipping?",  
- "options": [  
- {  
- "label": "Yes",  
- "value": true  
- },  
- {  
- "label": "No",  
- "value": false  
- }  
- ],  
- "required": true,  
- "defaultValue": {  
- "label": "Yes",  
- "value": true  
- }  
- },  
- {  
- "key": "shipping_address",  
- "help": "Provide the customer's shipping address.",  
- "type": "input groups",  
- "label": "Shipping Address",  
- "required": false,  
- "visibilityCondition": "context.inputData.same_as_billing === false",  
- "fields": [  
- {  
- "key": "line1",  
- "help": "Enter the first line of the shipping address.",  
- "type": "string",  
- "label": "Street Address Line 1",  
- "required": true  
- },  
- {  
- "key": "line2",  
- "help": "Enter the second line of the shipping address (optional).",  
- "type": "string",  
- "label": "Street Address Line 2",  
- "required": false  
- },  
- {  
- "key": "zipcode",  
- "help": "Enter the postal code.",  
- "type": "string",  
- "label": "Zipcode",  
- "required": true  
- },  
- {  
- "key": "city",  
- "help": "Enter the city name.",  
- "type": "string",  
- "label": "City",  
- "required": true  
- },  
- {  
- "key": "state",  
- "help": "Enter the state or province.",  
- "type": "string",  
- "label": "State",  
- "required": true  
- },  
- {  
- "key": "country",  
- "help": "Enter the country code (e.g., 'IN' for India).",  
- "type": "string",  
- "label": "Country",  
- "required": true  
- }  
- ]  
- },  
- {  
- "key": "line_items",  
- "help": "Add items to be billed in this invoice. Maximum 50 items.",  
- "type": "input groups",  
- "label": "Invoice Items",  
- "required": true,  
- "fields": [  
- {  
- "key": "name",  
- "help": "Enter the name of the item.",  
- "type": "string",  
- "label": "Item Name",  
- "required": true,  
- "placeholder": "Website Development Service"  
- },  
- {  
- "key": "description",  
- "help": "Enter a brief description of the item (optional).",  
- "type": "string",  
- "label": "Item Description",  
- "required": false,  
- "placeholder": "Monthly subscription for cloud hosting"  
- },  
- {  
- "key": "amount",  
- "help": "Enter the price of the item in the smallest currency unit (e.g., 50000 for ₹500.00).",  
- "type": "number",  
- "label": "Amount (in smallest currency unit)",  
- "required": true,  
- "placeholder": "50000"  
- },  
- {  
- "key": "currency",  
- "help": "Select the currency for this item (must match invoice currency).",  
- "type": "dropdown",  
- "label": "Item Currency",  
- "required": true,  
- "optionsGenerator": "async function fetchCurrencies() { const response = await axios.get('https://flow.sokt.io/func/scriRLSAg3B3'); return response.data.map(currency => ({ label: currency.name, value: currency.value, sample: currency.value })); } return await fetchCurrencies();"  
- },  
- {  
- "key": "quantity",  
- "help": "Enter the quantity of this item.",  
- "type": "number",  
- "label": "Quantity",  
- "required": true,  
- "placeholder": "2"  
- }  
- ]  
- },  
- {  
- "key": "currency",  
- "help": "Select the currency for the invoice (must match line items).",  
- "type": "dropdown",  
- "label": "Currency",  
- "required": true,  
- "optionsGenerator": "async function fetchCurrencies() { const response = await axios.get('https://flow.sokt.io/func/scriRLSAg3B3'); return response.data.map(currency => ({ label: currency.name, value: currency.value, sample: currency.value })); } return await fetchCurrencies();"  
- },  
- {  
- "key": "partial_payment",  
- "help": "Enable this to allow partial payments.",  
- "type": "boolean",  
- "label": "Allow Partial Payment",  
- "options": [  
- {  
- "label": "Yes",  
- "value": true  
- },  
- {  
- "label": "No",  
- "value": false  
- }  
- ],  
- "required": false,  
- "defaultValue": {  
- "label": "No",  
- "value": false  
- }  
- }  
- ]
+```json
+[
+  {
+    "key": "use_customer_id",
+    "help": "Choose whether to use an existing Customer ID or enter new customer details.",
+    "type": "boolean",
+    "label": "Generate invoice with?",
+    "options": [
+      {
+        "label": "Use Customer ID",
+        "value": true
+      },
+      {
+        "label": "Use Customer Details",
+        "value": false
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "Use Customer Details",
+      "value": false
+    }
+  },
+  {
+    "key": "customer_id",
+    "help": "Enter the existing Razorpay Customer ID.",
+    "type": "string",
+    "label": "Customer ID",
+    "required": true,
+    "placeholder": "cust_E7q0trFqXgExmT",
+    "visibilityCondition": "context.inputData.use_customer_id === true"
+  },
+  {
+    "key": "customer",
+    "help": "Provide the customer's details.",
+    "type": "input groups",
+    "label": "Customer Details",
+    "required": true,
+    "visibilityCondition": "context.inputData.use_customer_id === false",
+    "fields": [
+      {
+        "key": "name",
+        "help": "Enter the customer's full name (3-50 characters, alphabets, periods, apostrophes, and parentheses allowed).",
+        "type": "string",
+        "label": "Customer Name",
+        "required": true,
+        "placeholder": "John Doe"
+      },
+      {
+        "key": "contact",
+        "help": "Enter the customer's contact number including country code (max 15 characters).",
+        "type": "string",
+        "label": "Contact Number",
+        "required": true,
+        "placeholder": "+919000090000"
+      },
+      {
+        "key": "email",
+        "help": "Enter the customer's email address (max 64 characters).",
+        "type": "string",
+        "label": "Email Address",
+        "required": true,
+        "placeholder": "john.doe@example.com"
+      }
+    ]
+  },
+  {
+    "key": "description",
+    "help": "Enter a brief description for the invoice (max 2048 characters).",
+    "type": "string",
+    "label": "Invoice Description",
+    "required": false,
+    "placeholder": "Invoice for Web Development Services"
+  },
+  {
+    "key": "expire_by_days",
+    "help": "Enter the number of days after which the invoice should expire.",
+    "type": "number",
+    "label": "Expiry (in days)",
+    "required": true,
+    "placeholder": "30 for 30 days",
+    "defaultValue": "120"
+  },
+  {
+    "key": "billing_address",
+    "help": "Provide the customer's billing address.",
+    "type": "input groups",
+    "label": "Billing Address",
+    "required": true,
+    "fields": [
+      {
+        "key": "line1",
+        "help": "Enter the first line of the billing address.",
+        "type": "string",
+        "label": "Street Address Line 1",
+        "required": true
+      },
+      {
+        "key": "line2",
+        "help": "Enter the second line of the billing address (optional).",
+        "type": "string",
+        "label": "Street Address Line 2",
+        "required": false
+      },
+      {
+        "key": "zipcode",
+        "help": "Enter the postal code.",
+        "type": "string",
+        "label": "Zipcode",
+        "required": true
+      },
+      {
+        "key": "city",
+        "help": "Enter the city name.",
+        "type": "string",
+        "label": "City",
+        "required": true
+      },
+      {
+        "key": "state",
+        "help": "Enter the state or province.",
+        "type": "string",
+        "label": "State",
+        "required": true
+      },
+      {
+        "key": "country",
+        "help": "IN",
+        "type": "string",
+        "label": "Country Code",
+        "required": true,
+        "placeholder": "IN"
+      }
+    ]
+  },
+  {
+    "key": "same_as_billing",
+    "help": "Is the shipping address the same as the billing address?",
+    "type": "boolean",
+    "label": "Billing Address Same as Shipping?",
+    "options": [
+      {
+        "label": "Yes",
+        "value": true
+      },
+      {
+        "label": "No",
+        "value": false
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "Yes",
+      "value": true
+    }
+  },
+  {
+    "key": "shipping_address",
+    "help": "Provide the customer's shipping address.",
+    "type": "input groups",
+    "label": "Shipping Address",
+    "required": false,
+    "visibilityCondition": "context.inputData.same_as_billing === false",
+    "fields": [
+      {
+        "key": "line1",
+        "help": "Enter the first line of the shipping address.",
+        "type": "string",
+        "label": "Street Address Line 1",
+        "required": true
+      },
+      {
+        "key": "line2",
+        "help": "Enter the second line of the shipping address (optional).",
+        "type": "string",
+        "label": "Street Address Line 2",
+        "required": false
+      },
+      {
+        "key": "zipcode",
+        "help": "Enter the postal code.",
+        "type": "string",
+        "label": "Zipcode",
+        "required": true
+      },
+      {
+        "key": "city",
+        "help": "Enter the city name.",
+        "type": "string",
+        "label": "City",
+        "required": true
+      },
+      {
+        "key": "state",
+        "help": "Enter the state or province.",
+        "type": "string",
+        "label": "State",
+        "required": true
+      },
+      {
+        "key": "country",
+        "help": "Enter the country code (e.g., 'IN' for India).",
+        "type": "string",
+        "label": "Country",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "line_items",
+    "help": "Add items to be billed in this invoice. Maximum 50 items.",
+    "type": "input groups",
+    "label": "Invoice Items",
+    "required": true,
+    "fields": [
+      {
+        "key": "name",
+        "help": "Enter the name of the item.",
+        "type": "string",
+        "label": "Item Name",
+        "required": true,
+        "placeholder": "Website Development Service"
+      },
+      {
+        "key": "description",
+        "help": "Enter a brief description of the item (optional).",
+        "type": "string",
+        "label": "Item Description",
+        "required": false,
+        "placeholder": "Monthly subscription for cloud hosting"
+      },
+      {
+        "key": "amount",
+        "help": "Enter the price of the item in the smallest currency unit (e.g., 50000 for \u20b9500.00).",
+        "type": "number",
+        "label": "Amount (in smallest currency unit)",
+        "required": true,
+        "placeholder": "50000"
+      },
+      {
+        "key": "currency",
+        "help": "Select the currency for this item (must match invoice currency).",
+        "type": "dropdown",
+        "label": "Item Currency",
+        "required": true,
+        "optionsGenerator": "async function fetchCurrencies() { const response = await axios.get('https://flow.sokt.io/func/scriRLSAg3B3'); return response.data.map(currency => ({ label: currency.name, value: currency.value, sample: currency.value })); } return await fetchCurrencies();"
+      },
+      {
+        "key": "quantity",
+        "help": "Enter the quantity of this item.",
+        "type": "number",
+        "label": "Quantity",
+        "required": true,
+        "placeholder": "2"
+      }
+    ]
+  },
+  {
+    "key": "currency",
+    "help": "Select the currency for the invoice (must match line items).",
+    "type": "dropdown",
+    "label": "Currency",
+    "required": true,
+    "optionsGenerator": "async function fetchCurrencies() { const response = await axios.get('https://flow.sokt.io/func/scriRLSAg3B3'); return response.data.map(currency => ({ label: currency.name, value: currency.value, sample: currency.value })); } return await fetchCurrencies();"
+  },
+  {
+    "key": "partial_payment",
+    "help": "Enable this to allow partial payments.",
+    "type": "boolean",
+    "label": "Allow Partial Payment",
+    "options": [
+      {
+        "label": "Yes",
+        "value": true
+      },
+      {
+        "label": "No",
+        "value": false
+      }
+    ],
+    "required": false,
+    "defaultValue": {
+      "label": "No",
+      "value": false
+    }
+  }
+]
+```
 
-      --- END of Input Fields ---
 
-#### 2.5 API Configuration Perform Code:  
+### 2.5 API Configuration Perform Code
+
+```javascript
 async function createInvoice() {
 
  const inputData = context.inputData;
 
 // Convert expire_by_days to UNIX timestamp  
    
- const expireBy = Math.floor(Date.now() / 1000\) \+ inputData.expire_by_days * 86400;
+ const expireBy = Math.floor(Date.now() / 1000) + inputData.expire_by_days * 86400;
 
 // Construct customer object based on user selection  
    
@@ -4144,18 +4190,21 @@ return response.data;
  }  
  }  
 return createInvoice();
+```
 
-    --- END of Perform Code ---  
-### 3\. Create or Update a Lead (LeadSquared)
+## 3. Create or Update a Lead (LeadSquared)
+
 
 https://apidocs.leadsquared.com/create-or-update/#api 
 
-#### 3.1 API Usage 
+### 3.1 API Usage
+
 
 Get Custom Fields API:   
 Fetches the custom fields available for a lead in Lead Squared that can be added or updated during the lead creation process. 
 
-#### 3.2 UI Components 
+### 3.2 UI Components
+
 
 Static Dropdown - Search By: 
 
@@ -4177,7 +4226,8 @@ Input Group - Custom Fields:
 
 Dynamically displayed input fields based on the custom fields fetched via the Get Custom Fields API. These fields will appear after entering the basic lead details. 
 
-#### 3.3 API Flow 
+### 3.3 API Flow
+
 
 Select Search Criteria: 
 
@@ -4203,51 +4253,53 @@ Submit Lead Data:
 
 The system sends the lead data (email, phone, name, custom fields, etc.) to the LeadSquared API to create or update the lead. 
 
-#### 3.4 Input Fields
+### 3.4 Input Fields JSON
 
-[  
-  {  
-    "key": "searchByFields",  
-    "help": "Select the lead fields to search by, such as Email or Phone.",  
-    "type": "multiselect",  
-    "label": "Search By Fields",  
-    "required": true,  
-    "customHelp": "Enter the schema names of lead fields to search by, separated by commas. You can get field names from actions like List Lead Fields.",  
-    "customInputLabel": "Search By Field IDs",  
-    "optionsGenerator": "async function generateSearchByFields() {\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const data = response.data.filter(item =>\\n            item.IsVisible === true &&\\n            item.IsReadOnly !== true &&\\n            item.LockAfterCreate !== 1 &&\\n            item.LockAfterCreate !== 2\\n        );\\n        const prioritizedFields = ['EmailAddress', 'Phone', 'FirstName', 'LastName', 'ProspectId'];\\n        const sortedFields = data.sort((a, b) => {\\n            const aPriority = prioritizedFields.includes(a.Name) ? -1 : 0;\\n            const bPriority = prioritizedFields.includes(b.Name) ? -1 : 0;\\n            return aPriority - bPriority || a.DisplayName.localeCompare(b.DisplayName);\\n        });\\n        if (!sortedFields.length) return { message: 'No lead fields found.' };\\n        return sortedFields.map(field => ({\\n            label: field.DisplayName,\\n            value: field.Name,\\n            sample: field.Name\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateSearchByFields();\\n} catch (error) {\\n    await errorComponent(error);\\n}",  
-    "customPlaceholder": "EmailAddress,Phone"  
-  },  
-  {  
-    "key": "searchByInputFields",  
-    "help": "Enter the values for the fields selected in Search By Fields.",  
-    "type": "input groups",  
-    "label": "Search By Input Fields",  
-    "fieldsGenerator": "async function generateSearchByInputFields() {\\n    const selectedFields = context?.inputData?.searchByFields || [];\\n    if (!selectedFields.length) {\\n        return { message: 'Select Search By Fields above to enter their values.' };\\n    }\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const fields = response.data.filter(item => selectedFields.includes(item.Name));\\n        if (!fields.length) return { message: 'Selected fields not found in schema.' };\\n        return fields.map(field => ({\\n            key: field.Name,\\n            label: field.DisplayName,\\n            type: 'string',\\n            required: field.IsMandatory,\\n            placeholder: `Enter ${field.DisplayName}`,\\n            help: `Enter value for ${field.DisplayName}`\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateSearchByInputFields();\\n} catch (error) {\\n    await errorComponent(error);\\n}"  
-  },  
-  {  
-    "key": "updateFields",  
-    "help": "Select the lead fields you want to update.",  
-    "type": "multiselect",  
-    "label": "Fields to Update",  
-    "required": true,  
-    "customHelp": "Enter the schema names of lead fields to update, separated by commas. You can get field names from actions like List Lead Fields.",  
-    "customInputLabel": "Update Field IDs",  
-    "optionsGenerator": "async function generateFieldsToUpdate() {\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const data = response.data.filter(item =>\\n            item.IsVisible === true &&\\n            item.IsReadOnly !== true &&\\n            item.LockAfterCreate !== 1 &&\\n            item.LockAfterCreate !== 2\\n        );\\n        const prioritizedFields = ['EmailAddress', 'Phone', 'FirstName', 'LastName', 'ProspectId'];\\n        const sortedFields = data.sort((a, b) => {\\n            const aPriority = prioritizedFields.includes(a.Name) ? -1 : 0;\\n            const bPriority = prioritizedFields.includes(b.Name) ? -1 : 0;\\n            return aPriority - bPriority || a.DisplayName.localeCompare(b.DisplayName);\\n        });\\n        if (!sortedFields.length) return { message: 'No lead fields found.' };\\n        return sortedFields.map(field => ({\\n            label: field.DisplayName,\\n            value: field.Name,\\n            sample: field.Name\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateFieldsToUpdate();\\n} catch (error) {\\n    await errorComponent(error);\\n}",  
-    "customPlaceholder": "FirstName,LastName"  
-  },  
-  {  
-    "key": "updateInputFields",  
-    "help": "Enter the values for the fields selected in Fields to Update.",  
-    "type": "input groups",  
-    "label": "Update Input Fields",  
-    "fieldsGenerator": "async function generateUpdateInputFields() {\\n    const selectedFields = context?.inputData?.updateFields || [];\\n    if (!selectedFields.length) {\\n        return { message: 'Select Fields to Update above to enter their values.' };\\n    }\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const fields = response.data.filter(item => selectedFields.includes(item.Name));\\n        if (!fields.length) return { message: 'Selected fields not found in schema.' };\\n        return fields.map(field => ({\\n            key: field.Name,\\n            label: field.DisplayName,\\n            type: 'string',\\n            required: field.IsMandatory,\\n            placeholder: `Enter ${field.DisplayName}`,\\n            help: `Enter value for ${field.DisplayName}`\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateUpdateInputFields();\\n} catch (error) {\\n    await errorComponent(error);\\n}"  
-  }  
+```json
+[
+  {
+    "key": "searchByFields",
+    "help": "Select the lead fields to search by, such as Email or Phone.",
+    "type": "multiselect",
+    "label": "Search By Fields",
+    "required": true,
+    "customHelp": "Enter the schema names of lead fields to search by, separated by commas. You can get field names from actions like List Lead Fields.",
+    "customInputLabel": "Search By Field IDs",
+    "optionsGenerator": "async function generateSearchByFields() {\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const data = response.data.filter(item =>\\n            item.IsVisible === true &&\\n            item.IsReadOnly !== true &&\\n            item.LockAfterCreate !== 1 &&\\n            item.LockAfterCreate !== 2\\n        );\\n        const prioritizedFields = ['EmailAddress', 'Phone', 'FirstName', 'LastName', 'ProspectId'];\\n        const sortedFields = data.sort((a, b) => {\\n            const aPriority = prioritizedFields.includes(a.Name) ? -1 : 0;\\n            const bPriority = prioritizedFields.includes(b.Name) ? -1 : 0;\\n            return aPriority - bPriority || a.DisplayName.localeCompare(b.DisplayName);\\n        });\\n        if (!sortedFields.length) return { message: 'No lead fields found.' };\\n        return sortedFields.map(field => ({\\n            label: field.DisplayName,\\n            value: field.Name,\\n            sample: field.Name\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateSearchByFields();\\n} catch (error) {\\n    await errorComponent(error);\\n}",
+    "customPlaceholder": "EmailAddress,Phone"
+  },
+  {
+    "key": "searchByInputFields",
+    "help": "Enter the values for the fields selected in Search By Fields.",
+    "type": "input groups",
+    "label": "Search By Input Fields",
+    "fieldsGenerator": "async function generateSearchByInputFields() {\\n    const selectedFields = context?.inputData?.searchByFields || [];\\n    if (!selectedFields.length) {\\n        return { message: 'Select Search By Fields above to enter their values.' };\\n    }\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const fields = response.data.filter(item => selectedFields.includes(item.Name));\\n        if (!fields.length) return { message: 'Selected fields not found in schema.' };\\n        return fields.map(field => ({\\n            key: field.Name,\\n            label: field.DisplayName,\\n            type: 'string',\\n            required: field.IsMandatory,\\n            placeholder: `Enter ${field.DisplayName}`,\\n            help: `Enter value for ${field.DisplayName}`\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateSearchByInputFields();\\n} catch (error) {\\n    await errorComponent(error);\\n}"
+  },
+  {
+    "key": "updateFields",
+    "help": "Select the lead fields you want to update.",
+    "type": "multiselect",
+    "label": "Fields to Update",
+    "required": true,
+    "customHelp": "Enter the schema names of lead fields to update, separated by commas. You can get field names from actions like List Lead Fields.",
+    "customInputLabel": "Update Field IDs",
+    "optionsGenerator": "async function generateFieldsToUpdate() {\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const data = response.data.filter(item =>\\n            item.IsVisible === true &&\\n            item.IsReadOnly !== true &&\\n            item.LockAfterCreate !== 1 &&\\n            item.LockAfterCreate !== 2\\n        );\\n        const prioritizedFields = ['EmailAddress', 'Phone', 'FirstName', 'LastName', 'ProspectId'];\\n        const sortedFields = data.sort((a, b) => {\\n            const aPriority = prioritizedFields.includes(a.Name) ? -1 : 0;\\n            const bPriority = prioritizedFields.includes(b.Name) ? -1 : 0;\\n            return aPriority - bPriority || a.DisplayName.localeCompare(b.DisplayName);\\n        });\\n        if (!sortedFields.length) return { message: 'No lead fields found.' };\\n        return sortedFields.map(field => ({\\n            label: field.DisplayName,\\n            value: field.Name,\\n            sample: field.Name\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateFieldsToUpdate();\\n} catch (error) {\\n    await errorComponent(error);\\n}",
+    "customPlaceholder": "FirstName,LastName"
+  },
+  {
+    "key": "updateInputFields",
+    "help": "Enter the values for the fields selected in Fields to Update.",
+    "type": "input groups",
+    "label": "Update Input Fields",
+    "fieldsGenerator": "async function generateUpdateInputFields() {\\n    const selectedFields = context?.inputData?.updateFields || [];\\n    if (!selectedFields.length) {\\n        return { message: 'Select Fields to Update above to enter their values.' };\\n    }\\n    const apiUrl = `https://${context.authData?.apiHost}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get?excludeOptionSets=1`;\\n    try {\\n        const response = await axios.get(apiUrl);\\n        if (!response.data || !Array.isArray(response.data)) {\\n            return { message: 'No lead fields found.' };\\n        }\\n        const fields = response.data.filter(item => selectedFields.includes(item.Name));\\n        if (!fields.length) return { message: 'Selected fields not found in schema.' };\\n        return fields.map(field => ({\\n            key: field.Name,\\n            label: field.DisplayName,\\n            type: 'string',\\n            required: field.IsMandatory,\\n            placeholder: `Enter ${field.DisplayName}`,\\n            help: `Enter value for ${field.DisplayName}`\\n        }));\\n    } catch (error) {\\n        throw error;\\n    }\\n}\\ntry {\\n    return await generateUpdateInputFields();\\n} catch (error) {\\n    await errorComponent(error);\\n}"
+  }
 ]
+```
 
-    --- END of Input Fields ---
 
-#### 3.5 API Configuration Perform code
+### 3.5 API Configuration Perform Code
 
+```javascript
 async function createOrUpdateLead() {
 
     try {  
@@ -4256,13 +4308,13 @@ async function createOrUpdateLead() {
         const updateFields = context?.inputData?.updateFields;  
         const updateInputFields = context?.inputData?.updateInputFields;
 
-        if (!Array.isArray(searchByFields) || searchByFields.length === 0\) {  
+        if (!Array.isArray(searchByFields) || searchByFields.length === 0) {  
             throw new Error('Search By Fields is required.');  
         }  
-        if (!Array.isArray(updateFields) || updateFields.length === 0\) {  
+        if (!Array.isArray(updateFields) || updateFields.length === 0) {  
             throw new Error('Fields to Update is required.');  
         }  
-        if (!searchByInputFields || typeof searchByInputFields !== 'object' || Object.keys(searchByInputFields).length === 0\) {  
+        if (!searchByInputFields || typeof searchByInputFields !== 'object' || Object.keys(searchByInputFields).length === 0) {  
             throw new Error('Search By Input Fields is required.');  
         }
 
@@ -4294,16 +4346,20 @@ async function createOrUpdateLead() {
     }  
 }  
 return await createOrUpdateLead();
+```
 
-    --- END of Perform code ---  
-### 4\. List all Employees (Keka)
+## 4. List all Employees (Keka)
 
-Category – HR Talent & Recruitment / Payroll  
-#### 4.1 API Usage
+
+- **Category:** HR Talent & Recruitment / Payroll
+
+### 4.1 API Usage
+
 
 List Employees API: Retrieves employee records from Keka based on the selected fetch mode. The API supports pagination and filtering by employment status, notice period, probation status, last modified date, employee IDs, employee numbers, and search keywords.
 
-#### 4.2 UI Components
+### 4.2 UI Components
+
 
 **Dropdown – How Do You Want to Fetch Employees?**
 
@@ -4345,484 +4401,488 @@ Accepts natural language or date input and automatically converts it into an ISO
 
 Allows users to choose which employee attributes should be returned in the output. Common fields such as Employee Number, Full Name, Work Email, Job Title, Department, Joining Date, and Employment Status are preselected by default.
 
-#### 4.3 API Flow
+### 4.3 API Flow
 
-1\. Determines the selected fetch mode (All, Specific, or Recent).  
-2\. Builds API query parameters using the selected filters, including employment status, notice period, probation status, and updated date.  
-3\. For **Recently Updated Employees**, automatically uses the last 30 days as the default date range when no date is provided.  
-4\. For **Fetch All Employees** and **Recently Updated Employees**, retrieves records across all available pages until every employee has been fetched.  
-5\. For **Find Specific Employees**:
+
+1. Determines the selected fetch mode (All, Specific, or Recent).
+2. Builds API query parameters using the selected filters, including employment status, notice period, probation status, and updated date.
+3. For **Recently Updated Employees**, automatically uses the last 30 days as the default date range when no date is provided.
+4. For **Fetch All Employees** and **Recently Updated Employees**, retrieves records across all available pages until every employee has been fetched.
+5. For **Find Specific Employees**:
 
    * Searches by employee name or work email using the provided values.  
    * Alternatively searches by employee ID or employee number using exact matches.  
-6\. Supports multiple search values separated by commas for all specific search methods.  
-7\. Removes duplicate employee records while processing employee ID and employee number searches.  
-8\. Filters the final output to include only the response fields selected by the user.  
-9\. Returns the matching employee records or a message indicating that no employees were found for the provided criteria.
+6. Supports multiple search values separated by commas for all specific search methods.
+7. Removes duplicate employee records while processing employee ID and employee number searches.
+8. Filters the final output to include only the response fields selected by the user.
+9. Returns the matching employee records or a message indicating that no employees were found for the provided criteria.
 
-#### 4.4 Input Fields  
-[  
- {  
- "key": "mode",  
- "help": "Choose how you want to fetch employees (all, recent, or specific).",  
- "type": "dropdown",  
- "label": "How Do You Want to Fetch Employees?",  
- "options": [  
- {  
- "label": "Fetch All Employees",  
- "value": "all"  
- },  
- {  
- "label": "Find Specific Employees",  
- "value": "specific"  
- },  
- {  
- "label": "Recently Updated Employees",  
- "value": "recent"  
- }  
- ],  
- "required": true,  
- "placeholder": "Select fetch mode",  
- "defaultValue": {  
- "label": "Fetch All Employees",  
- "value": "all"  
- },  
- "customInputLabel": "Enter fetch mode",  
- "customPlaceholder": "Fetch all employees"  
- },  
- {  
- "key": "find_by",  
- "help": "Choose how you want to find specific employees (by Name/Email, or Employee ID/Employee Number).",  
- "type": "dropdown",  
- "label": "Find Employee By",  
- "options": [  
- {  
- "label": "Name / Email",  
- "value": "name_email"  
- },  
- {  
- "label": "Employee ID / Employee Number",  
- "value": "id_number"  
- }  
- ],  
- "required": true,  
- "placeholder": "Select search method",  
- "customInputLabel": "Enter search method",  
- "customPlaceholder": "Name or Email",  
- "visibilityCondition": "context.inputData.mode === 'specific'"  
- },  
- {  
- "key": "search_name_email",  
- "help": "Enter employee first name(s) or email address(es). You can enter multiple values separated by commas. Name matches are exact, while email matches depend on pagination.",  
- "type": "string",  
- "label": "Employee Name / Email",  
- "required": true,  
- "placeholder": "John Doe,john@company.com",  
- "visibilityCondition": "context.inputData.mode === 'specific' && context.inputData.find_by === 'name_email'"  
- },  
- {  
- "key": "search_employee_id_number",  
- "help": "Enter employee ID(s) or employee number(s). You can enter multiple values separated by commas. Matching is exact, and employees matching any of the provided values will be returned.",  
- "type": "string",  
- "label": "Employee ID / Employee Number",  
- "required": true,  
- "placeholder": "EMP-001,550e8400-e29b-41d4 ",  
- "visibilityCondition": "context.inputData.mode === 'specific' && context.inputData.find_by === 'id_number'"  
- },  
- {  
- "key": "filters",  
- "help": "Apply filters to narrow down employee results.",  
- "type": "input groups",  
- "label": "Employee Filters",  
- "required": true,  
- "visibilityCondition": "context.inputData.mode === 'all' || context.inputData.mode === 'recent'",  
- "fields": [  
- {  
- "key": "updatedAfter",  
- "help": "Enter a relative or specific date (e.g., yesterday, 3 days ago, 2024-06-01).If not provided it will automatically return employees updated in last 30 days.",  
- "type": "aifield",  
- "label": "Updated After",  
- "prompt": "User will enter a date or relative time in natural language or a specific date (e.g., 'yesterday', '3 days ago', 'last week', '2024-06-01'). ALWAYS convert the input into a valid ISO 8601 UTC datetime string in the format YYYY-MM-DDTHH:mm:ssZ. Even if the input already looks like a date, still normalize it to ISO 8601\. Return ONLY the ISO string. Do not include explanations, labels, or text.",  
- "required": false,  
- "placeholder": "yesterday",  
- "visibilityCondition": "context.inputData.mode === 'recent'"  
- },  
- {  
- "key": "employmentStatus",  
- "help": "Filter employees by their current employment status. By default, both options are selected. You can also choose just one.",  
- "type": "multiselect",  
- "label": "Employment Status",  
- "options": [  
- {  
- "label": "Working",  
- "value": "Working"  
- },  
- {  
- "label": "Relieved",  
- "value": "Relieved"  
- }  
- ],  
- "required": false,  
- "placeholder": "Select employment status",  
- "defaultValue": [  
- {  
- "label": "Working",  
- "value": "Working"  
- },  
- {  
- "label": "Relieved",  
- "value": "Relieved"  
- }  
- ],  
- "customInputLabel": "Enter employment status",  
- "customPlaceholder": "Working"  
- },  
- {  
- "key": "inNoticePeriod",  
- "help": "Choose whether to fetch only employees who are currently serving a notice period or employees who are not on notice.",  
- "type": "dropdown",  
- "label": "Notice Period",  
- "options": [  
- {  
- "label": "Only notice period employees",  
- "value": true  
- },  
- {  
- "label": "Employees not on notice",  
- "value": false  
- }  
- ],  
- "required": false,  
- "placeholder": "Select notice period filter",  
- "defaultValue": {  
- "label": "Employees not on notice",  
- "value": false  
- },  
- "customInputLabel": "Enter notice period filter",  
- "customPlaceholder": "Only notice period employees"  
- },  
- {  
- "key": "inProbation",  
- "help": "Choose whether to fetch only employees who are currently in probation or permanent employees.",  
- "type": "dropdown",  
- "label": "Probation",  
- "options": [  
- {  
- "label": "Only probation employees",  
- "value": true  
- },  
- {  
- "label": "Permanent Employees",  
- "value": false  
- }  
- ],  
- "required": false,  
- "placeholder": "Select probation filter",  
- "defaultValue": {  
- "label": "Permanent Employees",  
- "value": false  
- },  
- "customInputLabel": "Enter probation filter",  
- "customPlaceholder": "Only probation employees"  
- }  
- ]  
- },  
- {  
- "key": "select_response_fields",  
- "help": "Select the employee fields to return in the response. Essential fields are preselected by default, and you can add or remove fields as required.",  
- "type": "multiselect",  
- "label": "Fields to Include in Response",  
- "options": [  
- {  
- "label": "Employee ID",  
- "value": "id"  
- },  
- {  
- "label": "Employee Number",  
- "value": "employeeNumber"  
- },  
- {  
- "label": "First Name",  
- "value": "firstName"  
- },  
- {  
- "label": "Middle Name",  
- "value": "middleName"  
- },  
- {  
- "label": "Last Name",  
- "value": "lastName"  
- },  
- {  
- "label": "Full Name",  
- "value": "displayName"  
- },  
- {  
- "label": "Work Email",  
- "value": "email"  
- },  
- {  
- "label": "Personal Email",  
- "value": "personalEmail"  
- },  
- {  
- "label": "Job Title",  
- "value": "jobTitle.title"  
- },  
- {  
- "label": "Job Title Code",  
- "value": "jobTitle.identifier"  
- },  
- {  
- "label": "Secondary Job Title",  
- "value": "secondaryJobTitle"  
- },  
- {  
- "label": "Reports To (Manager)",  
- "value": "reportsTo"  
- },  
- {  
- "label": "Manager ID",  
- "value": "reportsTo.id"  
- },  
- {  
- "label": "Manager Name",  
- "value": "reportsTo.firstName"  
- },  
- {  
- "label": "Manager Email",  
- "value": "reportsTo.email"  
- },  
- {  
- "label": "L2 Manager",  
- "value": "l2Manager"  
- },  
- {  
- "label": "Dotted Line Manager",  
- "value": "dottedLineManager"  
- },  
- {  
- "label": "Contingent Type",  
- "value": "contingentType.name"  
- },  
- {  
- "label": "Time Type",  
- "value": "timeType"  
- },  
- {  
- "label": "Worker Type",  
- "value": "workerType"  
- },  
- {  
- "label": "Employment Status",  
- "value": "employmentStatus"  
- },  
- {  
- "label": "Account Status",  
- "value": "accountStatus"  
- },  
- {  
- "label": "Invitation Status",  
- "value": "invitationStatus"  
- },  
- {  
- "label": "Joining Date",  
- "value": "joiningDate"  
- },  
- {  
- "label": "Probation End Date",  
- "value": "probationEndDate"  
- },  
- {  
- "label": "Resignation Submitted Date",  
- "value": "resignationSubmittedDate"  
- },  
- {  
- "label": "Exit Date",  
- "value": "exitDate"  
- },  
- {  
- "label": "Exit Status",  
- "value": "exitStatus"  
- },  
- {  
- "label": "Exit Type",  
- "value": "exitType"  
- },  
- {  
- "label": "Exit Reason",  
- "value": "exitReason"  
- },  
- {  
- "label": "Mobile Phone",  
- "value": "mobilePhone"  
- },  
- {  
- "label": "Work Phone",  
- "value": "workPhone"  
- },  
- {  
- "label": "Home Phone",  
- "value": "homePhone"  
- },  
- {  
- "label": "City",  
- "value": "city"  
- },  
- {  
- "label": "Country",  
- "value": "countryCode"  
- },  
- {  
- "label": "Current Address",  
- "value": "currentAddress"  
- },  
- {  
- "label": "Permanent Address",  
- "value": "permanentAddress"  
- },  
- {  
- "label": "Gender",  
- "value": "gender"  
- },  
- {  
- "label": "Date of Birth",  
- "value": "dateOfBirth"  
- },  
- {  
- "label": "Marital Status",  
- "value": "maritalStatus"  
- },  
- {  
- "label": "Marriage Date",  
- "value": "marriageDate"  
- },  
- {  
- "label": "Nationality",  
- "value": "nationality"  
- },  
- {  
- "label": "Blood Group",  
- "value": "bloodGroup"  
- },  
- {  
- "label": "Attendance Number",  
- "value": "attendanceNumber"  
- },  
- {  
- "label": "Total Experience (Days)",  
- "value": "totalExperienceInDays"  
- },  
- {  
- "label": "Groups / Department",  
- "value": "groups"  
- },  
- {  
- "label": "Leave Plan",  
- "value": "leavePlanInfo.title"  
- },  
- {  
- "label": "Band",  
- "value": "bandInfo.title"  
- },  
- {  
- "label": "Pay Grade",  
- "value": "payGradeInfo.title"  
- },  
- {  
- "label": "Shift Policy",  
- "value": "shiftPolicyInfo.title"  
- },  
- {  
- "label": "Weekly Off Policy",  
- "value": "weeklyOffPolicyInfo.title"  
- },  
- {  
- "label": "Holiday Calendar ID",  
- "value": "holidayCalendarId"  
- },  
- {  
- "label": "Capture Scheme",  
- "value": "captureSchemeInfo.title"  
- },  
- {  
- "label": "Tracking Policy",  
- "value": "trackingPolicyInfo.title"  
- },  
- {  
- "label": "Expense Policy",  
- "value": "expensePolicyInfo.title"  
- },  
- {  
- "label": "Overtime Policy",  
- "value": "overtimePolicyInfo.title"  
- },  
- {  
- "label": "Profile Photo",  
- "value": "image"  
- }  
- ],  
- "required": false,  
- "placeholder": "Select fields",  
- "defaultValue": [  
- {  
- "label": "Employee Number",  
- "value": "employeeNumber"  
- },  
- {  
- "label": "Full Name",  
- "value": "displayName"  
- },  
- {  
- "label": "Work Email",  
- "value": "email"  
- },  
- {  
- "label": "Mobile Phone",  
- "value": "mobilePhone"  
- },  
- {  
- "label": "Job Title",  
- "value": "jobTitle.title"  
- },  
- {  
- "label": "Reports To (Manager)",  
- "value": "reportsTo"  
- },  
- {  
- "label": "Employment Status",  
- "value": "employmentStatus"  
- },  
- {  
- "label": "Account Status",  
- "value": "accountStatus"  
- },  
- {  
- "label": "Joining Date",  
- "value": "joiningDate"  
- },  
- {  
- "label": "Date of Birth",  
- "value": "dateOfBirth"  
- },  
- {  
- "label": "Groups / Department",  
- "value": "groups"  
- },  
- {  
- "label": "City",  
- "value": "city"  
- }  
- ],  
- "customInputLabel": "Enter field name",  
- "customPlaceholder": "firstName"  
- }  
- ]
+### 4.4 Input Fields JSON
 
-    --- END of Input Fields ---  
-#### 4.5 API Configuration Perform Code:
+```json
+[
+  {
+    "key": "mode",
+    "help": "Choose how you want to fetch employees (all, recent, or specific).",
+    "type": "dropdown",
+    "label": "How Do You Want to Fetch Employees?",
+    "options": [
+      {
+        "label": "Fetch All Employees",
+        "value": "all"
+      },
+      {
+        "label": "Find Specific Employees",
+        "value": "specific"
+      },
+      {
+        "label": "Recently Updated Employees",
+        "value": "recent"
+      }
+    ],
+    "required": true,
+    "placeholder": "Select fetch mode",
+    "defaultValue": {
+      "label": "Fetch All Employees",
+      "value": "all"
+    },
+    "customInputLabel": "Enter fetch mode",
+    "customPlaceholder": "Fetch all employees"
+  },
+  {
+    "key": "find_by",
+    "help": "Choose how you want to find specific employees (by Name/Email, or Employee ID/Employee Number).",
+    "type": "dropdown",
+    "label": "Find Employee By",
+    "options": [
+      {
+        "label": "Name / Email",
+        "value": "name_email"
+      },
+      {
+        "label": "Employee ID / Employee Number",
+        "value": "id_number"
+      }
+    ],
+    "required": true,
+    "placeholder": "Select search method",
+    "customInputLabel": "Enter search method",
+    "customPlaceholder": "Name or Email",
+    "visibilityCondition": "context.inputData.mode === 'specific'"
+  },
+  {
+    "key": "search_name_email",
+    "help": "Enter employee first name(s) or email address(es). You can enter multiple values separated by commas. Name matches are exact, while email matches depend on pagination.",
+    "type": "string",
+    "label": "Employee Name / Email",
+    "required": true,
+    "placeholder": "John Doe,john@company.com",
+    "visibilityCondition": "context.inputData.mode === 'specific' && context.inputData.find_by === 'name_email'"
+  },
+  {
+    "key": "search_employee_id_number",
+    "help": "Enter employee ID(s) or employee number(s). You can enter multiple values separated by commas. Matching is exact, and employees matching any of the provided values will be returned.",
+    "type": "string",
+    "label": "Employee ID / Employee Number",
+    "required": true,
+    "placeholder": "EMP-001,550e8400-e29b-41d4 ",
+    "visibilityCondition": "context.inputData.mode === 'specific' && context.inputData.find_by === 'id_number'"
+  },
+  {
+    "key": "filters",
+    "help": "Apply filters to narrow down employee results.",
+    "type": "input groups",
+    "label": "Employee Filters",
+    "required": true,
+    "visibilityCondition": "context.inputData.mode === 'all' || context.inputData.mode === 'recent'",
+    "fields": [
+      {
+        "key": "updatedAfter",
+        "help": "Enter a relative or specific date (e.g., yesterday, 3 days ago, 2024-06-01).If not provided it will automatically return employees updated in last 30 days.",
+        "type": "aifield",
+        "label": "Updated After",
+        "prompt": "User will enter a date or relative time in natural language or a specific date (e.g., 'yesterday', '3 days ago', 'last week', '2024-06-01'). ALWAYS convert the input into a valid ISO 8601 UTC datetime string in the format YYYY-MM-DDTHH:mm:ssZ. Even if the input already looks like a date, still normalize it to ISO 8601. Return ONLY the ISO string. Do not include explanations, labels, or text.",
+        "required": false,
+        "placeholder": "yesterday",
+        "visibilityCondition": "context.inputData.mode === 'recent'"
+      },
+      {
+        "key": "employmentStatus",
+        "help": "Filter employees by their current employment status. By default, both options are selected. You can also choose just one.",
+        "type": "multiselect",
+        "label": "Employment Status",
+        "options": [
+          {
+            "label": "Working",
+            "value": "Working"
+          },
+          {
+            "label": "Relieved",
+            "value": "Relieved"
+          }
+        ],
+        "required": false,
+        "placeholder": "Select employment status",
+        "defaultValue": [
+          {
+            "label": "Working",
+            "value": "Working"
+          },
+          {
+            "label": "Relieved",
+            "value": "Relieved"
+          }
+        ],
+        "customInputLabel": "Enter employment status",
+        "customPlaceholder": "Working"
+      },
+      {
+        "key": "inNoticePeriod",
+        "help": "Choose whether to fetch only employees who are currently serving a notice period or employees who are not on notice.",
+        "type": "dropdown",
+        "label": "Notice Period",
+        "options": [
+          {
+            "label": "Only notice period employees",
+            "value": true
+          },
+          {
+            "label": "Employees not on notice",
+            "value": false
+          }
+        ],
+        "required": false,
+        "placeholder": "Select notice period filter",
+        "defaultValue": {
+          "label": "Employees not on notice",
+          "value": false
+        },
+        "customInputLabel": "Enter notice period filter",
+        "customPlaceholder": "Only notice period employees"
+      },
+      {
+        "key": "inProbation",
+        "help": "Choose whether to fetch only employees who are currently in probation or permanent employees.",
+        "type": "dropdown",
+        "label": "Probation",
+        "options": [
+          {
+            "label": "Only probation employees",
+            "value": true
+          },
+          {
+            "label": "Permanent Employees",
+            "value": false
+          }
+        ],
+        "required": false,
+        "placeholder": "Select probation filter",
+        "defaultValue": {
+          "label": "Permanent Employees",
+          "value": false
+        },
+        "customInputLabel": "Enter probation filter",
+        "customPlaceholder": "Only probation employees"
+      }
+    ]
+  },
+  {
+    "key": "select_response_fields",
+    "help": "Select the employee fields to return in the response. Essential fields are preselected by default, and you can add or remove fields as required.",
+    "type": "multiselect",
+    "label": "Fields to Include in Response",
+    "options": [
+      {
+        "label": "Employee ID",
+        "value": "id"
+      },
+      {
+        "label": "Employee Number",
+        "value": "employeeNumber"
+      },
+      {
+        "label": "First Name",
+        "value": "firstName"
+      },
+      {
+        "label": "Middle Name",
+        "value": "middleName"
+      },
+      {
+        "label": "Last Name",
+        "value": "lastName"
+      },
+      {
+        "label": "Full Name",
+        "value": "displayName"
+      },
+      {
+        "label": "Work Email",
+        "value": "email"
+      },
+      {
+        "label": "Personal Email",
+        "value": "personalEmail"
+      },
+      {
+        "label": "Job Title",
+        "value": "jobTitle.title"
+      },
+      {
+        "label": "Job Title Code",
+        "value": "jobTitle.identifier"
+      },
+      {
+        "label": "Secondary Job Title",
+        "value": "secondaryJobTitle"
+      },
+      {
+        "label": "Reports To (Manager)",
+        "value": "reportsTo"
+      },
+      {
+        "label": "Manager ID",
+        "value": "reportsTo.id"
+      },
+      {
+        "label": "Manager Name",
+        "value": "reportsTo.firstName"
+      },
+      {
+        "label": "Manager Email",
+        "value": "reportsTo.email"
+      },
+      {
+        "label": "L2 Manager",
+        "value": "l2Manager"
+      },
+      {
+        "label": "Dotted Line Manager",
+        "value": "dottedLineManager"
+      },
+      {
+        "label": "Contingent Type",
+        "value": "contingentType.name"
+      },
+      {
+        "label": "Time Type",
+        "value": "timeType"
+      },
+      {
+        "label": "Worker Type",
+        "value": "workerType"
+      },
+      {
+        "label": "Employment Status",
+        "value": "employmentStatus"
+      },
+      {
+        "label": "Account Status",
+        "value": "accountStatus"
+      },
+      {
+        "label": "Invitation Status",
+        "value": "invitationStatus"
+      },
+      {
+        "label": "Joining Date",
+        "value": "joiningDate"
+      },
+      {
+        "label": "Probation End Date",
+        "value": "probationEndDate"
+      },
+      {
+        "label": "Resignation Submitted Date",
+        "value": "resignationSubmittedDate"
+      },
+      {
+        "label": "Exit Date",
+        "value": "exitDate"
+      },
+      {
+        "label": "Exit Status",
+        "value": "exitStatus"
+      },
+      {
+        "label": "Exit Type",
+        "value": "exitType"
+      },
+      {
+        "label": "Exit Reason",
+        "value": "exitReason"
+      },
+      {
+        "label": "Mobile Phone",
+        "value": "mobilePhone"
+      },
+      {
+        "label": "Work Phone",
+        "value": "workPhone"
+      },
+      {
+        "label": "Home Phone",
+        "value": "homePhone"
+      },
+      {
+        "label": "City",
+        "value": "city"
+      },
+      {
+        "label": "Country",
+        "value": "countryCode"
+      },
+      {
+        "label": "Current Address",
+        "value": "currentAddress"
+      },
+      {
+        "label": "Permanent Address",
+        "value": "permanentAddress"
+      },
+      {
+        "label": "Gender",
+        "value": "gender"
+      },
+      {
+        "label": "Date of Birth",
+        "value": "dateOfBirth"
+      },
+      {
+        "label": "Marital Status",
+        "value": "maritalStatus"
+      },
+      {
+        "label": "Marriage Date",
+        "value": "marriageDate"
+      },
+      {
+        "label": "Nationality",
+        "value": "nationality"
+      },
+      {
+        "label": "Blood Group",
+        "value": "bloodGroup"
+      },
+      {
+        "label": "Attendance Number",
+        "value": "attendanceNumber"
+      },
+      {
+        "label": "Total Experience (Days)",
+        "value": "totalExperienceInDays"
+      },
+      {
+        "label": "Groups / Department",
+        "value": "groups"
+      },
+      {
+        "label": "Leave Plan",
+        "value": "leavePlanInfo.title"
+      },
+      {
+        "label": "Band",
+        "value": "bandInfo.title"
+      },
+      {
+        "label": "Pay Grade",
+        "value": "payGradeInfo.title"
+      },
+      {
+        "label": "Shift Policy",
+        "value": "shiftPolicyInfo.title"
+      },
+      {
+        "label": "Weekly Off Policy",
+        "value": "weeklyOffPolicyInfo.title"
+      },
+      {
+        "label": "Holiday Calendar ID",
+        "value": "holidayCalendarId"
+      },
+      {
+        "label": "Capture Scheme",
+        "value": "captureSchemeInfo.title"
+      },
+      {
+        "label": "Tracking Policy",
+        "value": "trackingPolicyInfo.title"
+      },
+      {
+        "label": "Expense Policy",
+        "value": "expensePolicyInfo.title"
+      },
+      {
+        "label": "Overtime Policy",
+        "value": "overtimePolicyInfo.title"
+      },
+      {
+        "label": "Profile Photo",
+        "value": "image"
+      }
+    ],
+    "required": false,
+    "placeholder": "Select fields",
+    "defaultValue": [
+      {
+        "label": "Employee Number",
+        "value": "employeeNumber"
+      },
+      {
+        "label": "Full Name",
+        "value": "displayName"
+      },
+      {
+        "label": "Work Email",
+        "value": "email"
+      },
+      {
+        "label": "Mobile Phone",
+        "value": "mobilePhone"
+      },
+      {
+        "label": "Job Title",
+        "value": "jobTitle.title"
+      },
+      {
+        "label": "Reports To (Manager)",
+        "value": "reportsTo"
+      },
+      {
+        "label": "Employment Status",
+        "value": "employmentStatus"
+      },
+      {
+        "label": "Account Status",
+        "value": "accountStatus"
+      },
+      {
+        "label": "Joining Date",
+        "value": "joiningDate"
+      },
+      {
+        "label": "Date of Birth",
+        "value": "dateOfBirth"
+      },
+      {
+        "label": "Groups / Department",
+        "value": "groups"
+      },
+      {
+        "label": "City",
+        "value": "city"
+      }
+    ],
+    "customInputLabel": "Enter field name",
+    "customPlaceholder": "firstName"
+  }
+]
+```
 
- try {  
+### 4.5 API Configuration Perform Code
+
+```javascript
+try {  
  const {  
  mode,  
  find_by,  
@@ -4873,16 +4933,16 @@ let employees = [];
  FETCH ALL / RECENT EMPLOYEES  
  ====================================================== */  
  if (mode === 'all' || mode === 'recent') {  
-let page \= 1;    
-const size \= 200;    
-let totalPages \= 1;
+let page = 1;    
+const size = 200;    
+let totalPages = 1;
 
-while (page \\\<= totalPages) {
+while (page \<= totalPages) {
 
-  const res \= await axios.request({    
+  const res = await axios.request({    
     method: 'get',    
     maxBodyLength: Infinity,    
-    url: \\`https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees\\`,    
+    url: `https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees`,    
     params: {    
       ...baseParams,    
       pageNumber: page,    
@@ -4890,8 +4950,8 @@ while (page \\\<= totalPages) {
     }    
   });
 
-  const data \= res.data?.data || \\[\\];    
-  totalPages \= res.data?.totalPages || 1;
+  const data = res.data?.data || [];    
+  totalPages = res.data?.totalPages || 1;
 
   employees.push(...data);
 
@@ -4902,46 +4962,46 @@ while (page \\\<= totalPages) {
  FIND BY NAME / EMAIL  
  ====================================================== */  
  if (mode === 'specific' && find_by === 'name_email' && search_name_email) {  
-const values \= search\\_name\\_email    
+const values = search_name_email    
   .split(',')    
-  .map(v \=\\> v.trim())    
+  .map(v => v.trim())    
   .filter(Boolean);
 
-const nameValues \= values.filter(v \=\\> \\!v.includes('@')).map(v \=\\> v.toLowerCase());    
-const emailValues \= values.filter(v \=\\> v.includes('@')).map(v \=\\> v.toLowerCase());
+const nameValues = values.filter(v => !v.includes('@')).map(v => v.toLowerCase());    
+const emailValues = values.filter(v => v.includes('@')).map(v => v.toLowerCase());
 
-let page \= 1;    
-const size \= 200;    
-let totalPages \= 1;    
-let found \= false;
+let page = 1;    
+const size = 200;    
+let totalPages = 1;    
+let found = false;
 
-while (page \\\<= totalPages && \\!found) {
+while (page \<= totalPages && !found) {
 
-  let params \= {    
+  let params = {    
     ...baseParams,    
     pageNumber: page,    
     pageSize: size    
   };
 
   if (nameValues.length) {    
-    params.searchKey \= nameValues.join(',');    
+    params.searchKey = nameValues.join(',');    
   }
 
-  let res \= await axios.request({    
+  let res = await axios.request({    
     method: 'get',    
     maxBodyLength: Infinity,    
-    url: \\`https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees\\`,    
+    url: `https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees`,    
     params: params    
   });
 
-  const data \= res.data?.data || \\[\\];    
-  totalPages \= res.data?.totalPages || 1;
+  const data = res.data?.data || [];    
+  totalPages = res.data?.totalPages || 1;
 
-  if (\\!data.length && page \=== 1\\) {    
-    const fallbackRes \= await axios.request({    
+  if (!data.length && page === 1\) {    
+    const fallbackRes = await axios.request({    
       method: 'get',    
       maxBodyLength: Infinity,    
-      url: \\`https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees\\`,    
+      url: `https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees`,    
       params: {    
         ...baseParams,    
         pageNumber: page,    
@@ -4949,14 +5009,14 @@ while (page \\\<= totalPages && \\!found) {
       }    
     });
 
-    const fallbackData \= fallbackRes.data?.data || \\[\\];    
-    totalPages \= fallbackRes.data?.totalPages || 1;
+    const fallbackData = fallbackRes.data?.data || [];    
+    totalPages = fallbackRes.data?.totalPages || 1;
 
     for (let emp of fallbackData) {
 
-      const firstName \= emp.firstName?.toLowerCase();    
-      const displayName \= emp.displayName?.toLowerCase();    
-      const email \= emp.email?.toLowerCase();
+      const firstName = emp.firstName?.toLowerCase();    
+      const displayName = emp.displayName?.toLowerCase();    
+      const email = emp.email?.toLowerCase();
 
       if (    
         (nameValues.length &&    
@@ -4964,7 +5024,7 @@ while (page \\\<= totalPages && \\!found) {
         (emailValues.length && emailValues.includes(email))    
       ) {    
         employees.push(emp);    
-        found \= true;    
+        found = true;    
         break;    
       }    
     }
@@ -4973,9 +5033,9 @@ while (page \\\<= totalPages && \\!found) {
 
     for (let emp of data) {
 
-      const firstName \= emp.firstName?.toLowerCase();    
-      const displayName \= emp.displayName?.toLowerCase();    
-      const email \= emp.email?.toLowerCase();
+      const firstName = emp.firstName?.toLowerCase();    
+      const displayName = emp.displayName?.toLowerCase();    
+      const email = emp.email?.toLowerCase();
 
       if (    
         (nameValues.length &&    
@@ -4983,7 +5043,7 @@ while (page \\\<= totalPages && \\!found) {
         (emailValues.length && emailValues.includes(email))    
       ) {    
         employees.push(emp);    
-        found \= true;    
+        found = true;    
         break;    
       }    
     }    
@@ -4996,16 +5056,16 @@ while (page \\\<= totalPages && \\!found) {
  FIND BY EMPLOYEE ID / NUMBER  
  ====================================================== */  
  if (mode === 'specific' && find_by === 'id_number' && search_employee_id_number) {  
-const values \= search\\_employee\\_id\\_number    
+const values = search_employee_id_number    
   .split(',')    
-  .map(v \=\\> v.trim())    
+  .map(v => v.trim())    
   .filter(Boolean);
 
-const employeeIds \= \\[\\];    
-const employeeNumbers \= \\[\\];
+const employeeIds = [];    
+const employeeNumbers = [];
 
-values.forEach(v \=\\> {    
-  if (v.includes('-') && v.length \\> 20\\) {    
+values.forEach(v => {    
+  if (v.includes('-') && v.length > 20\) {    
     employeeIds.push(v);    
   } else {    
     employeeNumbers.push(v);    
@@ -5014,17 +5074,17 @@ values.forEach(v \=\\> {
 
 if (employeeIds.length || employeeNumbers.length) {
 
-  let page \= 1;    
-  const size \= 200;    
-  let totalPages \= 1;    
-  let found \= false;
+  let page = 1;    
+  const size = 200;    
+  let totalPages = 1;    
+  let found = false;
 
-  while (page \\\<= totalPages && \\!found) {
+  while (page \<= totalPages && !found) {
 
-    const res \= await axios.request({    
+    const res = await axios.request({    
       method: 'get',    
       maxBodyLength: Infinity,    
-      url: \\`https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees\\`,    
+      url: `https://${context.authData.company}.${context.authData.environment}.com/api/v1/hris/employees`,    
       params: {    
         ...baseParams,    
         employeeIds: employeeIds.length ? employeeIds.join(',') : undefined,    
@@ -5034,14 +5094,14 @@ if (employeeIds.length || employeeNumbers.length) {
       }    
     });
 
-    const data \= res.data?.data || \\[\\];    
-    totalPages \= res.data?.totalPages || 1;
+    const data = res.data?.data || [];    
+    totalPages = res.data?.totalPages || 1;
 
     for (let emp of data) {    
-      if (\\!seenIds.has(emp.id)) {    
+      if (!seenIds.has(emp.id)) {    
         seenIds.add(emp.id);    
         employees.push(emp);    
-        found \= true;    
+        found = true;    
         break;    
       }    
     }
@@ -5070,11 +5130,15 @@ return employees;
 } catch (error) {  
  return await errorComponent(error);   
  }
+```
 
-### 5\. Send Message (Slack)  
-Category – Team Collaboration
+## 5. Send Message (Slack)
 
-#### 5.1 API Usage
+- **Category:** Team Collaboration
+
+
+### 5.1 API Usage
+
 
 List Channels API: Retrieves public and private Slack channels to populate channel selection and resolve channel names into channel IDs.
 
@@ -5086,7 +5150,8 @@ Post Message API: Sends a new message to one or more Slack channels or users wit
 
 Schedule Message API: Schedules a message to be delivered at a specified date & time or after a configurable delay using the same message configuration as an immediate message.
 
-#### 5.2 UI Components
+### 5.2 UI Components
+
 
 Input Group – Destination
 
@@ -5137,7 +5202,8 @@ Controls whether Slack expands:
 Link previews  
 Media previews
 
-#### 5.3 API Flow  
+### 5.3 API Flow
+
 Validates the selected destination type and ensures that message content has been provided.  
 Determines whether the message should be sent immediately or scheduled for a future date & time or after a specified delay.  
 Converts scheduled date & time or delay into the Unix timestamp format required by the Slack API.  
@@ -5151,305 +5217,309 @@ Sends the message to one or more channels, users, or as a reply within an existi
 Applies optional link preview, media preview, and thread broadcast settings to the outgoing message.  
 Automatically retries requests when Slack rate limits are encountered before returning the final response.
 
-#### 5.4 Input Fields  
-[  
-  {  
-    "key": "destination",  
-    "type": "input groups",  
-    "label": "",  
-    "whereClause": true,  
-    "fields": [  
-      {  
-        "key": "messageto",  
-        "help": "Select where to send the message.",  
-        "type": "dropdown",  
-        "label": "To",  
-        "options": [  
-          {  
-            "label": "Channel",  
-            "value": "channel"  
-          },  
-          {  
-            "label": "User",  
-            "value": "user"  
-          },  
-          {  
-            "label": "Thread as reply",  
-            "value": "thread"  
-          }  
-        ],  
-        "required": true,  
-        "customHelp": "Enter channel, user, or thread.",  
-        "placeholder": "Select destination type",  
-        "defaultValue": {  
-          "label": "Channel",  
-          "value": "channel"  
-        },  
-        "customInputLabel": "Destination type",  
-        "customPlaceholder": "channel"  
-      },  
-      {  
-        "key": "thread_channel_id",  
-        "help": "Select channel or enter channel ID.",  
-        "type": "dropdown",  
-        "label": "on",  
-        "required": true,  
-        "customHelp": "Enter a single channel ID. To find it, use the List all public channels action.",  
-        "placeholder": "Select channel",  
-        "customInputLabel": "Channel ID",  
-        "optionsGenerator": "try { return await get_all_channel(); } catch (error) { await errorComponent(error); }",  
-        "customPlaceholder": "C082WLRJLAA",  
-        "visibilityCondition": "context?.inputData?.destination?.messageto === 'thread'"  
-      },  
-      {  
-        "key": "channel_id",  
-        "help": "Select channel(s) or enter comma-separated channel IDs.",  
-        "type": "multiselect",  
-        "label": "",  
-        "required": true,  
-        "customHelp": "Enter channel name(s) or channel ID(s) separated by commas (e.g. general, #random, C082ACF6XQQ). To find a channel ID, use the \"List all public channels\" action.",  
-        "placeholder": "Select channels",  
-        "customInputLabel": "Channel IDs",  
-        "optionsGenerator": "try { return await get_all_channel(); } catch (error) { await errorComponent(error); }",  
-        "customPlaceholder": "[\"C082ACF6XQQ\",\"C082WLRJLAA\"]",  
-        "visibilityCondition": "context?.inputData?.destination?.messageto === 'channel'"  
-      },  
-      {  
-        "key": "userId",  
-        "help": "Select the user(s) to send the message to.",  
-        "type": "multiselect",  
-        "label": "",  
-        "required": true,  
-        "customHelp": "Enter Slack user IDs separated by commas. To find a user ID use the Get all channel members action.",  
-        "placeholder": "Select users",  
-        "customInputLabel": "User IDs",  
-        "optionsGenerator": "try { return await get_all_users_of_workspace(); } catch (error) { await errorComponent(error); }",  
-        "customPlaceholder": "[\"U082S1U4DDL\", \"U082S1U4DDM\"]",  
-        "visibilityCondition": "context?.inputData?.destination?.messageto === 'user'"  
-      },  
-      {  
-        "key": "thread_ts",  
-        "help": "Select or enter the message ID you want to reply to.",  
-        "type": "dropdown",  
-        "label": "Thread",  
-        "required": true,  
-        "customHelp": "Enter message ID. To find the message ID use the Get messages from Slack action.",  
-        "canPaginate": false,  
-        "customInputLabel": "Message ID",  
-        "optionsGenerator": "try { return await get_sendmessage_messages(context?.inputData?.destination?.thread_channel_id); } catch (error) { await errorComponent(error); }",  
-        "customPlaceholder": "1774073738.822629",  
-        "visibilityCondition": "context?.inputData?.destination?.thread_channel_id"  
-      },  
-      {  
-        "key": "tagged_users",  
-        "type": "multiselect",  
-        "label": "also notify",  
-        "required": false,  
-        "customHelp": "Enter Slack user IDs separated by commas. To find a user ID use the Get all channel members action.",  
-        "placeholder": "Select people",  
-        "customInputLabel": "User IDs",  
-        "optionsGenerator": "try {\\n  let users = [];\\n  let cursor = null;\\n  do {\\n    const response = await axios.request({\\n      method: 'get',\\n      url: 'https://slack.com/api/users.list',\\n      params: {\\n        limit: 999,\\n        cursor: cursor || undefined\\n      }\\n    });\\n    if (!response.data.ok) {\\n      throw new Error(response.data.error);\\n    }\\n    users.push(...response.data.members);\\n    cursor = response.data.response_metadata?.next_cursor || null;\\n  } while (cursor);\\n\\n  if (!users.length) {\\n    return {\\n      message: \"No users found, please make sure there is an available user to fetch.\"\\n    };\\n  }\\n\\n  const staticOptions = [\\n    { label: 'Everyone in the channel', value: 'channel', sample: 'channel' }\\n  ];\\n\\n  const userOptions = users\\n    .filter(member => member.id !== 'USLACKBOT')\\n    .map(member => ({\\n      label: member.real_name || member.name,\\n      value: member.id,\\n      sample: member.id\\n    }));\\n\\n  return [...staticOptions, ...userOptions];\\n} catch (error) {\\n  await errorComponent(error);\\n}",  
-        "customPlaceholder": "[\"U0A6THCVAH1\", \"U082S1U4DDL\"]",  
-        "visibilityCondition": "context?.inputData?.destination?.thread_ts || context?.inputData?.destination?.[\"channel_id\"]?.[0]"  
-      },  
-      {  
-        "key": "reply_broadcast",  
-        "help": "Broadcast the reply to the entire channel?",  
-        "type": "boolean",  
-        "label": "also send as direct message",  
-        "options": [  
-          {  
-            "label": "Yes",  
-            "value": true  
-          },  
-          {  
-            "label": "No",  
-            "value": false  
-          }  
-        ],  
-        "required": false,  
-        "customHelp": "Enter true to broadcast the reply to the entire channel, false to keep it in the thread only.",  
-        "placeholder": "Select",  
-        "customInputLabel": "Broadcast reply",  
-        "customPlaceholder": "false",  
-        "visibilityCondition": "context?.inputData?.destination?.thread_ts"  
-      }  
-    ]  
-  },  
-  {  
-    "key": "markdown_content",  
-    "help": "Enter the message text. You can use plain text or Markdown formatting like *bold*, _italic_, code, and links.",  
-    "type": "markdown",  
-    "label": "With message",  
-    "required": true,  
-    "placeholder": "Type your message here...",  
-    "visibilityCondition": "context?.inputData?.destination?.channel_id || context?.inputData?.destination?.thread_ts || context?.inputData?.destination?.userId"  
-  },  
-  {  
-    "key": "buttons",  
-    "help": "Add clickable buttons to your message. Each button opens a URL when clicked. Use the button text as the key and the link as the value.",  
-    "type": "dictionary",  
-    "label": "Action Buttons",  
-    "required": false,  
-    "template": {  
-      "key": {  
-        "help": "Enter the button label.",  
-        "type": "string",  
-        "placeholder": "Click Me"  
-      },  
-      "value": {  
-        "help": "Enter the URL.",  
-        "type": "string",  
-        "placeholder": "https://www.example.com"  
-      }  
-    }  
-  },  
-  {  
-    "key": "schedule_type",  
-    "help": "Select when to send the message.",  
-    "type": "dropdown",  
-    "label": "Schedule",  
-    "options": [  
-      {  
-        "label": "For specific Date & Time",  
-        "value": "datetime"  
-      },  
-      {  
-        "label": "After a Delay",  
-        "value": "delay"  
-      }  
-    ],  
-    "required": false,  
-    "customHelp": "Enter datetime to schedule for a specific time, or delay to send after a number of minutes.",  
-    "placeholder": "Select",  
-    "customInputLabel": "Schedule type",  
-    "customPlaceholder": "datetime"  
-  },  
-  {  
-    "key": "delay_value",  
-    "help": "Enter the number of minutes to wait before sending the message.",  
-    "type": "number",  
-    "label": "Delay (in minutes)",  
-    "required": true,  
-    "placeholder": "10",  
-    "visibilityCondition": "context?.inputData?.schedule_type === 'delay'"  
-  },  
-  {  
-    "key": "post_at",  
-    "help": "Enter date & time in this format only: YYYY-MM-DD HH:mm (24-hour time in IST, UTC+5:30).",  
-    "type": "string",  
-    "label": "At",  
-    "required": true,  
-    "placeholder": "2026-02-05 18:07",  
-    "visibilityCondition": "context?.inputData?.schedule_type === 'datetime'"  
-  },  
-  {  
-    "key": "bot_details",  
-    "type": "input groups",  
-    "label": "Bot Details",  
-    "fields": [  
-      {  
-        "key": "bot_name",  
-        "help": "Enter the bot display name. Defaults to viaSocket if left blank.",  
-        "type": "string",  
-        "label": "Display Name",  
-        "required": false,  
-        "placeholder": "viaSocket"  
-      },  
-      {  
-        "key": "icon_type",  
-        "help": "Select the type of bot icon to use.",  
-        "type": "dropdown",  
-        "label": "Custom Icon Type",  
-        "options": [  
-          {  
-            "label": "Emoji",  
-            "value": "emoji"  
-          },  
-          {  
-            "label": "Image URL",  
-            "value": "url"  
-          }  
-        ],  
-        "required": false,  
-        "customHelp": "Enter emoji or url.",  
-        "placeholder": "Select",  
-        "customInputLabel": "Icon type",  
-        "customPlaceholder": "emoji"  
-      },  
-      {  
-        "key": "emoji",  
-        "help": "Enter the emoji short code that will be used as the bot's icon, e.g., :smile:. You can find emoji codes [here](https://www.webfx.com/tools/emoji-cheat-sheet/).",  
-        "type": "string",  
-        "label": "Emoji Code",  
-        "required": false,  
-        "placeholder": ":smile:",  
-        "visibilityCondition": "context?.inputData?.bot_details?.icon_type === 'emoji'"  
-      },  
-      {  
-        "key": "url",  
-        "help": "Enter the icon image URL. Defaults to the viaSocket logo if left blank.",  
-        "type": "string",  
-        "label": "Icon Image URL",  
-        "required": false,  
-        "placeholder": "https://stuff.thingsofbrand.com/viasocket.com/images/imgf_logo-2.png",  
-        "visibilityCondition": "context?.inputData?.bot_details?.icon_type === 'url'"  
-      }  
-    ]  
-  },  
-  {  
-    "key": "preview",  
-    "type": "input groups",  
-    "label": "Preview",  
-    "fields": [  
-      {  
-        "key": "unfurl_links",  
-        "help": "Expand URLs as preview cards in the message.",  
-        "type": "dropdown",  
-        "label": "Show Link Preview",  
-        "options": [  
-          {  
-            "label": "Yes, show link previews",  
-            "value": true  
-          },  
-          {  
-            "label": "No, keep message clean",  
-            "value": false  
-          }  
-        ],  
-        "required": false,  
-        "customHelp": "Enter true to expand URLs as preview cards, false to keep the message clean.",  
-        "placeholder": "Select",  
-        "customInputLabel": "Show link preview",  
-        "customPlaceholder": "true"  
-      },  
-      {  
-        "key": "unfurl_media",  
-        "help": "Select whether to show images, videos, and GIFs inline in the message.",  
-        "type": "dropdown",  
-        "label": "Show Media Preview",  
-        "options": [  
-          {  
-            "label": "Yes, show media inline",  
-            "value": true  
-          },  
-          {  
-            "label": "No, show only the URL",  
-            "value": false  
-          }  
-        ],  
-        "required": false,  
-        "customHelp": "Enter true to show media inline, false to show only the URL.",  
-        "placeholder": "Select",  
-        "customInputLabel": "Show media preview",  
-        "customPlaceholder": "true"  
-      }  
-    ]  
-  }  
+### 5.4 Input Fields JSON
+
+```json
+[
+  {
+    "key": "destination",
+    "type": "input groups",
+    "label": "",
+    "whereClause": true,
+    "fields": [
+      {
+        "key": "messageto",
+        "help": "Select where to send the message.",
+        "type": "dropdown",
+        "label": "To",
+        "options": [
+          {
+            "label": "Channel",
+            "value": "channel"
+          },
+          {
+            "label": "User",
+            "value": "user"
+          },
+          {
+            "label": "Thread as reply",
+            "value": "thread"
+          }
+        ],
+        "required": true,
+        "customHelp": "Enter channel, user, or thread.",
+        "placeholder": "Select destination type",
+        "defaultValue": {
+          "label": "Channel",
+          "value": "channel"
+        },
+        "customInputLabel": "Destination type",
+        "customPlaceholder": "channel"
+      },
+      {
+        "key": "thread_channel_id",
+        "help": "Select channel or enter channel ID.",
+        "type": "dropdown",
+        "label": "on",
+        "required": true,
+        "customHelp": "Enter a single channel ID. To find it, use the List all public channels action.",
+        "placeholder": "Select channel",
+        "customInputLabel": "Channel ID",
+        "optionsGenerator": "try { return await get_all_channel(); } catch (error) { await errorComponent(error); }",
+        "customPlaceholder": "C082WLRJLAA",
+        "visibilityCondition": "context?.inputData?.destination?.messageto === 'thread'"
+      },
+      {
+        "key": "channel_id",
+        "help": "Select channel(s) or enter comma-separated channel IDs.",
+        "type": "multiselect",
+        "label": "",
+        "required": true,
+        "customHelp": "Enter channel name(s) or channel ID(s) separated by commas (e.g. general, #random, C082ACF6XQQ). To find a channel ID, use the \"List all public channels\" action.",
+        "placeholder": "Select channels",
+        "customInputLabel": "Channel IDs",
+        "optionsGenerator": "try { return await get_all_channel(); } catch (error) { await errorComponent(error); }",
+        "customPlaceholder": "[\"C082ACF6XQQ\",\"C082WLRJLAA\"]",
+        "visibilityCondition": "context?.inputData?.destination?.messageto === 'channel'"
+      },
+      {
+        "key": "userId",
+        "help": "Select the user(s) to send the message to.",
+        "type": "multiselect",
+        "label": "",
+        "required": true,
+        "customHelp": "Enter Slack user IDs separated by commas. To find a user ID use the Get all channel members action.",
+        "placeholder": "Select users",
+        "customInputLabel": "User IDs",
+        "optionsGenerator": "try { return await get_all_users_of_workspace(); } catch (error) { await errorComponent(error); }",
+        "customPlaceholder": "[\"U082S1U4DDL\", \"U082S1U4DDM\"]",
+        "visibilityCondition": "context?.inputData?.destination?.messageto === 'user'"
+      },
+      {
+        "key": "thread_ts",
+        "help": "Select or enter the message ID you want to reply to.",
+        "type": "dropdown",
+        "label": "Thread",
+        "required": true,
+        "customHelp": "Enter message ID. To find the message ID use the Get messages from Slack action.",
+        "canPaginate": false,
+        "customInputLabel": "Message ID",
+        "optionsGenerator": "try { return await get_sendmessage_messages(context?.inputData?.destination?.thread_channel_id); } catch (error) { await errorComponent(error); }",
+        "customPlaceholder": "1774073738.822629",
+        "visibilityCondition": "context?.inputData?.destination?.thread_channel_id"
+      },
+      {
+        "key": "tagged_users",
+        "type": "multiselect",
+        "label": "also notify",
+        "required": false,
+        "customHelp": "Enter Slack user IDs separated by commas. To find a user ID use the Get all channel members action.",
+        "placeholder": "Select people",
+        "customInputLabel": "User IDs",
+        "optionsGenerator": "try {\\n  let users = [];\\n  let cursor = null;\\n  do {\\n    const response = await axios.request({\\n      method: 'get',\\n      url: 'https://slack.com/api/users.list',\\n      params: {\\n        limit: 999,\\n        cursor: cursor || undefined\\n      }\\n    });\\n    if (!response.data.ok) {\\n      throw new Error(response.data.error);\\n    }\\n    users.push(...response.data.members);\\n    cursor = response.data.response_metadata?.next_cursor || null;\\n  } while (cursor);\\n\\n  if (!users.length) {\\n    return {\\n      message: \"No users found, please make sure there is an available user to fetch.\"\\n    };\\n  }\\n\\n  const staticOptions = [\\n    { label: 'Everyone in the channel', value: 'channel', sample: 'channel' }\\n  ];\\n\\n  const userOptions = users\\n    .filter(member => member.id !== 'USLACKBOT')\\n    .map(member => ({\\n      label: member.real_name || member.name,\\n      value: member.id,\\n      sample: member.id\\n    }));\\n\\n  return [...staticOptions, ...userOptions];\\n} catch (error) {\\n  await errorComponent(error);\\n}",
+        "customPlaceholder": "[\"U0A6THCVAH1\", \"U082S1U4DDL\"]",
+        "visibilityCondition": "context?.inputData?.destination?.thread_ts || context?.inputData?.destination?.[\"channel_id\"]?.[0]"
+      },
+      {
+        "key": "reply_broadcast",
+        "help": "Broadcast the reply to the entire channel?",
+        "type": "boolean",
+        "label": "also send as direct message",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter true to broadcast the reply to the entire channel, false to keep it in the thread only.",
+        "placeholder": "Select",
+        "customInputLabel": "Broadcast reply",
+        "customPlaceholder": "false",
+        "visibilityCondition": "context?.inputData?.destination?.thread_ts"
+      }
+    ]
+  },
+  {
+    "key": "markdown_content",
+    "help": "Enter the message text. You can use plain text or Markdown formatting like *bold*, _italic_, code, and links.",
+    "type": "markdown",
+    "label": "With message",
+    "required": true,
+    "placeholder": "Type your message here...",
+    "visibilityCondition": "context?.inputData?.destination?.channel_id || context?.inputData?.destination?.thread_ts || context?.inputData?.destination?.userId"
+  },
+  {
+    "key": "buttons",
+    "help": "Add clickable buttons to your message. Each button opens a URL when clicked. Use the button text as the key and the link as the value.",
+    "type": "dictionary",
+    "label": "Action Buttons",
+    "required": false,
+    "template": {
+      "key": {
+        "help": "Enter the button label.",
+        "type": "string",
+        "placeholder": "Click Me"
+      },
+      "value": {
+        "help": "Enter the URL.",
+        "type": "string",
+        "placeholder": "https://www.example.com"
+      }
+    }
+  },
+  {
+    "key": "schedule_type",
+    "help": "Select when to send the message.",
+    "type": "dropdown",
+    "label": "Schedule",
+    "options": [
+      {
+        "label": "For specific Date & Time",
+        "value": "datetime"
+      },
+      {
+        "label": "After a Delay",
+        "value": "delay"
+      }
+    ],
+    "required": false,
+    "customHelp": "Enter datetime to schedule for a specific time, or delay to send after a number of minutes.",
+    "placeholder": "Select",
+    "customInputLabel": "Schedule type",
+    "customPlaceholder": "datetime"
+  },
+  {
+    "key": "delay_value",
+    "help": "Enter the number of minutes to wait before sending the message.",
+    "type": "number",
+    "label": "Delay (in minutes)",
+    "required": true,
+    "placeholder": "10",
+    "visibilityCondition": "context?.inputData?.schedule_type === 'delay'"
+  },
+  {
+    "key": "post_at",
+    "help": "Enter date & time in this format only: YYYY-MM-DD HH:mm (24-hour time in IST, UTC+5:30).",
+    "type": "string",
+    "label": "At",
+    "required": true,
+    "placeholder": "2026-02-05 18:07",
+    "visibilityCondition": "context?.inputData?.schedule_type === 'datetime'"
+  },
+  {
+    "key": "bot_details",
+    "type": "input groups",
+    "label": "Bot Details",
+    "fields": [
+      {
+        "key": "bot_name",
+        "help": "Enter the bot display name. Defaults to viaSocket if left blank.",
+        "type": "string",
+        "label": "Display Name",
+        "required": false,
+        "placeholder": "viaSocket"
+      },
+      {
+        "key": "icon_type",
+        "help": "Select the type of bot icon to use.",
+        "type": "dropdown",
+        "label": "Custom Icon Type",
+        "options": [
+          {
+            "label": "Emoji",
+            "value": "emoji"
+          },
+          {
+            "label": "Image URL",
+            "value": "url"
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter emoji or url.",
+        "placeholder": "Select",
+        "customInputLabel": "Icon type",
+        "customPlaceholder": "emoji"
+      },
+      {
+        "key": "emoji",
+        "help": "Enter the emoji short code that will be used as the bot's icon, e.g., :smile:. You can find emoji codes [here](https://www.webfx.com/tools/emoji-cheat-sheet/).",
+        "type": "string",
+        "label": "Emoji Code",
+        "required": false,
+        "placeholder": ":smile:",
+        "visibilityCondition": "context?.inputData?.bot_details?.icon_type === 'emoji'"
+      },
+      {
+        "key": "url",
+        "help": "Enter the icon image URL. Defaults to the viaSocket logo if left blank.",
+        "type": "string",
+        "label": "Icon Image URL",
+        "required": false,
+        "placeholder": "https://stuff.thingsofbrand.com/viasocket.com/images/imgf_logo-2.png",
+        "visibilityCondition": "context?.inputData?.bot_details?.icon_type === 'url'"
+      }
+    ]
+  },
+  {
+    "key": "preview",
+    "type": "input groups",
+    "label": "Preview",
+    "fields": [
+      {
+        "key": "unfurl_links",
+        "help": "Expand URLs as preview cards in the message.",
+        "type": "dropdown",
+        "label": "Show Link Preview",
+        "options": [
+          {
+            "label": "Yes, show link previews",
+            "value": true
+          },
+          {
+            "label": "No, keep message clean",
+            "value": false
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter true to expand URLs as preview cards, false to keep the message clean.",
+        "placeholder": "Select",
+        "customInputLabel": "Show link preview",
+        "customPlaceholder": "true"
+      },
+      {
+        "key": "unfurl_media",
+        "help": "Select whether to show images, videos, and GIFs inline in the message.",
+        "type": "dropdown",
+        "label": "Show Media Preview",
+        "options": [
+          {
+            "label": "Yes, show media inline",
+            "value": true
+          },
+          {
+            "label": "No, show only the URL",
+            "value": false
+          }
+        ],
+        "required": false,
+        "customHelp": "Enter true to show media inline, false to show only the URL.",
+        "placeholder": "Select",
+        "customInputLabel": "Show media preview",
+        "customPlaceholder": "true"
+      }
+    ]
+  }
 ]
+```
 
-#### 5.5 API Configuration Perform Code
+### 5.5 API Configuration Perform Code
 
+```javascript
 async function sendMessage() {  
   try {  
     const destination = context?.inputData?.destination || {};  
@@ -5468,7 +5538,7 @@ async function sendMessage() {
 
     const toUnixTimestamp = (input) => {  
       if (!input) throw new Error('post_at is required');  
-      const match = input.match(/^(\\d{4})-(\\d{2})-(\\d{2}) (\\d{2}):(\\d{2})$/);  
+      const match = input.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/);  
       if (!match) throw new Error('Invalid date format. Use YYYY-MM-DD HH:mm');  
       const [, year, month, day, hour, minute] = match;  
       const utcMillis = Date.UTC(  
@@ -5485,7 +5555,7 @@ async function sendMessage() {
 
     const toDelayTimestamp = (delayMinutes) => {  
       if (!delayMinutes || isNaN(delayMinutes)) throw new Error('Delay value is required and must be a number');  
-      return Math.floor(Date.now() / 1000\) \+ Number(delayMinutes) * 60;  
+      return Math.floor(Date.now() / 1000) + Number(delayMinutes) * 60;  
     };
 
     const normalizeIds = (input) => {  
@@ -5579,11 +5649,11 @@ async function sendMessage() {
       }  
     }
 
-    const hasMarkdown = /(\\*[^*]+\\*|_[^_]+_|`[^`]+`|\~[^\~]+\~|>\\s|```[\\s\\S]*```|\\[.+\\]\\(.+\\))/.test(rawContent);
+    const hasMarkdown = /(\*[^*]+\*|_[^_]+_|`[^`]+`|\~[^\~]+\~|>\s|```[\s\S]*```|[.+]\(.+\))/.test(rawContent);
 
     const actions = Object.entries(context?.inputData?.buttons || {}).map(([key, url], index) => ({  
       type: 'button',  
-      text: key.charAt(0).toUpperCase() \+ key.slice(1),  
+      text: key.charAt(0).toUpperCase() + key.slice(1),  
       url,  
       style: index % 2 === 0 ? 'primary' : 'danger'  
     }));
@@ -5597,11 +5667,11 @@ async function sendMessage() {
       if (!taggedRaw.length) return '';
 
       const mentions = taggedRaw.map((id) => {  
-        if (id === 'channel') return '\<!channel>';  
-        return `\<@${id}>`;  
+        if (id === 'channel') return '<!channel>';  
+        return `<@${id}>`;  
       });
 
-      return mentions.join(' ') \+ '\\n\\n';  
+      return mentions.join(' ') + '\n\n';  
     };
 
     const mentionPrefix = buildMentionPrefix();
@@ -5625,14 +5695,14 @@ async function sendMessage() {
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    const rateLimitedPost = async (url, payload, maxRetries = 3\) => {  
-      for (let attempt = 0; attempt \<= maxRetries; attempt++) {  
+    const rateLimitedPost = async (url, payload, maxRetries = 3) => {  
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {  
         const response = await axios.post(url, payload, {});  
         if (response.data.ok) return response.data;
 
         const errorCode = response.data.error;  
         const isRateLimited = errorCode === 'ratelimited' || response.status === 429;  
-        if (isRateLimited && attempt \< maxRetries) {  
+        if (isRateLimited && attempt < maxRetries) {  
           const retryAfter = Number(response.headers?.['retry-after']) || Math.pow(2, attempt);  
           await sleep(retryAfter * 1000);  
           continue;  
@@ -5644,7 +5714,7 @@ async function sendMessage() {
     const sendSingleMessage = async (channel, thread_ts = undefined, reply_broadcast = undefined) => {  
       const payload = applyBotIdentity({  
         channel,  
-        text: mentionPrefix \+ rawContent,  
+        text: mentionPrefix + rawContent,  
         mrkdwn: hasMarkdown,  
         ...(attachmentjson && { attachments: attachmentjson }),  
         ...(preview?.unfurl_links !== undefined && { unfurl_links: preview.unfurl_links }),  
@@ -5709,15 +5779,20 @@ async function sendMessage() {
     await errorComponent(error);  
   }  
 }  
-return await sendMessage();  
+return await sendMessage();
+```
 
-### 6. Cin7 Core — Update Customer (Advanced)
-Category – Inventory / CRM
+## 6. Cin7 Core — Update Customer (Advanced)
 
-#### 6.1 API Usage
+- **Category:** Inventory / CRM
+
+
+### 6.1 API Usage
+
 No external API calls are made for options besides pagination helpers (List Customers, List Attribute Sets). 
 
-#### 6.2 UI Components
+### 6.2 UI Components
+
 **Dropdown – Customer**
 Dropdown to select the customer, paginated via a list customers helper. 
 
@@ -5730,10 +5805,12 @@ Dedicated Input Groups (e.g., Billing Address, Contacts) that are conditionally 
 **Input Group - Selected Field Values**
 For top-level fields (like Name, Currency, Tax Rule), a static input groups with conditional visibility renders the inputs based on the multiselect choice.
 
-#### 6.3 API Flow
+### 6.3 API Flow
+
 The Perform Code conditionally extracts data based on the user's multiselect choices. It cleans out empty addresses or objects and submits only the updated properties, honoring the partial update pattern.
 
-#### 6.4 Input Fields
+### 6.4 Input Fields JSON
+
 ```json
 [
   {
@@ -6490,7 +6567,8 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
 ]
 ```
 
-#### 6.5 API Configuration Perform Code:
+### 6.5 API Configuration Perform Code
+
 ```javascript
 async function updateCustomer() {
   try {

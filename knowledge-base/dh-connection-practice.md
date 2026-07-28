@@ -55,6 +55,7 @@ published: true
     - No Auth Best Practices
 - Connection Label & Field Naming Guidelines
   - Connection Label Naming & Description
+    - Connection Value Path Rules (Single Value & Composite Keys)
   - Field Naming & Description
   - General Copywriting Guidelines
 - Automation UX Builder & Architecture Instructions (Connections)
@@ -82,6 +83,10 @@ published: true
     - 3. Response Handling
     - 4. Backward Compatibility Rules
   - Required Output Structure
+    - 1. Auth Documentation Understanding Summary
+    - 2. Clarification Questions
+    - 3. Proposed Connection Architecture
+    - 5. Connection Safety & Longevity Check
   - Behavior Constraints
     - Trade-Off Evaluation Protocol
     - Final Decision Reflection

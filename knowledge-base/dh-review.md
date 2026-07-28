@@ -18,7 +18,6 @@ published: true
   - 2. Input Fields
   - 3. Text Quality & Consistency
 
-    
 # Objective
 You must strictly validate the code and JSON against these Knowledge Bases:
 - **[DH Input Fields Knowledge Base](knowledge-base/dh-Input-fields-json-builder.md)**

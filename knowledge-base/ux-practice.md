@@ -89,22 +89,27 @@ published: true
   - Pre-Design Analysis (Mandatory)
     - Technical Reasoning Principles
   - Action Design Strategy
-    - The Unified Action Principle
-    - Identifier & Record Resolution
-    - Search Mode Evaluation
+    - 1. The Unified Action Principle
+    - 2. Identifier & Record Resolution
+    - 3. Search Mode Evaluation
   - Field Design & Dynamic UI Rules
-    - General Principles
-    - Dropdown Design Rules
-    - Dynamic Schema Handling
-    - Workflow Simplicity Principles
-    - Structural Constraint Handling
-    - Cross-Cutting UX Patterns
+    - 1. General Principles
+    - 2. Dropdown Design Rules
+    - 3. Dynamic Schema Handling
+    - 4. Workflow Simplicity Principles
+    - 5. Structural Constraint Handling
+    - 6. Cross-Cutting UX Patterns
   - Automation Safety & Overwrite Protection
-    - Idempotency Preservation
-    - Update Safety & Overwrite Protection
-    - Response Handling
-    - Backward Compatibility Rules
+    - 1. Idempotency Preservation
+    - 2. Update Safety & Overwrite Protection
+    - 3. Response Handling
+    - 4. Backward Compatibility Rules
   - Required Output Structure
+    - 1. API Understanding Summary
+    - 2. Clarification Questions
+    - 3. Proposed UX Architecture
+    - 4. API Configuration Perform Code
+    - 5. Automation Safety & Scalability Check
   - Behavior Constraints
     - Trade-Off Evaluation Protocol
     - Final Decision Reflection

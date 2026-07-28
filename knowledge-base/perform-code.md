@@ -10,38 +10,28 @@ published: true
 - Trigger
   - Trigger Code Generation Rules:
   - Instant Trigger
-    - Instant Trigger Code Generation Rules:
-      - Instant Trigger Subscribe Code Rules:
-      - Instant Trigger Sample Code:
-      - Instant Trigger Perform Code (Modify data before send to flow) Rules:
-      - Instant Trigger Unsubscribe Code Rules:
-      - Instant Trigger Transfer Code Rules:
-      - Instant Trigger Transfer Code Patterns:
+  - Instant Trigger Code Generation Rules:
+    - Instant Trigger Subscribe Code Rules:
+    - Instant Trigger Sample Code:
+    - Instant Trigger Perform Code (Modify data before send to flow) Rules:
+    - Instant Trigger Unsubscribe Code Rules:
+    - Instant Trigger Transfer Code Rules:
+    - Instant Trigger Transfer Code Patterns:
   - Scheduled Trigger
     - Scheduled Trigger Code Generation Rules:
-      - Scheduled Trigger Perform Code Rules:
+    - Scheduled Trigger Perform Code Rules:
       - Scheduled Trigger Perform Code Patterns:
-      - Schedule Trigger Sample Code:
-        - Schedule Trigger Sample Code Rules:
-        - Schedule Trigger Sample Code Pattern:
-        - Schedule Trigger Sample Example Code:
-      - Scheduled Trigger Transfer Code Rules:
-      - Scheduled Trigger Transfer Code Patterns:
-  - Manual Trigger
-    - Manual Trigger Perform Code Rules:
-    - Manual Trigger Perform Code (Modify data before send to flow) Rules:
-    - Manual Trigger Sample Code Pattern:
-- Actions
-  - Action Perform Code Rules:
-  - Action Perform Code Patterns:
-    - Read Data from an API (GET Family)
-    - Create Data in an API
-    - Update Data in an API
-    - Delete or Archive Data in an API
-- Special Note:
-  - Special Note - API Request Error Handling:
-  - Special Note - Success Code Handling:
-  - Special Note - Final Code Review:
+        - 1. Fetching New Items from an API with pagination
+        - 2. Fetching Updated Items from an API with pagination
+        - 3. Fetching items with client-side field filtering and page-number pagination
+        - 4. Fetching items utilizing Native API query parameters (Most Optimized)
+      - Scheduled Trigger Perform Code Example Code:
+        - Example 1: Fetching new items from an API with pagination
+        - Example 2: Fetching updated items from an API with pagination
+        - Example 3: Fetching items with client-side field filtering and page-number pagination
+        - Example 4: Using Native API Date Filtering
+        - Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
+        - Example 6: Fetching Upcoming Events for Relative Future Time Windows (Meeting Reminder)
 
 # Perform Code Knowledge Base
 

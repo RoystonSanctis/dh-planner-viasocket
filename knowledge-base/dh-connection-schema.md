@@ -6,14 +6,16 @@ published: true
 ---
 
 # Page Index
+
 - Agent Variable ↔ Schema Field Alias Reference
+- Database Schema for the Connection Model
 - 1. Connection Object Schema (Response)
   - Connection Response JSON Schema
   - Connection Response TOON Schema
 - 2. Create Connection Payload
   - Create Connection JSON Schema
   - Create Connection TOON Schema
-- Common Fields (Plugin-Level, applicable to Create & Update)
+- Common Fields (Plugin-Level)
   - Common Fields JSON Schema
   - Common Fields TOON Schema
 - 3. Update Connection Payload
@@ -36,8 +38,6 @@ published: true
   - 3.3. Auth1.0 Update Schema
     - Auth1.0 Update JSON Schema
     - Auth1.0 Update TOON Schema
-
----
 
 # Agent Variable ↔ Schema Field Alias Reference
 
