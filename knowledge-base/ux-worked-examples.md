@@ -40,6 +40,8 @@ published: true
   - LeadSquared — Create or Update a Lead (Advanced)
   - Keka — List all Employees (Advanced)
   - Cin 7 Core — Update Customer (Advanced)
+- SCHEDULED TRIGGER Examples
+  - Google Calendar — New Upcoming Events (Scheduled Trigger)
 - Cross-Cutting UX Patterns (Extracted)
 
 # UX Worked Examples Knowledge Base
@@ -3318,9 +3320,130 @@ try {
 **UX Components & Field Design**
 - **Dynamic Dropdown — Channel** (from conversations.list), **String — Message Text**, **String — Post Time** (date-time entered as a string, converted to UNIX epoch in code).
 
-**UX Takeaways**
-- Prefer folding a "scheduled?" behavior into the main action as a boolean/dropdown toggle (as Send Message does) rather than shipping a separate near-duplicate action. Consolidation over fragmentation.
-- Always take date/time as a friendly string and convert to the API's required epoch format in perform code.
+---
+
+# SCHEDULED TRIGGER Examples
+
+## Google Calendar — New Upcoming Events (Scheduled Trigger)
+
+### Rationale
+- **Category:** SCHEDULED TRIGGER (Polling)
+- **Use Case:** Polls Google Calendar for upcoming events that start within a user-defined relative time offset in the future (e.g. `meetingBefore` minutes from execution time).
+- **UX Highlights:**
+  - **Multiselect Resource Picker (`calendarId`):** Allows selecting one or multiple calendars.
+  - **Relative Time Offset (`meetingBefore`):** Asks user how many minutes before the meeting start time they want to be notified.
+  - **Contextual Help (`uFlvfDSL`):** Gated by `visibilityCondition: "context?.inputData?.meetingBefore"`, explaining that the trigger polls every 5 minutes and catches events starting between `meetingBefore` and `meetingBefore + 5` minutes from execution time.
+  - **Integer Millisecond Math (`__executionStartTime__`):** `new Date(__executionStartTime__).getTime()` ensures exact calculation without timezone or floating point errors.
+  - **Overlapping Prevention:** Hardcodes `windowSizeMins = 4` to prevent boundary overlaps on 5-minute cron ticks.
+  - **Single-Pass Fetching:** Iterates through selected calendar IDs and fetches events using `timeMin` and `timeMax` ISO strings without internal pagination loops, tagging returned items with `calendarId`.
+
+### Input Fields JSON
+```json
+[
+  {
+    "key": "calendarId",
+    "help": "Select or Enter your calendar ID",
+    "type": "multiselect",
+    "label": "Calendar",
+    "required": true,
+    "customHelp": "Use the 'List Calendar' action to get all calendar along with their IDs and then map the retrieved data accordingly",
+    "customInputLabel": "Enter your calendar Id.",
+    "optionsGenerator": "try {\nreturn await fetch_calendars() \n\n} catch (error) {\n  await errorComponent(error) \n}",
+    "customPlaceholder": "[\"test@gmail.com\", \"xyz@gmail.com\"]"
+  },
+  {
+    "key": "meetingBefore",
+    "help": "Enter how many minutes before the meeting start time you want to be notified.",
+    "type": "number",
+    "label": "Meeting Before",
+    "required": false,
+    "placeholder": "15"
+  },
+  {
+    "key": "uFlvfDSL",
+    "help": "Enter minutes before the meeting start to get notified. Trigger polls every 5 min, so events starting between (meetingBefore) and (meetingBefore + 5) minutes from now are caught.",
+    "type": "help",
+    "visibilityCondition": "context?.inputData?.meetingBefore"
+  }
+]
+```
+
+### Perform Code
+```javascript
+async function fetchUpcomingEvents() {
+    try {
+        // 1. Get the exact execution time in integer milliseconds to ensure math works
+        const execTimeMs = new Date(__executionStartTime__).getTime();
+
+        // ---------------------------------------------------------
+        // STRICT NUMBER PARSING
+        // ---------------------------------------------------------
+        const rawMeetingBefore = context.inputData?.meetingBefore;
+        const meetingBefore = (rawMeetingBefore !== undefined && rawMeetingBefore !== '') 
+            ? Number(rawMeetingBefore) 
+            : 0;
+            
+        // Hardcoded to 4 minutes to prevent boundary overlaps on 5-minute cron ticks
+        const windowSizeMins = 4;
+
+        // ---------------------------------------------------------
+        // TIME MATH FIX
+        // ---------------------------------------------------------
+        // Calculate the future time window bounds using the integer timestamp
+        const windowStart = new Date(execTimeMs + (meetingBefore * 60 * 1000));
+        const windowEnd = new Date(execTimeMs + ((meetingBefore + windowSizeMins) * 60 * 1000));
+
+        // Google Calendar API expects ISO strings
+        const timeMin = windowStart.toISOString();
+        const timeMax = windowEnd.toISOString();
+        
+        const calendarIds = Array.isArray(context.inputData?.calendarId)
+            ? context.inputData.calendarId
+            : [context.inputData.calendarId];
+
+        let upcomingEvents = [];
+
+        // ---------------------------------------------------------
+        // SINGLE-PASS API FETCH (NO PAGINATION)
+        // ---------------------------------------------------------
+        // Loop through each calendar ID provided
+        for (const calendarId of calendarIds) {
+            if (!calendarId) {
+                continue;
+            }
+
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+
+            const params = {
+                timeMin: timeMin,
+                timeMax: timeMax,
+                orderBy: 'startTime',
+                singleEvents: true,
+                maxResults: 1000 // Safely capped per platform limits
+            };
+
+            const response = await axios.get(url, { params });
+            const items = response.data?.items || [];
+
+            if (items.length > 0) {
+                upcomingEvents.push(
+                    ...items.map(event => ({
+                        ...event,
+                        calendarId // Keep track of source calendar
+                    }))
+                );
+            }
+        }
+
+        return upcomingEvents;
+
+    } catch (error) {
+        await errorComponent(error);
+    }
+}
+
+return await fetchUpcomingEvents();
+```
 
 ---
 

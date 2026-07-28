@@ -215,7 +215,7 @@ Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Bu
 ## Globals
 | Global | Where |
 |---|---|
-| `__executionStartTime__` | Scheduled Perform — run timestamp. Lookback: `new Date(__executionStartTime__ - scheduledTime*60000)` |
+| `__executionStartTime__` | Scheduled Perform — ISO timestamp string of run start (e.g. `"2026-07-28T09:26:51.074Z"`). Integer ms: `const execTimeMs = new Date(__executionStartTime__).getTime()`. Lookback: `execTimeMs - scheduledTime*60000`. Upcoming/Lookahead: `windowStart = execTimeMs + meetingBefore*60000`, `windowEnd = execTimeMs + (meetingBefore+4)*60000` (4-min window size avoids 5-min cron overlap). |
 | `context.inputData.scheduledTime` | Scheduled — interval (min) |
 | `context.paginationData` | Scheduled cursor/state across runs (init `0`/`null`; requires pagination enabled). Advance ONLY if filtered-nonempty AND new next-token. Repeated token auto-breaks. Multi-item → `{ cursors: { [itemId]: cursor }, activeForms: [itemId] }`. **CRITICAL: NEVER assign `null`/`0` or clear in `else` block.** |
 | `context.paginateData['<field>']` | Dynamic dropdown/multiselect `optionsGenerator` token. Group: `['group.field']`; nested: path order. |
@@ -278,7 +278,8 @@ return {
 ```
 
 ## Scheduled Perform
-Time window: `const t = new Date(__executionStartTime__ - (context?.inputData?.scheduledTime || 15) * 60000);`
+Time window (Lookback): `const execTimeMs = new Date(__executionStartTime__).getTime(); const t = new Date(execTimeMs - (context?.inputData?.scheduledTime || 15) * 60000);`
+- **Upcoming event / relative time window**: calculate future bounds from integer ms: `const execTimeMs = new Date(__executionStartTime__).getTime()`. `const meetingBefore = Number(context.inputData?.meetingBefore || 0); const windowSizeMins = 4;` (hardcoded 4 mins to prevent 5-min cron overlaps). `const timeMin = new Date(execTimeMs + (meetingBefore * 60000)).toISOString(); const timeMax = new Date(execTimeMs + ((meetingBefore + windowSizeMins) * 60000)).toISOString();`
 - Returns array `[{item1},{item2}]`. Capped at max 1000 items/page (or service limit if smaller).
 - **No internal pagination** — single page fetch; use `context.paginationData` across runs.
 - **Native filter** (preferred): pass `created_at_min=t` to API.

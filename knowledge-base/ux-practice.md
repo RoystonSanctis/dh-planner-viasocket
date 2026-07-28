@@ -208,30 +208,33 @@ The standard field ordering for an Instant Trigger follows this flow:
 ## Scheduled Trigger
 
 ### Scheduled Trigger Purpose:
-A Scheduled Trigger runs at regular time intervals by repeatedly checking the external service for new or updated data. If something new is found, the workflow runs. It acts as a polling mechanism.
+A Scheduled Trigger runs at regular time intervals by repeatedly checking the external service for new, updated, or upcoming data. If something matches the polling window, the workflow runs. It acts as a polling mechanism.
 
 **When to use:**
 - When the external service does NOT support webhooks.
 - When data needs to be checked manually at intervals.
-- Example: New row in Google Sheet (every 5 min), New lead in CRM (every 10 min), Updated database item in Notion.
+- Example: New row in Google Sheet (every 5 min), New lead in CRM (every 10 min), Updated database item in Notion, New Upcoming Events in Google Calendar (every 5 min lookahead window).
 
 ### Scheduled Trigger UX Pattern:
 The standard field ordering for a Scheduled Trigger follows this flow:
 
-1. **Dynamic Dropdown** → Primary resource selection (e.g., select Data Source, select Spreadsheet). Configure `canPaginate` and `enableSearchApi` flags using the priority rules based on API capability: (1) both search and pagination supported ⇒ `canPaginate:true, enableSearchApi:true`; (2) search only, no pagination ⇒ `canPaginate:false, enableSearchApi:true`; (3) pagination only, no search ⇒ `canPaginate:true, enableSearchApi:false`; (4) neither ⇒ `canPaginate:false, enableSearchApi:false`. Verify support via web search; if reusing an existing component that implements pagination/search, set the corresponding flags to `true`.
+1. **Dynamic Dropdown / Multiselect** → Primary resource selection (e.g., select Data Source, select Spreadsheet, select Calendar(s)). Configure `canPaginate` and `enableSearchApi` flags using the priority rules based on API capability: (1) both search and pagination supported ⇒ `canPaginate:true, enableSearchApi:true`; (2) search only, no pagination ⇒ `canPaginate:false, enableSearchApi:true`; (3) pagination only, no search ⇒ `canPaginate:true, enableSearchApi:false`; (4) neither ⇒ `canPaginate:false, enableSearchApi:false`. Verify support via web search; if reusing an existing component that implements pagination/search, set the corresponding flags to `true`.
 2. **Dynamic Dropdown** → Secondary/dependent resource selection (e.g., select Sheet within Spreadsheet). Uses `visibilityCondition` to depend on the first dropdown.
-3. **Boolean** *(optional)* → Configuration toggles (e.g., "Does your first row contain column name?"). *Note: Do not include an "Enable Pagination" toggle, as pagination is handled automatically via the trigger configuration.*
-4. **Multiselect Dynamic** *(optional)* → Field filtering (e.g., select which columns/properties to return in the output).
-5. **Input Group Static** *(optional)* → Grouped filter settings (e.g., Filter Properties, Search Query). *Note: Do not include page limit, start cursor, or offset fields.*
-6. **AI Field** *(optional)* → Advanced filter conditions using AI-generated queries.
+3. **Number** *(optional, for Upcoming Event triggers)* → Relative time window offset (e.g. `meetingBefore`: "Enter how many minutes before the meeting start time you want to be notified").
+4. **Help** *(optional, gated by visibilityCondition)* → Contextual explanation of polling window math (e.g. `visibilityCondition: "context?.inputData?.meetingBefore"` explaining 5-min cron interval catching window).
+5. **Boolean** *(optional)* → Configuration toggles (e.g., "Does your first row contain column name?"). *Note: Do not include an "Enable Pagination" toggle, as pagination is handled automatically via the trigger configuration.*
+6. **Multiselect Dynamic** *(optional)* → Field filtering (e.g., select which columns/properties to return in the output).
+7. **Input Group Static** *(optional)* → Grouped filter settings (e.g., Filter Properties, Search Query). *Note: Do not include page limit, start cursor, or offset fields.*
+8. **AI Field** *(optional)* → Advanced filter conditions using AI-generated queries.
 
 ### Scheduled Trigger Common Input Fields:
-- **Dropdown Dynamic** — Used for selecting the resource to poll (e.g., Data Source, Spreadsheet, Sheet). Cascading dropdowns are common (Spreadsheet → Sheet).
+- **Dropdown / Multiselect Dynamic** — Used for selecting the resource to poll (e.g., Data Source, Spreadsheet, Sheet, Calendars). Cascading dropdowns are common (Spreadsheet → Sheet).
+- **Number** — Used for relative time window offsets in upcoming event triggers (e.g., `meetingBefore`).
+- **Help** — Used below relative time fields with `visibilityCondition` to explain the 5-min polling cron window.
 - **Boolean** — Used for configuration toggles that change behavior (e.g., column naming mode). *Do not include pagination toggles.*
 - **Multiselect Dynamic** — Used for selecting which fields/properties to include in the output. Reusable Components are recommended for the `optionsGenerator`.
 - **Input Group Static** — Used for grouping related filtering or sorting settings. *Do not include pagination fields like page limit or next page token.*
 - **AI Field** — Used for advanced filter conditions where the user can describe the filter in natural language and AI generates the structured query.
-- **Help Dynamic** *(optional)* — Used for contextual information based on user selections.
 
 ### Scheduled Trigger Perform Code Reference:
 - Scheduled Triggers require **Perform Code** for polling, filtering, sorting, and pagination.
@@ -244,6 +247,10 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 ### Scheduled Trigger Best Practices:
 - **No pagination input fields**: Never ask the user for pagination fields (such as limit, page size, start cursor, next page token). These should be defined internally within the perform code, and the `canpaginate: true` feature should be enabled in the trigger database schema.
 - **No scheduledTime in UI**: Do not suggest or include `scheduledTime` as an input field in the UI. `scheduledTime` is a global variable available in code under `context?.inputData?.scheduledTime`.
+- **Upcoming Events / Relative Time Window Triggers**:
+  - Collect resource ID(s) (e.g. `calendarId` as multiselect/dropdown) and a relative time offset field (e.g. `meetingBefore` number field).
+  - Pair `meetingBefore` with a static `help` field (`visibilityCondition: "context?.inputData?.meetingBefore"`) explaining the polling math: *"Enter minutes before the meeting start to get notified. Trigger polls every 5 min, so events starting between (meetingBefore) and (meetingBefore + 5) minutes from now are caught."*
+  - In perform code, parse `__executionStartTime__` using `new Date(__executionStartTime__).getTime()`, parse `meetingBefore` strictly as Number, hardcode `windowSizeMins = 4` to prevent boundary overlaps on 5-min cron ticks, calculate ISO strings `timeMin`/`timeMax`, and perform a single-pass loop over `calendarId`s.
 - **Cascade dropdowns** — Use `visibilityCondition` to show dependent dropdowns only after the parent is selected (e.g., Sheet depends on Spreadsheet).
 - **Use Reusable Components** — For `optionsGenerator` code in dynamic dropdowns and multiselects. This keeps code secure, DRY, and maintainable.
 - **Group related settings** — Use `Input Group Static` to bundle filter and sorting settings together (avoiding pagination settings).

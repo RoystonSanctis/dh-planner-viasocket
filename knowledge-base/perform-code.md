@@ -313,12 +313,29 @@ Always check if the API natively supports filtering by a start date (e.g., `crea
 - **Client-Side Field Filtering:** There can be input fields that the user chooses from the UI form. If the API doesn't support returning only supplied fields natively, you must filter them out from the response object on the client side before returning data.
 
 **Smart Filtering with `__executionStartTime__`**
-Filter your API results dynamically by calculating the timestamp for "X minutes ago".
+`__executionStartTime__` is a global string variable provided by the execution engine returning the ISO 8601 timestamp of the exact execution start time (e.g., `"2026-07-28T09:26:51.074Z"`).
 
+Always convert it to integer milliseconds using `const execTimeMs = new Date(__executionStartTime__).getTime();` to ensure exact arithmetic:
+
+1. **Past Lookback Window (e.g., New/Updated Items in past interval):**
 ```javascript
-// __executionStartTime__ = Current run's exact timestamp
+const execTimeMs = new Date(__executionStartTime__).getTime();
 // context?.inputData?.scheduledTime = User-defined interval (e.g., 10 mins)
-const minutesAgo = new Date(__executionStartTime__ - context?.inputData?.scheduledTime * 60 * 1000);
+const windowStart = new Date(execTimeMs - (context?.inputData?.scheduledTime || 15) * 60 * 1000);
+```
+
+2. **Upcoming / Relative Future Window (e.g., New Upcoming Events / Meeting Reminder Trigger):**
+```javascript
+const execTimeMs = new Date(__executionStartTime__).getTime();
+const rawMeetingBefore = context.inputData?.meetingBefore;
+const meetingBefore = (rawMeetingBefore !== undefined && rawMeetingBefore !== '') ? Number(rawMeetingBefore) : 0;
+const windowSizeMins = 4; // Hardcoded to 4 minutes to prevent boundary overlaps on 5-minute cron ticks
+
+const windowStart = new Date(execTimeMs + (meetingBefore * 60 * 1000));
+const windowEnd = new Date(execTimeMs + ((meetingBefore + windowSizeMins) * 60 * 1000));
+
+const timeMin = windowStart.toISOString();
+const timeMax = windowEnd.toISOString();
 ```
 
 **Handling Pagination**
@@ -1001,6 +1018,89 @@ async function pollNewLeads() {
 }
 
 return await pollNewLeads();
+```
+
+##### Example 6: Fetching Upcoming Events for Relative Future Time Windows (Meeting Reminder)
+- **Service:** Google Calendar
+- **Trigger:** New Upcoming Events
+- **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
+
+```javascript
+async function fetchUpcomingEvents() {
+    try {
+        // 1. Get the exact execution time in integer milliseconds to ensure math works
+        const execTimeMs = new Date(__executionStartTime__).getTime();
+
+        // ---------------------------------------------------------
+        // STRICT NUMBER PARSING
+        // ---------------------------------------------------------
+        const rawMeetingBefore = context.inputData?.meetingBefore;
+        const meetingBefore = (rawMeetingBefore !== undefined && rawMeetingBefore !== '') 
+            ? Number(rawMeetingBefore) 
+            : 0;
+            
+        // Hardcoded to 4 minutes to prevent boundary overlaps on 5-minute cron ticks
+        const windowSizeMins = 4;
+
+        // ---------------------------------------------------------
+        // TIME MATH FIX
+        // ---------------------------------------------------------
+        // Calculate the future time window bounds using the integer timestamp
+        const windowStart = new Date(execTimeMs + (meetingBefore * 60 * 1000));
+        const windowEnd = new Date(execTimeMs + ((meetingBefore + windowSizeMins) * 60 * 1000));
+
+        // Google Calendar API expects ISO strings
+        const timeMin = windowStart.toISOString();
+        const timeMax = windowEnd.toISOString();
+        
+        const calendarIds = Array.isArray(context.inputData?.calendarId)
+            ? context.inputData.calendarId
+            : [context.inputData.calendarId];
+
+        let upcomingEvents = [];
+
+        // ---------------------------------------------------------
+        // SINGLE-PASS API FETCH (NO PAGINATION)
+        // ---------------------------------------------------------
+        // Loop through each calendar ID provided
+        for (const calendarId of calendarIds) {
+            if (!calendarId) {
+                continue;
+            }
+
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+
+            const params = {
+                timeMin: timeMin,
+                timeMax: timeMax,
+                orderBy: 'startTime',
+                singleEvents: true,
+                maxResults: 1000 // Safely capped per platform limits
+            };
+
+            const response = await axios.get(url, { params });
+            const items = response.data?.items || [];
+
+            if (items.length > 0) {
+                upcomingEvents.push(
+                    ...items.map(event => ({
+                        ...event,
+                        calendarId // Keep track of source calendar
+                    }))
+                );
+            }
+        }
+
+        return upcomingEvents;
+
+    } catch (error) {
+        await errorComponent(error);
+    }
+}
+
+return await fetchUpcomingEvents();
+```
 ```
 
 ### Schedule Trigger Sample Code:
