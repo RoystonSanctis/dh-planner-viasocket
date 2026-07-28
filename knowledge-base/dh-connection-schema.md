@@ -152,9 +152,9 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     "uniqueKey": "String (JS expression evaluating to unique identifier for stored auth; empty string means ViaSocket auto-assigns, e.g., \"context?.authData?.clientid\")",
     "_uniqueKey": "String (Template string version of uniqueKey, e.g., \"${context?.authData?.clientid}\")"
   },
-  "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"Email\")",
-  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account from authData, e.g., \"context?.authData?.testcode.email\")",
-  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.authData?.testcode.email}\")",
+  "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace_name\")",
+  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account from authData; MUST be a single path without '||' fallback operators, e.g., \"context?.authData?.testcode?.bot?.workspace_name\"). If a composite value or fallback is needed, create the composite key in testcode perform code and map its single path here.",
+  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.authData?.testcode?.bot?.workspace_name}\")",
   "connectionlabelname": "null (Reserved field; always null in observed data)",
   "_connectionlabelkey": "null (Reserved field; always null in observed data)",
   "connectionlabelkey_copy": "null (Reserved copy field; always null in observed data)",

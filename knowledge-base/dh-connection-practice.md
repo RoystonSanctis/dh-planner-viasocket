@@ -707,6 +707,43 @@ A Connection Label uniquely identifies a saved connection so users can distingui
 * **App-scoped auth (Client Credentials):** Prefer a stable app/workspace/tenant identifier, since no user exists.
 * **Masking:** Enable masking whenever the label value is sensitive (e.g. partially hidden email or ID).
 
+### Connection Value Path Rules (Single Value & Composite Keys)
+* **Single Value Path Only:** The `connectionlabelvalue` (and `_connectionlabelvalue`) field MUST contain **exactly one path** (e.g. `context?.authData?.testcode?.bot?.workspace_name` or `context?.authData?.testcode?.email`).
+* **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` (e.g., `context?.authData?.testcode?.email || context?.authData?.testcode?.name`) is **STRICTLY PROHIBITED**.
+* **Composite or Fallback Keys in Test API Code:** If a fallback across multiple fields or a composite string (e.g. workspace name falling back to user name, or combining first and last name) is required to form the connection label:
+  1. The composite/fallback logic **must be constructed inside the Test (Me) API perform code (`testcode`)**.
+  2. The `testcode` function must set and return that composite property as a single key on its response object (e.g., `data.workspace_name = data.bot?.workspace_name || data.name || data.email;`).
+  3. Map that single composite property directly in `connectionlabelvalue` (e.g., `context?.authData?.testcode?.workspace_name`).
+
+**Example 1 — Single Direct Path (e.g., Notion):**
+* `connectionlabelkey`: `"workspace_name"`
+* `connectionlabelvalue`: `"context?.authData?.testcode?.bot?.workspace_name"`
+* `_connectionlabelvalue`: `"${context?.authData?.testcode?.bot?.workspace_name}"`
+
+**Example 2 — Composite / Fallback Property inside Test (Me) API Perform Code (`testcode`):**
+```javascript
+async function testcode() {
+    try {
+        const response = await axios.get('https://api.example.com/v1/me', {
+            headers: {
+                'Authorization': `Bearer ${context?.authData?.accesstokencode?.access_token}`
+            }
+        });
+        const data = response.data;
+        // Construct composite/fallback key inside testcode so connectionlabelvalue stays a single clean path
+        data.connection_label = data.bot?.workspace_name || data.user?.name || data.email || 'Connected Account';
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
+return await testcode();
+```
+* **Mapping in Connection configuration:**
+  * `connectionlabelkey`: `"connection_label"`
+  * `connectionlabelvalue`: `"context?.authData?.testcode?.connection_label"`
+  * `_connectionlabelvalue`: `"${context?.authData?.testcode?.connection_label}"`
+
 ## Field Naming & Description
 Applies to all credential Auth fields collected in "Configure your Fields":
 * **Key:** Must exactly match the target API's expected parameter name (e.g. `api_key`, `client_id`, `username`).
@@ -798,8 +835,10 @@ Collect and request only what is strictly necessary:
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
 1. Resolve the Connection Label and Unique Connection Identifier from the Test (Me) API response wherever possible.
-2. If no user-identifiable field exists in the response, fall back to a stable non-sensitive value (e.g. account/workspace ID) and note this fallback explicitly in the design output.
-3. Never ask the user to manually paste internal system IDs when the Test API can supply them.
+2. Ensure `connectionlabelvalue` maps to **exactly one path** (e.g., `context?.authData?.testcode?.bot?.workspace_name`). Never chain multiple paths with `||`.
+3. If a composite or fallback label is required across multiple response fields, construct that composite key directly inside the Test (Me) API perform code (`testcode`) and map its single key path to `connectionlabelvalue`.
+4. If no user-identifiable field exists in the response, fall back to a stable non-sensitive value (e.g. account/workspace ID) constructed in `testcode` or mapped directly, noting this fallback explicitly in the design output.
+5. Never ask the user to manually paste internal system IDs when the Test API can supply them.
 
 ### Grant Type Evaluation
 * **Single viable method:** If the service documents only one Auth Type/Grant Type, do not present a selector — implement it directly.
@@ -837,7 +876,7 @@ For every value produced during the Connection flow (auth fields, tokens, test r
 
 ### 6. Cross-Cutting UX Patterns
 * **Token Freshness Pattern** — Always resolve tokens dynamically inside Request Parameter functions (`context.authData?.accesstokencode?.access_token`) rather than caching a static value, so refreshed tokens are picked up automatically.
-* **Fallback Label Pattern** — When no user-identifiable field exists in the Test response, fall back to a stable non-personal identifier (e.g. Account ID) and state this fallback explicitly, mirroring the "No user-identifiable fields found... using AccountId as a fallback" pattern.
+* **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.connection_label`), ensuring no `||` operators are present in `connectionlabelvalue`.
 * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 
 ---
