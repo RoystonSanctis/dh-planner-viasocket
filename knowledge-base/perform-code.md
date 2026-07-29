@@ -25,13 +25,15 @@ published: true
         - 2. Fetching Updated Items from an API with pagination
         - 3. Fetching items with client-side field filtering and page-number pagination
         - 4. Fetching items utilizing Native API query parameters (Most Optimized)
+        - 5. Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
       - Scheduled Trigger Perform Code Example Code:
         - Example 1: Fetching new items from an API with pagination
         - Example 2: Fetching updated items from an API with pagination
         - Example 3: Fetching items with client-side field filtering and page-number pagination
         - Example 4: Using Native API Date Filtering
         - Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
-        - Example 6: Fetching Upcoming Events for Relative Future Time Windows (Meeting Reminder)
+        - Example 6: Fetching Upcoming Events for Relative Future Time Windows (Google Calendar)
+        - Example 7: Fetching Upcoming Meetings with Google Meet Filter for Relative Future Time Windows (Google Meet)
 
 # Perform Code Knowledge Base
 
@@ -316,16 +318,33 @@ const windowStart = new Date(execTimeMs - (context?.inputData?.scheduledTime || 
 
 2. **Upcoming / Relative Future Window (e.g., New Upcoming Events / Meeting Reminder Trigger):**
 ```javascript
-const execTimeMs = new Date(__executionStartTime__).getTime();
-const rawMeetingBefore = context.inputData?.meetingBefore;
-const meetingBefore = (rawMeetingBefore !== undefined && rawMeetingBefore !== '') ? Number(rawMeetingBefore) : 0;
-const windowSizeMins = 4; // Hardcoded to 4 minutes to prevent boundary overlaps on 5-minute cron ticks
+// Dynamic polling window size from system trigger config (default 5 mins if not present)
+const windowSizeMins = Number(context?.inputData?.scheduledTime || 5);
 
-const windowStart = new Date(execTimeMs + (meetingBefore * 60 * 1000));
-const windowEnd = new Date(execTimeMs + ((meetingBefore + windowSizeMins) * 60 * 1000));
+// 1. Snap execution time to the NEAREST polling interval mark to handle cron drift
+const execDate = new Date(__executionStartTime__);
+const minutes = execDate.getUTCMinutes();
+const snappedMinutes = Math.round(minutes / windowSizeMins) * windowSizeMins; 
+execDate.setUTCMinutes(snappedMinutes, 0, 0); // Force to exactly 0 seconds and 0 ms
+const snappedExecTimeMs = execDate.getTime();
 
-const timeMin = windowStart.toISOString();
-const timeMax = windowEnd.toISOString();
+// 2. Strict Number Parsing for user offset (if provided; defaults to 0)
+const rawOffset = context.inputData?.minutesBefore !== undefined 
+    ? context.inputData?.minutesBefore 
+    : context.inputData?.meetingBefore;
+const offsetMins = (rawOffset !== undefined && rawOffset !== '') ? Number(rawOffset) : 0;
+
+// 3. Strict Window Math & API Buffer (+/- 1 min buffer for API query)
+const windowStartMs = snappedExecTimeMs + (offsetMins * 60 * 1000);
+const windowEndMs = snappedExecTimeMs + ((offsetMins + windowSizeMins) * 60 * 1000);
+
+// Widen API fetch window by 1 minute on both sides to prevent excluding boundary matches
+const timeMin = new Date(windowStartMs - 60000).toISOString();
+const timeMax = new Date(windowEndMs + 60000).toISOString();
+
+// 4. Strict Client-Side JS Boundary Filtering post-fetch
+// e.g. eventStartMs > windowStartMs && eventStartMs <= windowEndMs (Events)
+// or eventStartMs >= windowStartMs && eventStartMs < windowEndMs (Meetings)
 ```
 
 **Handling Pagination**
@@ -643,6 +662,84 @@ try {
 
 // Execute function
 return await fetchItemsOptimized();
+```
+
+##### 5. Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
+```javascript
+async function fetchUpcomingItems() {
+    try {
+        // Dynamic polling window size from system trigger config (default 5 mins if not present)
+        const windowSizeMins = Number(context?.inputData?.scheduledTime || 5);
+
+        // 1. Snap execution time to the NEAREST polling interval mark to handle cron drift
+        const execDate = new Date(__executionStartTime__);
+        const minutes = execDate.getUTCMinutes();
+        
+        const snappedMinutes = Math.round(minutes / windowSizeMins) * windowSizeMins; 
+        execDate.setUTCMinutes(snappedMinutes, 0, 0); // Force to exactly 0 seconds and 0 ms
+        const snappedExecTimeMs = execDate.getTime();
+
+        // 2. Strict Number Parsing for relative future offset (if user provided minutesBefore or meetingBefore; defaults to 0)
+        const rawOffset = context.inputData?.minutesBefore !== undefined 
+            ? context.inputData?.minutesBefore 
+            : context.inputData?.meetingBefore;
+        const offsetMins = (rawOffset !== undefined && rawOffset !== '') ? Number(rawOffset) : 0;
+
+        // 3. Strict Window Math & API Buffer (+/- 1 min buffer for API query)
+        const windowStartMs = snappedExecTimeMs + (offsetMins * 60 * 1000);
+        const windowEndMs = snappedExecTimeMs + ((offsetMins + windowSizeMins) * 60 * 1000);
+
+        // Widen the API fetch window by 1 minute on both sides to prevent excluding exact boundary matches
+        const timeMin = new Date(windowStartMs - 60000).toISOString();
+        const timeMax = new Date(windowEndMs + 60000).toISOString();
+        
+        const resourceIds = Array.isArray(context.inputData?.resourceId)
+            ? context.inputData.resourceId
+            : [context.inputData?.resourceId].filter(Boolean);
+
+        let upcomingItems = [];
+
+        // 4. Single-Pass API Fetch across resources
+        for (const resourceId of resourceIds) {
+            if (!resourceId) continue;
+
+            const response = await axios.get(`https://api.service.com/resources/${encodeURIComponent(resourceId)}/events`, {
+                params: {
+                    timeMin: timeMin,
+                    timeMax: timeMax,
+                    singleEvents: true,
+                    maxResults: 1000
+                }
+            });
+
+            const items = response.data?.items || [];
+
+            if (items.length > 0) {
+                // 5. Strict JavaScript Client-Side Boundary Check
+                const validItems = items.filter(item => {
+                    const itemStartMs = new Date(item.start_time || item.start?.dateTime || item.start?.date).getTime();
+                    
+                    // Strict boundary check guarantees exactly 1 execution tick per item
+                    return itemStartMs >= windowStartMs && itemStartMs < windowEndMs;
+                });
+
+                upcomingItems.push(
+                    ...validItems.map(item => ({
+                        ...item,
+                        resourceId // Keep track of source resource ID
+                    }))
+                );
+            }
+        }
+
+        return upcomingItems;
+
+    } catch (error) {
+        await errorComponent(error);
+    }
+}
+
+return await fetchUpcomingItems();
 ```
 
 #### Scheduled Trigger Perform Code Example Code:
@@ -1010,7 +1107,7 @@ async function pollNewLeads() {
 return await pollNewLeads();
 ```
 
-##### Example 6: Fetching Upcoming Events for Relative Future Time Windows (Meeting Reminder)
+##### Example 6: Fetching Upcoming Events for Relative Future Time Windows (Google Calendar)
 - **Service:** Google Calendar
 - **Trigger:** New Upcoming Events
 - **Trigger Type:** Scheduled Trigger
@@ -1019,8 +1116,109 @@ return await pollNewLeads();
 ```javascript
 async function fetchUpcomingEvents() {
     try {
-        // 1. Get the exact execution time in integer milliseconds to ensure math works
-        const execTimeMs = new Date(__executionStartTime__).getTime();
+        // 1. Snap execution time to the NEAREST 5-minute mark to handle cron drift
+        const execDate = new Date(__executionStartTime__);
+        const minutes = execDate.getUTCMinutes();
+        
+        const snappedMinutes = Math.round(minutes / 5) * 5; 
+        execDate.setUTCMinutes(snappedMinutes, 0, 0); // Force to exactly 0 seconds and 0 ms
+        const snappedExecTimeMs = execDate.getTime();
+
+        // ---------------------------------------------------------
+        // STRICT NUMBER PARSING
+        // ---------------------------------------------------------
+        const rawMinutesBefore = context.inputData?.minutesBefore;
+        const minutesBefore = (rawMinutesBefore !== undefined && rawMinutesBefore !== '') 
+            ? Number(rawMinutesBefore) 
+            : 0;
+            
+        // Use exact 5-minute blocks
+        const windowSizeMins = 5;
+
+        // ---------------------------------------------------------
+        // TIME MATH FIX & BOUNDARIES
+        // ---------------------------------------------------------
+        const windowStartMs = snappedExecTimeMs + (minutesBefore * 60 * 1000);
+        const windowEndMs = snappedExecTimeMs + ((minutesBefore + windowSizeMins) * 60 * 1000);
+
+        // Widen the API fetch window by 1 minute on both sides to prevent Google Calendar from excluding exact boundary matches
+        const timeMin = new Date(windowStartMs - 60000).toISOString();
+        const timeMax = new Date(windowEndMs + 60000).toISOString();
+        
+        const calendarIds = Array.isArray(context.inputData?.calendarId)
+            ? context.inputData.calendarId
+            : [context.inputData?.calendarId].filter(Boolean);
+
+        let upcomingEvents = [];
+
+        // ---------------------------------------------------------
+        // SINGLE-PASS API FETCH
+        // ---------------------------------------------------------
+        for (const calendarId of calendarIds) {
+            if (!calendarId) {
+                continue;
+            }
+
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+
+            const params = {
+                timeMin: timeMin,
+                timeMax: timeMax,
+                orderBy: 'startTime',
+                singleEvents: true,
+                maxResults: 1000 
+            };
+
+            const response = await axios.get(url, { params });
+            const items = response.data?.items || [];
+
+            if (items.length > 0) {
+                const validEvents = items.filter(event => {
+                    const eventStartMs = new Date(event.start?.dateTime || event.start?.date).getTime();
+                    
+                    // Strict JavaScript Boundary Check (Adjusted to catch exact end-minute)
+                    if (eventStartMs <= windowStartMs || eventStartMs > windowEndMs) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                upcomingEvents.push(
+                    ...validEvents.map(event => ({
+                        ...event,
+                        calendarId // Keep track of source calendar
+                    }))
+                );
+            }
+        }
+
+        return upcomingEvents;
+
+    } catch (error) {
+        await errorComponent(error);
+    }
+}
+
+return await fetchUpcomingEvents();
+```
+
+##### Example 7: Fetching Upcoming Meetings with Google Meet Filter for Relative Future Time Windows (Google Meet)
+- **Service:** Google Meet
+- **Trigger:** New Upcoming Meeting
+- **Trigger Type:** Scheduled Trigger
+- **Code:** Perform Code
+
+```javascript
+async function fetchUpcomingMeetings() {
+    try {
+        // 1. Snap execution time to the NEAREST 5-minute mark to handle cron drift
+        const execDate = new Date(__executionStartTime__);
+        const minutes = execDate.getUTCMinutes();
+        
+        const snappedMinutes = Math.round(minutes / 5) * 5; 
+        execDate.setUTCMinutes(snappedMinutes, 0, 0); // Force to exactly 0 seconds and 0 ms
+        const snappedExecTimeMs = execDate.getTime();
 
         // ---------------------------------------------------------
         // STRICT NUMBER PARSING
@@ -1030,30 +1228,29 @@ async function fetchUpcomingEvents() {
             ? Number(rawMeetingBefore) 
             : 0;
             
-        // Hardcoded to 4 minutes to prevent boundary overlaps on 5-minute cron ticks
-        const windowSizeMins = 4;
+        // Use exact 5-minute blocks
+        const windowSizeMins = 5;
 
         // ---------------------------------------------------------
         // TIME MATH FIX
         // ---------------------------------------------------------
-        // Calculate the future time window bounds using the integer timestamp
-        const windowStart = new Date(execTimeMs + (meetingBefore * 60 * 1000));
-        const windowEnd = new Date(execTimeMs + ((meetingBefore + windowSizeMins) * 60 * 1000));
+        // Calculate strict JavaScript boundaries using the snapped timestamp
+        const windowStartMs = snappedExecTimeMs + (meetingBefore * 60 * 1000);
+        const windowEndMs = snappedExecTimeMs + ((meetingBefore + windowSizeMins) * 60 * 1000);
 
-        // Google Calendar API expects ISO strings
-        const timeMin = windowStart.toISOString();
-        const timeMax = windowEnd.toISOString();
+        // Widen the API fetch window by 1 minute on both sides to prevent Google Calendar from excluding exact boundary matches
+        const timeMin = new Date(windowStartMs - 60000).toISOString();
+        const timeMax = new Date(windowEndMs + 60000).toISOString();
         
         const calendarIds = Array.isArray(context.inputData?.calendarId)
             ? context.inputData.calendarId
-            : [context.inputData.calendarId];
+            : [context.inputData?.calendarId].filter(Boolean);
 
-        let upcomingEvents = [];
+        let upcomingMeetings = [];
 
         // ---------------------------------------------------------
-        // SINGLE-PASS API FETCH (NO PAGINATION)
+        // SINGLE-PASS API FETCH
         // ---------------------------------------------------------
-        // Loop through each calendar ID provided
         for (const calendarId of calendarIds) {
             if (!calendarId) {
                 continue;
@@ -1073,8 +1270,24 @@ async function fetchUpcomingEvents() {
             const items = response.data?.items || [];
 
             if (items.length > 0) {
-                upcomingEvents.push(
-                    ...items.map(event => ({
+                const validEvents = items.filter(event => {
+                    // 1. Expanded Google Meet Link Check (Conference Data + Location + Description)
+                    const meetRegex = /meet\.google\.com/i;
+                    const hasMeetLink = (
+                        (event.conferenceData && event.conferenceData.entryPoints && event.conferenceData.entryPoints.some(ep => ep.uri && ep.uri.includes('meet.google.com'))) ||
+                        (event.location && meetRegex.test(event.location)) ||
+                        (event.description && meetRegex.test(event.description))
+                    );
+                    
+                    if (!hasMeetLink) return false;
+
+                    // 2. Strict JavaScript Boundary Check (Guarantees exactly 1 execution tick per meeting)
+                    const eventStartMs = new Date(event.start?.dateTime || event.start?.date).getTime();
+                    return eventStartMs >= windowStartMs && eventStartMs < windowEndMs;
+                });
+
+                upcomingMeetings.push(
+                    ...validEvents.map(event => ({
                         ...event,
                         calendarId // Keep track of source calendar
                     }))
@@ -1082,15 +1295,14 @@ async function fetchUpcomingEvents() {
             }
         }
 
-        return upcomingEvents;
+        return upcomingMeetings;
 
     } catch (error) {
         await errorComponent(error);
     }
 }
 
-return await fetchUpcomingEvents();
-```
+return await fetchUpcomingMeetings();
 ```
 
 ### Schedule Trigger Sample Code:
