@@ -713,17 +713,19 @@ A Connection Label uniquely identifies a saved connection so users can distingui
 * **Masking:** Enable masking whenever the label value is sensitive (e.g. partially hidden email or ID).
 
 ### Connection Value Path Rules (Single Value & Composite Keys)
-* **Single Value Path Only:** The `connectionlabelvalue` (and `_connectionlabelvalue`) field MUST contain **exactly one path** (e.g. `context?.authData?.testcode?.bot?.workspace_name` or `context?.authData?.testcode?.email`).
-* **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` (e.g., `context?.authData?.testcode?.email || context?.authData?.testcode?.name`) is **STRICTLY PROHIBITED**.
-* **Composite or Fallback Keys in Test API Code:** If a fallback across multiple fields or a composite string (e.g. workspace name falling back to user name, or combining first and last name) is required to form the connection label:
+* **Single Value Path Only:** The `connectionlabelvalue` (and `_connectionlabelvalue`) field MUST contain **exactly one single path** (e.g., `context?.res?.data?.workspace_name` or `context?.authData?.testcode?.bot?.workspace_name`).
+* **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` is **STRICTLY PROHIBITED**.
+  * *Bad (PROHIBITED):* `"context?.res?.data?.workspace_name || context?.res?.data?.bot?.owner?.name || context?.authData?.clientid"`
+  * *Good:* `"context?.res?.data?.workspace_name"`
+* **Composite or Fallback Keys in Test API Code:** If a fallback across multiple fields or a composite string (e.g., workspace name falling back to user name, or combining first and last name) is required to form the connection label:
   1. The composite/fallback logic **must be constructed inside the Test (Me) API perform code (`testcode`)**.
   2. The `testcode` function must set and return that composite property as a single key on its response object (e.g., `data.workspace_name = data.bot?.workspace_name || data.name || data.email;`).
   3. Map that single composite property directly in `connectionlabelvalue` (e.g., `context?.authData?.testcode?.workspace_name`).
 
-**Example 1 — Single Direct Path (e.g., Notion):**
-* `connectionlabelkey`: `"workspace_name"`
-* `connectionlabelvalue`: `"context?.authData?.testcode?.bot?.workspace_name"`
-* `_connectionlabelvalue`: `"${context?.authData?.testcode?.bot?.workspace_name}"`
+**Example 1 — Single Direct Path (e.g., Notion/Workspace):**
+* `connectionlabelkey`: `"workspace"`
+* `connectionlabelvalue`: `"context?.res?.data?.workspace_name"`
+* `_connectionlabelvalue`: `"${context?.res?.data?.workspace_name}"`
 
 **Example 2 — Composite / Fallback Property inside Test (Me) API Perform Code (`testcode`):**
 ```javascript
@@ -735,7 +737,7 @@ async function testcode() {
             }
         });
         const data = response.data;
-        // Construct composite/fallback key inside testcode so connectionlabelvalue stays a single clean path
+        // Construct composite/fallback key inside testcode so connectionlabelvalue stays a single clean path without ||
         data.connection_label = data.bot?.workspace_name || data.user?.name || data.email || 'Connected Account';
         return data;
     } catch (error) {

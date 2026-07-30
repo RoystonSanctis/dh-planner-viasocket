@@ -152,9 +152,9 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     "uniqueKey": "String (JS expression evaluating to unique identifier for stored auth; empty string means ViaSocket auto-assigns, e.g., \"context?.authData?.clientid\")",
     "_uniqueKey": "String (Template string version of uniqueKey, e.g., \"${context?.authData?.clientid}\")"
   },
-  "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace_name\")",
-  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account from authData; MUST be a single path without '||' fallback operators, e.g., \"context?.authData?.testcode?.bot?.workspace_name\"). If a composite value or fallback is needed, create the composite key in testcode perform code and map its single path here.",
-  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.authData?.testcode?.bot?.workspace_name}\")",
+  "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace\")",
+  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account; MUST be a single path without '||' fallback operators, e.g., \"context?.res?.data?.workspace_name\" or \"context?.authData?.testcode?.bot?.workspace_name\". Never use || fallback chains like \"context?.res?.data?.workspace_name || context?.res?.data?.bot?.owner?.name\"). If a composite value or fallback is needed, create the composite key in testcode perform code and map its single path here.",
+  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.res?.data?.workspace_name}\")",
   "connectionlabelname": "null (Reserved field; always null in observed data)",
   "_connectionlabelkey": "null (Reserved field; always null in observed data)",
   "connectionlabelkey_copy": "null (Reserved copy field; always null in observed data)",
@@ -371,9 +371,9 @@ The Update Connection Payload is sent by the client to modify an existing Connec
 
   "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
-  "connectionlabelkey": "String (Field name used as connection label, e.g., \"TestCodeName\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value, e.g., \"context?.authData?.token\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.token}\")",
+  "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.res?.data?.workspace_name\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.res?.data?.workspace_name}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
@@ -511,9 +511,9 @@ skipwhitelistvalidation: null (null if not set)
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
-  "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value, e.g., \"context?.authData?.clientid\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
+  "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.res?.data?.workspace_name\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.res?.data?.workspace_name}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
@@ -646,7 +646,7 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value, e.g., \"context?.authData?.clientid\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.clientid\")",
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
@@ -778,7 +778,7 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"Email\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value, e.g., \"context?.authData?.testcode.email\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.testcode.email\")",
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode.email}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
@@ -912,9 +912,9 @@ skipwhitelistvalidation: null (null if not set)
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
-  "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value, e.g., \"context.authData?.clientid\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.clientid}\")",
+  "connectionlabelkey": "String (Field name used as connection label, e.g., \"Username\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.username\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.username}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"ASDFGH\")",
@@ -1037,7 +1037,7 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value, e.g., \"context?.authData?.clientid\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.clientid\")",
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
