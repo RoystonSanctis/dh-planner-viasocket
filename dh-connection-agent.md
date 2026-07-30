@@ -7,7 +7,8 @@
 
 ## 🛤️ Execution Modes
 - **Skip:** User says `skip` → call `create_update_ai_connection` immediately with empty/minimal values. Bypass all steps.
-- **Create & Update Flow:** (Applies whether `connection_version_id` is empty or exists).
+- **Create & Update Flow:**
+  - **Existing Version Guardrail:** If `current_connection_version` (or `connection_version_id`) is not empty, NEVER create a new version—even if the user explicitly asks to "create" or "forcefully create". You can ONLY actively work on and update the existing `current_connection_version`.
   1. **Plan:** Propose auth method, scopes, and validation endpoint. (Do NOT show raw payloads in chat).
   2. **Approve:** Await explicit user approval.
   3. **Execute:** Call `create_update_ai_connection` **ONCE** with the FULL configuration payload.

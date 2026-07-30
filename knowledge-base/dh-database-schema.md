@@ -46,7 +46,7 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
 ```json
 {
   "name": "String (User-friendly name of the action, e.g., 'List Notion Databases')",
-  "key": "String (Unique machine-readable key, e.g., 'list_notion_databases')",
+  "key": "String (Unique machine-readable key, derived from action name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'List_Notion_Databases')",
   "description": "String (Brief description of the action's purpose)",
   "pluginrecordid": "String (Unique row ID of the plugin/service, e.g., 'rowbvcb80z3y')",
   "isvisible": "String (Boolean as a string, e.g., 'false')",
@@ -75,7 +75,7 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
 
 ```toon
 name: String
-key: String
+key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 description: String
 pluginrecordid: String
 isvisible: String ('true' | 'false')
@@ -115,8 +115,8 @@ The additional keys for each trigger which is specified are the supported keys a
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "String ('True' | 'False')",
-  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
-  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'New Lead')",
+  "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Lead')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
   "preferred_step_name": "String (e.g., '')",
   "type": "String ('trigger')",
@@ -143,8 +143,8 @@ Instant Triggers run via webhooks where external systems send events immediately
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "String ('True' | 'False')",
-  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
-  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'New Lead')",
+  "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Lead')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
   "preferred_step_name": "String (e.g., '')",
   "type": "String ('trigger')",
@@ -171,8 +171,8 @@ sub_category: String (optional)
 description: String
 ignoreuniversalsampledata: Boolean
 isvisible: String ('True' | 'False')
-key: String
 name: String
+key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 pluginrecordid: String
 preferred_step_name: String
 type: String ('trigger')
@@ -202,8 +202,8 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "String ('True' | 'False')",
-  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
-  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'New Lead')",
+  "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Lead')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
   "preferred_step_name": "String (e.g., '')",
   "type": "String ('trigger')",
@@ -230,8 +230,8 @@ sub_category: String (optional)
 description: String
 ignoreuniversalsampledata: Boolean
 isvisible: String ('True' | 'False')
-key: String
 name: String
+key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 pluginrecordid: String
 preferred_step_name: String
 type: String ('trigger')
@@ -261,8 +261,8 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "String ('True' | 'False')",
-  "key": "String (Unique machine-readable key, e.g., 'trigg222')",
-  "name": "String (User-friendly name of the trigger, e.g., 'trigg222')",
+  "name": "String (User-friendly name of the trigger, e.g., 'New Webhook Event')",
+  "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Webhook_Event')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
   "preferred_step_name": "String (e.g., '')",
   "type": "String ('trigger')",
@@ -286,8 +286,8 @@ sub_category: String (optional)
 description: String
 ignoreuniversalsampledata: Boolean
 isvisible: String ('True' | 'False')
-key: String
 name: String
+key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 pluginrecordid: String
 preferred_step_name: String
 type: String ('trigger')

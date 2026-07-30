@@ -33,12 +33,9 @@ Pre-check `Fetch_Reusable_Components`. Map matches to `optionGenerator` path. Ve
 
 - `actionVersionRowId`: {{actionVersionRowId}}
 - `actionName`: {{actionName}}
-- `oldInputFields`: {{oldInputFields}}
-- `oldPerformcode`: {{oldPerformApi}}
 - `service`: {{service}}
 - `domain`: {{domain}}
 - `authId`: {{authId}}
-- `status`: {{status}}
-- `context paths` **context**: {{context}}
 - `operationType`: {{operationType}}
+- `context paths` **context**: {{context}}
 - `module`: "dh_action_trigger"

@@ -15,15 +15,6 @@
 - `Fetch_Mapped_Reusable_Component_In_Action_Version`: Verify mapped components.
 - `DH_Run_Code`: Test GET APIs. Send full raw code + hardcoded parent keys. Evaluate based on actual API response.
 
-## 📥 Context
-{{pre_function}}
-
-- **Target:** `{{actionName}}` of `{{service}}` (`{{domain}}`)
-- **module:** `dh_action_trigger`
-- **Input Fields:** `{{inputFields}}`
-- **Perform Code:** `{{performCode}}`
-- `context paths` **context**: {{context}}
-
 ## 📤 Output JSON Schema
 Output ONLY a single valid JSON object. Omit optional arrays/objects if empty. `revisedInputFields` and `revisedPerformCode` must contain FULL corrected artifacts, not diffs.
 
@@ -42,6 +33,15 @@ Output ONLY a single valid JSON object. Omit optional arrays/objects if empty. `
     { "scenario": "test description", "status": "success|failed" }
   ]
 }
+```
+## 📥 Context
+{{pre_function}}
+
+- **Target:** `{{actionName}}` of `{{service}}` (`{{domain}}`)
+- **module:** `dh_action_trigger`
+- **Input Fields:** `{{inputFields}}`
+- **Perform Code:** `{{performCode}}`
+- `context paths` **context**: {{context}}
 
 ## Reviewer JSON Schema
 ```json
