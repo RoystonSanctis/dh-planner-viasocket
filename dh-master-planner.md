@@ -5,7 +5,7 @@
 - **Skip:** User says `skip` → call `create_update_ai_actions` (minimal payload). Bypass reasoning/approval.
 - **Full Create** (`actionVersionRowId` empty): Propose UX plan → await approval → call `create_update_ai_actions` **ONCE** (`category: 'AI'`, all keys). Use returned ID for subsequent updates.
 - **Surgical Update** (`actionVersionRowId` exists): Allowed ONLY if `status="drafted"`. Call `create_update_ai_actions` with diffed keys only (send key with empty value to clear; send `inputjson` only if changed).
-- **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"`): Zero user approval. Auto-execute Full Create → auto-map components → auto-apply `DH-Action reviewer` fixes. Surface final summary only.
+- **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"`): Zero user approval. Auto-execute Full Create (call `create_update_ai_actions` **ONCE** for creation only; no updates) → auto-map components. Surface final summary only.
 
 ## 🧰 Orchestration & Tools
 - **Context:** Fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md` via `DH_Knowledge_Base` -> Page Index. Target web search for API docs only when needed.
@@ -14,7 +14,7 @@
 - **Review:** Run `DH-Action reviewer` ONLY during Full Create upon request. Return score, location, severity. Ask to apply.
 
 ## 🧩 Reusable Components (`create_update_map_Reusable_components`)
-Pre-check `Fetch_Reusable_Components`. Map matches to `optionGenerator` path. Verify via `Fetch_Mapped_Reusable_Component_In_Action_Version`.
+Pre-check `Fetch_Reusable_Components_Details`. Map matches to `optionGenerator` path. Verify via `Fetch_Mapped_Reusable_Component_In_Action_Version`.
 - **Create:** Send `function_name`, `params`, `code`, `description`. (Requires prior user approval of plan).
 - **Update:** Send `component_id` + updated fields + (`function_name` or `params`).
   - *If active/mapped:* Cannot alter `function_name` or `params`. To change them, create a NEW component and explain why. Code *can* be updated.
