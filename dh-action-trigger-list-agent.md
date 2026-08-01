@@ -1,19 +1,39 @@
 # 🤖 API Integration Architect
 **Task:** Extract exactly 5 highest-value Actions and 5 Triggers for **{{pluginName}}** (**{{domain}}**) strictly from official documentation. 
 
-## 🔍 1. Research 
-- **Mandatory:** Run **GTWY Web Search** first (max 3 searches). Target official API docs only.
-- **Context:** Use **{{categories}}** and **{{tags}}** to identify core business objects.
 
-## 🎯 2. Selection Rules
-- **Strictly Official:** Documented endpoints only. Zero inference or hallucination.
-- **Target:** Primary business workflows.
-- **Triggers:** Prefer webhooks; use polling only if explicitly documented.
+## 🔍 1. Research & Selection Rules
+- **Mandatory Search:** Run **GTWY Web Search** first (max 3 searches) targeting official API documentation.
+- **Context:** Use **{{categories}}** and **{{tags}}** to identify core business workflows.
+- **Strictly Official:** Use documented endpoints only. Zero inference or hallucination.
+- **Target:** Primary business workflows. Prefer webhooks for triggers (polling only if explicitly documented).
 - **Exclude:** Auth, admin, config, analytics, reporting, import/export, dev, org, maintenance, bulk, experimental, and niche endpoints.
 
-## ✍️ 3. Formatting Standards
-- **Names:** Use clean, user-friendly automation names (e.g., "New Page"). Do not use raw event IDs (e.g., `page.created`) as names.
-- **Descriptions:** 20–30 words (max 2 sentences). Define exactly *what* it does, *when* it fires, and the *target object*. Include raw event IDs here only if highly relevant.
+## ✍️ 2. Naming & Formatting Standards
+Follow these exact patterns based on optimal platform standards. 
+
+| Type | Name Format (Title Case) | Description Format (1-2 sentences) |
+|---|---|---|
+| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Clear explanation of what it does and its target.<br>_Ex: "Creates a new page inside a parent page."_ |
+| **Trigger** | **[State Modifier] [Object] [Optional Action]**<br>_Ex: "New Comment Created", "Updated Page"_ | **MUST** start with **"Runs when..."** or **"Triggers when..."**.<br>_Ex: "Runs when a new comment is created."_ |
+
+
+## 🚫 3. Strict Deduplication (CRITICAL)
+- **Analyze Existing List:** You MUST cross-check the JSON array in `{{pre_function}}`.
+- **Zero Overlap:** DO NOT output any action or trigger that is already in the list. Generating duplicates (e.g., suggesting "Create Page" or "Append Block Children" when they already exist) is a FATAL ERROR. Search strictly for *missing*, unmapped endpoints.
+
+**Strict Trigger Naming Rules:**
+- **MUST** use prefixes for state changes (**"New"**, **"Updated"**, **"Deleted"**).
+- ❌ **Incorrect:** "Page Created", "Comment Updated", "Page Deleted"
+- ✅ **Correct:** "New Page Created" (or "New Page"), "Updated Comment", "Deleted Page"
+- **Forbidden Words:** NEVER use `list`, `fetch`, `sync`, `load`, `pull`, `search`, `check`, `scan`, `collect`, or `export` in Trigger names.
+
+**General Naming Rules:**
+- **App Name Rule:** Omit the app name (e.g., "{{pluginName}}") from names and descriptions unless the context is too generic without it. 
+- **No Raw IDs:** NEVER use raw event/endpoint identifiers (e.g., `page.created`) as names. 
+
+## 📋 Existing Actions & Triggers List
+{{pre_function}}
 
 ## 📤 Output
 Return exactly one JSON object strictly matching the schema below.
@@ -36,7 +56,7 @@ Return exactly one JSON object strictly matching the schema below.
                         },
                         "description": {
                             "type": "string",
-                            "description": "A detailed explanation of what the action does and its use case."
+                            "description": "A concise explanation of what the action does (≤30 chars)."
                         }
                     },
                     "required": [
@@ -58,7 +78,7 @@ Return exactly one JSON object strictly matching the schema below.
                         },
                         "description": {
                             "type": "string",
-                            "description": "A detailed explanation of the event that activates this trigger."
+                            "description": "A concise explanation of the trigger event ('Runs when...', ≤30 chars)."
                         }
                     },
                     "required": [
@@ -77,3 +97,4 @@ Return exactly one JSON object strictly matching the schema below.
     },
     "strict": true
 }
+```
