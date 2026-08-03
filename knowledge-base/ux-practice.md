@@ -89,27 +89,9 @@ published: true
   - Pre-Design Analysis (Mandatory)
     - Technical Reasoning Principles
   - Action Design Strategy
-    - 1. The Unified Action Principle
-    - 2. Identifier & Record Resolution
-    - 3. Search Mode Evaluation
   - Field Design & Dynamic UI Rules
-    - 1. General Principles
-    - 2. Dropdown Design Rules
-    - 3. Dynamic Schema Handling
-    - 4. Workflow Simplicity Principles
-    - 5. Structural Constraint Handling
-    - 6. Cross-Cutting UX Patterns
   - Automation Safety & Overwrite Protection
-    - 1. Idempotency Preservation
-    - 2. Update Safety & Overwrite Protection
-    - 3. Response Handling
-    - 4. Backward Compatibility Rules
   - Required Output Structure
-    - 1. API Understanding Summary
-    - 2. Clarification Questions
-    - 3. Proposed UX Architecture
-    - 4. API Configuration Perform Code
-    - 5. Automation Safety & Scalability Check
   - Behavior Constraints
     - Trade-Off Evaluation Protocol
     - Final Decision Reflection
@@ -736,26 +718,22 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 
 *Strategies for consolidated actions (Unified Search/Intelligent Upsert) and search-first record resolution.*
 
-### 1. The Unified Action Principle
-Consolidate operations whenever possible to simplify user choice and prevent workflow fragmentation:
-*   **List + Search + Get → Unified LIST Action:** Consolidate listing ("List All"), searching/filtering (by unique identifiers like email, phone, etc.), "Search by ID", and "Advance Search" (if supported) into a single unified LIST action using a Mode dropdown.
-*   **Create + Update → Intelligent Upsert:** Consolidate insertion and editing logic into a single action. Always prefer native Upsert endpoints if available.
-*   **No Manual Choice:** Users should never have to explicitly choose "Create" vs "Update". The system must automatically determine the appropriate behavior through identifier resolution.
-
-### 2. Identifier & Record Resolution
-Use **search-first logic** to automatically resolve internal database IDs:
-1. Search for existing record using a stable identifier (e.g., `email`, `external_id`, `sku`).
-2. If found → update existing record.
-3. If not found and creation is allowed → create a new record.
-4. If creation is not supported → fail safely and log a warning.
-Never assume referenced records exist.
-
-### 3. Search Mode Evaluation
-*   **Single Search Method:** Do not show any search mode selectors. Keep it simple.
-*   **Multiple Search Methods:** Provide a **Search Mode Selector** dropdown:
-    *   *Structured Search:* Search by stable attributes (e.g., email, phone, ID). **(Default)**
-    *   *Advanced Query Filtering:* Native query syntax or conditions. **(Optional)**
-*   **Uniqueness Guard:** If query mode can return multiple records, define clear, deterministic selection logic (e.g., select the first/newest) or fail safely.
+* **The Unified Action Principle:** Consolidate operations whenever possible to simplify user choice and prevent workflow fragmentation:
+  * **List + Search + Get → Unified LIST Action:** Consolidate listing ("List All"), searching/filtering (by unique identifiers like email, phone, etc.), "Search by ID", and "Advance Search" (if supported) into a single unified LIST action using a Mode dropdown.
+  * **Create + Update → Intelligent Upsert:** Consolidate insertion and editing logic into a single action. Always prefer native Upsert endpoints if available.
+  * **No Manual Choice:** Users should never have to explicitly choose "Create" vs "Update". The system must automatically determine the appropriate behavior through identifier resolution.
+* **Identifier & Record Resolution:** Use **search-first logic** to automatically resolve internal database IDs:
+  1. Search for existing record using a stable identifier (e.g., `email`, `external_id`, `sku`).
+  2. If found → update existing record.
+  3. If not found and creation is allowed → create a new record.
+  4. If creation is not supported → fail safely and log a warning.
+  Never assume referenced records exist.
+* **Search Mode Evaluation:**
+  * **Single Search Method:** Do not show any search mode selectors. Keep it simple.
+  * **Multiple Search Methods:** Provide a **Search Mode Selector** dropdown:
+    * *Structured Search:* Search by stable attributes (e.g., email, phone, ID). **(Default)**
+    * *Advanced Query Filtering:* Native query syntax or conditions. **(Optional)**
+  * **Uniqueness Guard:** If query mode can return multiple records, define clear, deterministic selection logic (e.g., select the first/newest) or fail safely.
 
 ---
 
@@ -763,63 +741,58 @@ Never assume referenced records exist.
 
 *Principles for field ordering, dropdown rules, and custom module-specific schema handling.*
 
-### 1. General Principles
-*   **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
-*   **Field Chooser Pattern:** If there are many optional fields, hide them behind a **"Select Additional Fields"** multi-select list. Render only the chosen fields dynamically.
-*   **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.
-
-### 2. Dropdown Design Rules
-*   **Dropdown/Multiselect Preference (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no options-fetching API is available.
-*   **Do Not Bypass Parent Dropdowns:** Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. Always create parent dropdowns to retrieve options for a dependent dropdown/multiselect if options can be fetched.
-*   **No UPDATE Bypass Exceptions:** There are no exceptions for UPDATE actions; they must also use dropdowns/multiselects if options can be fetched, regardless of whether parent dropdowns are required. *(Note: DELETE actions are a strict exception and must always use a direct text ID field of type 'string' without any dropdown or selection logic).*
-*   **Multiselect Pagination and Search Limitation:** The properties `canPaginate` and `enableSearchApi` are **not supported** in `multiselect` fields. If you are using reusable components that require pagination limit/cursors or search, the `optionsGenerator` for the multiselect must perform client-side pagination (looping internally to fetch and aggregate all pages/results) and return the aggregated array directly.
-
-### 3. Dynamic Schema Handling
-For APIs supporting custom fields, custom properties, or module-specific schemas:
-1. Allow the user to select the **Module / Resource** first.
-2. Dynamically retrieve the schema for that selection.
-3. Render only the fields relevant to the selected resource to prevent UI bloat and schema drift.
-
-### 4. Workflow Simplicity Principles
-*   **Workflow Purity:** Design flows as `Trigger → Action`. If a Javascript step is needed solely for formatting or mapping, move that logic internally inside the perform code.
-*   **Coded Value Handling:** If an API expects numeric codes or enums (e.g., `1 = Male`, `2 = Female`), prefer input fields with clear help text explaining the mapping, unless the mappings are guaranteed stable, in which case a dropdown is viable.
-*   **Format Abstraction Principle:** Users describe intent, not technical formatting. If a content format (e.g., HTML vs. plain text) can be safely inferred internally, detect it automatically in perform code instead of exposing format-selection fields.
-*   **Default Value Usage Rule:** Before using `defaultValue`, verify if the API has native default behavior. If the API applies a default when omitted, avoid setting `defaultValue` in the builder. Allow the API to apply its own default behavior unless there is a strong UX override benefit.
-*   **customHelp Writing Guidelines:** Focus on business meaning and explain what the user should provide rather than how the system stores it. Avoid explaining internal IDs or instructing users to copy task IDs from browser URLs.
-    *   *Good:* `"Select the parent task under which the subtask should be created."`
-    *   *Bad:* `"Open Asana, copy the task ID from the URL, and paste it here."`
-*   **Custom Mapping Behavior (Dropdown, Multiselect & Boolean):**
+* **General Principles:**
+  * **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
+  * **Field Chooser Pattern:** If there are many optional fields, hide them behind a **"Select Additional Fields"** multi-select list. Render only the chosen fields dynamically.
+  * **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.
+* **Dropdown Design Rules:**
+  * **Dropdown/Multiselect Preference (CRITICAL & MANDATORY):** Dropdown and multiselect fields have the absolute highest priority. Never ask the user for manual entry in a string field unless a dropdown or multiselect is absolutely not possible. Check if an API/endpoint is available to fetch options first. Fall back to a text ID field only if no options-fetching API is available.
+  * **Do Not Bypass Parent Dropdowns:** Do not bypass parent dropdowns even if they are required to fetch options for a dropdown. Always create parent dropdowns to retrieve options for a dependent dropdown/multiselect if options can be fetched.
+  * **No UPDATE Bypass Exceptions:** There are no exceptions for UPDATE actions; they must also use dropdowns/multiselects if options can be fetched, regardless of whether parent dropdowns are required. *(Note: DELETE actions are a strict exception and must always use a direct text ID field of type 'string' without any dropdown or selection logic).*
+  * **Multiselect Pagination and Search Limitation:** The properties `canPaginate` and `enableSearchApi` are **not supported** in `multiselect` fields. If you are using reusable components that require pagination limit/cursors or search, the `optionsGenerator` for the multiselect must perform client-side pagination (looping internally to fetch and aggregate all pages/results) and return the aggregated array directly.
+* **Dynamic Schema Handling:**
+  * For APIs supporting custom fields, custom properties, or module-specific schemas:
+    1. Allow the user to select the **Module / Resource** first.
+    2. Dynamically retrieve the schema for that selection.
+    3. Render only the fields relevant to the selected resource to prevent UI bloat and schema drift.
+* **Workflow Simplicity Principles:**
+  * **Workflow Purity:** Design flows as `Trigger → Action`. If a Javascript step is needed solely for formatting or mapping, move that logic internally inside the perform code.
+  * **Coded Value Handling:** If an API expects numeric codes or enums (e.g., `1 = Male`, `2 = Female`), prefer input fields with clear help text explaining the mapping, unless the mappings are guaranteed stable, in which case a dropdown is viable.
+  * **Format Abstraction Principle:** Users describe intent, not technical formatting. If a content format (e.g., HTML vs. plain text) can be safely inferred internally, detect it automatically in perform code instead of exposing format-selection fields.
+  * **Default Value Usage Rule:** Before using `defaultValue`, verify if the API has native default behavior. If the API applies a default when omitted, avoid setting `defaultValue` in the builder. Allow the API to apply its own default behavior unless there is a strong UX override benefit.
+  * **customHelp Writing Guidelines:** Focus on business meaning and explain what the user should provide rather than how the system stores it. Avoid explaining internal IDs or instructing users to copy task IDs from browser URLs.
+    * *Good:* `"Select the parent task under which the subtask should be created."`
+    * *Bad:* `"Open Asana, copy the task ID from the URL, and paste it here."`
+  * **Custom Mapping Behavior (Dropdown, Multiselect & Boolean):**
     Ensure these fields support both standard selection mode and custom mapping mode:
-    *   *Standard Mode*: The field renders as a selection component (dropdown, list, or toggle switch) showing the standard `label`, `help`, and optional `placeholder`. If `placeholder` is omitted, the backend automatically defaults to `"Choose {{field label}}"`.
-        - The `help` key value must start with `"Select"` (or start from `"select"`, e.g., `"Select yes/option label for [outcome]"` for booleans).
-        - It supports string format and markdown links like `[Lean More](https://example.com)`.
-    *   *Custom Mapping Mode*: When toggled, the field switches to a plain `string` input field showing:
-        - `customInputLabel` in place of the standard `label` (required/mandatory; must be short and **must NOT start with "Enter"**; e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`; if it is not an ID field, standard label and `customInputLabel` must be the same).
-        - `customHelp` in place of the standard `help` (required/mandatory; must be crisp and guide manual input rather than selection):
-          - For dynamic dropdowns/multiselect: `"Enter the ID/value... You will get it from the actions like List, Find..."` (e.g. `"Enter the Spreadsheet ID manually. You can get the spreadsheet ID from actions like List Spreadsheets or Find Spreadsheet."`).
-          - For static dropdowns/multiselect and booleans: Specify the actual value in the help and explain what will happen (e.g. for boolean: `"Enter true for [outcome] and false for [outcome]"`).
-            - In static dropdown/multiselect: if options are few, mention them in `customHelp` and explain. If options are many, write `"Enter {{label name}} ...benefits of the field"` (e.g., `"Enter priority level... to filter tasks."`).
-        - `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
-    *   *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided. Both the `help` key and `customHelp` must be very crisp and to the point.
-
-### 5. Structural Constraint Handling
-*   If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
-
-### 6. Cross-Cutting UX Patterns
-*   **Existing-vs-Inline Fork** — When a payload can reference an existing record OR carry inline details, use a **Boolean** or **Static Dropdown** to branch. Gate each branch with `visibilityCondition`. Never show both branches simultaneously.
-*   **"Same As" Duplicate-Section Toggle** — When two input groups collect similar data (e.g., billing vs shipping address), use a **Boolean** toggle to hide the duplicate group when toggled on. Avoids redundant data entry.
-*   **Human Units Over Machine Units** — Accept user-friendly units (days, relative dates) via **String** or **Number**. Convert to machine units (UNIX timestamps, ISO dates) in perform code. Never make the user compute timestamps.
-*   **Label Options as `Display Name (key)`** — When the human label differs from the API key in dynamic dropdowns/multiselects, format option labels as `"Display Name (schemaKey)"` so users pick by meaning while the correct key is submitted.
-*   **Multi-Target Dispatch** — When an action targets multiple recipients/resources, accept targets via **Dynamic Multiselect** or comma-separated **String**. Iterate and dispatch to each target in perform code.
-*   **Consolidate Related Actions** — Fold related behavioral variants (e.g., "schedule message" as a toggle inside "send message") into a single action using a **Boolean** or **Static Dropdown**, rather than shipping separate near-duplicate actions.
-*   **Preset Duration/Expiry Dropdown** — When an API accepts a small set of common duration or expiry values, use a **Static Dropdown** with preset options instead of a free number field.
-*   **AI Field for Date Normalization** — When users need to provide dates the API requires in ISO/epoch format, use an **AI Field** with a prompt that converts natural-language inputs (e.g., "yesterday", "3 days ago") to the required format.
-*   **Normalize Flexible ID Inputs** — ID fields may arrive as `{ label, value }` objects (select mode) or comma-separated strings (custom-input mode). Normalize both formats in perform code. Also support comma-separated multi-values in a single **String** field for quick multi-lookups.
-*   **Relative vs. Fixed Scheduling Toggle** — Provide a **Boolean** or **Static Dropdown** toggle allowing the user to choose between simple relative selections (e.g., "Days from Today", "Last N Days") and exact/fixed dates. Handle the date arithmetic or timezone/UTC conversion internally in the perform code to keep inputs user-friendly.
-*   **Predefined Static Multiselect for Predictable Sets** — When an API accepts a predictable, stable set of values (e.g. analytics metrics/dimensions, email tags), use a static **Multiselect** with pre-defined options rather than a free-form string asking the user to type comma-separated values.
-*   **Dynamic Questionnaire Loading** — For booking or questionnaire flows with customizable fields, use a dynamic input group (`fieldsGenerator`) that executes only after a parent identifier (e.g. Event Type) is chosen, ensuring only relevant fields are rendered.
-*   **Conditional Filters Grouping** — Group optional filters into an **Input Group** containing child inputs gated by `visibilityCondition` based on a selected filter-by dimension (e.g. filtering by Video ID only when "Filter Dimension" is set to "Video").
-*   **Endpoint Scoping via Parent Selectors** — Scope dynamic dropdown lists (e.g. Event Types) by switching the API endpoint or query parameters inside `optionsGenerator` based on a parent mode selection (e.g. Personal vs Team/Organization scope), conditionally requiring parent IDs only when necessary.
+    * *Standard Mode*: The field renders as a selection component (dropdown, list, or toggle switch) showing the standard `label`, `help`, and optional `placeholder`. If `placeholder` is omitted, the backend automatically defaults to `"Choose {{field label}}"`.
+      - The `help` key value must start with `"Select"` (or start from `"select"`, e.g., `"Select yes/option label for [outcome]"` for booleans).
+      - It supports string format and markdown links like `[Lean More](https://example.com)`.
+    * *Custom Mapping Mode*: When toggled, the field switches to a plain `string` input field showing:
+      - `customInputLabel` in place of the standard `label` (required/mandatory; must be short and **must NOT start with "Enter"**; e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`; if it is not an ID field, standard label and `customInputLabel` must be the same).
+      - `customHelp` in place of the standard `help` (required/mandatory; must be crisp and guide manual input rather than selection):
+        - For dynamic dropdowns/multiselect: `"Enter the ID/value... You will get it from the actions like List, Find..."` (e.g. `"Enter the Spreadsheet ID manually. You can get the spreadsheet ID from actions like List Spreadsheets or Find Spreadsheet."`).
+        - For static dropdowns/multiselect and booleans: Specify the actual value in the help and explain what will happen (e.g. for boolean: `"Enter true for [outcome] and false for [outcome]"`).
+          - In static dropdown/multiselect: if options are few, mention them in `customHelp` and explain. If options are many, write `"Enter {{label name}} ...benefits of the field"` (e.g., `"Enter priority level... to filter tasks."`).
+      - `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
+    * *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided. Both the `help` key and `customHelp` must be very crisp and to the point.
+* **Structural Constraint Handling:**
+  * If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
+* **Cross-Cutting UX Patterns:**
+  * **Existing-vs-Inline Fork** — When a payload can reference an existing record OR carry inline details, use a **Boolean** or **Static Dropdown** to branch. Gate each branch with `visibilityCondition`. Never show both branches simultaneously.
+  * **"Same As" Duplicate-Section Toggle** — When two input groups collect similar data (e.g., billing vs shipping address), use a **Boolean** toggle to hide the duplicate group when toggled on. Avoids redundant data entry.
+  * **Human Units Over Machine Units** — Accept user-friendly units (days, relative dates) via **String** or **Number**. Convert to machine units (UNIX timestamps, ISO dates) in perform code. Never make the user compute timestamps.
+  * **Label Options as `Display Name (key)`** — When the human label differs from the API key in dynamic dropdowns/multiselects, format option labels as `"Display Name (schemaKey)"` so users pick by meaning while the correct key is submitted.
+  * **Multi-Target Dispatch** — When an action targets multiple recipients/resources, accept targets via **Dynamic Multiselect** or comma-separated **String**. Iterate and dispatch to each target in perform code.
+  * **Consolidate Related Actions** — Fold related behavioral variants (e.g., "schedule message" as a toggle inside "send message") into a single action using a **Boolean** or **Static Dropdown**, rather than shipping separate near-duplicate actions.
+  * **Preset Duration/Expiry Dropdown** — When an API accepts a small set of common duration or expiry values, use a **Static Dropdown** with preset options instead of a free number field.
+  * **AI Field for Date Normalization** — When users need to provide dates the API requires in ISO/epoch format, use an **AI Field** with a prompt that converts natural-language inputs (e.g., "yesterday", "3 days ago") to the required format.
+  * **Normalize Flexible ID Inputs** — ID fields may arrive as `{ label, value }` objects (select mode) or comma-separated strings (custom-input mode). Normalize both formats in perform code. Also support comma-separated multi-values in a single **String** field for quick multi-lookups.
+  * **Relative vs. Fixed Scheduling Toggle** — Provide a **Boolean** or **Static Dropdown** toggle allowing the user to choose between simple relative selections (e.g., "Days from Today", "Last N Days") and exact/fixed dates. Handle the date arithmetic or timezone/UTC conversion internally in the perform code to keep inputs user-friendly.
+  * **Predefined Static Multiselect for Predictable Sets** — When an API accepts a predictable, stable set of values (e.g. analytics metrics/dimensions, email tags), use a static **Multiselect** with pre-defined options rather than a free-form string asking the user to type comma-separated values.
+  * **Dynamic Questionnaire Loading** — For booking or questionnaire flows with customizable fields, use a dynamic input group (`fieldsGenerator`) that executes only after a parent identifier (e.g. Event Type) is chosen, ensuring only relevant fields are rendered.
+  * **Conditional Filters Grouping** — Group optional filters into an **Input Group** containing child inputs gated by `visibilityCondition` based on a selected filter-by dimension (e.g. filtering by Video ID only when "Filter Dimension" is set to "Video").
+  * **Endpoint Scoping via Parent Selectors** — Scope dynamic dropdown lists (e.g. Event Types) by switching the API endpoint or query parameters inside `optionsGenerator` based on a parent mode selection (e.g. Personal vs Team/Organization scope), conditionally requiring parent IDs only when necessary.
 
 ---
 
@@ -827,46 +800,37 @@ For APIs supporting custom fields, custom properties, or module-specific schemas
 
 *Guidelines to preserve idempotency, ensure partial-update safety, and sanitize payloads.*
 
-### 1. Idempotency Preservation
-Ensure that the design enforces repeat-run safety. Every action must explicitly state:
-*   Which fields act as the primary duplicate prevention keys.
-*   How the "Upsert" or "Create if missing" logic acts under high-volume executions (e.g., running 1,000 times).
-
-### 2. Update Safety & Overwrite Protection
-*   **Partial Updates Only:** The perform code must only send fields that are explicitly provided by the user.
-*   **Payload Sanitization:** Never send `null` or empty strings (`""`) unless the user is explicitly trying to clear that field. This prevents accidental data erasure in the destination CRM/database.
-
-### 3. Response Handling
-*   **Small & Flat Responses:** Return the entire API payload.
-*   **Large / Nested Responses:** Implement **Basic** vs **Detailed** response modes, returning key identifiers by default with optional detail expansion.
-
-### 4. Backward Compatibility Rules
-Field keys are stable contracts. When modifying an existing action, trigger, or field:
-*   **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
-*   **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
+* **Idempotency Preservation:**
+  * Ensure that the design enforces repeat-run safety. Every action must explicitly state:
+    * Which fields act as the primary duplicate prevention keys.
+    * How the "Upsert" or "Create if missing" logic acts under high-volume executions (e.g., running 1,000 times).
+* **Update Safety & Overwrite Protection:**
+  * **Partial Updates Only:** The perform code must only send fields that are explicitly provided by the user.
+  * **Payload Sanitization:** Never send `null` or empty strings (`""`) unless the user is explicitly trying to clear that field. This prevents accidental data erasure in the destination CRM/database.
+* **Response Handling:**
+  * **Small & Flat Responses:** Return the entire API payload.
+  * **Large / Nested Responses:** Implement **Basic** vs **Detailed** response modes, returning key identifiers by default with optional detail expansion.
+* **Backward Compatibility Rules:**
+  * Field keys are stable contracts. When modifying an existing action, trigger, or field:
+    * **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
+    * **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
 
 ---
 
 ## Required Output Structure
 
-*The standard 5-part structure required for every proposed integration design and perform code.*
+*The standard structure required for every proposed integration design and perform code.*
 
-Your final proposed design must strictly output the following **five-part** structure:
+Your final proposed design must strictly output the following structure:
 
-### 1. API Understanding Summary
-A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, enums, and response complexity.
-
-### 2. Clarification Questions
-Ask clear, high-priority questions only when critical behavior, API limits, or lookup endpoints are ambiguous.
-
-### 3. Proposed UX Architecture
-An organized JSON definition of the Input Fields, showing hierarchy, field groupings, custom helpers, placeholder texts, dynamic selectors, and conditional visibility conditions.
+* **API Understanding Summary:** A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, enums, and response complexity.
+* **Clarification Questions:** Ask clear, high-priority questions only when critical behavior, API limits, or lookup endpoints are ambiguous.
+* **Proposed UX Architecture:** An organized JSON definition of the Input Fields, showing hierarchy, field groupings, custom helpers, placeholder texts, dynamic selectors, and conditional visibility conditions.
 
 > [!NOTE]
 > Detailed field schemas, option generators, dynamic field builders, and allowed types **MUST** follow the rules defined in the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
 
-### 4. API Configuration Perform Code
-JavaScript code that maps input fields to the API payload. Both of the following structures are fully valid and supported:
+* **API Configuration Perform Code:** JavaScript code that maps input fields to the API payload. Both of the following structures are fully valid and supported:
 
 **Format 1: Wrapping async function**
 ```javascript
@@ -896,8 +860,7 @@ try {
 > *   The perform code should focus strictly on payload mapping and request dispatching.
 > *   For full perform code templates, pagination logic, sample API request wrappers, and helper generators, refer to the **[Perform Code Knowledge Base](perform-code.md)**.
 
-### 5. Automation Safety & Scalability Check
-A robust analysis explaining the duplicate prevention strategy, idempotency safety, update-overwrite protection, and runtime stability guarantees.
+* **Automation Safety & Scalability Check:** A robust analysis explaining the duplicate prevention strategy, idempotency safety, update-overwrite protection, and runtime stability guarantees.
 
 ---
 

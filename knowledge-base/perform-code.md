@@ -21,11 +21,11 @@ published: true
     - Scheduled Trigger Code Generation Rules:
     - Scheduled Trigger Perform Code Rules:
       - Scheduled Trigger Perform Code Patterns:
-        - 1. Fetching New Items from an API with pagination
-        - 2. Fetching Updated Items from an API with pagination
-        - 3. Fetching items with client-side field filtering and page-number pagination
-        - 4. Fetching items utilizing Native API query parameters (Most Optimized)
-        - 5. Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
+        - Fetching New Items from an API with pagination
+        - Fetching Updated Items from an API with pagination
+        - Fetching items with client-side field filtering and page-number pagination
+        - Fetching items utilizing Native API query parameters (Most Optimized)
+        - Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
       - Scheduled Trigger Perform Code Example Code:
         - Example 1: Fetching new items from an API with pagination
         - Example 2: Fetching updated items from an API with pagination
@@ -379,7 +379,7 @@ If enabled and the API supports pagination, use the global variable `context?.pa
 
 #### Scheduled Trigger Perform Code Patterns:
 
-##### 1. Fetching New Items from an API with pagination
+##### Fetching New Items from an API with pagination
 ```javascript
 async function fetchItems() {
 try {
@@ -451,7 +451,7 @@ try {
 return await fetchItems();
 ```
 
-##### 2. Fetching Updated Items from an API with pagination
+##### Fetching Updated Items from an API with pagination
 
 ```javascript
 async function fetchUpdatedItems() {
@@ -531,7 +531,7 @@ try {
 return await fetchUpdatedItems();
 ```
 
-##### 3. Fetching items with client-side field filtering and page-number pagination
+##### Fetching items with client-side field filtering and page-number pagination
 ```javascript
 async function fetchItemsWithClientFiltering() {
 try {
@@ -606,7 +606,7 @@ try {
 return await fetchItemsWithClientFiltering();
 ```
 
-##### 4. Fetching items utilizing Native API query parameters (Most Optimized)
+##### Fetching items utilizing Native API query parameters (Most Optimized)
 ```javascript
 async function fetchItemsOptimized() {
 try {
@@ -664,7 +664,7 @@ try {
 return await fetchItemsOptimized();
 ```
 
-##### 5. Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
+##### Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
 ```javascript
 async function fetchUpcomingItems() {
     try {
@@ -1732,7 +1732,7 @@ if (!context?.inputData?.record_id) {
 
 #### Action Perform Code Patterns:
 
-##### 1. Read Data from an API (GET Family)
+##### Read Data from an API (GET Family)
 
 Use this category when the action only reads data from the service. `GET`, `LIST`, and `FIND/SEARCH` all belong to this read category. The action can still use `POST` if the service's search/query endpoint requires a request body, but behavior-wise it is still a read action.
 
@@ -1925,7 +1925,7 @@ async function advancedSearch() {
 return await advancedSearch();
 ```
 
-##### 2. Create Data in an API
+##### Create Data in an API
 
 Use this category when the action creates a new record in the external service.
 
@@ -2001,7 +2001,7 @@ return await findOrCreateRecord();
 
 ```
 
-##### 3. Update Data in an API
+##### Update Data in an API
 
 Use this category when the action updates an existing record. Send only values provided by the user unless the API requires a full replacement payload.
 
@@ -2051,7 +2051,7 @@ async function updateRecord() {
 return await updateRecord();
 ```
 
-##### 4. Delete or Archive Data in an API
+##### Delete or Archive Data in an API
 
 Use this category when the action deletes, archives, disables, or marks a record as inactive. Some APIs use `DELETE`; others use `PATCH` or `POST` for archive-style behavior.
 

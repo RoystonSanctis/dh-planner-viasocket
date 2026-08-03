@@ -9,33 +9,33 @@ published: true
 
 - Agent Variable ↔ Schema Field Alias Reference
 - Database Schema for the Connection Model
-- 1. Connection Object Schema (Response)
+- Connection Object Schema (Response)
   - Connection Response JSON Schema
   - Connection Response TOON Schema
-- 2. Create Connection Payload
+- Create Connection Payload
   - Create Connection JSON Schema
   - Create Connection TOON Schema
 - Common Fields (Plugin-Level)
   - Common Fields JSON Schema
   - Common Fields TOON Schema
-- 3. Update Connection Payload
-  - 3.1. Basic Auth Update Schema
+- Update Connection Payload
+  - Basic Auth Update Schema
     - Basic Auth Update JSON Schema
     - Basic Auth Update TOON Schema
-  - 3.2. Auth2.0 Update Schemas
-    - 3.2.1. Authorization Code
+  - Auth2.0 Update Schemas
+    - Authorization Code
       - Authorization Code Update JSON Schema
       - Authorization Code Update TOON Schema
-    - 3.2.2. Client Credentials
+    - Client Credentials
       - Client Credentials Update JSON Schema
       - Client Credentials Update TOON Schema
-    - 3.2.3. Implicit
+    - Implicit
       - Implicit Update JSON Schema
       - Implicit Update TOON Schema
-    - 3.2.4. Password Credentials
+    - Password Credentials
       - Password Credentials Update JSON Schema
       - Password Credentials Update TOON Schema
-  - 3.3. Auth1.0 Update Schema
+  - Auth1.0 Update Schema
     - Auth1.0 Update JSON Schema
     - Auth1.0 Update TOON Schema
 
@@ -58,7 +58,7 @@ Mapping of agent-provided runtime variables to their corresponding schema field 
 
 This document outlines the technical specification of the database and API objects required for managing viaSocket connections (authentication configurations for plugins/services) through the Response Schema, Create Connection Payload, and Update Connection Payload.
 
-# 1. Connection Object Schema (Response)
+# Connection Object Schema (Response)
 
 A Connection represents a stored authentication configuration (e.g., "Notion - Basic Auth", "Trello - OAuth1.0") that links a plugin/service to its auth mechanism, credentials, and request-injection logic.
 
@@ -266,7 +266,7 @@ metadata: Object
 
 ---
 
-# 2. Create Connection Payload
+# Create Connection Payload
 
 The Create Connection Payload is the minimal set of fields sent by the client to create a new Connection record. DB-managed fields (`rowid`, `autonumber`, `createdat`/`updatedat`, `createdby`/`updatedby`, `metadata`) and plugin-display fields (`pluginname`, `pluginiconurl`, `domain`, `whitelistdomains`) are not part of this payload.
 
@@ -330,11 +330,11 @@ description: String | null (optional description of the connection version)
 
 ---
 
-# 3. Update Connection Payload
+# Update Connection Payload
 
 The Update Connection Payload is sent by the client to modify an existing Connection. Its shape branches into six variants based on the `type` and `granttype` discriminators: Basic, and the four Auth2.0 grant types (Authorization Code, Client Credentials, Implicit, Password Credentials), and Auth1.0.
 
-## 3.1. Basic Auth Update Schema
+## Basic Auth Update Schema
 
 ### Basic Auth Update JSON Schema
 
@@ -448,9 +448,9 @@ authenticationpaths: Object
 skipwhitelistvalidation: null (null if not set)
 ```
 
-## 3.2. Auth2.0 Update Schemas
+## Auth2.0 Update Schemas
 
-### 3.2.1. Authorization Code
+### Authorization Code
 
 > [!IMPORTANT]
 > **Client Credentials Setup Modes (Global/Internal vs. Manual/User-provided):**
@@ -603,7 +603,7 @@ authenticationpaths: Object
 skipwhitelistvalidation: null (null if not set)
 ```
 
-### 3.2.2. Client Credentials
+### Client Credentials
 
 #### Client Credentials Update JSON Schema
 
@@ -732,7 +732,7 @@ authenticationpaths: Object
 skipwhitelistvalidation: null (null if not set)
 ```
 
-### 3.2.3. Implicit
+### Implicit
 
 #### Implicit Update JSON Schema
 
@@ -867,7 +867,7 @@ authenticationpaths: Object
 skipwhitelistvalidation: null (null if not set)
 ```
 
-### 3.2.4. Password Credentials
+### Password Credentials
 
 #### Password Credentials Update JSON Schema
 
@@ -1003,7 +1003,7 @@ authenticationpaths: Object
 skipwhitelistvalidation: null (null if not set)
 ```
 
-## 3.3. Auth1.0 Update Schema
+## Auth1.0 Update Schema
 
 ### Auth1.0 Update JSON Schema
 

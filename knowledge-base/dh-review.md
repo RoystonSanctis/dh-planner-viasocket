@@ -14,9 +14,9 @@ published: true
     - P1 — Automation Safety
     - P2 — UX
     - P3 — Text & Consistency
-  - 1. Perform API & Generators JS Code
-  - 2. Input Fields
-  - 3. Text Quality & Consistency
+  - Perform API & Generators JS Code
+  - Input Fields
+  - Text Quality & Consistency
 
 # Objective
 You must strictly validate the code and JSON against these Knowledge Bases:
@@ -63,7 +63,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **Consistency**: Scan for typos, trailing spaces, and mismatches with sibling actions.
 ---
 
-## 1. Perform API & Generators JS Code
+## Perform API & Generators JS Code
 - Verify correct `async`/`try-catch` structure (see required structure below).
 - **Libraries**: No imports allowed. Use only `axios` or `fetch`.
 - **Below are supported libraries to use directly in code:**
@@ -113,7 +113,7 @@ try {
 }
 ```
 
-## 2. Input Fields
+## Input Fields
 Each input field must strictly adhere to the structure, formats, and validation rules specified in the **DH Input Fields Knowledge Base** for its given type.
 
 **Review Process for Input Fields:**
@@ -132,7 +132,7 @@ Each input field must strictly adhere to the structure, formats, and validation 
 - **Custom Mapping Mode UI Behavior**: For dropdown, multiselect, and boolean fields, verify they support both Standard Mode (standard label, help, optional placeholder) and Custom Mapping Mode (displaying `customInputLabel` in place of standard label, `customHelp` in place of standard help, and `customPlaceholder` in place of standard placeholder with a concrete value sample e.g. `"true"`, `"false"`, or a specific ID).
 - **Zero Results for Generators & Reusable Components**: When no options/fields are found (zero results), return a message key based on the configuration: (a) if ONLY pagination is enabled: return `{ data: [], offset: null, message: <user message> }`; (b) if neither pagination nor search is enabled: return `{ message: <user message> }`; (c) if ONLY search is enabled: return `{ message: <user message> }`; (d) if BOTH search and pagination are enabled: return `{ data: [], offset: <previous_offset>, message: <user message> }` (in search mode, ignore the search-returned offset and prioritize the previous pagination offset so exiting search resumes pagination correctly).
 
-## 3. Text Quality & Consistency
+## Text Quality & Consistency
 - **Help Key**: It must be short, plain, non-technical, crisp, and to the point. It must start with "Enter" or "Select" depending on the field type.
 - **Labels & Placeholders**: Must be clear and grammatically correct. Do NOT use "E.g." or "e.g." in `placeholder` or `customPlaceholder` (such as using `"john@example.com"` instead of `"E.g. john@example.com"`); they must contain direct sample values only.
 - **customInputLabel**: Must be short and must NOT start with "Enter". E.g., label: "Spreadsheet", customInputLabel: "Spreadsheet ID". If not an ID field, label and customInputLabel must be the same.

@@ -46,41 +46,12 @@ published: true
     - Perform Code
 - Cross-Cutting UX Patterns (Extracted)
 - Advanced Best Approaches for Actions
-  - 1. Action - Insert or Update Data with Linking Module (Sangam CRM)
-    - 1.1 API Usage
-    - 1.2 UI Components
-    - 1.3 Input Fields JSON
-    - 1.4 API Configuration Perform Code
-  - 2. Create an Invoice with Customer Details (Razorpay)
-    - 2.1 API Usage
-    - 2.2 UI Components
-    - 2.3 API Flow
-    - 2.4 Input Fields JSON
-    - 2.5 API Configuration Perform Code
-  - 3. Create or Update a Lead (LeadSquared)
-    - 3.1 API Usage
-    - 3.2 UI Components
-    - 3.3 API Flow
-    - 3.4 Input Fields JSON
-    - 3.5 API Configuration Perform Code
-  - 4. List all Employees (Keka)
-    - 4.1 API Usage
-    - 4.2 UI Components
-    - 4.3 API Flow
-    - 4.4 Input Fields JSON
-    - 4.5 API Configuration Perform Code
-  - 5. Send Message (Slack)
-    - 5.1 API Usage
-    - 5.2 UI Components
-    - 5.3 API Flow
-    - 5.4 Input Fields JSON
-    - 5.5 API Configuration Perform Code
-  - 6. Cin7 Core — Update Customer (Advanced)
-    - 6.1 API Usage
-    - 6.2 UI Components
-    - 6.3 API Flow
-    - 6.4 Input Fields JSON
-    - 6.5 API Configuration Perform Code
+  - Action - Insert or Update Data with Linking Module (Sangam CRM)
+  - Create an Invoice with Customer Details (Razorpay)
+  - Create or Update a Lead (LeadSquared)
+  - List all Employees (Keka)
+  - Send Message (Slack)
+  - Cin7 Core — Update Customer (Advanced)
 
 # UX Worked Examples Knowledge Base
 
@@ -3684,8 +3655,7 @@ These are the reusable moves that recur across the examples above. When designin
 
  
 
-## 1. Action - Insert or Update Data with Linking Module (Sangam CRM)
-
+## Action - Insert or Update Data with Linking Module (Sangam CRM)
 
 - **Category:** Sales & CRM
 
@@ -3693,7 +3663,7 @@ These are the reusable moves that recur across the examples above. When designin
 https://documenter.getpostman.com/view/25213259/2s93RNxuis#d310844b-da65-4f03-83a3-168e46e0619e   
  
 
-### 1.1 API Usage
+**API Usage**
 
 
 - Module List API:   
@@ -3702,7 +3672,7 @@ https://documenter.getpostman.com/view/25213259/2s93RNxuis#d310844b-da65-4f03-83
 - Field List API:   
   Retrieves all fields available for the selected module, including dropdown values for fields that support them. 
 
-### 1.2 UI Components
+**UI Components**
 
 
 1. Dropdown - Select Module Name:
@@ -3723,7 +3693,7 @@ https://documenter.getpostman.com/view/25213259/2s93RNxuis#d310844b-da65-4f03-83
    - Option 2: Link Existing Related Module:   
      Displays a dropdown to select the related module, allowing the user to establish a relationship with an existing record. 
 
-### 1.3 Input Fields JSON
+**Input Fields JSON**
 
 ```json
 [
@@ -3795,7 +3765,7 @@ https://documenter.getpostman.com/view/25213259/2s93RNxuis#d310844b-da65-4f03-83
 ]
 ```
 
-### 1.4 API Configuration Perform Code
+**API Configuration Perform Code**
 
 ```javascript
 async function buildAndSendPayload(context) {  
@@ -3881,19 +3851,21 @@ try {
 return await buildAndSendPayload(context);
 ```
 
-## 2. Create an Invoice with Customer Details (Razorpay)
+## Create an Invoice with Customer Details (Razorpay)
+
+- **Category:** Finance & Billing
 
 
 https://razorpay.com/docs/api/payments/invoices/create-with-details   
  
 
-### 2.1 API Usage
+**API Usage**
 
 
 No API Usage:   
 This action does not require additional API usage beyond creating the invoice with the collected customer details. 
 
-### 2.2 UI Components
+**UI Components**
 
 
 Input Field - Description: 
@@ -3978,7 +3950,7 @@ Input Field - Notes:
 
 A text field for entering any additional notes related to the invoice. 
 
-### 2.3 API Flow
+**API Flow**
 
 
 Set Invoice Type: 
@@ -4009,7 +3981,7 @@ Return Invoice Details:
 
 Once the invoice is created, the system returns the invoice ID, URL, and other relevant details. 
 
-### 2.4 Input Fields JSON
+**Input Fields JSON**
 
 ```json
 [
@@ -4301,7 +4273,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
 ```
 
 
-### 2.5 API Configuration Perform Code
+**API Configuration Perform Code**
 
 ```javascript
 async function createInvoice() {
@@ -4355,18 +4327,18 @@ return response.data;
 return createInvoice();
 ```
 
-## 3. Create or Update a Lead (LeadSquared)
+## Create or Update a Lead (LeadSquared)
 
 
 https://apidocs.leadsquared.com/create-or-update/#api 
 
-### 3.1 API Usage
+**API Usage**
 
 
 Get Custom Fields API:   
 Fetches the custom fields available for a lead in Lead Squared that can be added or updated during the lead creation process. 
 
-### 3.2 UI Components
+**UI Components**
 
 
 Static Dropdown - Search By: 
@@ -4389,7 +4361,7 @@ Input Group - Custom Fields:
 
 Dynamically displayed input fields based on the custom fields fetched via the Get Custom Fields API. These fields will appear after entering the basic lead details. 
 
-### 3.3 API Flow
+**API Flow**
 
 
 Select Search Criteria: 
@@ -4416,7 +4388,7 @@ Submit Lead Data:
 
 The system sends the lead data (email, phone, name, custom fields, etc.) to the LeadSquared API to create or update the lead. 
 
-### 3.4 Input Fields JSON
+**Input Fields JSON**
 
 ```json
 [
@@ -4460,7 +4432,7 @@ The system sends the lead data (email, phone, name, custom fields, etc.) to the 
 ```
 
 
-### 3.5 API Configuration Perform Code
+**API Configuration Perform Code**
 
 ```javascript
 async function createOrUpdateLead() {
@@ -4511,17 +4483,17 @@ async function createOrUpdateLead() {
 return await createOrUpdateLead();
 ```
 
-## 4. List all Employees (Keka)
+## List all Employees (Keka)
 
 
-- **Category:** HR Talent & Recruitment / Payroll
+- **Category:** HR & Operations
 
-### 4.1 API Usage
+**API Usage**
 
 
 List Employees API: Retrieves employee records from Keka based on the selected fetch mode. The API supports pagination and filtering by employment status, notice period, probation status, last modified date, employee IDs, employee numbers, and search keywords.
 
-### 4.2 UI Components
+**UI Components**
 
 
 **Dropdown – How Do You Want to Fetch Employees?**
@@ -4564,7 +4536,7 @@ Accepts natural language or date input and automatically converts it into an ISO
 
 Allows users to choose which employee attributes should be returned in the output. Common fields such as Employee Number, Full Name, Work Email, Job Title, Department, Joining Date, and Employment Status are preselected by default.
 
-### 4.3 API Flow
+**API Flow**
 
 
 1. Determines the selected fetch mode (All, Specific, or Recent).
@@ -4580,7 +4552,7 @@ Allows users to choose which employee attributes should be returned in the outpu
 8. Filters the final output to include only the response fields selected by the user.
 9. Returns the matching employee records or a message indicating that no employees were found for the provided criteria.
 
-### 4.4 Input Fields JSON
+**Input Fields JSON**
 
 ```json
 [
@@ -5042,7 +5014,7 @@ Allows users to choose which employee attributes should be returned in the outpu
 ]
 ```
 
-### 4.5 API Configuration Perform Code
+**API Configuration Perform Code**
 
 ```javascript
 try {  
@@ -5100,7 +5072,7 @@ let page = 1;
 const size = 200;    
 let totalPages = 1;
 
-while (page \<= totalPages) {
+while (page <= totalPages) {
 
   const res = await axios.request({    
     method: 'get',    
@@ -5138,7 +5110,7 @@ const size = 200;
 let totalPages = 1;    
 let found = false;
 
-while (page \<= totalPages && !found) {
+while (page <= totalPages && !found) {
 
   let params = {    
     ...baseParams,    
@@ -5160,7 +5132,7 @@ while (page \<= totalPages && !found) {
   const data = res.data?.data || [];    
   totalPages = res.data?.totalPages || 1;
 
-  if (!data.length && page === 1\) {    
+  if (!data.length && page === 1) {    
     const fallbackRes = await axios.request({    
       method: 'get',    
       maxBodyLength: Infinity,    
@@ -5228,7 +5200,7 @@ const employeeIds = [];
 const employeeNumbers = [];
 
 values.forEach(v => {    
-  if (v.includes('-') && v.length > 20\) {    
+  if (v.includes('-') && v.length > 20) {    
     employeeIds.push(v);    
   } else {    
     employeeNumbers.push(v);    
@@ -5242,7 +5214,7 @@ if (employeeIds.length || employeeNumbers.length) {
   let totalPages = 1;    
   let found = false;
 
-  while (page \<= totalPages && !found) {
+  while (page <= totalPages && !found) {
 
     const res = await axios.request({    
       method: 'get',    
@@ -5295,12 +5267,12 @@ return employees;
  }
 ```
 
-## 5. Send Message (Slack)
+## Send Message (Slack)
 
-- **Category:** Team Collaboration
+- **Category:** Communication
 
 
-### 5.1 API Usage
+**API Usage**
 
 
 List Channels API: Retrieves public and private Slack channels to populate channel selection and resolve channel names into channel IDs.
@@ -5313,7 +5285,7 @@ Post Message API: Sends a new message to one or more Slack channels or users wit
 
 Schedule Message API: Schedules a message to be delivered at a specified date & time or after a configurable delay using the same message configuration as an immediate message.
 
-### 5.2 UI Components
+**UI Components**
 
 
 Input Group – Destination
@@ -5365,7 +5337,7 @@ Controls whether Slack expands:
 Link previews  
 Media previews
 
-### 5.3 API Flow
+**API Flow**
 
 Validates the selected destination type and ensures that message content has been provided.  
 Determines whether the message should be sent immediately or scheduled for a future date & time or after a specified delay.  
@@ -5380,7 +5352,7 @@ Sends the message to one or more channels, users, or as a reply within an existi
 Applies optional link preview, media preview, and thread broadcast settings to the outgoing message.  
 Automatically retries requests when Slack rate limits are encountered before returning the final response.
 
-### 5.4 Input Fields JSON
+**Input Fields JSON**
 
 ```json
 [
@@ -5680,7 +5652,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
 ]
 ```
 
-### 5.5 API Configuration Perform Code
+**API Configuration Perform Code**
 
 ```javascript
 async function sendMessage() {  
@@ -5945,16 +5917,16 @@ async function sendMessage() {
 return await sendMessage();
 ```
 
-## 6. Cin7 Core — Update Customer (Advanced)
+## Cin7 Core — Update Customer (Advanced)
 
 - **Category:** Inventory / CRM
 
 
-### 6.1 API Usage
+**API Usage**
 
 No external API calls are made for options besides pagination helpers (List Customers, List Attribute Sets). 
 
-### 6.2 UI Components
+**UI Components**
 
 **Dropdown – Customer**
 Dropdown to select the customer, paginated via a list customers helper. 
@@ -5968,11 +5940,11 @@ Dedicated Input Groups (e.g., Billing Address, Contacts) that are conditionally 
 **Input Group - Selected Field Values**
 For top-level fields (like Name, Currency, Tax Rule), a static input groups with conditional visibility renders the inputs based on the multiselect choice.
 
-### 6.3 API Flow
+**API Flow**
 
 The Perform Code conditionally extracts data based on the user's multiselect choices. It cleans out empty addresses or objects and submits only the updated properties, honoring the partial update pattern.
 
-### 6.4 Input Fields JSON
+**Input Fields JSON**
 
 ```json
 [
@@ -6730,7 +6702,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
 ]
 ```
 
-### 6.5 API Configuration Perform Code
+**API Configuration Perform Code**
 
 ```javascript
 async function updateCustomer() {

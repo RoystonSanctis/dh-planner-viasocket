@@ -8,21 +8,21 @@ published: true
 # Page Index
 
 - Database Schema for the Tool Call Model
-- 1. Action Object Schema
+- Action Object Schema
   - Action JSON Schema
   - Action TOON Schema
-- 2. Trigger Object Schema
+- Trigger Object Schema
   - Trigger JSON Schema (Common Fields)
-    - 2.1. Instant Trigger Schema (`triggertype: "hook"`)
+    - Instant Trigger Schema (`triggertype: "hook"`)
       - Instant Trigger JSON Schema
       - Instant Trigger TOON Schema
-    - 2.2. Schedule Trigger Schema (`triggertype: "polling"`)
+    - Schedule Trigger Schema (`triggertype: "polling"`)
       - Schedule Trigger JSON Schema
       - Schedule Trigger TOON Schema
-    - 2.3. Manual Trigger Schema (`triggertype: "manual_webhook"`)
+    - Manual Trigger Schema (`triggertype: "manual_webhook"`)
       - Manual Trigger JSON Schema
       - Manual Trigger TOON Schema
-- 3. Reusable Component Object Schema
+- Reusable Component Object Schema
   - Reusable Component JSON Schema
     - Reusable Component Create Payload
     - Reusable Component Update Payload
@@ -37,7 +37,7 @@ published: true
 
 This document outlines the technical specification of the database and API objects required for managing viaSocket actions, triggers, and reusable components through LLM tool calls (such as `create_update_ai_actions`).
 
-# 1. Action Object Schema
+# Action Object Schema
 
 An Action represents a single operational task (e.g., "Send an Email", "Create Customer") performed in a workflow.
 
@@ -99,7 +99,7 @@ sampledata: Object (optional)
 
 ---
 
-# 2. Trigger Object Schema
+# Trigger Object Schema
 
 A Trigger represents a real-world event (e.g., "New Email Arrives", "New Lead Created") that starts an automation workflow.
 
@@ -130,7 +130,7 @@ The additional keys for each trigger which is specified are the supported keys a
 }
 ```
 
-### 2.1. Instant Trigger Schema (`triggertype: "hook"`)
+### Instant Trigger Schema (`triggertype: "hook"`)
 
 Instant Triggers run via webhooks where external systems send events immediately.
 
@@ -189,7 +189,7 @@ transferoption: String (transfer JS)
 sampledata: Object (optional)
 ```
 
-### 2.2. Schedule Trigger Schema (`triggertype: "polling"`)
+### Schedule Trigger Schema (`triggertype: "polling"`)
 
 Schedule/Polling Triggers poll the external API periodically at defined intervals.
 
@@ -248,7 +248,7 @@ canpaginate: Boolean
 sampledata: Object (optional)
 ```
 
-### 2.3. Manual Trigger Schema (`triggertype: "manual_webhook"`)
+### Manual Trigger Schema (`triggertype: "manual_webhook"`)
 
 Manual Webhook Triggers are user-configured webhooks where the user manually copies the webhook URL into the external service. Note: For Manual Webhook Triggers, authentication is always 'No Auth'; therefore, `authid` must not be sent or configured.
 
@@ -303,7 +303,7 @@ sampledata: Object (optional)
 
 ---
 
-# 3. Reusable Component Object Schema
+# Reusable Component Object Schema
 
 Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imported into dynamic dropdowns or multiselect fields to fetch options.
 

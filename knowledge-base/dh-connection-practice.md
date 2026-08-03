@@ -71,22 +71,8 @@ published: true
     - Identifier & Token Resolution
     - Grant Type Evaluation
   - Field Design & Dynamic UI Rules
-    - 1. General Principles
-    - 2. Field Type Design Rules
-    - 3. Dynamic Context Handling
-    - 4. Workflow Simplicity Principles
-    - 5. Structural Constraint Handling
-    - 6. Cross-Cutting UX Patterns
   - Connection Safety & Token Protection
-    - 1. Secret Protection
-    - 2. Token Lifecycle Safety
-    - 3. Response Handling
-    - 4. Backward Compatibility Rules
   - Required Output Structure
-    - 1. Auth Documentation Understanding Summary
-    - 2. Clarification Questions
-    - 3. Proposed Connection Architecture
-    - 5. Connection Safety & Longevity Check
   - Behavior Constraints
     - Trade-Off Evaluation Protocol
     - Final Decision Reflection
@@ -857,34 +843,29 @@ Use **response-derived resolution** rather than asking users to manually supply 
 
 *Principles for field ordering, field type selection, and context-variable handling specific to Connections.*
 
-### 1. General Principles
-* **Field Ordering:** Required credential fields first; optional pre-auth context fields (region, environment) after. Help text always sits below the field it describes.
-* **Structural Respect:** Map the provider's documented parameter types to the correct field type (`string`, `password`, key-value pairs) — never fabricate unsupported UI structures.
-
-### 2. Field Type Design Rules
-* **Use `password` type** for any credential value that is sensitive (API keys, secrets, tokens, passwords) so it is obscured in the UI.
-* **Use `string` type** only for genuinely non-sensitive values (usernames, subdomains, regions, environment names).
-* **Avoid dropdowns for credential values** — credential fields are user-supplied secrets, not selectable options. Dropdowns are only appropriate for non-secret configuration (e.g. Region, Environment) with a small, stable, known option set.
-
-### 3. Dynamic Context Handling
-For every value produced during the Connection flow (auth fields, tokens, test response data):
-* Reference it consistently via `context.authData.<keyname>`, using nested dot-notation when the value lives inside a nested response object (e.g. `context.authData.accesstokencode.access_token`, `context.authData.testcode.profile.real_name`).
-* Never invent a `context.authData` key that wasn't actually defined in "Configure your Fields" or produced by the Access Token / Test API steps.
-
-### 4. Workflow Simplicity Principles
-* **Connection Purity:** Keep the Connection flow limited to authentication concerns; business-logic transformations belong in Action/Trigger perform code, not Connection perform code.
-* **customHelp Writing Guidelines:** Explain what the user should provide and where to find it, in business terms — not how viaSocket stores or transmits it internally.
-  * *Good:* `"Enter the API key from your account's Developer Settings page."`
-  * *Bad:* `"Paste the value that will be stored as context.authData.api_key."`
-* **Default Value Usage Rule:** Only set a default value for genuinely optional, non-sensitive fields (e.g. a default region). Never default a credential field.
-
-### 5. Structural Constraint Handling
-* If a provider requires multiple values to be combined into a single header/param (e.g. a composite Basic Auth string), build that concatenation inside the Request Parameters function rather than asking the user to pre-format it.
-
-### 6. Cross-Cutting UX Patterns
-* **Token Freshness Pattern** — Always resolve tokens dynamically inside Request Parameter functions (`context.authData?.accesstokencode?.access_token`) rather than caching a static value, so refreshed tokens are picked up automatically.
-* **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.connection_label`), ensuring no `||` operators are present in `connectionlabelvalue`.
-* **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
+* **General Principles:**
+  * **Field Ordering:** Required credential fields first; optional pre-auth context fields (region, environment) after. Help text always sits below the field it describes.
+  * **Structural Respect:** Map the provider's documented parameter types to the correct field type (`string`, `password`, key-value pairs) — never fabricate unsupported UI structures.
+* **Field Type Design Rules:**
+  * **Use `password` type** for any credential value that is sensitive (API keys, secrets, tokens, passwords) so it is obscured in the UI.
+  * **Use `string` type** only for genuinely non-sensitive values (usernames, subdomains, regions, environment names).
+  * **Avoid dropdowns for credential values** — credential fields are user-supplied secrets, not selectable options. Dropdowns are only appropriate for non-secret configuration (e.g. Region, Environment) with a small, stable, known option set.
+* **Dynamic Context Handling:**
+  * For every value produced during the Connection flow (auth fields, tokens, test response data):
+    * Reference it consistently via `context.authData.<keyname>`, using nested dot-notation when the value lives inside a nested response object (e.g. `context.authData.accesstokencode.access_token`, `context.authData.testcode.profile.real_name`).
+    * Never invent a `context.authData` key that wasn't actually defined in "Configure your Fields" or produced by the Access Token / Test API steps.
+* **Workflow Simplicity Principles:**
+  * **Connection Purity:** Keep the Connection flow limited to authentication concerns; business-logic transformations belong in Action/Trigger perform code, not Connection perform code.
+  * **customHelp Writing Guidelines:** Explain what the user should provide and where to find it, in business terms — not how viaSocket stores or transmits it internally.
+    * *Good:* `"Enter the API key from your account's Developer Settings page."`
+    * *Bad:* `"Paste the value that will be stored as context.authData.api_key."`
+  * **Default Value Usage Rule:** Only set a default value for genuinely optional, non-sensitive fields (e.g. a default region). Never default a credential field.
+* **Structural Constraint Handling:**
+  * If a provider requires multiple values to be combined into a single header/param (e.g. a composite Basic Auth string), build that concatenation inside the Request Parameters function rather than asking the user to pre-format it.
+* **Cross-Cutting UX Patterns:**
+  * **Token Freshness Pattern** — Always resolve tokens dynamically inside Request Parameter functions (`context.authData?.accesstokencode?.access_token`) rather than caching a static value, so refreshed tokens are picked up automatically.
+  * **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.connection_label`), ensuring no `||` operators are present in `connectionlabelvalue`.
+  * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 
 ---
 
@@ -892,40 +873,32 @@ For every value produced during the Connection flow (auth fields, tokens, test r
 
 *Guidelines to protect secrets, preserve token lifecycle integrity, and sanitize connection-level responses.*
 
-### 1. Secret Protection
-* **No Exposed Secrets:** Client secrets, consumer secrets, token secrets, and passwords must never be requested or displayed anywhere reachable by end users beyond the initial masked input.
-* **Masking:** Enable Connection Label masking whenever the label could reveal sensitive data (partial email, partial ID).
-
-### 2. Token Lifecycle Safety
-* **Always define a Refresh strategy where the provider supports one** — either a true refresh-token exchange (Authorization Code, Password Credentials) or a re-request pattern (Client Credentials).
-* **Always define a Revoke strategy where the provider supports one** — ensures a clean, verifiable disconnect.
-* **Never let expired tokens silently fail Actions/Triggers** — the Request Parameters function should always pull the freshest stored token.
-
-### 3. Response Handling
-* **Test (Me) API responses:** Extract only the fields needed for Connection Label / Unique Connection Identifier; do not surface the full raw response to the end user.
-* **Token responses:** Store only what's needed (`access_token`, `refresh_token`, `expires_in`); never surface raw token values in the visible UI.
-
-### 4. Backward Compatibility Rules
-Connection field keys and `context.authData` key names are stable contracts. When modifying an existing Connection:
-* **Never rename or remove existing `context.authData` keys** unless a migration strategy exists — this breaks every Action/Trigger perform code referencing them.
-* **Allowed changes:** Adding new optional fields, improving help text/labels, adding a Unique Connection Identifier retroactively, tightening the domain whitelist.
+* **Secret Protection:**
+  * **No Exposed Secrets:** Client secrets, consumer secrets, token secrets, and passwords must never be requested or displayed anywhere reachable by end users beyond the initial masked input.
+  * **Masking:** Enable Connection Label masking whenever the label could reveal sensitive data (partial email, partial ID).
+* **Token Lifecycle Safety:**
+  * **Always define a Refresh strategy where the provider supports one** — either a true refresh-token exchange (Authorization Code, Password Credentials) or a re-request pattern (Client Credentials).
+  * **Always define a Revoke strategy where the provider supports one** — ensures a clean, verifiable disconnect.
+  * **Never let expired tokens silently fail Actions/Triggers** — the Request Parameters function should always pull the freshest stored token.
+* **Response Handling:**
+  * **Test (Me) API responses:** Extract only the fields needed for Connection Label / Unique Connection Identifier; do not surface the full raw response to the end user.
+  * **Token responses:** Store only what's needed (`access_token`, `refresh_token`, `expires_in`); never surface raw token values in the visible UI.
+* **Backward Compatibility Rules:**
+  * Connection field keys and `context.authData` key names are stable contracts. When modifying an existing Connection:
+    * **Never rename or remove existing `context.authData` keys** unless a migration strategy exists — this breaks every Action/Trigger perform code referencing them.
+    * **Allowed changes:** Adding new optional fields, improving help text/labels, adding a Unique Connection Identifier retroactively, tightening the domain whitelist.
 
 ---
 
 ## Required Output Structure
 
-*The standard 5-part structure required for every proposed Connection design.*
+*The standard structure required for every proposed Connection design.*
 
-Your final proposed design must strictly output the following **five-part** structure:
+Your final proposed design must strictly output the following structure:
 
-### 1. Auth Documentation Understanding Summary
-A breakdown of the target service's supported Auth Type(s)/Grant Type(s), required endpoints, token lifecycle, available scopes, and identifier fields.
-
-### 2. Clarification Questions
-Ask clear, high-priority questions only when the Auth Type/Grant Type choice, scope requirements, or endpoint behavior is ambiguous.
-
-### 3. Proposed Connection Architecture
-An organized JSON definition of the Connection's Auth Fields and section configuration, showing field grouping, custom helpers, placeholder text, and the grant-type-appropriate section list.
+* **Auth Documentation Understanding Summary:** A breakdown of the target service's supported Auth Type(s)/Grant Type(s), required endpoints, token lifecycle, available scopes, and identifier fields.
+* **Clarification Questions:** Ask clear, high-priority questions only when the Auth Type/Grant Type choice, scope requirements, or endpoint behavior is ambiguous.
+* **Proposed Connection Architecture:** An organized JSON definition of the Connection's Auth Fields and section configuration, showing field grouping, custom helpers, placeholder text, and the grant-type-appropriate section list.
 
 > [!WARNING]
 > #### Connection Perform Code Constraints:
@@ -936,8 +909,7 @@ An organized JSON definition of the Connection's Auth Fields and section configu
 > *   For OAuth 1.0, never generate custom `accesstokencode` — it is produced automatically by the Configure OAuth1 Endpoint step's built-in Authorize exchange.
 > *   The perform code should focus strictly on token/signature handling and request dispatching.
 
-### 5. Connection Safety & Longevity Check
-A robust analysis explaining the refresh strategy, revoke strategy, duplicate-connection prevention (Unique Connection Identifier), and runtime stability guarantees across long-lived automations.
+* **Connection Safety & Longevity Check:** A robust analysis explaining the refresh strategy, revoke strategy, duplicate-connection prevention (Unique Connection Identifier), and runtime stability guarantees across long-lived automations.
 
 ---
 
