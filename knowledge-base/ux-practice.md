@@ -742,6 +742,8 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
 *Principles for field ordering, dropdown rules, and custom module-specific schema handling.*
 
 * **General Principles:**
+  * **API Parameter Completeness:** The integration design MUST support all possible parameters available in the API documentation (required and optional parameters across query, body, headers, and filters). Never omit documented API parameters.
+  * **`placeholder` String Value Rule:** The value of the `placeholder` key (and `customPlaceholder`) MUST ALWAYS be a string. For string, number, boolean, or any other field types, if the sample placeholder value is of another data type (e.g. number `100`, boolean `true`, array `["item"]`), it MUST be wrapped with quotes as a string (e.g. `"100"`, `"true"` instead of raw `100` or `true`).
   * **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
   * **Field Chooser Pattern:** If there are many optional fields, hide them behind a **"Select Additional Fields"** multi-select list. Render only the chosen fields dynamically.
   * **Structural Respect:** Map API enums to Dropdowns, arrays to repeating input groups, and nested objects to clean logical grouping. Never fabricate unsupported UI structures.

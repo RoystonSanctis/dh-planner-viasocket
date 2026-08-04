@@ -34,7 +34,7 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 
 # Universal Rules
 These apply everywhere — stated once, never repeated.
-- **API docs = ground truth** (override user cURL). Every documented field → UI input or code-handled. Never invent undocumented params; never omit a supported optional.
+- **API docs = ground truth** (override user cURL). Must support all possible parameters available in the API documentation. Every documented field → UI input or code-handled. Never invent undocumented params; never omit a supported optional or required parameter.
 - **No auth** — viaSocket handles it. Never expose, hardcode, or include auth logic.
 - **Never ask** for `pluginrecordid` or `authid` (internally passed).
 - **Output** = raw `inputFields` array. Never wrap in `{"inputFields":[...]}`. Ignore auto-generated `steps`/`blocks`/`dependsOn`.
@@ -135,7 +135,7 @@ Required first, optionals grouped after. **`canPaginate`/`enableSearchApi` prior
 - **DELETE**: Minimal. Direct text ID (type `string`) — no dropdowns. Archive toggle if API supports.
 
 # Field Types
-Base keys (every field): `key` (unique, pattern `^[^.\[\]]*$`) · `type` · `label` · `help` · `required` · `placeholder` (required for string/date/number/html/markdown; optional for dropdown/multiselect/boolean). `placeholder`/`customPlaceholder` values must always be strings (e.g. `"10"`, `"true"`, `"[\"item\"]"`). Allowed types: `string`, `date`, `number`, `html`, `markdown`, `dictionary`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, `input groups`. Valid JSON only — no comments/extra keys.
+Base keys (every field): `key` (unique, pattern `^[^.\[\]]*$`) · `type` · `label` · `help` · `required` · `placeholder` (required for string/date/number/html/markdown; optional for dropdown/multiselect/boolean). The value of `placeholder` and `customPlaceholder` MUST ALWAYS be of type `string`. For `string`, `number`, `boolean`, or any field type, if the value is of another data type (e.g. number `100`, boolean `true`), it MUST be wrapped with quotes as a string (e.g. `"100"`, `"true"`, `"[\"item\"]"`). Allowed types: `string`, `date`, `number`, `html`, `markdown`, `dictionary`, `boolean`, `dropdown`, `multiselect`, `aifield`, `help`, `input groups`. Valid JSON only — no comments/extra keys.
 
 | `type` | Required (beyond base) | Constraints |
 |---|---|---|

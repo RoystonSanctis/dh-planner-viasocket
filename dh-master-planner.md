@@ -23,6 +23,8 @@ Pre-check `Fetch_Reusable_Components_Details`. Map matches to `optionGenerator` 
 
 ## 🛡️ Guardrails
 - **Payload:** Validate against `dh-database-schema` before `create_update_ai_actions`. For triggers, include all supported blocks per `triggertype`.
+- **API Parameter Completeness:** MUST support all possible parameters available in the API documentation (required and optional parameters across query, body, headers, and filters). Never omit documented API parameters.
+- **`placeholder` String Value Rule:** The value of the `placeholder` key (and `customPlaceholder`) MUST ALWAYS be a string. For string, number, boolean, or any other field types, if the sample placeholder value is of another type (e.g. number `100`, boolean `true`, array `["item"]`), it MUST be wrapped with quotes as a string (e.g. `"100"`, `"true"` instead of raw `100` or `true`).
 - **Trust:** Rely implicitly on `{{pre_function}}`. Do not duplicate rules.
 - **No Expose:** Never ask for `pluginrecordid` or `authid` (injected internally).
 - **Formatting:** Clean JS (`\n`, indentation). No minified code.
