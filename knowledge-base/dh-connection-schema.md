@@ -270,6 +270,17 @@ metadata: Object
 
 The Create Connection Payload is the minimal set of fields sent by the client to create a new Connection record. DB-managed fields (`rowid`, `autonumber`, `createdat`/`updatedat`, `createdby`/`updatedby`, `metadata`) and plugin-display fields (`pluginname`, `pluginiconurl`, `domain`, `whitelistdomains`) are not part of this payload.
 
+> [!IMPORTANT]
+> **`authenticationpaths` First-Time Creation Rule:**
+> When creating a connection for the first time, the `authenticationpaths` object **MUST** be present with all three sub-keys: `headers`, `body`, and `queryParams`. If no data is present for any (or all) of these, set their values to empty arrays `[]`.
+> ```json
+> "authenticationpaths": {
+>   "headers": [],
+>   "body": [],
+>   "queryParams": []
+> }
+> ```
+
 ## Create Connection JSON Schema
 
 ```json
@@ -285,7 +296,12 @@ The Create Connection Payload is the minimal set of fields sent by the client to
   "accesstokencode": "String (Stringified JSON for access token config, e.g., \"{\\\"source\\\":null}\")",
   "refreshtokencode": "String (Stringified JSON for refresh token config, e.g., \"{\\\"source\\\":null}\")",
   "revokeapicode": "String (Stringified JSON for revoke API config, e.g., \"{\\\"source\\\":null}\")",
-  "testcode": "String (Stringified JSON for test API config, e.g., \"{\\\"source\\\":null}\")"
+  "testcode": "String (Stringified JSON for test API config, e.g., \"{\\\"source\\\":null}\")",
+  "authenticationpaths": {
+    "headers": "Array (List of header injection objects; empty array [] if no data)",
+    "body": "Array (List of body injection objects; empty array [] if no data)",
+    "queryParams": "Array (List of query parameter injection objects; empty array [] if no data)"
+  }
 }
 ```
 
@@ -304,6 +320,10 @@ accesstokencode: String (stringified JSON, e.g. '{"source":null}')
 refreshtokencode: String (stringified JSON, e.g. '{"source":null}')
 revokeapicode: String (stringified JSON, e.g. '{"source":null}')
 testcode: String (stringified JSON, e.g. '{"source":null}')
+authenticationpaths: Object (MUST include headers, body, queryParams; [] if no data)
+  - headers: Array of PathObjects ([] if no data)
+  - body: Array of PathObjects ([] if no data)
+  - queryParams: Array of PathObjects ([] if no data)
 ```
 
 ---
@@ -333,6 +353,10 @@ description: String | null (optional description of the connection version)
 # Update Connection Payload
 
 The Update Connection Payload is sent by the client to modify an existing Connection. Its shape branches into six variants based on the `type` and `granttype` discriminators: Basic, and the four Auth2.0 grant types (Authorization Code, Client Credentials, Implicit, Password Credentials), and Auth1.0.
+
+> [!IMPORTANT]
+> **`authenticationpaths` Update Rule:**
+> When updating a connection, if the `authenticationpaths` key is included in the update payload, all three sub-keys (`headers`, `body`, and `queryParams`) **MUST** be present inside `authenticationpaths` (using empty arrays `[]` for any sub-key with no data). If there are no updates to `authenticationpaths`, skip/omit the `"authenticationpaths"` key entirely during the update operation.
 
 ## Basic Auth Update Schema
 
