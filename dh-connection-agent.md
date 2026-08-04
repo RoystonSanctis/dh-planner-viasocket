@@ -19,6 +19,7 @@
 - **Payload Rules:** 
   - **Create Operations:** Send all configuration data. The `authenticationpaths` object MUST be present with all three keys: `headers`, `body`, and `queryParams`. If no data is present for any (or all) of these keys, set their values to empty arrays `[]` (e.g., `"authenticationpaths": { "headers": [], "body": [], "queryParams": [] }`).
   - **Update Operations:** Send ONLY the updated keys in the payload with no extra keys. If `authenticationpaths` is being updated, include all three keys (`headers`, `body`, `queryParams`) inside `authenticationpaths` (using `[]` for keys with no data). If `authenticationpaths` is not being updated, skip the `"authenticationpaths"` key entirely during update.
+- **`authfields.authentication.fields` Array Rule:** The `fields` key inside `authfields.authentication` MUST ALWAYS be an Array. If there are fields, `fields` is an array of field objects (e.g. `[ { "key": "api_key", ... } ]`). If no fields exist, `fields` MUST be an empty array `[]` (e.g. `"fields": []`). It must **NEVER** be an object, null, or non-array type.
 - **No Expose:** Never ask for auto-provided internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`).
 - **Strict Null Constraints:** The following fields CANNOT be `""` (empty string) but CAN be `null`:
   - `type` (e.g., Basic, Auth2.0, NoAuth, Auth1)

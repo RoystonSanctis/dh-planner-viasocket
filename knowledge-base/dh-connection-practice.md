@@ -867,6 +867,10 @@ Use **response-derived resolution** rather than asking users to manually supply 
   * **`authenticationpaths` (Set Request Parameters) Payload Rules:**
     * **First-Time Creation:** When creating a connection for the first time, `authenticationpaths` MUST be included with all three sub-keys: `headers`, `body`, and `queryParams`. If no injection parameters exist for any (or all) of these keys, set their value to an empty array `[]` (e.g., `"authenticationpaths": { "headers": [], "body": [], "queryParams": [] }`).
     * **Updates:** When updating a connection, if `authenticationpaths` is included in the update payload, it MUST include all three sub-keys (`headers`, `body`, `queryParams`), using empty arrays `[]` for any sub-key with no data. If `authenticationpaths` is not being updated, skip/omit the `"authenticationpaths"` key entirely during the update operation.
+  * **`authfields.authentication.fields` Array Rule:**
+    * The `fields` key inside `authfields.authentication` MUST ALWAYS be an Array.
+    * When fields exist, `fields` is an array of field objects (e.g. `[ { "key": "api_key", "label": "API Key", ... } ]`).
+    * When no fields exist, `fields` MUST be an empty array `[]` (e.g., `"fields": []`). It must **NEVER** be an object, null, or non-array type.
   * **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.connection_label`), ensuring no `||` operators are present in `connectionlabelvalue`.
   * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 

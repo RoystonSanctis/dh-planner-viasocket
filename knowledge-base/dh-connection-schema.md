@@ -222,7 +222,7 @@ revokeapicode: String (stringified JSON with source JS; source null for Basic/Au
 authfields: Object
   - authentication: Object
     - type: String ('Basic' | 'Auth2.0' | 'Auth1.0' | 'NoAuth')
-    - fields: Array of FieldObjects
+    - fields: Array of FieldObjects (array of field objects when fields exist; empty array [] when no fields exist; NEVER an object)
       - key: String
       - label: String
       - type: String ('string' | 'password')
@@ -281,6 +281,10 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 > }
 > ```
 
+> [!IMPORTANT]
+> **`authfields.authentication.fields` Array Rule:**
+> The `fields` key inside `authfields.authentication` **MUST ALWAYS** be an Array. If fields are defined, `fields` is an array of field objects (e.g. `[ { "key": "api_key", ... } ]`). If no fields exist, `fields` MUST be an empty array `[]` (e.g. `"fields": []`). It must **NEVER** be an object, null, or non-array type.
+
 ## Create Connection JSON Schema
 
 ```json
@@ -292,7 +296,12 @@ The Create Connection Payload is the minimal set of fields sent by the client to
   "redirecturl": "String (ViaSocket OAuth callback URL: \"https://auth.viasocket.com/redirect/auth2.0\" | \"https://auth.viasocket.com/redirect/auth1\")",
   "queryparams": "String (Stringified JSON of static query params; \"{}\" when no params needed)",
   "isconnectionlabelmasked": "Boolean | null (Whether connection label value is masked in UI; null if not set)",
-  "authfields": "Object | null (Auth fields definition; null for Basic auth)",
+  "authfields": {
+    "authentication": {
+      "type": "String (Authentication type label, e.g., \"basic\" | \"Auth2.0\" | \"Auth1.0\" | \"NoAuth\")",
+      "fields": "Array (Array of field objects when fields exist; empty array [] if no fields exist. MUST ALWAYS be an Array, NEVER an object)"
+    }
+  },
   "accesstokencode": "String (Stringified JSON for access token config, e.g., \"{\\\"source\\\":null}\")",
   "refreshtokencode": "String (Stringified JSON for refresh token config, e.g., \"{\\\"source\\\":null}\")",
   "revokeapicode": "String (Stringified JSON for revoke API config, e.g., \"{\\\"source\\\":null}\")",
@@ -315,7 +324,10 @@ pluginrecordid: String (plugin ID)
 redirecturl: String ('https://auth.viasocket.com/redirect/auth2.0' | 'https://auth.viasocket.com/redirect/auth1')
 queryparams: String (stringified JSON, '{}' default)
 isconnectionlabelmasked: Boolean | null
-authfields: Object | null (null for Basic auth)
+authfields: Object (contains authentication.type and authentication.fields Array; fields MUST be an Array, [] if no fields)
+  - authentication: Object
+    - type: String ('Basic' | 'Auth2.0' | 'Auth1.0' | 'NoAuth')
+    - fields: Array of FieldObjects ([] if no fields exist; NEVER an object)
 accesstokencode: String (stringified JSON, e.g. '{"source":null}')
 refreshtokencode: String (stringified JSON, e.g. '{"source":null}')
 revokeapicode: String (stringified JSON, e.g. '{"source":null}')
