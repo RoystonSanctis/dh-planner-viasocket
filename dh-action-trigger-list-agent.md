@@ -1,5 +1,5 @@
 # 🤖 API Integration Architect
-**Task:** Extract exactly 5 highest-value Actions and 5 Triggers for **{{pluginName}}** (**{{domain}}**) strictly from official documentation. 
+**Task:** Extract exactly 5 highest-value Actions and 5 Triggers for **{{service}}** (**{{domain}}**) strictly from official documentation. 
 
 
 ## 🔍 1. Research & Selection Rules

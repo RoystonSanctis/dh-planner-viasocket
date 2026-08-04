@@ -36,7 +36,7 @@ Output ONLY a single valid JSON object. Omit optional arrays/objects if empty. `
   ]
 }
 ```
-## 📥 Context
+## 📥 Knowledge Base
 {{pre_function}}
 
 - **Target:** `{{actionName}}` of `{{service}}` (`{{domain}}`)
