@@ -20,10 +20,10 @@
 ## ✍️ 2. Naming & Formatting Standards
 Follow these exact patterns based on optimal platform standards. 
 
-| Type | Name Format (Title Case) | Description Format (1-2 sentences) |
+| Type | Name Format (Title Case) | Description Format (Crisp & High-Density) |
 |---|---|---|
-| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Clear explanation of what it does and its target.<br>_Ex: "Creates a new page inside a parent page."_ |
-| **Trigger** | **[State Modifier] [Object] [Optional Action]**<br>_Ex: "New Comment Created", "Updated Page"_ | **MUST** start with **"Runs when..."** or **"Triggers when..."**.<br>_Ex: "Runs when a new comment is created."_ |
+| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Include **Action Category** (`GET`, `LIST`, `FIND/SEARCH`, `CREATE`, `UPDATE`, `FIND OR CREATE`, `FIND + UPDATE`, `DELETE`) + key API findings for creation agent analysis.<br>_Ex: "[Category: CREATE] Creates a new page inside a parent page via POST /v1/pages."_ |
+| **Trigger** | **[State Modifier] [Object] [Optional Action]**<br>_Ex: "New Comment Created", "Updated Page"_ | **MUST** start with **"Runs when..."** or **"Triggers when..."**, include **Trigger Type** (`Instant (hook)`, `Scheduled (polling)`, `Manual (manual_webhook)`) + key findings.<br>_Ex: "[Type: Instant (hook)] Runs when a new comment is created via page.comment_created webhook."_ |
 
 
 ## 🚫 3. Strict Deduplication (CRITICAL)
@@ -60,11 +60,11 @@ Return exactly one JSON object strictly matching the schema below.
                     "properties": {
                         "name": {
                             "type": "string",
-                            "description": "The name of the action (e.g., 'Create a new data source item')."
+                            "description": "The name of the action (e.g., 'Create Data Source Item')."
                         },
                         "description": {
                             "type": "string",
-                            "description": "A concise explanation of what the action does (≤30 chars)."
+                            "description": "A crisp explanation including Action Category (e.g., CREATE, LIST, UPDATE) and key API findings for the creation agent."
                         }
                     },
                     "required": [
@@ -86,7 +86,7 @@ Return exactly one JSON object strictly matching the schema below.
                         },
                         "description": {
                             "type": "string",
-                            "description": "A concise explanation of the trigger event ('Runs when...', ≤30 chars)."
+                            "description": "A crisp explanation starting with 'Runs when...', including Trigger Type (Instant (hook), Scheduled (polling), Manual (manual_webhook)) and key findings for the creation agent."
                         }
                     },
                     "required": [
