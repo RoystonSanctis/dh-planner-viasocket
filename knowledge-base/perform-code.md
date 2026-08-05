@@ -1622,18 +1622,18 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 
 ### Manual Trigger Perform Code Rules:
 - Manual Triggers support **Perform Code (Modify data before send to flow) / modifytriggerdata** block to transform/modify the incoming webhook payload before sending it to the workflow.
+- **No Auth Constraint:** Manual Triggers do not contain authentication context (`no auth`), so `modifytriggerdata` can only reshape/transform payload data locally and CANNOT make API calls.
 - No scheduling logic, no `__executionStartTime__`, no pagination state.
 
 ### Manual Trigger Perform Code (Modify data before send to flow) Rules:
 
 **Simple understanding**
-- The Perform Code block (`modifytriggerdata`) is used to modify/transform the manual webhook data before sending it to the workflow. If the manual webhook payload is already well-structured and contains all the required information, you can omit/skip this block.
+- The Perform Code block (`modifytriggerdata`) is used to modify/transform the manual webhook data before sending it to the workflow. Because manual triggers lack authentication context, `modifytriggerdata` is strictly for local payload reshaping (no external API calls). If the manual webhook payload is already well-structured, you can omit/skip this block.
 
 **When to use**
 - When the manual webhook payload is not in the format you need for the workflow, such as:
-  - **A. Webhook contains only an ID:** If the webhook sends a payload containing only a record/item ID, use the perform modify code to fetch the full record from the service's API and return the full data.
-  - **B. Webhook sends an array of IDs:** Fetch details for each individual ID and return them as an array of objects (so the workflow can automatically iterate through each item).
-  - **C. Webhook contains nested objects:** Flatten the nested properties and return a flat object.
+  - **A. Reshaping payload / flattening nested objects:** Flatten nested properties, extract fields, or reformat raw webhook payload (`context?.req?.body`).
+  - **B. Reformatting arrays:** Transform arrays of objects so the workflow can iterate through items.
 
 **How it works**
 1. The manual webhook raw payload is accessed using the input path:
