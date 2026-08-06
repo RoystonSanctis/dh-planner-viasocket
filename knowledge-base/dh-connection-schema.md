@@ -105,7 +105,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     "accessTokenUrl": "String (Step 3 OAuth1: URL to exchange verifier for access token, e.g., \"https://trello.com/1/OAuthGetAccessToken\")",
     "signatureMethod": "String (OAuth1 signing algorithm: \"HMAC-SHA1\" | \"HMAC-SHA256\" | \"RSA-SHA1\" | \"PLAINTEXT\")"
   },
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection; raw JS code MUST NOT be directly on testcode, e.g., \"{\\\"source\\\":\\\"async function testcode() {...} return await testcode();\\\"}\")",
   "accesstokencode": "String (Stringified JSON with source JS code for fetching access token; source is null for Basic, Auth1, Implicit, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "refreshtokencode": "String (Stringified JSON with source JS code for refreshing access token; source is null for Basic and Auth1, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token; source is null for Basic and Auth1, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
@@ -215,7 +215,7 @@ auth1parameters: Object (optional)
   - authorizeUrl: String
   - accessTokenUrl: String
   - signatureMethod: String ('HMAC-SHA1' | 'HMAC-SHA256' | 'RSA-SHA1' | 'PLAINTEXT')
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code, e.g. '{"source":"..."}')
 accesstokencode: String (stringified JSON with source JS; source null for Basic/Auth1/Implicit)
 refreshtokencode: String (stringified JSON with source JS; source null for Basic/Auth1)
 revokeapicode: String (stringified JSON with source JS; source null for Basic/Auth1)
@@ -285,6 +285,10 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 > **`authfields.authentication.fields` Array Rule:**
 > The `fields` key inside `authfields.authentication` **MUST ALWAYS** be an Array. If fields are defined, `fields` is an array of field objects (e.g. `[ { "key": "api_key", ... } ]`). If no fields exist, `fields` MUST be an empty array `[]` (e.g. `"fields": []`). It must **NEVER** be an object, null, or non-array type.
 
+> [!IMPORTANT]
+> **`testcode` Stringified JSON Structure Rule:**
+> The `testcode` field **MUST ALWAYS** be a stringified JSON string wrapping an object with a `"source"` key (e.g. `"{\"source\":\"async function testcode() { ... } return await testcode();\"}"`). The raw JavaScript perform code must **NEVER** be placed directly as the string value of `testcode`. If no test code is present, it MUST be `"{\"source\":null}"`.
+
 ## Create Connection JSON Schema
 
 ```json
@@ -305,7 +309,7 @@ The Create Connection Payload is the minimal set of fields sent by the client to
   "accesstokencode": "String (Stringified JSON for access token config, e.g., \"{\\\"source\\\":null}\")",
   "refreshtokencode": "String (Stringified JSON for refresh token config, e.g., \"{\\\"source\\\":null}\")",
   "revokeapicode": "String (Stringified JSON for revoke API config, e.g., \"{\\\"source\\\":null}\")",
-  "testcode": "String (Stringified JSON for test API config, e.g., \"{\\\"source\\\":null}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key for test API config; raw JS MUST NOT be directly on testcode, e.g., \"{\\\"source\\\":\\\"...\\\"}\" or \"{\\\"source\\\":null}\")",
   "authenticationpaths": {
     "headers": "Array (List of header injection objects; empty array [] if no data)",
     "body": "Array (List of body injection objects; empty array [] if no data)",
@@ -331,7 +335,7 @@ authfields: Object (contains authentication.type and authentication.fields Array
 accesstokencode: String (stringified JSON, e.g. '{"source":null}')
 refreshtokencode: String (stringified JSON, e.g. '{"source":null}')
 revokeapicode: String (stringified JSON, e.g. '{"source":null}')
-testcode: String (stringified JSON, e.g. '{"source":null}')
+testcode: String (stringified JSON wrapping 'source' key, e.g. '{"source":null}')
 authenticationpaths: Object (MUST include headers, body, queryParams; [] if no data)
   - headers: Array of PathObjects ([] if no data)
   - body: Array of PathObjects ([] if no data)
@@ -405,7 +409,7 @@ The Update Connection Payload is sent by the client to modify an existing Connec
     }
   },
 
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
   "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.res?.data?.workspace_name\")",
@@ -463,7 +467,7 @@ authfields: Object
         - label: String
         - value: String
         - sample: String
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code)
 connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
@@ -545,7 +549,7 @@ skipwhitelistvalidation: null (null if not set)
   "accesstokencode": "String (Stringified JSON with source JS code for fetching access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "refreshtokencode": "String (Stringified JSON with source JS code for refreshing access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
   "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.res?.data?.workspace_name\")",
@@ -616,7 +620,7 @@ scopeseperatedby: String ('comma' | ...)
 accesstokencode: String (stringified JSON with source JS)
 refreshtokencode: String (stringified JSON with source JS)
 revokeapicode: String (stringified JSON with source JS)
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code)
 connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
@@ -679,7 +683,7 @@ skipwhitelistvalidation: null (null if not set)
   "accesstokencode": "String (Stringified JSON with source JS code for fetching access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "refreshtokencode": "String (Stringified JSON with source JS code for refreshing access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
   "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.clientid\")",
@@ -745,7 +749,7 @@ authfields: Object
 accesstokencode: String (stringified JSON with source JS)
 refreshtokencode: String (stringified JSON with source JS)
 revokeapicode: String (stringified JSON with source JS)
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code)
 connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
@@ -811,7 +815,7 @@ skipwhitelistvalidation: null (null if not set)
   "accesstokencode": "String (Stringified JSON with source JS code for fetching access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "refreshtokencode": "String (Stringified JSON with source JS code for refreshing access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"Email\")",
   "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.testcode.email\")",
@@ -879,7 +883,7 @@ authfields: Object
 accesstokencode: String (stringified JSON with source JS)
 refreshtokencode: String (stringified JSON with source JS)
 revokeapicode: String (stringified JSON with source JS)
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code)
 connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
@@ -946,7 +950,7 @@ skipwhitelistvalidation: null (null if not set)
   "accesstokencode": "String (Stringified JSON with source JS code for fetching access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "refreshtokencode": "String (Stringified JSON with source JS code for refreshing access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "revokeapicode": "String (Stringified JSON with source JS code for revoking token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"Username\")",
   "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.username\")",
@@ -1015,7 +1019,7 @@ authfields: Object
 accesstokencode: String (stringified JSON with source JS)
 refreshtokencode: String (stringified JSON with source JS)
 revokeapicode: String (stringified JSON with source JS)
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code)
 connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
@@ -1070,7 +1074,7 @@ skipwhitelistvalidation: null (null if not set)
     "signatureMethod": "String (OAuth1.0 signature method, e.g., \"HMAC-SHA1\")"
   },
 
-  "testcode": "String (Stringified JSON with source JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
+  "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
   "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.clientid\")",
@@ -1130,7 +1134,7 @@ auth1parameters: Object
   - authorizeUrl: String
   - accessTokenUrl: String
   - signatureMethod: String (e.g. 'HMAC-SHA1')
-testcode: String (stringified JSON with source JS)
+testcode: String (stringified JSON wrapping 'source' key with JS code)
 connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)

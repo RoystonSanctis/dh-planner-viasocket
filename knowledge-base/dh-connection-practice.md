@@ -871,6 +871,10 @@ Use **response-derived resolution** rather than asking users to manually supply 
     * The `fields` key inside `authfields.authentication` MUST ALWAYS be an Array.
     * When fields exist, `fields` is an array of field objects (e.g. `[ { "key": "api_key", "label": "API Key", ... } ]`).
     * When no fields exist, `fields` MUST be an empty array `[]` (e.g., `"fields": []`). It must **NEVER** be an object, null, or non-array type.
+  * **`testcode` Stringified JSON Payload Rule:**
+    * The `testcode` field value in payloads MUST ALWAYS be a stringified JSON string wrapping an object with a `"source"` key (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`).
+    * The actual JavaScript perform code must NEVER be placed directly on the `testcode` key as a raw code string.
+    * If no test code is present or required, set `testcode` to `"{\"source\":null}"`.
   * **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.connection_label`), ensuring no `||` operators are present in `connectionlabelvalue`.
   * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 
@@ -915,6 +919,7 @@ Your final proposed design must strictly output the following structure:
 > *   The authorization code path is always `context?.authData?.Authorization?.code`; the refresh token path is always `context?.authData?.accesstokencode?.refresh_token`; the PKCE code verifier path is always `context?.authData?.code_verifier`.
 > *   For OAuth 1.0, never generate custom `accesstokencode` — it is produced automatically by the Configure OAuth1 Endpoint step's built-in Authorize exchange.
 > *   The perform code should focus strictly on token/signature handling and request dispatching.
+> *   `testcode` payload values MUST ALWAYS be stringified JSON objects wrapping a `"source"` key containing the perform code (e.g. `JSON.stringify({ source: "..." })` / `"{\"source\":\"...\"}"`). Raw JS code strings MUST NOT be directly assigned to `testcode`.
 
 * **Connection Safety & Longevity Check:** A robust analysis explaining the refresh strategy, revoke strategy, duplicate-connection prevention (Unique Connection Identifier), and runtime stability guarantees across long-lived automations.
 
