@@ -377,11 +377,17 @@ code: String (raw JS body in try-catch parent format, not wrapped in a function;
 
 ## Reusable Component Action Version Mapping Schema
 
-When a reusable component (new or existing) is used within an action or trigger (e.g., in dropdown fields or code blocks like perform, subscribe, unsubscribe, performlist, or transfer option code), a mapping entry must be created to link the component to the specific action version and path.
+When a reusable component (new or existing) is used within an action or trigger (e.g., in dropdown fields or code blocks like perform, subscribe, unsubscribe, performlist, transfer option code, or modify trigger data), a mapping entry must be created to link the component to the specific action version and path.
 
 > [!WARNING]
 > The mapping API acts as a toggle (boolean behavior): calling the API the first time maps the reusable component to the path, and calling it again with the same parameters unmaps (removes the link) the reusable component from the path.
 
+### Reusable Component Mapping Path Rules
+The `path` parameter specifies where the reusable component is mapped within the action/trigger version:
+- **Dedicated Section Key Path:** For code blocks, `path` MUST be the dedicated section key: `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, or `modifytriggerdata`.
+- **Field Key Path:** When mapping a component in the `optionsGenerator` of a dynamic `dropdown`, `multiselect`, or dynamic input group, `path` MUST be the field key (e.g., `"page_id"`).
+- **No Nested Input Group Path:** In case of fields present inside an input group, `path` is STILL strictly the field key itself (e.g., `"page_id"`), NOT a nested input group path (such as `"input_group_key.page_id"`).
+- **Conclusion:** The reusable component mapping `path` is ALWAYS either a **dedicated section key path** (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) OR a **field key** of a dynamic dropdown, multiselect, or dynamic input group.
 
 ### Reusable Component Mapping JSON Schema
 ```json
@@ -390,7 +396,7 @@ When a reusable component (new or existing) is used within an action or trigger 
   "component_id": "String (Unique row ID/identifier of the reusable component, e.g., 'rowye083t43i')",
   "pluginrecordid": "String (Unique row ID of the plugin/service, e.g., 'rowbxw4uz2gq')",
   "action_id": "String (Unique row ID of the action or trigger, e.g., 'row2oafcm02w')",
-  "path": "String (The code block or input field path where the component is used, e.g., 'perform', 'performsubscribe', 'performunsubscribe', 'performlist', 'transferoption')"
+  "path": "String (Dedicated section key path 'perform' | 'performlist' | 'transferoption' | 'performsubscribe' | 'performunsubscribe' | 'modifytriggerdata', or field key e.g. 'page_id')"
 }
 ```
 
@@ -400,7 +406,7 @@ action_version_id: String (action version ID)
 component_id: String (reusable component ID)
 pluginrecordid: String (plugin ID)
 action_id: String (action/trigger ID)
-path: String ('perform' | 'performsubscribe' | 'performunsubscribe' | 'performlist' | 'transferoption' | field key)
+path: String ('perform' | 'performlist' | 'transferoption' | 'performsubscribe' | 'performunsubscribe' | 'modifytriggerdata' | field key)
 ```
 
 ---

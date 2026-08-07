@@ -368,7 +368,7 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 - **Reusable Component**:
   - *Create*: `function_name`, `description`, `params:[{name,sample}]` (string samples double-quoted e.g. `"sample":"\"field ID\""`; other types unwrapped), `code`, `pluginrecordid`, `function_code` (async wrapper), `componentgenerationsource`, `functionId`.
   - *Update*: `rowid`, `description`, `function_code`, `componentgenerationsource`, `code`.
-- **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. Toggle behavior (first call maps, second unmaps).
+- **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. `path` is either a dedicated section key path (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key when mapped in an `optionsGenerator` for dynamic dropdowns, multiselects, or dynamic input groups (e.g. `"page_id"`; for fields inside input groups, use only the field key `"page_id"`, no nested input group path). Toggle behavior (first call maps, second unmaps).
 
 # Review
 

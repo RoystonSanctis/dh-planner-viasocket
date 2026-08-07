@@ -42,3 +42,7 @@ A valid JSON object representing the Reusable Component, containing:
 
 ## 4. Mapping / Importing Rules
 * **Map in All Code Blocks:** When a reusable component is created or used, it must be explicitly mapped/imported in all code blocks (such as `optionsGenerator`, `fieldsGenerator`, etc.) that call it. Ensure you invoke the mapping tool for each target field path to link the component correctly.
+* **Mapping Path Specification:**
+  * **Dedicated Section Key Path:** For code blocks, `path` MUST be one of the dedicated section keys: `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, or `modifytriggerdata`.
+  * **Field Key Path:** When mapping in an `optionsGenerator` for a dynamic `dropdown`, `multiselect`, or dynamic input group, `path` MUST be the field key (e.g., `"page_id"`).
+  * **No Nested Input Group Path:** For fields present inside an input group, `path` is STILL strictly the field key itself (e.g., `"page_id"`), never a nested input group path.

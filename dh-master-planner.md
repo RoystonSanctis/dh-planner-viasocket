@@ -22,7 +22,7 @@ Pre-check `Fetch_Reusable_Components_Details`.
 - **Update:** Send `component_id` + changed fields + (`function_name` or `params`). 
   - *Active/Mapped:* Cannot alter name/params (Create NEW & explain why). Code is updatable.
   - *Unused:* All fields updatable.
-- **Map:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (field key or code block path).
+- **Map:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. The `path` can be a dedicated section key path (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key when mapped in an `optionsGenerator` for a dynamic `dropdown`, `multiselect`, or dynamic input group (e.g., `"page_id"`; for fields inside an input group, use only the field key `"page_id"`, no nested input group path).
 
 ## 🛡️ Guardrails
 - **Completeness:** MUST support ALL documented API parameters (query, body, headers, filters). Never omit.
