@@ -914,7 +914,25 @@ Your final proposed design must strictly output the following structure:
 > [!WARNING]
 > #### Connection Perform Code Constraints:
 > *   The **CODE STRUCTURE TEMPLATE** above (`async function <functionName>() { try {...} catch (error) { throw error; } }; return await <functionName>();`) is **mandatory** for every Connection perform code step.
-> *   `axios` is used for all network calls — never `require`/`import`/`fetch`/`window`/`document`.
+> *   `axios` is used for network calls — no `require`/`import`/`window`/`document`.
+> *   **Supported Libraries/Globals (Direct access, no import/require):**
+>     - `form-data` as `FormData`
+>     - `https`
+>     - `crypto`
+>     - `setTimeout`
+>     - `axios`
+>     - `jsonwebtoken` as `jwt`
+>     - `lodash` as `_`
+>     - `node-fetch` as `fetch`
+>     - `cheerio`
+>     - `moment`
+>     - `fetch`
+>     - `Buffer`
+>     - `atob`
+>     - `URLSearchParams`
+>     - `XMLParser`   (for XML → JS Object conversion)
+>     - `XMLBuilder`  (for JS Object → XML conversion)
+>     - `XMLValidator`(for XML validation)
 > *   Client secrets, consumer secrets, and passwords must **never** be hardcoded in the perform code — always sourced from `context.authData`.
 > *   The authorization code path is always `context?.authData?.Authorization?.code`; the refresh token path is always `context?.authData?.accesstokencode?.refresh_token`; the PKCE code verifier path is always `context?.authData?.code_verifier`.
 > *   For OAuth 1.0, never generate custom `accesstokencode` — it is produced automatically by the Configure OAuth1 Endpoint step's built-in Authorize exchange.

@@ -81,6 +81,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
     - `fetch`
     - `Buffer`
     - `atob`
+    - `URLSearchParams`
     - `XMLParser`   (for XML → JS Object conversion)
     - `XMLBuilder`  (for JS Object → XML conversion)
     - `XMLValidator`(for XML validation)

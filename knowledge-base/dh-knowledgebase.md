@@ -211,7 +211,7 @@ try {
 - **Scheduled Perform vs Sample**: Perform returns array `[{item1},{item2}]` (engine loops per item). Sample returns single object `{...}` (one item via GET pattern for schema mapping).
 
 ## Libraries
-Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Buffer` `atob` `FormData`(form-data) `jwt`(jsonwebtoken) `_`(lodash) `cheerio` `moment` `XMLParser` `XMLBuilder` `XMLValidator`. `axios` accepts `maxBodyLength:Infinity`. Same set in reusable components.
+Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Buffer` `atob` `FormData`(form-data) `jwt`(jsonwebtoken) `_`(lodash) `cheerio` `moment` `URLSearchParams` `XMLParser` `XMLBuilder` `XMLValidator`. `axios` accepts `maxBodyLength:Infinity`. Same set in reusable components.
 
 ## Globals
 | Global | Where |
