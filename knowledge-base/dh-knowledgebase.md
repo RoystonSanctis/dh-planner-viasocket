@@ -98,12 +98,14 @@ Single Perform call from `context.inputData`. Categories: GET · LIST · FIND/SE
 # Naming
 | Item | Format |
 |---|---|
-| Action name | Verb + Title Case ("Send Message at Slack Channel") |
-| Action desc | ≤30 chars ("Send Slack message") |
-| Trigger name | Event phrase after "When ___", no "when", present tense, Title Case ("New Email Arrives"). Avoid: list/fetch/sync/load/pull/search/check/scan/collect/export. |
-| Trigger desc | `Runs when <event>`, ≤30 chars |
+| Action name | **[Verb] [Object]** in Title Case (e.g. `"Create Data Source Item"`, `"Archive Page"`). |
+| Action desc | Short description, ≤30 chars (e.g. `"Send Slack message"`). |
+| Trigger name | **[State Modifier] [Object] [Optional Action]** in Title Case (e.g. `"New Comment Created"`, `"Updated Page"`). **MUST** start with state change prefixes (**"New"**, **"Updated"**, **"Deleted"**). ❌ Incorrect: `"Page Created"`, `"Comment Updated"`, `"Page Deleted"`; ✅ Correct: `"New Page Created"` (or `"New Page"`), `"Updated Comment"`, `"Deleted Page"`. Avoid forbidden words: `list`, `fetch`, `sync`, `load`, `pull`, `search`, `check`, `scan`, `collect`, `export`. |
+| Trigger desc | `Runs when <event>`, ≤30 chars (e.g. `"Runs when new email arrives"`). |
 
-App name only if generic without it. Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update. Never append `(optional)` in `label`, `placeholder`, `customInputLabel`, or `customPlaceholder`.
+App Name Rule: Omit the app name (e.g. "{{pluginName}}") from names and descriptions unless the context is too generic without it.
+No Raw IDs: NEVER use raw event/endpoint identifiers (e.g. `page.created`) as names.
+Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update. Never append `(optional)` in `label`, `placeholder`, `customInputLabel`, or `customPlaceholder`.
 
 # UX Field Ordering
 Required first, optionals grouped after. **`canPaginate`/`enableSearchApi` priority**: (1) both → both true; (2) search only → paginate false, search true; (3) pagination only → paginate true, search false; (4) neither → both false. Set flags true if reusing a component that implements them. Verify API capabilities via web search first. **Help placement**: static/dynamic help field always below the field it refers to.
