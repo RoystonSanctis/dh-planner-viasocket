@@ -38,13 +38,7 @@ published: true
   - Slack — Schedule Message
 - SCHEDULED TRIGGER Examples
   - Google Calendar — New Upcoming Events (Scheduled Trigger)
-    - Rationale
-    - Input Fields JSON
-    - Perform Code
   - Google Meet — New Upcoming Meeting (Scheduled Trigger)
-    - Rationale
-    - Input Fields JSON
-    - Perform Code
 - Cross-Cutting UX Patterns (Extracted)
 - Advanced Best Approaches for Actions
   - Action - Insert or Update Data with Linking Module (Sangam CRM)
@@ -3618,7 +3612,7 @@ try {
 
 ## Google Calendar — New Upcoming Events (Scheduled Trigger)
 
-### Rationale
+**Rationale**
 - **Category:** SCHEDULED TRIGGER (Polling)
 - **Use Case:** Polls Google Calendar for upcoming events that start within a user-defined relative time offset in the future (`minutesBefore` minutes from execution time).
 - **UX Highlights:**
@@ -3630,7 +3624,7 @@ try {
   - **Strict Client-Side JS Boundary Filter:** Performs post-fetch JS filtering (`eventStartMs <= windowStartMs || eventStartMs > windowEndMs`) to guarantee exact matching within the target window.
   - **Single-Pass Fetching:** Iterates through selected calendar IDs and fetches events using `timeMin` and `timeMax` ISO strings without internal pagination loops, tagging returned items with `calendarId`.
 
-### Input Fields JSON
+**Input Fields JSON**
 ```json
 [
   {
@@ -3661,7 +3655,7 @@ try {
 ]
 ```
 
-### Perform Code
+**Perform Code**
 ```javascript
 async function fetchUpcomingEvents() {
     try {
@@ -3756,7 +3750,7 @@ return await fetchUpcomingEvents();
 
 ## Google Meet — New Upcoming Meeting (Scheduled Trigger)
 
-### Rationale
+**Rationale**
 - **Category:** SCHEDULED TRIGGER (Polling)
 - **Use Case:** Polls Google Calendar for upcoming events that contain Google Meet video conference links and start within a user-defined relative time offset in the future (`meetingBefore` minutes from execution time).
 - **UX Highlights:**
@@ -3767,7 +3761,7 @@ return await fetchUpcomingEvents();
   - **Expanded Google Meet Detection:** Checks for Google Meet links across `conferenceData.entryPoints`, `location`, and `description` using regex (`/meet\.google\.com/i`).
   - **Strict Boundary Check:** Ensures `eventStartMs >= windowStartMs && eventStartMs < windowEndMs` to guarantee exactly 1 execution tick per meeting without duplicate triggers.
 
-### Input Fields JSON
+**Input Fields JSON**
 ```json
 [
   {
@@ -3799,7 +3793,7 @@ return await fetchUpcomingEvents();
 ]
 ```
 
-### Perform Code
+**Perform Code**
 ```javascript
 async function fetchUpcomingMeetings() {
     try {
