@@ -26,6 +26,7 @@ published: true
   - Reusable Component JSON Schema
   - Reusable Component TOON Schema
   - Reusable Component Action Version Mapping Schema
+    - Reusable Component Mapping Path Rules
     - Reusable Component Mapping JSON Schema
     - Reusable Component Mapping TOON Schema
 

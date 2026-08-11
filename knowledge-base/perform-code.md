@@ -46,11 +46,11 @@ published: true
     - Manual Trigger Sample Code Pattern:
 - Actions
   - Action Perform Code Rules:
-    - Action Perform Code Patterns:
-      - Read Data from an API (GET Family)
-      - Create Data in an API
-      - Update Data in an API
-      - Delete or Archive Data in an API
+      - Action Perform Code Patterns:
+        - Read Data from an API (GET Family)
+        - Create Data in an API
+        - Update Data in an API
+        - Delete or Archive Data in an API
 - Special Note:
   - Special Note - API Request Error Handling:
   - Special Note - Success Code Handling:

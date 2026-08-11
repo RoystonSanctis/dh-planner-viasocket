@@ -22,9 +22,9 @@ published: true
   - Calendly — Create Booking
 - LIST Examples
   - Keka — List All Employees
-  - Google Calendar — List all Events
 - FIND / SEARCH Examples
   - LeadSquared — Search Leads by Criteria
+  - Google Calendar — List all Events
   - GoHighLevel — Add Tags on Contact
   - Gmail — Add Label to Email
   - ActiveCampaign — Add or Remove Tag on Contact
