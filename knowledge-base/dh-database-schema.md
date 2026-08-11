@@ -24,11 +24,7 @@ published: true
       - Manual Trigger TOON Schema
 - Reusable Component Object Schema
   - Reusable Component JSON Schema
-    - Reusable Component Create Payload
-    - Reusable Component Update Payload
   - Reusable Component TOON Schema
-    - Reusable Component Create Payload
-    - Reusable Component Update Payload
   - Reusable Component Action Version Mapping Schema
     - Reusable Component Mapping JSON Schema
     - Reusable Component Mapping TOON Schema
@@ -309,7 +305,7 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
 
 ## Reusable Component JSON Schema
 
-### Reusable Component Create Payload
+**Reusable Component Create Payload**
 ```json
 {
   "function_name": "String (Unique function identifier, camelCase, e.g., 'fetchSpreadsheets')",
@@ -328,7 +324,7 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
 }
 ```
 
-### Reusable Component Update Payload
+**Reusable Component Update Payload**
 ```json
 {
   "rowid": "String (Unique identifier/row ID of the reusable component, e.g., 'rowjoyllflj4')",
@@ -341,7 +337,7 @@ Reusable Components are shared utility functions (e.g., `fetchSpreadsheets`) imp
 
 ## Reusable Component TOON Schema
 
-### Reusable Component Create Payload
+**Reusable Component Create Payload**
 ```toon
 function_name: String (camelCase)
 description: String
@@ -355,7 +351,7 @@ componentgenerationsource: String ('userGenerated' | 'aiGenerated')
 functionId: String (action version ID)
 ```
 
-### Reusable Component Update Payload
+**Reusable Component Update Payload**
 ```toon
 rowid: String (component row ID)
 description: String
