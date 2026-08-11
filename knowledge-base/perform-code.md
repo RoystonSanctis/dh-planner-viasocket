@@ -34,6 +34,27 @@ published: true
         - Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
         - Example 6: Fetching Upcoming Events for Relative Future Time Windows (Google Calendar)
         - Example 7: Fetching Upcoming Meetings with Google Meet Filter for Relative Future Time Windows (Google Meet)
+    - Schedule Trigger Sample Code:
+      - Schedule Trigger Sample Code Rules:
+      - Schedule Trigger Sample Code Pattern:
+      - Schedule Trigger Sample Example Code:
+    - Scheduled Trigger Transfer Code Rules:
+    - Scheduled Trigger Transfer Code Patterns:
+  - Manual Trigger
+    - Manual Trigger Perform Code Rules:
+    - Manual Trigger Perform Code (Modify data before send to flow) Rules:
+    - Manual Trigger Sample Code Pattern:
+- Actions
+  - Action Perform Code Rules:
+    - Action Perform Code Patterns:
+      - Read Data from an API (GET Family)
+      - Create Data in an API
+      - Update Data in an API
+      - Delete or Archive Data in an API
+- Special Note:
+  - Special Note - API Request Error Handling:
+  - Special Note - Success Code Handling:
+  - Special Note - Final Code Review:
 
 # Perform Code Knowledge Base
 
