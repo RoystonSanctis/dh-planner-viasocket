@@ -22,6 +22,7 @@ published: true
   - Calendly — Create Booking
 - LIST Examples
   - Keka — List All Employees
+  - Google Calendar — List all Events
 - FIND / SEARCH Examples
   - LeadSquared — Search Leads by Criteria
   - GoHighLevel — Add Tags on Contact
@@ -29,7 +30,7 @@ published: true
   - ActiveCampaign — Add or Remove Tag on Contact
 - GET Examples
   - LeadSquared — Get Lead by ID
-  - YouTube — Get Channel Analytics
+  - YouTube Studio — Get Channel Analytics
 - FIND OR CREATE (Upsert) Examples
   - LeadSquared — Create or Update Lead
 - Composite / Advanced Action Examples
@@ -2226,6 +2227,451 @@ try {
 
 ---
 
+## Google Calendar — List all Events
+
+**Metadata**
+- **App:** Google Calendar
+- **Category:** Productivity / Scheduling / Calendar
+- **Action:** List all Events
+- **Action Type:** LIST
+
+**Supporting API Usage**
+- **List Calendars API** (`fetch_calendars()`) — populates the `calendarId` dropdown so the user can select a calendar by name or enter a custom calendar ID.
+- **Events List API** (`/calendar/v3/calendars/{calendarId}/events`) — supports pagination via `pageToken`, filtering by `timeMin`, `timeMax`, `q` (search query), `eventTypes` (multiselect), `timeZone`, `showDeleted`, and `showHiddenInvitations`.
+
+**UX Components & Field Design**
+- **Dropdown (with custom input) — Calendar (`calendarId`)** — select from the user's available calendars or map a calendar ID directly (`customInputLabel`, `customHelp`, `customPlaceholder`).
+- **Dropdown (Static) — Time Range (`date_mode`)** — allows the user to choose between three clear time filtering modes:
+  - *All Upcoming Events (`all`)* — defaults `timeMin` to `now.toISOString()` to retrieve all future events.
+  - *Relative Range (`relative`)* — reveals `relative_days` (number: positive for future days e.g. `7`, negative for past days e.g. `-2`), automatically calculating `timeMin` and `timeMax` relative to the current timestamp.
+  - *Fixed Date Range (`fixed`)* — reveals `timeMin` ("Start Date-Time") and `timeMax` ("End Date-Time"), accepting `YYYY-MM-DD HH:MM` or `YYYY-MM-DD` and normalizing them internally to ISO strings (`00:00:00Z` or `23:59:59Z`).
+- **Number — Days from Today (`relative_days`)** — visible when `date_mode === 'relative'`; supports positive numbers (future) and negative numbers (past).
+- **String — Start Date-Time & End Date-Time (`timeMin`, `timeMax`)** — visible when `date_mode === 'fixed'`; accepts `YYYY-MM-DD HH:MM` (24-hour) or `YYYY-MM-DD`.
+- **String — Search Query (`search_query`)** — optional text search across event title, description, location, attendee names/emails, and organizer.
+- **Multiselect (Static) — Event Types (`event_types`)** — curated list of event types (*Regular Events*, *Birthday*, *Focus Time*, *From Gmail*, *Out of Office*, *Working Location*) with custom input support.
+- **Dropdown (Static) — Time Zone (`timeZone`)** — popular IANA timezone options with custom input for entering any valid IANA timezone string.
+- **Boolean — Include Deleted Events (`show_deleted`) & Include Hidden Invitations (`show_hidden_invitations`)** — boolean toggles defaulting to `No`.
+- **Number — Max Results (`maxResults`)** — optional total count cap (e.g. `250`); perform code loops internal pages (up to 20 pages) until `maxResults` is reached.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "calendarId",
+    "help": "Select or Enter your calendar ID",
+    "type": "dropdown",
+    "label": "Calendar",
+    "required": true,
+    "customHelp": "Use the 'List Calendar' action to get all calendar along with their IDs and then map the retrieved data accordingly",
+    "customInputLabel": "Enter your calendar Id.",
+    "optionsGenerator": "try {\nreturn await fetch_calendars() \n\n} catch (error) {\n  throw error \n}",
+    "customPlaceholder": "test@gmail.com"
+  },
+  {
+    "key": "date_mode",
+    "help": "Choose how you want to filter events by time range.",
+    "type": "dropdown",
+    "label": "Time Range",
+    "options": [
+      {
+        "label": "All Upcoming Events",
+        "value": "all",
+        "sample": "all"
+      },
+      {
+        "label": "Relative Range (e.g. Next 7 Days)",
+        "value": "relative",
+        "sample": "relative"
+      },
+      {
+        "label": "Fixed Date Range",
+        "value": "fixed",
+        "sample": "fixed"
+      }
+    ],
+    "required": true,
+    "defaultValue": {
+      "label": "All Upcoming Events",
+      "value": "all",
+      "sample": "all"
+    }
+  },
+  {
+    "key": "relative_days",
+    "help": "Enter the number of days from today to fetch events for. Use a positive number for future days (e.g., 7 for next 7 days) or a negative number for past days (e.g., -2 for 2 days ago). Events will be fetched between today and the entered day.",
+    "type": "number",
+    "label": "Days from Today",
+    "required": true,
+    "placeholder": "7 or -2",
+    "visibilityCondition": "context.inputData.date_mode === 'relative'"
+  },
+  {
+    "key": "timeMin",
+    "help": "Enter the start date & time in this format only: YYYY-MM-DD HH:MM (24-hour). Date only (YYYY-MM-DD) is also accepted.",
+    "type": "string",
+    "label": "Start Date-Time",
+    "required": false,
+    "placeholder": "2026-08-01 09:00",
+    "visibilityCondition": "context.inputData.date_mode === 'fixed'"
+  },
+  {
+    "key": "timeMax",
+    "help": "Enter the end date & time in this format only: YYYY-MM-DD HH:MM (24-hour). Date only (YYYY-MM-DD) is also accepted.",
+    "type": "string",
+    "label": "End Date-Time",
+    "required": false,
+    "placeholder": "2026-08-31 18:00",
+    "visibilityCondition": "context.inputData.date_mode === 'fixed'"
+  },
+  {
+    "key": "search_query",
+    "help": "Type any word to find matching events. It searches the event title, description, location, and the names and emails of attendees and the organizer.",
+    "type": "string",
+    "label": "Search Query",
+    "required": false,
+    "placeholder": "Team sync"
+  },
+  {
+    "key": "event_types",
+    "help": "Select the type(s) of events to include. Leave empty to include all event types.",
+    "type": "multiselect",
+    "label": "Event Types",
+    "options": [
+      {
+        "label": "Regular Events",
+        "value": "default",
+        "sample": "default"
+      },
+      {
+        "label": "Birthday",
+        "value": "birthday",
+        "sample": "birthday"
+      },
+      {
+        "label": "Focus Time",
+        "value": "focusTime",
+        "sample": "focusTime"
+      },
+      {
+        "label": "From Gmail",
+        "value": "fromGmail",
+        "sample": "fromGmail"
+      },
+      {
+        "label": "Out of Office",
+        "value": "outOfOffice",
+        "sample": "outOfOffice"
+      },
+      {
+        "label": "Working Location",
+        "value": "workingLocation",
+        "sample": "workingLocation"
+      }
+    ],
+    "required": false,
+    "customInputLabel": "Enter Event Types",
+    "customPlaceholder": "[\"default\", \"birthday\" ]"
+  },
+  {
+    "key": "timeZone",
+    "help": "Select the time zone for the event.",
+    "type": "dropdown",
+    "label": "Time Zone",
+    "options": [
+      {
+        "label": "America/New_York (Eastern Time)",
+        "value": "America/New_York"
+      },
+      {
+        "label": "America/Chicago (Central Time)",
+        "value": "America/Chicago"
+      },
+      {
+        "label": "America/Denver (Mountain Time)",
+        "value": "America/Denver"
+      },
+      {
+        "label": "America/Los_Angeles (Pacific Time)",
+        "value": "America/Los_Angeles"
+      },
+      {
+        "label": "Europe/London (Greenwich Mean Time)",
+        "value": "Europe/London"
+      },
+      {
+        "label": "Europe/Paris (Central European Time)",
+        "value": "Europe/Paris"
+      },
+      {
+        "label": "Europe/Berlin (Central European Time)",
+        "value": "Europe/Berlin"
+      },
+      {
+        "label": "Asia/Tokyo (Japan Standard Time)",
+        "value": "Asia/Tokyo"
+      },
+      {
+        "label": "Asia/Shanghai (China Standard Time)",
+        "value": "Asia/Shanghai"
+      },
+      {
+        "label": "Asia/Kolkata (India Standard Time)",
+        "value": "Asia/Kolkata"
+      },
+      {
+        "label": "Australia/Sydney (Australian Eastern Time)",
+        "value": "Australia/Sydney"
+      },
+      {
+        "label": "Asia/Dubai (Gulf Standard Time)",
+        "value": "Asia/Dubai"
+      },
+      {
+        "label": "Europe/Moscow (Moscow Standard Time)",
+        "value": "Europe/Moscow"
+      },
+      {
+        "label": "America/Toronto (Eastern Time)",
+        "value": "America/Toronto"
+      },
+      {
+        "label": "America/Mexico_City (Central Time)",
+        "value": "America/Mexico_City"
+      },
+      {
+        "label": "America/Sao_Paulo (Brasilia Time)",
+        "value": "America/Sao_Paulo"
+      },
+      {
+        "label": "Africa/Johannesburg (South Africa Standard Time)",
+        "value": "Africa/Johannesburg"
+      },
+      {
+        "label": "Asia/Singapore (Singapore Time)",
+        "value": "Asia/Singapore"
+      },
+      {
+        "label": "Europe/Madrid (Central European Time)",
+        "value": "Europe/Madrid"
+      },
+      {
+        "label": "Asia/Hong_Kong (Hong Kong Time)",
+        "value": "Asia/Hong_Kong"
+      }
+    ],
+    "required": false,
+    "customHelp": "Enter the time zone in IANA format. Leave empty to use the calendar's default time zone.",
+    "placeholder": "Choose Time Zone",
+    "customInputLabel": "Enter Time Zone",
+    "customPlaceholder": "America/New_York"
+  },
+  {
+    "key": "show_deleted",
+    "help": "Choose whether to include cancelled/deleted events in the results.",
+    "type": "boolean",
+    "label": "Include Deleted Events",
+    "options": [
+      {
+        "label": "Yes",
+        "value": true
+      },
+      {
+        "label": "No",
+        "value": false
+      }
+    ],
+    "required": false,
+    "defaultValue": {
+      "label": "No",
+      "value": false
+    }
+  },
+  {
+    "key": "show_hidden_invitations",
+    "help": "Choose whether to include hidden invitations in the results.",
+    "type": "boolean",
+    "label": "Include Hidden Invitations",
+    "options": [
+      {
+        "label": "Yes",
+        "value": true
+      },
+      {
+        "label": "No",
+        "value": false
+      }
+    ],
+    "required": false,
+    "defaultValue": {
+      "label": "No",
+      "value": false
+    }
+  },
+  {
+    "key": "maxResults",
+    "help": "Maximum number of events to return in total. Leave empty to fetch all matching events.",
+    "type": "number",
+    "label": "Max Results",
+    "required": false,
+    "placeholder": "250"
+  }
+]
+```
+
+**API Configuration Perform Code**
+```javascript
+async function fetchEvents() {
+    const data = context.inputData;
+
+    const MAX_PAGES = 20;
+    const PAGE_SIZE = 250;
+
+    const toBoolean = (val) => {
+        if (typeof val === 'boolean') return val;
+        if (val && typeof val === 'object') return toBoolean(val.value);
+        if (typeof val === 'string') return val.trim().toLowerCase() === 'true';
+        return false;
+    };
+
+    const normalizeDateTime = (value, endOfDay) => {
+        if (!value) return undefined;
+        const dateTimePattern = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/;
+        const dateOnlyPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+        const dtMatch = value.match(dateTimePattern);
+        if (dtMatch) {
+            const [, year, month, day, hour, minute] = dtMatch;
+            return `${year}-${month}-${day}T${hour}:${minute}:00Z`;
+        }
+        const dateMatch = value.match(dateOnlyPattern);
+        if (dateMatch) {
+            return endOfDay ? `${value}T23:59:59Z` : `${value}T00:00:00Z`;
+        }
+        throw new Error(`Invalid date format: "${value}". Use YYYY-MM-DD HH:MM (24-hour) or YYYY-MM-DD`);
+    };
+
+    let timeMin;
+    let timeMax;
+    if (data.date_mode === 'all') {
+        timeMin = new Date().toISOString();
+    } else if (data.date_mode === 'relative') {
+        const now = new Date();
+        const days = Number(data.relative_days);
+        const target = new Date(now.getTime() + days * 86400000);
+        if (days >= 0) {
+            timeMin = now.toISOString();
+            timeMax = target.toISOString();
+        } else {
+            timeMin = target.toISOString();
+            timeMax = now.toISOString();
+        }
+    } else if (data.date_mode === 'fixed') {
+        timeMin = normalizeDateTime(data.timeMin, false);
+        timeMax = normalizeDateTime(data.timeMax, true);
+    }
+
+    const totalLimit = data.maxResults ? Number(data.maxResults) : undefined;
+
+    const baseParams = {
+        orderBy: 'startTime',
+        singleEvents: true,
+        timeMin,
+        timeMax,
+        q: data.search_query || undefined,
+        eventTypes: Array.isArray(data.event_types) && data.event_types.length ? data.event_types : undefined,
+        timeZone: data.timeZone || undefined,
+        showDeleted: toBoolean(data.show_deleted),
+        showHiddenInvitations: toBoolean(data.show_hidden_invitations)
+    };
+    Object.keys(baseParams).forEach(
+        key => baseParams[key] === undefined && delete baseParams[key]
+    );
+
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(data.calendarId)}/events`;
+
+    try {
+        let allEvents = [];
+        let pageToken;
+        let pages = 0;
+
+        while (pages < MAX_PAGES) {
+            const params = {
+                ...baseParams,
+                maxResults: PAGE_SIZE,
+                pageToken: pageToken || undefined
+            };
+            Object.keys(params).forEach(
+                key => params[key] === undefined && delete params[key]
+            );
+
+            const response = await axios.request({
+                method: 'get',
+                maxBodyLength: Infinity,
+                url,
+                params,
+                paramsSerializer: { indexes: null }
+            });
+
+            const items = response.data.items || [];
+            allEvents.push(...items);
+            pages++;
+
+            pageToken = response.data.nextPageToken;
+
+            if (!pageToken) break;
+            if (totalLimit && allEvents.length >= totalLimit) break;
+        }
+
+        if (totalLimit && allEvents.length > totalLimit) {
+            allEvents = allEvents.slice(0, totalLimit);
+        }
+
+        if (allEvents.length === 0) {
+            return {
+                message: "No events found in the selected calendar for the given time range. Please check the filters or create a new event."
+            };
+        }
+
+        const eventsWithTimeRange = allEvents.map(event => {
+            const startRaw = event.start?.dateTime || event.start?.date;
+            const endRaw = event.end?.dateTime || event.end?.date;
+            const isAllDay = !event.start?.dateTime;
+            let timeRange = '';
+            if (isAllDay) {
+                timeRange = `${startRaw} (All Day)`;
+            } else {
+                const startDate = new Date(startRaw);
+                const endDate = new Date(endRaw);
+                const fmt = d => d.toISOString().slice(11, 16);
+                const dateLabel = startDate.toISOString().slice(0, 10);
+                timeRange = `${fmt(startDate)} - ${fmt(endDate)} UTC, ${dateLabel}`;
+            }
+            return {
+                ...event,
+                timeRange
+            };
+        });
+
+        return {
+            events: eventsWithTimeRange
+        };
+    } catch (error) {
+        await errorComponent(error);
+    }
+}
+return await fetchEvents();
+```
+
+**UX Takeaways**
+- **Three-Way Date Range Selection (`date_mode`):** Provide a static dropdown for time filtering with three clear modes:
+  1. *All Upcoming Events (`all`)* — zero config, sets `timeMin` to `now.toISOString()`.
+  2. *Relative Range (`relative`)* — accepts positive (future) or negative (past) days from today (`relative_days`), calculating `timeMin` & `timeMax` automatically.
+  3. *Fixed Date Range (`fixed`)* — accepts user-friendly date-time formats (`YYYY-MM-DD HH:MM` or `YYYY-MM-DD`) and normalizes them to ISO 8601 (`00:00:00Z` start / `23:59:59Z` end).
+- **Flexible Filter Controls:** Provide optional filters for `search_query` (text search across title/description/location/attendees), `event_types` (multiselect), `timeZone` (IANA dropdown), and boolean toggles (`show_deleted`, `show_hidden_invitations`).
+- **Internal Auto-Pagination with Record Limit:** Automatically handle multi-page API requests (`pageToken` loop up to `MAX_PAGES`) internally, while honoring an optional `maxResults` cap set by the user.
+- **Enriched Computed Response Fields:** Augment raw API item objects with human-readable calculated fields (such as `timeRange`: `"09:00 - 10:00 UTC, 2026-08-11"`) directly in perform code to make downstream mapping easier.
+
+---
+
 ## GoHighLevel — Add Tags on Contact
 
 **Metadata**
@@ -2304,23 +2750,23 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
 
 ---
 
-## YouTube — Get Channel Analytics
+## YouTube Studio — Get Channel Analytics
 
 **Metadata**
-- **App:** YouTube · **Category:** Video/Analytics · **Action:** Get Channel Analytics · **Action Type:** GET
+- **App:** YouTube Studio · **Category:** Video/Analytics · **Action:** Get Channel Analytics · **Action Type:** GET
 
 **Supporting API Usage**
 - **List Channels API** — populates a searchable/paginated dropdown of channels (`channel_id`) so the user can select a channel by name.
 
 **UX Components & Field Design**
-- **Dropdown (with custom input) — Select Channel or Enter Channel ID** — pick a channel or manually map a channel ID.
-- **Dropdown (Static) — Date Range Type** — allows user to choose between relative range (Last N Days) or fixed date range.
-- **Number — Last N Days** — visible only when Date Range Type is "relative".
-- **String — Start Date & End Date** — visible only when Date Range Type is "fixed".
-- **Multiselect (Static) — Metrics & Dimensions** — static list of options instead of requiring manual comma-separated text entry.
-- **Input Groups — Filters** — groups all dimension filtering fields (e.g. video, playlist, country) conditionally shown based on the selected filter dimension.
-- **Multiselect (Static) — Sort By & Dropdown (Static) — Sort Order** — allows sorting based on selected metrics or dimensions.
-- **Input Groups — Advanced Options** — groups secondary settings like currency, max results, and start index.
+- **Dropdown (with custom input) — Select Channel or Enter Channel ID** — pick a channel from dynamic dropdown or manually map a channel ID via custom input (`customInputLabel`, `customHelp`, `customPlaceholder`).
+- **Dropdown (Static) — Date Range Type (`date_mode`)** — allows user to choose between relative range ("Relative (Last N Days)") or fixed date range ("Fixed Dates"), with relative mode set as default.
+- **Number — Last N Days (`relative_days`)** — default 28; visible only when Date Range Type is `relative` (`visibilityCondition: "context?.inputData?.date_mode === 'relative'"`).
+- **String — Start Date & End Date (`start_date`, `end_date`)** — enter dates in `YYYY-MM-DD` format; visible only when Date Range Type is `fixed` (`visibilityCondition: "context?.inputData?.date_mode === 'fixed'"`).
+- **Input Groups — Filters** — groups dimension filter settings (e.g., video, playlist, channel, country, gender, age group, device type) conditionally shown based on the selected `filterDimension`.
+- **Multiselect (Static) — Sort By (`sort_fields`)** — select fields to sort results by (must be one of the report's metrics).
+- **Dropdown (Static) — Sort Order (`sort_order`)** — visible only when sort fields are selected (`visibilityCondition: "(Array.isArray(context?.inputData?.sort_fields) && context.inputData.sort_fields.length > 0) || (typeof context?.inputData?.sort_fields === 'string' && context.inputData.sort_fields.trim().length > 0)"`).
+- **Hardcoded Metric Set** — full set of supported metrics requested in every run to avoid form clutter while delivering complete analytics data.
 
 **Input Fields JSON**
 ```json
@@ -2336,7 +2782,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     "placeholder": "Select channel",
     "enableSearchApi": false,
     "customInputLabel": "Channel ID",
-    "optionsGenerator": "try {\n  return await channel_ID(context?.paginateData?.['channel_id']);\n} catch (error) {\n  await errorComponent(error);\n}",
+    "optionsGenerator": "try { return await channel_ID(context?.paginateData?.['channel_id'], 50); } catch (error) { await errorComponent(error); }",
     "customPlaceholder": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
   },
   {
@@ -2394,122 +2840,6 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     "required": true,
     "placeholder": "2026-01-01",
     "visibilityCondition": "context?.inputData?.date_mode === 'fixed'"
-  },
-  {
-    "key": "metrics",
-    "help": "Select the metrics to retrieve. Revenue metrics (e.g., Estimated Revenue) need the yt-analytics-monetary.readonly scope.",
-    "type": "multiselect",
-    "label": "Metrics",
-    "options": [
-      {
-        "label": "Views",
-        "value": "views",
-        "sample": "views"
-      },
-      {
-        "label": "Likes",
-        "value": "likes",
-        "sample": "likes"
-      },
-      {
-        "label": "Dislikes",
-        "value": "dislikes",
-        "sample": "dislikes"
-      },
-      {
-        "label": "Comments",
-        "value": "comments",
-        "sample": "comments"
-      },
-      {
-        "label": "Shares",
-        "value": "shares",
-        "sample": "shares"
-      },
-      {
-        "label": "Estimated Minutes Watched",
-        "value": "estimatedMinutesWatched",
-        "sample": "estimatedMinutesWatched"
-      },
-      {
-        "label": "Average View Duration",
-        "value": "averageViewDuration",
-        "sample": "averageViewDuration"
-      },
-      {
-        "label": "Subscribers Gained",
-        "value": "subscribersGained",
-        "sample": "subscribersGained"
-      },
-      {
-        "label": "Subscribers Lost",
-        "value": "subscribersLost",
-        "sample": "subscribersLost"
-      },
-      {
-        "label": "Estimated Revenue",
-        "value": "estimatedRevenue",
-        "sample": "estimatedRevenue"
-      }
-    ],
-    "required": true,
-    "customHelp": "Enter the metric names as a comma-separated list or array. Revenue metrics require the yt-analytics-monetary.readonly scope.",
-    "placeholder": "Select metrics",
-    "customInputLabel": "Metric(s)",
-    "customPlaceholder": "[\"views\",\"likes\"]"
-  },
-  {
-    "key": "dimensions",
-    "help": "Select dimensions to break down metrics by. day and month cannot be used together.",
-    "type": "multiselect",
-    "label": "Dimensions",
-    "options": [
-      {
-        "label": "Day",
-        "value": "day",
-        "sample": "day"
-      },
-      {
-        "label": "Month",
-        "value": "month",
-        "sample": "month"
-      },
-      {
-        "label": "Video",
-        "value": "video",
-        "sample": "video"
-      },
-      {
-        "label": "Country",
-        "value": "country",
-        "sample": "country"
-      },
-      {
-        "label": "Age Group",
-        "value": "ageGroup",
-        "sample": "ageGroup"
-      },
-      {
-        "label": "Gender",
-        "value": "gender",
-        "sample": "gender"
-      },
-      {
-        "label": "Device Type",
-        "value": "deviceType",
-        "sample": "deviceType"
-      },
-      {
-        "label": "Traffic Source Type",
-        "value": "trafficSourceType",
-        "sample": "trafficSourceType"
-      }
-    ],
-    "required": false,
-    "customHelp": "Enter the dimension names as a comma-separated list or array. Note: day and month cannot be used together.",
-    "placeholder": "Select dimensions",
-    "customInputLabel": "Dimension(s)",
-    "customPlaceholder": "[\"day\",\"country\"]"
   },
   {
     "key": "filters",
@@ -2571,7 +2901,6 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
         "type": "string",
         "label": "Video ID(s)",
         "required": true,
-        "customHelp": "Use the 'List Videos' action to get all Videos along with their IDs and then map the retrieved data accordingly",
         "placeholder": "dMH0bHeiRNg,Zhawgd0REhA",
         "visibilityCondition": "context?.inputData?.filters?.dimension === 'video'"
       },
@@ -2581,17 +2910,15 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
         "type": "string",
         "label": "Playlist ID(s)",
         "required": true,
-        "customHelp": "Use the 'List Playlists' action to get all Playlists along with their IDs and then map the retrieved data accordingly",
         "placeholder": "PLxxxxxx,PLyyyyyy",
         "visibilityCondition": "context?.inputData?.filters?.dimension === 'playlist'"
       },
       {
         "key": "channel_value",
-        "help": "Enter the channel ID(s) to filter by. You may enter multiple values separated by commas (max 500).",
+        "help": "Enter the channel ID(s) to filter by. You may enter multiple values separated by commas.",
         "type": "string",
         "label": "Channel ID(s)",
         "required": true,
-        "customHelp": "Use the 'List Channels' action to get all Channels along with their IDs and then map the retrieved data accordingly",
         "placeholder": "UC_x5XG1OV2P6uZZ5FSM9Ttw,UCxxxxxxx",
         "visibilityCondition": "context?.inputData?.filters?.dimension === 'channel'"
       },
@@ -2720,51 +3047,64 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "sort_fields",
-    "help": "Select fields to sort results by. Must be one of the selected metrics or dimensions.",
+    "help": "Select fields to sort results by. Must be one of the report's metrics.",
     "type": "multiselect",
     "label": "Sort By",
     "options": [
       {
         "label": "Views",
-        "value": "views",
-        "sample": "views"
+        "value": "views"
+      },
+      {
+        "label": "Watch Time (Minutes)",
+        "value": "estimatedMinutesWatched"
+      },
+      {
+        "label": "Average View Duration",
+        "value": "averageViewDuration"
       },
       {
         "label": "Likes",
-        "value": "likes",
-        "sample": "likes"
+        "value": "likes"
       },
       {
-        "label": "Estimated Minutes Watched",
-        "value": "estimatedMinutesWatched",
-        "sample": "estimatedMinutesWatched"
+        "label": "Comments",
+        "value": "comments"
+      },
+      {
+        "label": "Shares",
+        "value": "shares"
+      },
+      {
+        "label": "Subscribers Gained",
+        "value": "subscribersGained"
+      },
+      {
+        "label": "Estimated Revenue",
+        "value": "estimatedRevenue"
       },
       {
         "label": "Day",
-        "value": "day",
-        "sample": "day"
+        "value": "day"
       },
       {
         "label": "Month",
-        "value": "month",
-        "sample": "month"
+        "value": "month"
       },
       {
         "label": "Video",
-        "value": "video",
-        "sample": "video"
+        "value": "video"
       },
       {
         "label": "Country",
-        "value": "country",
-        "sample": "country"
+        "value": "country"
       }
     ],
     "required": false,
-    "customHelp": "Enter the sort field names as a comma-separated list or array. Each sort field must also be selected in Metrics or Dimensions.",
+    "customHelp": "Enter the sort field names as a comma-separated list or array. Each sort field must be one of the report's metrics.",
     "placeholder": "Select fields to sort by",
     "customInputLabel": "Sort Field(s)",
-    "customPlaceholder": "[\"views\",\"day\"]"
+    "customPlaceholder": "[\"views\",\"subscribersGained\"]"
   },
   {
     "key": "sort_order",
@@ -2792,41 +3132,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     },
     "customInputLabel": "Sort Order",
     "customPlaceholder": "desc",
-    "visibilityCondition": "Array.isArray(context?.inputData?.sort_fields) && context.inputData.sort_fields.length > 0"
-  },
-  {
-    "key": "advanced_options",
-    "help": "Enter advanced options like currency, max results, and start index (optional).",
-    "type": "input groups",
-    "label": "Advanced Options",
-    "required": false,
-    "fields": [
-      {
-        "key": "currency",
-        "help": "Enter the currency code for revenue metrics. Defaults to USD. See [supported currency codes](https://www.iban.com/currency-codes).",
-        "type": "string",
-        "label": "Currency",
-        "required": false,
-        "placeholder": "USD"
-      },
-      {
-        "key": "max_results",
-        "help": "Enter the maximum number of rows to return.",
-        "type": "number",
-        "label": "Max Results",
-        "required": false,
-        "placeholder": "100"
-      },
-      {
-        "key": "start_index",
-        "help": "Enter the 1-based row index to start from, for pagination.",
-        "type": "number",
-        "label": "Start Index",
-        "required": false,
-        "placeholder": "1",
-        "defaultValue": 1
-      }
-    ]
+    "visibilityCondition": "(Array.isArray(context?.inputData?.sort_fields) && context.inputData.sort_fields.length > 0) || (typeof context?.inputData?.sort_fields === 'string' && context.inputData.sort_fields.trim().length > 0)"
   }
 ]
 ```
@@ -2841,11 +3147,33 @@ async function getYouTubeReport() {
       throw new Error('Channel is required.');
     }
 
-    const metricsRaw = data.metrics;
-    if (!metricsRaw || (Array.isArray(metricsRaw) && metricsRaw.length === 0)) {
-      throw new Error('At least one metric is required.');
-    }
-    const metrics = Array.isArray(metricsRaw) ? metricsRaw : [metricsRaw];
+    // Hardcoded full metric set (all supported metrics requested in every run)
+    const metrics = [
+      'views',
+      'likes',
+      'dislikes',
+      'comments',
+      'shares',
+      'videosAddedToPlaylists',
+      'videosRemovedFromPlaylists',
+      'estimatedMinutesWatched',
+      'estimatedRedMinutesWatched',
+      'averageViewDuration',
+      'averageViewPercentage',
+      'subscribersGained',
+      'subscribersLost',
+      'cardClickRate',
+      'cardTeaserClickRate',
+      'cardImpressions',
+      'cardTeaserImpressions',
+      'annotationClickThroughRate',
+      'annotationCloseRate',
+      'annotationImpressions',
+      'grossRevenue',
+      'monetizedPlaybacks',
+      'adImpressions',
+      'playbackBasedCpm'
+    ];
     const metricsStr = metrics.join(',');
 
     let startDate, endDate;
@@ -2867,44 +3195,17 @@ async function getYouTubeReport() {
       throw new Error('Start date must be before or equal to end date.');
     }
 
-    const dimensionsRaw = data.dimensions;
-    const dimensions = dimensionsRaw && dimensionsRaw.length > 0
-      ? (Array.isArray(dimensionsRaw) ? dimensionsRaw : [dimensionsRaw])
-      : [];
-    const dimensionsStr = dimensions.length ? dimensions.join(',') : undefined;
-
-    if (dimensions.includes('day') && dimensions.includes('month')) {
-      throw new Error('day and month dimensions cannot be used together. Please select only one time-based dimension.');
-    }
-
-    if (dimensions.includes('month')) {
-      const normalizeMonthStart = (dateStr) => {
-        const [y, m] = dateStr.split('-');
-        return `${y}-${m}-01`;
-      };
-      startDate = normalizeMonthStart(startDate);
-      endDate = normalizeMonthStart(endDate);
-    }
-
-    const allowedSortFields = new Set([...metrics, ...dimensions]);
+    const allowedSortFields = new Set(metrics);
     const sortFieldsRaw = data.sort_fields;
     let sortFields = [];
     if (sortFieldsRaw && sortFieldsRaw.length > 0) {
       sortFields = Array.isArray(sortFieldsRaw) ? sortFieldsRaw : [sortFieldsRaw];
       const invalidSortFields = sortFields.filter(f => !allowedSortFields.has(f));
       if (invalidSortFields.length > 0) {
-        throw new Error(`Sort field(s) "${invalidSortFields.join(', ')}" are not selected in Metrics or Dimensions. Please add them to Metrics or Dimensions first.`);
+        throw new Error(`Sort field(s) "${invalidSortFields.join(', ')}" are not part of the report's metric set.`);
       }
     }
 
-    const monetaryMetrics = ['estimatedRevenue', 'estimatedAdRevenue', 'grossRevenue', 'estimatedRedPartnerRevenue', 'estimatedShortsRevenue', 'estimatedTransactionRevenue'];
-    const usedMonetaryMetrics = metrics.filter(m => monetaryMetrics.includes(m));
-    if (usedMonetaryMetrics.length > 0) {
-      // Note: monetary metrics require yt-analytics-monetary.readonly scope.
-      // If this scope is missing, the API will return an insufficient permission error.
-    }
-
-    // ---------- FILTER RESOLUTION (per selected dimension) ----------
     let filters;
     const filterDimension = data.filters?.dimension;
     if (filterDimension) {
@@ -2917,13 +3218,10 @@ async function getYouTubeReport() {
         ageGroup: data.filters?.age_group_value,
         deviceType: data.filters?.device_type_value
       };
-
       const filterValue = filterValueMap[filterDimension];
-
       if (!filterValue) {
         throw new Error(`A value is required for the "${filterDimension}" filter.`);
       }
-
       filters = `${filterDimension}==${filterValue}`;
     }
 
@@ -2932,28 +3230,14 @@ async function getYouTubeReport() {
       startDate,
       endDate,
       metrics: metricsStr,
-      maxResults: Number(data.advanced_options?.max_results) || 25
+      maxResults: 25
     };
 
-    if (dimensionsStr) {
-      params.dimensions = dimensionsStr;
-    }
-
-    if (filters) {
-      params.filters = filters;
-    }
+    if (filters) params.filters = filters;
 
     if (sortFields.length > 0) {
       const sortPrefix = data.sort_order === 'asc' ? '' : '-';
       params.sort = sortFields.map(field => `${sortPrefix}${field}`).join(',');
-    }
-
-    if (data.advanced_options?.currency) {
-      params.currency = data.advanced_options.currency;
-    }
-
-    if (data.advanced_options?.start_index) {
-      params.startIndex = Number(data.advanced_options.start_index);
     }
 
     const response = await axios.get('https://youtubeanalytics.googleapis.com/v2/reports', { params });
@@ -2962,14 +3246,12 @@ async function getYouTubeReport() {
     const rows = response.data?.rows || [];
 
     if (!rows.length) {
-      return { message: 'No analytics data found for the selected metrics, dimensions, and date range.' };
+      return { message: 'No analytics data found for the selected date range.' };
     }
 
     const results = rows.map(row => {
       const obj = {};
-      headers.forEach((col, i) => {
-        obj[col.name] = row[i];
-      });
+      headers.forEach((col, i) => { obj[col.name] = row[i]; });
       return obj;
     });
 
@@ -2983,9 +3265,10 @@ return await getYouTubeReport();
 ```
 
 **UX Takeaways**
-- **Date Mode Selection UX:** Provide a static `date_mode` dropdown to let non-technical users choose between easy relative selections (e.g. "Last N Days") and fixed dates, doing date arithmetic internally in the perform code rather than exposing complicated date fields.
-- **Static Multiselect over Comma-Separated Input:** For predefined values like metrics or dimensions, use static multiselect fields with curated options. This prevents typos and avoids asking users to type comma-separated values manually.
-- **Grouped Conditional Filters:** Group all filter values inside an Input Group with `visibilityCondition` fields keyed on the selected dimension, allowing a clean, step-by-step UI.
+- **Date Range Selection UX (`date_mode` fork):** Use a static `date_mode` dropdown to let non-technical users choose between simple relative selections (e.g. "Relative (Last N Days)") and fixed dates ("Fixed Dates"). Gate `relative_days` vs `start_date`/`end_date` with `visibilityCondition`, and compute ISO date strings (`YYYY-MM-DD`) internally in perform code rather than forcing users to handle date logic manually.
+- **Hardcoding Complete Metric Sets to Reduce Friction:** When an API supports a broad set of standard metrics, hardcoding the complete metric array in perform code eliminates form complexity (no need for a tedious metrics multiselect) while ensuring the workflow always retrieves comprehensive analytics.
+- **Grouped Conditional Dimension Filters:** Bundle optional filters into an Input Group with `visibilityCondition` fields tied to the selected filter dimension, keeping the form step-by-step and clean.
+- **Dependent Sort Order Visibility:** Show sort order controls only when sort fields are selected (`visibilityCondition` checks for array length or non-empty string).
 
 ---
 

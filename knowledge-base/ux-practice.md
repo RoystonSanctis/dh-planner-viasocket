@@ -318,6 +318,8 @@ A GET action retrieves a **single specific record** by its unique identifier (ID
 ### GET Best Practices:
 - **Provide manual input guidance** — Always include `customHelp`, `customInputLabel`, and `customPlaceholder` so users can manually map record IDs from previous workflow steps.
 - **Single record return** — GET actions return one record. If multiple records are needed, use LIST instead.
+- **Date Range Selection UX (`date_mode`)** — For report or analytics GET actions requiring date parameters, provide a static `date_mode` dropdown to let users switch between relative ranges ("Relative (Last N Days)") and fixed date bounds ("Fixed Dates"), keeping the date math internal to perform code.
+- **Hardcoded Metric Set for Simplified Analytics UX** — When an analytics endpoint supports a standard set of metrics, hardcode the full metric array in perform code rather than exposing a complex multiselect field to the user.
 - **Error handling** — The perform code should handle 404 (record not found) gracefully.
 
 ---
@@ -380,6 +382,8 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 - **Sub-mode selector for search** — When "Search by..." mode supports multiple search attributes (e.g., Name/Email vs Employee ID/Number), add a secondary **Static Dropdown** (`find_by`) to pick the attribute, then show the matching input field via chained `visibilityCondition`.
 - **Comma-separated multi-values** — Accept comma-separated values in a single **String** field for quick multi-lookups (e.g., "John Doe,john@company.com") and split them in perform code.
 - **Filter groups for narrowing** — For modes like "List All" or "Recently Updated", offer an **Input Group Static** with status filters, date filters, and other narrowing criteria. Use `visibilityCondition` on each filter to show only mode-relevant options.
+- **Flexible time range filtering (`date_mode`)** — Support clear time range modes (e.g. "All Upcoming Events", "Relative Range", "Fixed Date Range"). Allow positive (future lookahead) and negative (past lookback) values in `relative_days`, and normalize user date-time strings (`YYYY-MM-DD HH:MM` or `YYYY-MM-DD`) to ISO 8601 timestamps in perform code.
+- **Enriched computed response fields** — Generate calculated human-readable helper fields (such as `timeRange`: `"09:00 - 10:00 UTC, 2026-08-11"`) directly in perform code to make downstream workflow mapping easier for users.
 
 ---
 
@@ -794,7 +798,9 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
   * **Preset Duration/Expiry Dropdown** — When an API accepts a small set of common duration or expiry values, use a **Static Dropdown** with preset options instead of a free number field.
   * **AI Field for Date Normalization** — When users need to provide dates the API requires in ISO/epoch format, use an **AI Field** with a prompt that converts natural-language inputs (e.g., "yesterday", "3 days ago") to the required format.
   * **Normalize Flexible ID Inputs** — ID fields may arrive as `{ label, value }` objects (select mode) or comma-separated strings (custom-input mode). Normalize both formats in perform code. Also support comma-separated multi-values in a single **String** field for quick multi-lookups.
-  * **Relative vs. Fixed Scheduling Toggle** — Provide a **Boolean** or **Static Dropdown** toggle allowing the user to choose between simple relative selections (e.g., "Days from Today", "Last N Days") and exact/fixed dates. Handle the date arithmetic or timezone/UTC conversion internally in the perform code to keep inputs user-friendly.
+  * **Flexible Date Range Selection (`date_mode`)** — Provide a **Static Dropdown** (`date_mode`) offering intuitive time range modes: (1) *All / Default Range* (e.g. "All Upcoming Events", zero-config `timeMin=now`); (2) *Relative Range* (e.g. "Next N Days" or "Past N Days"), using a `relative_days` number field accepting positive values for future lookahead (e.g. `7`) or negative values for past lookback (e.g. `-2`); (3) *Fixed Date Range*, revealing `timeMin`/`timeMax` string inputs accepting `YYYY-MM-DD HH:MM` or `YYYY-MM-DD` and normalizing them to ISO 8601 timestamps in perform code.
+  * **Enriched Computed Response Fields** — Add computed, human-readable helper fields (such as `timeRange`: `"09:00 - 10:00 UTC, 2026-08-11"` or `"2026-08-11 (All Day)"`) directly to response objects in perform code to simplify downstream workflow mapping.
+  * **Hardcoded Full Metric Set / Simplified Form UX** — When an API endpoint supports a comprehensive set of standard metrics, hardcoding the complete metric array in perform code eliminates form friction (avoiding complex multiselect fields) while delivering complete analytics output to the end user.
   * **Predefined Static Multiselect for Predictable Sets** — When an API accepts a predictable, stable set of values (e.g. analytics metrics/dimensions, email tags), use a static **Multiselect** with pre-defined options rather than a free-form string asking the user to type comma-separated values.
   * **Dynamic Questionnaire Loading** — For booking or questionnaire flows with customizable fields, use a dynamic input group (`fieldsGenerator`) that executes only after a parent identifier (e.g. Event Type) is chosen, ensuring only relevant fields are rendered.
   * **Conditional Filters Grouping** — Group optional filters into an **Input Group** containing child inputs gated by `visibilityCondition` based on a selected filter-by dimension (e.g. filtering by Video ID only when "Filter Dimension" is set to "Video").
