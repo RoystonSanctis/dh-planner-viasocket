@@ -8,6 +8,7 @@
 ## 🎛️ UX & Field Rules
 - **Dropdowns First (CRITICAL):** Flag manual string inputs if a dropdown/multiselect is possible. Never bypass parent dropdowns.
 - **API Parameter Completeness:** Input fields and perform code MUST support all possible parameters available in the API documentation. Flag if any documented API parameters are omitted.
+- **Unmapped Reusable Components (CRITICAL):** Check if any reusable component (e.g. `errorComponent` or custom helper component) is called in `inputFields` (e.g. `optionsGenerator`) or `performCode`. Confirm mapped components using `Fetch_Mapped_Reusable_Component_In_Action_Version`. Flag as an issue during review if any reusable component called in the code is not mapped to the action version.
 - **`placeholder` String Value Rule (CRITICAL):** The value of the `placeholder` key (and `customPlaceholder`) MUST ALWAYS be a string. For string, number, boolean, or any other field types, if the sample placeholder value is of another type (e.g. number `100`, boolean `true`, array `["item"]`), it MUST be wrapped with quotes as a string (e.g. `"100"`, `"true"` instead of raw `100` or `true`). Flag any `placeholder` or `customPlaceholder` that has a non-string data type in JSON.
 - **Proactive UX:** Suggest dynamic schemas, relative date toggles, and conditional filters for non-technical users.
 - **Safe Mutations:** NEVER rename existing field keys (breaks user mapping). Minimum viable fixes only. No opportunistic refactoring.
