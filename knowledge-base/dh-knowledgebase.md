@@ -141,7 +141,7 @@ Base keys (every field): `key` (unique, pattern `^[^.\[\]]*$`) · `type` · `lab
 
 | `type` | Required (beyond base) | Constraints |
 |---|---|---|
-| `string` `number` `html` `markdown` | `placeholder` | For non-standard date formats use `string`. `list:true` (string/number only) for preconfigured array; `limit:N` requires `list:true`. `list:false` (default) for single/dynamic array values. |
+| `string` `number` `html` `markdown` | `placeholder` | For non-standard date formats use `string`. For `string` fields (especially ID fields like `parent_task_id`), `help` MUST start with `"Enter"` (e.g. `"Enter a parent task ID..."`) and MUST NOT say `"Select from the list"` or `"Select..."`. `list:true` (string/number only) for preconfigured array; `limit:N` requires `list:true`. `list:false` (default) for single/dynamic array values. |
 | `date` | `placeholder`, `dateFormat` | Only 4 formats: `YYYY-MM-DDTHH:mm:ssZ`, `YYYY-MM-DD HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss`. `placeholder` must match `dateFormat`. Date fields return formatted output (unlike `string` pass-through). |
 | `dictionary` | `template` | `template` FIXED: `{key:{type:string,placeholder},value:{type:string,placeholder}}` — both types always `string`; only placeholder text varies. |
 | `boolean` | `options`, `customPlaceholder`, `customInputLabel`, `customHelp` | 2 options `{label,value}`, true-first. `defaultValue` must equal an option. `customInputLabel` must NOT start with "Enter". `customHelp` specifies actual values + outcomes (e.g. "Enter true for [outcome] and false for [outcome]"). `help` starts with "Select". |
@@ -166,7 +166,7 @@ Two UI states:
 **Visibility + required**: hidden `required` field is skipped. Optional parent + required child → set `required:true` AND throw in perform if parent set but child missing.
 
 # Minimalism
-Include optional keys only when they add info beyond label + app + action context. `help` is always required — concise, non-technical. Starts with "Enter" for string/number/dictionary/date/aifield/markdown/html/input groups; "Select" for dropdown/multiselect/boolean. `customHelp`/`customInputLabel`/`customPlaceholder` are mandatory for boolean/dropdown/multiselect.
+Include optional keys only when they add info beyond label + app + action context. `help` is always required — concise, non-technical. Starts with "Enter" for string/number/dictionary/date/aifield/markdown/html/input groups (for `string` fields, especially ID string fields like `parent_task_id`, `help` MUST say `"Enter [ID]..."`, NOT `"Select from the list"` or `"Select..."`); "Select" for dropdown/multiselect/boolean. `customHelp`/`customInputLabel`/`customPlaceholder` are mandatory for boolean/dropdown/multiselect.
 
 # Visibility & dependsOn
 `visibilityCondition`: JS expression on `context?.inputData?.<path>` evaluating to boolean.
@@ -331,7 +331,7 @@ return await <functionName>();
 | DELETE | `DELETE /resources/:id` | validate id; handle 404 already-deleted |
 
 # Reusable Components
-JS stored once. Three parts: **Name** (unique, permanent once used), **Parameters**, **Code** (raw JS starting with `try`/`catch`; params as global variables; catch uses `throw error`). Invoked only from generators — never static fields. Must be explicitly mapped via mapping tool after creation.
+JS stored once. Three parts: **Name** (unique, permanent once used), **Parameters**, **Code** (raw JS starting with `try`/`catch`; params as global variables; catch uses `throw error`). Invoked only from generators — never static fields. Must be explicitly mapped via mapping tool after creation. Verify mapped components via `Fetch_Mapped_Reusable_Component_In_Action_Version`; any reusable component called in code that is unmapped MUST be flagged as an issue.
 - **Parameters**: `searchText`, `pageToken`/`offset`, `pageSize`/`limit` are optional — add only if API supports. Don't validate optional params at top. Map dynamic values to params; never read `context.inputData`/`__searchText`/`context.paginateData` directly inside component.
 - **Zero Results**: Return `{ message: "No [resources] found." }` (or `{ data: [], message: "…" }` if paginated).
 - **Search-Pagination Offset Rule**: If both search+pagination enabled and search returns empty, returned `offset` must be current cursor param to preserve pagination state.
@@ -375,7 +375,7 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 # Review
 
 ## Priorities
-- **P0 (Breaking)**: Error handling per Universal Rules · every `context.inputData.<key>` must exist in fields · no orphan fields · `visibilityCondition` maps to real keys · payload matches API schema · no URL extension requirements · derived required values have fallbacks · generators return `{message}` on zero results and handle unselected parent · reject malformed JSON · guard required fields.
+- **P0 (Breaking)**: Error handling per Universal Rules · every `context.inputData.<key>` must exist in fields · no orphan fields · `visibilityCondition` maps to real keys · payload matches API schema · no URL extension requirements · derived required values have fallbacks · generators return `{message}` on zero results and handle unselected parent · reject malformed JSON · guard required fields · unmapped reusable components (flag if called in `inputFields` or `performCode` but not mapped in `Fetch_Mapped_Reusable_Component_In_Action_Version`).
 - **P1 (Automation)**: No raw IDs typed by user (use dropdowns) · handle pagination on lists · flag internal pagination unless "list all" or user-enabled · flag non-idempotent/repeat-unsafe actions · avoid `Promise.all` for rate-limited calls (sequential + delay; API rate limit counter logic acceptable).
 - **P2 (UX)**: Required fields first · sensible `defaultValue` on required dropdowns · hide complexity (auto-detect format).
 - **P3 (Text)**: Help: short, plain, non-technical · `label` = Title Case · `help`/`placeholder`/errors = sentence case · whereClause labels: sentence case (first capitalized, rest lowercase unless proper noun) · `customHelp`/`customInputLabel`/`customPlaceholder` valid only on dropdown/multiselect/boolean · scan for typos, trailing spaces, sibling inconsistencies.
@@ -383,7 +383,7 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 ## Validation Checklist
 - Perform: wrapper correct · `axios`/`fetch` only · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards · rate-limit handled · returns raw `response.data`.
 - Zero results: generators return appropriate shape per `canPaginate`/`enableSearchApi` config (see Field Types).
-- Fields: each matches type's required keys · `sample`==`value` rule · clean labels · reusable-component `id` mapped correctly.
-- `help` required unless `label`+`key` are completely self-explanatory. No "E.g." in `placeholder`/`customPlaceholder` — direct sample values only.
+- Fields: each matches type's required keys · `sample`==`value` rule · clean labels · reusable-component `id` mapped correctly (verify mapped status via `Fetch_Mapped_Reusable_Component_In_Action_Version`).
+- `help` required unless `label`+`key` are completely self-explanatory. Starts with "Enter" for string/ID fields (e.g. `"Enter a parent task ID..."`; never `"Select from the list"`). No "E.g." in `placeholder`/`customPlaceholder` — direct sample values only.
 - Labels/placeholders grammatically correct, consistent casing across all fields. Put corrected values in "suggestions".
 - If optional boolean keys (`whereClause`, `required`, `canPaginate`, `enableSearchApi`, `list`) are missing, default is `false` — don't flag.
