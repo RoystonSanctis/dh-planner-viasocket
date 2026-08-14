@@ -34,6 +34,10 @@ published: true
 
 This document outlines the technical specification of the database and API objects required for managing viaSocket actions, triggers, and reusable components through LLM tool calls (such as `create_update_ai_actions`).
 
+> [!IMPORTANT]
+> **`inputjson` Value Types (CRITICAL):**
+> `inputjson` is an **Object** containing `steps` (Object: `{}`), `blocks` (Object: `{}`), and `inputFields` (Array of Objects: `[...]`). The value of `inputFields` MUST strictly be an **Array of Objects** containing individual field configuration objects.
+
 # Action Object Schema
 
 An Action represents a single operational task (e.g., "Send an Email", "Create Customer") performed in a workflow.
@@ -57,7 +61,7 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
   "inputjson": {
     "steps": "Object (Auto-generated; always pass {})",
     "blocks": "Object (Auto-generated; always pass {})",
-    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+    "inputFields": "Array of Objects (List of input field configuration objects conforming to dh-Input-fields-json-builder.md)"
   },
   "perform": "String (Executable JavaScript function block conforming to perform-code.md)",
   "authid": "String (Optional. Authentication identifier associated with the service/action, e.g., 'rowqgp0s6jwh')",
@@ -121,7 +125,7 @@ The additional keys for each trigger which is specified are the supported keys a
   "inputjson": {
     "steps": "Object (Auto-generated; always pass {})",
     "blocks": "Object (Auto-generated; always pass {})",
-    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+    "inputFields": "Array of Objects (List of input field configuration objects conforming to dh-Input-fields-json-builder.md)"
   },
   "sampledata": "Object (Optional. Sample output response JSON object to assist user mapping on the flow side)"
 }
@@ -149,7 +153,7 @@ Instant Triggers run via webhooks where external systems send events immediately
   "inputjson": {
     "steps": "Object (Auto-generated; always pass {})",
     "blocks": "Object (Auto-generated; always pass {})",
-    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+    "inputFields": "Array of Objects (List of input field configuration objects conforming to dh-Input-fields-json-builder.md)"
   },
   "performsubscribe": "String (Subscribe JavaScript code to register webhook with external service)",
   "performunsubscribe": "String (Unsubscribe JavaScript code to unregister/delete webhook from external service)",
@@ -208,7 +212,7 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
   "inputjson": {
     "steps": "Object (Auto-generated; always pass {})",
     "blocks": "Object (Auto-generated; always pass {})",
-    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+    "inputFields": "Array of Objects (List of input field configuration objects conforming to dh-Input-fields-json-builder.md)"
   },
   "perform": "String (Perform schedule code block executed on each poll)",
   "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
@@ -267,7 +271,7 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
   "inputjson": {
     "steps": "Object (Auto-generated; always pass {})",
     "blocks": "Object (Auto-generated; always pass {})",
-    "inputFields": "Array (List of input field configurations conforming to dh-Input-fields-json-builder.md)"
+    "inputFields": "Array of Objects (List of input field configuration objects conforming to dh-Input-fields-json-builder.md)"
   },
   "performlist": "String (JavaScript sample retrieval code block to fetch test/sample events)",
   "modifytriggerdata": "String (Perform Modify Code block to transform webhook data)",
