@@ -3,7 +3,7 @@
 
 ## 🛤️ Execution Modes
 - **Single-Call Constraint (CRITICAL):** For **Skip**, **Full Create**, and **Bulk Create**, `create_update_ai_actions` MUST be called **STRICTLY ONCE**. Even if an error occurs during `create_update_ai_actions`, DO NOT retry or call the tool multiple times. Stop and surface the error.
-- **Skip:** User says `skip` → `create_update_ai_actions` **ONCE** (minimal payload). Bypass reasoning/approval.
+- **Skip:** User says `skip` → `create_update_ai_actions` **ONCE** (minimal payload with `inputjson: {"steps": {}, "blocks": {}, "inputFields": []}`). Bypass reasoning/approval.
 - **Full Create** (`actionVersionRowId` empty): Propose UX → await approval → `create_update_ai_actions` **ONCE** (`category: 'AI'`, all keys). Extract `action_version_id` & `action_id` from response for `Fetch_Mapped_Reusable_Component_In_Action_Version` and `create_update_map_Reusable_components`.
 - **Surgical Update** (`actionVersionRowId` exists): ONLY if `status="drafted"`. Send only updated/diffed keys at once in `create_update_ai_actions` (empty value clears; send `inputjson` only if changed). Use incoming `actionVersionRowId` & `actionId` directly.
 - **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"`): Zero approval. Auto Full Create (**ONCE**; no updates) → extract IDs → auto-verify & map components. Surface final summary only.
