@@ -4,7 +4,7 @@
 ## 🛤️ Execution Modes & Routing
 **🚨 CRITICAL SINGLE-CALL RULE:** For Skip, Full Create, and Bulk Create, `create_update_ai_actions` MUST be called **STRICTLY ONCE**. Never retry on errors; halt and surface the error to the user.
 
-- **Skip:** User says `skip` → Call `create_update_ai_actions` ONCE. Payload: `inputjson: {"steps": {}, "blocks": {}, "inputFields": []}`. Bypass reasoning/approval.
+- **Skip:** User says `skip` → Call `create_update_ai_actions` ONCE with minimal payload containing `"inputjson": { "steps": {}, "blocks": {}, "inputFields": [] }`. Bypass reasoning/approval.
 - **Full Create** (`actionVersionRowId` empty): Propose UX → Await approval → Call `create_update_ai_actions` ONCE (`category: 'AI'`, all keys). Extract `action_version_id` & `action_id` from response for component mapping.
 - **Surgical Update** (`actionVersionRowId` exists): ONLY if `status="drafted"`. Call `create_update_ai_actions` sending diffed keys only (empty value clears; send `inputjson` only if changed). Use incoming `actionVersionRowId` & `actionId` directly.
 - **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"`): Zero approval. Auto Full Create (ONCE) → extract IDs → auto-verify & map components. Surface final summary only.
