@@ -28,9 +28,16 @@ Pre-check `Fetch_Reusable_Components_Details`.
 ## 🛡️ Guardrails
 - **Completeness:** MUST support ALL documented API parameters (query, body, headers, filters). Never omit.
 - **Placeholders:** `placeholder` & `customPlaceholder` MUST be strings (wrap numbers/booleans in quotes: `"100"`, `"true"`).
-- **`inputjson` Format (CRITICAL):** `inputjson` in `request_payload` of `create_update_ai_actions` is an **Object** strictly structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
-  - `steps` and `blocks` MUST strictly be raw empty **Objects** (`{}`) — NEVER stringified (❌ NO `"{}"` or `"{\}"`).
-  - `inputFields` MUST strictly be a direct raw **Array** (`[...]`) — NEVER an object wrapper (❌ NO `{}` and ❌ NO `{"item": [...]}`). For empty fields, use an empty array `[]` (❌ NO `"inputFields": {}`). Each element in the array is an individual field configuration object.
+- **`inputjson` Format (CRITICAL - STRICT ARRAY FOR `inputFields`):** `inputjson` in `request_payload` of `create_update_ai_actions` MUST be structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
+  - `inputFields` MUST strictly be a direct raw **Array of Objects** (`[...]`).
+  - ❌ **ABSOLUTELY FORBIDDEN:** NEVER wrap `inputFields` in an object or `"item"` key!
+    - ❌ INVALID: `"inputFields": { "item": [ { "key": "...", ... } ] }`
+    - ❌ INVALID: `"inputFields": { "key": "...", ... }`
+    - ❌ INVALID: `"inputFields": {}`
+  - ✅ **CORRECT:**
+    - `"inputFields": [ { "key": "order_id", ... }, { "key": "reason", ... } ]`
+    - `"inputFields": []` (when empty)
+  - `steps` and `blocks` MUST strictly be raw empty objects `{}` (❌ NO stringified `"{}"` or `"{\}"`).
 - **Payloads:** Validate against `dh-database-schema`. Triggers need all blocks per `triggertype`.
 - **Code:** Clean, formatted JS with explicit line breaks (`\n`) & proper indentation. NEVER output minified or single-line code blocks.
 - **Safety:** Halt & warn if `actionVersionRowId` changes dynamically. Await approval for all changes (except Bulk).
