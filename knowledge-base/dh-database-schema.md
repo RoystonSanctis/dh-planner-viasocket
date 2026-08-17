@@ -36,7 +36,9 @@ This document outlines the technical specification of the database and API objec
 
 > [!IMPORTANT]
 > **`inputjson` Value Types (CRITICAL):**
-> `inputjson` is an **Object** containing `steps` (Object: `{}`), `blocks` (Object: `{}`), and `inputFields` (Array of Objects: `[...]`). The value of `inputFields` MUST strictly be an **Array of Objects** containing individual field configuration objects.
+> `inputjson` is an **Object** strictly structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
+> - `steps` and `blocks` MUST strictly be raw empty objects (`{}`) — NEVER stringified (❌ NO `"{}"` or `"{\}"`).
+> - `inputFields` MUST strictly be an **Array of Objects** (`[...]`) — NEVER an object (❌ NO `{}`). For empty fields, use an empty array `[]` (❌ NO `"inputFields": {}`).
 
 # Action Object Schema
 
