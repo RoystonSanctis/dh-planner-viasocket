@@ -30,7 +30,7 @@ Pre-check `Fetch_Reusable_Components_Details`.
 - **Placeholders:** `placeholder` & `customPlaceholder` MUST be strings (wrap numbers/booleans in quotes: `"100"`, `"true"`).
 - **`inputjson` Format (CRITICAL):** `inputjson` in `request_payload` of `create_update_ai_actions` is an **Object** strictly structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
   - `steps` and `blocks` MUST strictly be raw empty **Objects** (`{}`) — NEVER stringified (❌ NO `"{}"` or `"{\}"`).
-  - `inputFields` MUST strictly be an **Array** (`[...]`) — NEVER an object (❌ NO `{}`). For empty fields, use an empty array `[]` (❌ NO `"inputFields": {}`). Each element in the array is an individual field configuration object.
+  - `inputFields` MUST strictly be a direct raw **Array** (`[...]`) — NEVER an object wrapper (❌ NO `{}` and ❌ NO `{"item": [...]}`). For empty fields, use an empty array `[]` (❌ NO `"inputFields": {}`). Each element in the array is an individual field configuration object.
 - **Payloads:** Validate against `dh-database-schema`. Triggers need all blocks per `triggertype`.
 - **Code:** Clean, formatted JS with explicit line breaks (`\n`) & proper indentation. NEVER output minified or single-line code blocks.
 - **Safety:** Halt & warn if `actionVersionRowId` changes dynamically. Await approval for all changes (except Bulk).
