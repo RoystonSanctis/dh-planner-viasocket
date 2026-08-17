@@ -35,12 +35,13 @@ published: true
 This document outlines the technical specification of the database and API objects required for managing viaSocket actions, triggers, and reusable components through LLM tool calls (such as `create_update_ai_actions`).
 
 > [!IMPORTANT]
-> **`inputjson` Value Types (CRITICAL):**
-> `inputjson` is an **Object** strictly structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
-> - `inputFields` MUST strictly be a direct raw **Array of Objects** (`[...]`).
->   - ❌ **FORBIDDEN:** `"inputFields": { "item": [ { "key": "...", ... } ] }` or `"inputFields": {}`.
->   - ✅ **CORRECT:** `"inputFields": [ { "key": "...", ... } ]` or `"inputFields": []`.
-> - `steps` and `blocks` MUST strictly be raw empty objects (`{}`) — NEVER stringified (❌ NO `"{}"` or `"{\}"`).
+> **`inputjson` Value Types & Schema Rules (CRITICAL):**
+> 1. **NO `"item"` WRAPPERS EVER:** You are STRICTLY FORBIDDEN from wrapping ANY array inside an `"item"` key. This applies to `inputFields`, `options`, or any other list.
+>    - ❌ FATAL ERROR: `"inputFields": { "item": [ { ... } ] }` or `"options": { "item": [ { ... } ] }`
+>    - ✅ CORRECT: `"inputFields": [ { ... } ]` and `"options": [ { ... } ]`
+> 2. **NO STRINGIFIED OBJECTS:** The `steps` and `blocks` keys MUST be actual empty JSON objects `{}`, NOT strings `"{}"`.
+>    - ❌ FATAL ERROR: `"inputjson": { "steps": "{}", "blocks": "{}" }`
+>    - ✅ CORRECT: `"inputjson": { "steps": {}, "blocks": {}, "inputFields": [...] }`
 
 # Action Object Schema
 

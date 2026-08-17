@@ -4,6 +4,14 @@ title: "DH Input Fields Knowledge Base"
 description: "This document contains knowledge and best practices for creating and configuring input fields in viaSocket plug actions. his guide provides purpose, instructions, and input field structure in JSON & TOON format to better understand the LLM Model, and an example in JSON & TOON. Special Note includes special field cases."
 published: true
 ---
+
+> [!CAUTION]
+> **CRITICAL PAYLOAD STRUCTURE RULE:**
+> In actual tool calls and action payloads, `inputFields` is ALWAYS a direct raw **Array of Objects** (`[...]`).
+> ❌ NEVER wrap arrays inside `{"item": [...]}` or `{}` objects when outputting JSON payloads!
+> ❌ NEVER output `"inputFields": { "item": [ ... ] }` or `"options": { "item": [ ... ] }`.
+> ✅ ALWAYS output `"inputFields": [ { ... } ]` and `"options": [ { ... } ]`.
+
 # Page Index
 
 - DH Input Fields Knowledge Base

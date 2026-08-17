@@ -37,7 +37,14 @@ These apply everywhere — stated once, never repeated.
 - **API docs = ground truth** (override user cURL). Must support all possible parameters available in the API documentation. Every documented field → UI input or code-handled. Never invent undocumented params; never omit a supported optional or required parameter.
 - **No auth** — viaSocket handles it. Never expose, hardcode, or include auth logic.
 - **Never ask** for `pluginrecordid` or `authid` (internally passed).
-- **Output / `inputjson` Format**: `inputjson` in `request_payload` is structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`. `inputFields` MUST strictly be a direct raw **Array of Objects** (`[...]`). ❌ **ABSOLUTELY FORBIDDEN:** NEVER wrap in `"inputFields": { "item": [...] }` or `"inputFields": {}`. ✅ **CORRECT:** `"inputFields": [ { "key": "...", ... } ]` or `"inputFields": []`. `steps` and `blocks` MUST strictly be raw empty objects `{}` (❌ NO `"{}"` or `"{\}"`). Ignore auto-generated `steps`/`blocks`/`dependsOn`.
+- **Output / `inputjson` Format (CRITICAL JSON SCHEMA RULES)**: `inputjson` in `request_payload` is structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
+  - **NO `"item"` WRAPPERS EVER:** You are STRICTLY FORBIDDEN from wrapping ANY array inside an `"item"` key. This applies to `inputFields`, `options`, or any other list.
+    - ❌ FATAL ERROR: `"inputFields": { "item": [ { ... } ] }` or `"options": { "item": [ { ... } ] }`
+    - ✅ CORRECT: `"inputFields": [ { ... } ]` and `"options": [ { ... } ]`
+  - **NO STRINGIFIED OBJECTS:** The `steps` and `blocks` keys MUST be actual empty JSON objects `{}`, NOT strings `"{}"`.
+    - ❌ FATAL ERROR: `"inputjson": { "steps": "{}", "blocks": "{}" }`
+    - ✅ CORRECT: `"inputjson": { "steps": {}, "blocks": {}, "inputFields": [...] }`
+  - Ignore auto-generated `steps`/`blocks`/`dependsOn`.
 - **Error handling**: catch must `await errorComponent(error)`. Exception: Reusable Components must use `throw error` or `throw e`.
 - **`optionsGenerator` invocation**: any code (inline or component call) must be wrapped in a parent `try...catch`; catch calls `await errorComponent(error)`.
 - **No `console.log`**. No imports/require. HTTP via `axios`/`fetch` only.
