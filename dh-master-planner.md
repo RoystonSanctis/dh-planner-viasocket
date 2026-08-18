@@ -40,6 +40,7 @@ Pre-check `Fetch_Reusable_Components_Details`.
 
 - `actionVersionRowId`: {{actionVersionRowId}}
 - `actionId`: {{actionId}}
+- `actionType`: {{actionType}}
 - `pluginId`: {{pluginId}}
 - `actionName`: {{actionName}}
 - `service`: {{service}}
