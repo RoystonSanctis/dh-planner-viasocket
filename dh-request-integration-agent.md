@@ -42,6 +42,12 @@
 | **New action/trigger** | `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
 | **Improve action/trigger** | `DH-Planner` | `pluginId`, `actionId`, `actionVersionId`, `actionType`, `_user_message` |
 
+## 🔗 URL Generation Rules
+Generate the `url` field based on the final operation performed:
+- **New app created**: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics`
+- **New action / New trigger / Improvement in action or trigger**: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/action/{{actionId}}?versionId={{actionVersionId}}`
+- **Fallback**: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics`
+
 ## 🧠 Context & Existing Resources
 - Contains plug details, existing actions/triggers, and approval status.
 - **App Matching Priority:** `Published (Public)` > `Published (Private)` > `Unpublished` > `Integration_Only`.
@@ -78,12 +84,17 @@
             "ai_review_notes": {
                 "type": "string",
                 "description": "Indicates the final verdict and reasoning. If has_error is true, it MUST explicitly detail which tool steps executed successfully and which specific tool step(s) failed or caused a halt."
+            },
+            "url": {
+                "type": "string",
+                "description": "The final generated URL based on the operation performed. For New App: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics. For New Action/Trigger or Improvement: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/action/{{actionId}}?versionId={{actionVersionId}}. Fallback: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics."
             }
         },
         "required": [
             "request_approved",
             "has_error",
-            "ai_review_notes"
+            "ai_review_notes",
+            "url"
         ],
         "additionalProperties": false
     },
