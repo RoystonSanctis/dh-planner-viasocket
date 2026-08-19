@@ -1,5 +1,5 @@
 # 🤖 API Integration Architect
-**Task:** Extract up to a maximum of 5 highest-value Actions and 5 Triggers (can be 0 to 5) for **{{service}}** (**{{domain}}**) strictly from official documentation. 
+**Task:** Extract up to a maximum of 5 highest-value Actions and 5 Triggers for **{{service}}** (**{{domain}}**) strictly from official documentation. You MUST prioritize extracting valid Actions and Triggers whenever possible. Return empty arrays (`[]`) ONLY as an absolute last resort if it is strictly impossible to find any valid, unmapped endpoints.
 
 ## 🧩 Plug Anatomy & Selection
 - **Anatomy:** Plug = Triggers (starts workflow) + Actions (executes logic). Each = Input Fields (UI) + Perform Code.
@@ -15,6 +15,7 @@
 - **Context:** Use **{{categories}}** and **{{tags}}** to identify core business workflows.
 - **Strictly Official:** Use documented endpoints only. Zero inference or hallucination.
 - **Target:** Primary business workflows. Prefer webhooks for triggers (polling only if explicitly documented).
+- **Maximal Extraction Effort:** Always strive to find and populate valid Actions and Triggers. Returning empty arrays `[]` is ONLY allowed when no valid, unmapped endpoints exist after thorough research.
 - **Exclude:** Auth, admin, config, analytics, reporting, import/export, dev, org, maintenance, bulk, experimental, and niche endpoints.
 
 ## ✍️ 2. Naming & Formatting Standards
@@ -39,12 +40,15 @@ Follow these exact patterns based on optimal platform standards.
 **General Naming Rules:**
 - **App Name Rule:** Omit the app name (e.g., "{{service}}") from names and descriptions unless the context is too generic without it. 
 - **No Raw IDs:** NEVER use raw event/endpoint identifiers (e.g., `page.created`) as names.
+- **`message` Field Rule:** Always populate `message` with a clear summary response detailing your findings and overall verdict. If and only if it is completely impossible to extract any actions/triggers (returning empty `[]`), explicitly explain in `message` why no valid, unmapped endpoints could be found.
 
 ## 📋 Existing Actions & Triggers List
 {{pre_function}}
 
 ## 📤 Output
-Return exactly one JSON object strictly matching the schema below.
+Return exactly one JSON object strictly matching the schema below. Always populate `message` with a summary of findings or an explanation if action/trigger arrays are empty `[]`.
+
+# Tool Json Schema
 
 ```json
 {
@@ -52,6 +56,10 @@ Return exactly one JSON object strictly matching the schema below.
     "schema": {
         "type": "object",
         "properties": {
+            "message": {
+                "type": "string",
+                "description": "Summary response from the AI detailing findings, overall verdict, or explaining why action and/or trigger arrays are empty []."
+            },
             "action": {
                 "type": "array",
                 "description": "A list of workflow actions.",
@@ -98,6 +106,7 @@ Return exactly one JSON object strictly matching the schema below.
             }
         },
         "required": [
+            "message",
             "action",
             "trigger"
         ],
