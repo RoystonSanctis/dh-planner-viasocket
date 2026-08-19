@@ -44,8 +44,10 @@
 
 ## 🔗 URL Generation Rules
 Generate the `url` field based on the final operation performed:
+- **No `pluginId`**: Return `""` (do not generate a URL if `pluginId` is missing).
 - **New app created**: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics`
 - **New action / New trigger / Improvement in action or trigger**: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/action/{{actionId}}?versionId={{actionVersionId}}`
+  - *(Fallback if `actionId` or `actionVersionId` are missing)*: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics`
 - **Fallback**: `https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics`
 
 ## 🧠 Context & Existing Resources
@@ -87,7 +89,7 @@ Generate the `url` field based on the final operation performed:
             },
             "url": {
                 "type": "string",
-                "description": "The final generated URL based on the operation performed. For New App: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics. For New Action/Trigger or Improvement: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/action/{{actionId}}?versionId={{actionVersionId}}. Fallback: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics."
+                "description": "The final generated URL based on the operation performed. If pluginId is missing, return empty string. For New App: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics. For New Action/Trigger or Improvement: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/action/{{actionId}}?versionId={{actionVersionId}} (if actionId or actionVersionId are missing, fall back to analytics URL). Fallback: https://flow.viasocket.com/developer/4160/plugin/{{pluginId}}/analytics."
             }
         },
         "required": [

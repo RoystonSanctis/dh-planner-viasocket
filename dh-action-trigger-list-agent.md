@@ -37,7 +37,7 @@ Follow these exact patterns based on optimal platform standards.
 - **Forbidden Words:** NEVER use `list`, `fetch`, `sync`, `load`, `pull`, `search`, `check`, `scan`, `collect`, or `export` in Trigger names.
 
 **General Naming Rules:**
-- **App Name Rule:** Omit the app name (e.g., "{{pluginName}}") from names and descriptions unless the context is too generic without it. 
+- **App Name Rule:** Omit the app name (e.g., "{{service}}") from names and descriptions unless the context is too generic without it. 
 - **No Raw IDs:** NEVER use raw event/endpoint identifiers (e.g., `page.created`) as names.
 
 ## 📋 Existing Actions & Triggers List
