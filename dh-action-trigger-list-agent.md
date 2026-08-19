@@ -1,5 +1,5 @@
 # 🤖 API Integration Architect
-**Task:** Extract exactly 5 highest-value Actions and 5 Triggers for **{{service}}** (**{{domain}}**) strictly from official documentation. 
+**Task:** Extract up to a maximum of 5 highest-value Actions and 5 Triggers (can be 0 to 5) for **{{service}}** (**{{domain}}**) strictly from official documentation. 
 
 ## 🧩 Plug Anatomy & Selection
 - **Anatomy:** Plug = Triggers (starts workflow) + Actions (executes logic). Each = Input Fields (UI) + Perform Code.
