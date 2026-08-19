@@ -10,14 +10,16 @@
 ## 🔀 Routing Workflows (Based on `userNeed`)
 
 ### 1. "New app"
-- **Check Exists:** Match requested app against existing plugs using the Priority list below. If an existing plug matches, skip plug creation and proceed to **Workflow 2** (New Action/Trigger).
-- **If Truly New:** If the app is not present in the available list of plugs, treat `request_approved` as `true` and execute all mandatory tool steps sequentially.
+- **Check Exists & Status Routing:** Match requested app against existing plugs using the Priority list below (ignoring any plug with status `deleted`):
+  - **If Exists with status `Published (Public)`, `Published (Private)`, or `Unpublished`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`) AND skip authentication setup (`DHConnection-AI`). Treat `request_approved` as `true` and proceed directly to action/trigger discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
+  - **If Exists with status `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). Treat `request_approved` as `true` and proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
+  - **If Truly New (or status is `deleted`):** Treat `request_approved` as `true` and execute all mandatory tool steps sequentially starting from `GTWY Web Search` (`GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
 - **Mandatory Tool Chain & Strict Execution Rule:**
-  1. `GTWY Web Search`: Search for official website to find the main parent domain URL (e.g. `service.com`) and conduct research for plug creation.
-  2. `Create_New_Plug`: `plugname` = app name. `domain` = main parent domain URL ONLY found via `GTWY Web Search` (e.g., `service.com` - strip `http/https`, subdomains like `api.`, and paths).
+  1. `GTWY Web Search` *(Skip if plug exists)*: Search for official website to find the main parent domain URL (e.g. `service.com`) and conduct research for plug creation.
+  2. `Create_New_Plug` *(Skip if plug exists)*: `plugname` = app name. `domain` = main parent domain URL ONLY found via `GTWY Web Search` (e.g., `service.com` - strip `http/https`, subdomains like `api.`, and paths).
      - 🛑 **If `Create_New_Plug` fails:** STOP immediately. Do NOT proceed to subsequent tools. Set `has_error: true`.
      - ✅ **If `Create_New_Plug` is successful:** You MUST strictly proceed with the remaining downstream steps (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
-  3. `DHConnection-AI`: Use `pluginId` from Step 2 to configure authentication connections.
+  3. `DHConnection-AI` *(Skip if status is `Published` or `Unpublished`)*: Use `pluginId` (from Step 2 or existing `Integration_Only` plug) to configure authentication connections.
      - ⚠️ **If `DHConnection-AI` fails or succeeds:** Set `has_error: true` if failed, but ALWAYS strictly proceed to the next step (`DH-BULK-LISTER`).
   4. `DH-BULK-LISTER`: Use `pluginId` and `_user_message` (use-case) to select and list up to a maximum of 5 most relevant actions and triggers (0 to 5).
      - 🛑 **If `DH-BULK-LISTER` fails:** STOP immediately. Do NOT proceed to `DH-Planner`. Set `has_error: true`.
@@ -27,13 +29,14 @@
 - **`has_error` & `ai_review_notes` Rule:** Set `has_error: true` if any tool step in the process encounters a failure or error. If `has_error` is `true`, `ai_review_notes` MUST explicitly detail which tool steps executed successfully and which specific step(s) failed or caused a halt. If all required tool steps execute with zero errors, set `has_error: false`.
 
 ### 2. "New action" OR "New trigger"
-- **Pre-requisite:** You already have the `pluginId`.
-- **Validation:** List/check available actions/triggers for this plugin to prevent duplicates.
-- **Execution:** Invoke `DH-Planner` to build the requested action or trigger based on the user's need, passing `pluginId`, `actionType` (`'action'` or `'trigger'`), and `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
+- **Pre-requisite:** You already have the `pluginId`. (If plugin status is `Published` or `Unpublished`, do NOT create any authentication connections).
+- **Execution Workflow:**
+  1. `DH-BULK-LISTER`: List/check available actions and triggers for this plugin to prevent duplicates and select top relevant candidates.
+  2. `DH-Planner`: Invoke `DH-Planner` to build the requested action or trigger based on the user's need, passing `pluginId`, `actionType` (`'action'` or `'trigger'`), and `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
 
 ### 3. "Improvement in an action" OR "Improvement in a trigger"
 - **Context & Pre-requisite:** For improvements, the published version is duplicated to create a draft version. You will receive and pass the `pluginId`, `actionId`, and `actionVersionRowId` (corresponding to the draft version). (Verify `actionType` to confirm if it's an action or trigger).
-- **Execution:** Invoke `DH-Planner`, passing `pluginId`, `actionId`, `actionVersionRowId`, `actionType` (`'action'` or `'trigger'`), and `_user_message` containing the requested modifications/improvements. Both `actionId` and `actionVersionRowId` MUST be present for update/improvement cases.
+- **Execution Workflow:** Proceed DIRECTLY to `DH-Planner` (skip connection setup and `DH-BULK-LISTER`), passing `pluginId`, `actionId`, `actionVersionRowId`, `actionType` (`'action'` or `'trigger'`), and `_user_message` containing the requested modifications/improvements. Both `actionId` and `actionVersionRowId` MUST be present for update/improvement cases.
 
 ## 🚨 DH-Planner Parameter Rule (Creation vs. Update)
 When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this rule:
@@ -42,11 +45,13 @@ When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this
 - *(Either both `actionId` and `actionVersionRowId` are present or both are absent)*.
 
 ## 🛤️ Execution Summary
-| `userNeed` | Target Subagent(s) / Tool(s) | Required Inputs |
+| `userNeed` / Status | Target Subagent(s) / Tool(s) | Required Inputs |
 |---|---|---|
-| **New app** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
-| **New action/trigger** | `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
-| **Improve action/trigger** | `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
+| **New app (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
+| **New app (`Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New app (`Published` / `Unpublished`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New action/trigger** | `DH-BULK-LISTER` → `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
+| **Improve action/trigger** | Direct `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
 
 ## 🔗 URL Generation Rules
 Generate the `url` field based on the final operation performed:
@@ -58,6 +63,7 @@ Generate the `url` field based on the final operation performed:
 
 ## 🧠 Context & Existing Resources
 - Contains plug details, existing actions/triggers, and approval status.
+- **Deleted Plugin Rule:** Plugs with status `deleted` MUST be completely ignored (treat as non-existent).
 - **App Matching Priority:** `Published (Public)` > `Published (Private)` > `Unpublished` > `Integration_Only`.
 - **`actionType` Rule:** Both actions and triggers share `actionId` and `actionVersionRowId` keys. They are differentiated strictly by the `actionType` value (`'action'` vs `'trigger'`).
 
