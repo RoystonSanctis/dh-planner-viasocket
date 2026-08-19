@@ -55,7 +55,7 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
   "key": "String (Unique machine-readable key, derived from action name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'List_Notion_Databases')",
   "description": "String (Brief description of the action's purpose)",
   "pluginrecordid": "String (Unique row ID of the plugin/service, e.g., 'rowbvcb80z3y')",
-  "isvisible": "String (Boolean as a string, e.g., 'false')",
+  "isvisible": "Boolean (e.g., false)",
   "type": "String (Set to 'action')",
   "category": "String (The action category, e.g., 'UPDATE' or 'AI')",
   "sub_category": "String (Optional. The action sub-category, e.g., 'Page')",
@@ -84,7 +84,7 @@ name: String
 key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 description: String
 pluginrecordid: String
-isvisible: String ('true' | 'false')
+isvisible: Boolean (e.g., false)
 type: String ('action')
 category: String
 sub_category: String (optional)
@@ -120,7 +120,7 @@ The additional keys for each trigger which is specified are the supported keys a
   "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
-  "isvisible": "String ('True' | 'False')",
+  "isvisible": "Boolean (e.g., false)",
   "name": "String (User-friendly name of the trigger, e.g., 'New Lead')",
   "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Lead')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
@@ -148,7 +148,7 @@ Instant Triggers run via webhooks where external systems send events immediately
   "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
-  "isvisible": "String ('True' | 'False')",
+  "isvisible": "Boolean (e.g., false)",
   "name": "String (User-friendly name of the trigger, e.g., 'New Lead')",
   "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Lead')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
@@ -176,7 +176,7 @@ category: String
 sub_category: String (optional)
 description: String
 ignoreuniversalsampledata: Boolean
-isvisible: String ('True' | 'False')
+isvisible: Boolean (e.g., false)
 name: String
 key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 pluginrecordid: String
@@ -207,7 +207,7 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
   "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
-  "isvisible": "String ('True' | 'False')",
+  "isvisible": "Boolean (e.g., false)",
   "name": "String (User-friendly name of the trigger, e.g., 'New Lead')",
   "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Lead')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
@@ -235,7 +235,7 @@ category: String
 sub_category: String (optional)
 description: String
 ignoreuniversalsampledata: Boolean
-isvisible: String ('True' | 'False')
+isvisible: Boolean (e.g., false)
 name: String
 key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 pluginrecordid: String
@@ -266,7 +266,7 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
   "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
-  "isvisible": "String ('True' | 'False')",
+  "isvisible": "Boolean (e.g., false)",
   "name": "String (User-friendly name of the trigger, e.g., 'New Webhook Event')",
   "key": "String (Unique machine-readable key, derived from trigger name separated by underscores: `name.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`, e.g., 'New_Webhook_Event')",
   "pluginrecordid": "String (Unique row ID of the plugin/service)",
@@ -291,7 +291,7 @@ category: String
 sub_category: String (optional)
 description: String
 ignoreuniversalsampledata: Boolean
-isvisible: String ('True' | 'False')
+isvisible: Boolean (e.g., false)
 name: String
 key: String (Derived from name: name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''))
 pluginrecordid: String

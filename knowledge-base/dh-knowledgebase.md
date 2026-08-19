@@ -369,8 +369,8 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 - **Reuse Protocol**: If existing component's params are sufficient but code needs updating → update code directly. If params need changing and component is mapped → create new component (don't modify mapped params/function_name). If unmapped → can update everything.
 
 # API Database Payload Schemas
-- **Action (Create/Update)**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` ('false'|'true'), `type: 'action'`, `category`, `sub_category`?, `rtllayer` (bool), `isAIActionTrigger` (bool), `functionId`?, `isUserOnDh` (bool), `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `perform`, `authid`?, `metadata: {chatbotthreadid}`?.
-- **Trigger (Create/Update)**: `authid` (except `manual_webhook` → 'No Auth'), `category`, `sub_category`?, `description`, `ignoreuniversalsampledata` (bool), `isvisible` ('True'|'False'), `key`, `name`, `pluginrecordid`, `preferred_step_name`, `type: 'trigger'`, `triggertype`, `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`. Update sends only changed keys.
+- **Action (Create/Update)**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` (bool), `type: 'action'`, `category`, `sub_category`?, `rtllayer` (bool), `isAIActionTrigger` (bool), `functionId`?, `isUserOnDh` (bool), `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `perform`, `authid`?, `metadata: {chatbotthreadid}`?.
+- **Trigger (Create/Update)**: `authid` (except `manual_webhook` → 'No Auth'), `category`, `sub_category`?, `description`, `ignoreuniversalsampledata` (bool), `isvisible` (bool), `key`, `name`, `pluginrecordid`, `preferred_step_name`, `type: 'trigger'`, `triggertype`, `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`. Update sends only changed keys.
   - *Instant*: `performsubscribe`, `performunsubscribe`, `performlist`, `modifytriggerdata`, `transferoption`.
   - *Scheduled*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (array), `canpaginate` (bool).
   - *Manual*: `performlist`, `modifytriggerdata`.
