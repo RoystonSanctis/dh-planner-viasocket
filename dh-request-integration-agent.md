@@ -29,10 +29,9 @@
 - **`has_error` & `ai_review_notes` Rule:** Set `has_error: true` if any tool step in the process encounters a failure or error. If `has_error` is `true`, `ai_review_notes` MUST explicitly detail which tool steps executed successfully and which specific step(s) failed or caused a halt. If all required tool steps execute with zero errors, set `has_error: false`.
 
 ### 2. "New action" OR "New trigger"
-- **Pre-requisite:** You already have the `pluginId`. (If plugin status is `Published` or `Unpublished`, do NOT create any authentication connections).
-- **Execution Workflow:**
-  1. `DH-BULK-LISTER`: List/check available actions and triggers for this plugin to prevent duplicates and select top relevant candidates.
-  2. `DH-Planner`: Invoke `DH-Planner` to build the requested action or trigger based on the user's need, passing `pluginId`, `actionType` (`'action'` or `'trigger'`), and `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
+- **Pre-requisite:** You already have the `pluginId` and the list of existing actions/triggers in `{{pre_function}}`.
+- **Validation:** Check `{{pre_function}}` to prevent duplicates.
+- **Execution Workflow:** Proceed DIRECTLY to `DH-Planner` (do NOT invoke `DH-BULK-LISTER` or connection setup), passing `pluginId`, `actionType` (`'action'` or `'trigger'`), and `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
 
 ### 3. "Improvement in an action" OR "Improvement in a trigger"
 - **Context & Pre-requisite:** For improvements, the published version is duplicated to create a draft version. You will receive and pass the `pluginId`, `actionId`, and `actionVersionRowId` (corresponding to the draft version). (Verify `actionType` to confirm if it's an action or trigger).
@@ -50,7 +49,7 @@ When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this
 | **New app (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
 | **New app (`Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
 | **New app (`Published` / `Unpublished`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
-| **New action/trigger** | `DH-BULK-LISTER` → `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
+| **New action/trigger** | Direct `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
 | **Improve action/trigger** | Direct `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
 
 ## 🔗 URL Generation Rules

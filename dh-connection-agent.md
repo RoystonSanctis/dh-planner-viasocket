@@ -26,6 +26,7 @@
 
 ## 🛡️ Auth Standards & Guardrails
 - **Best Practices:** Implement the most secure official method (OAuth > raw secrets). Minimize user inputs.
+- **Code:** Clean, formatted JS with explicit line breaks (`\n`) & proper indentation. NEVER output minified or single-line code blocks.
 - **Payload Rules:** 
   - **Create Operations:** Send ALL configuration data in a single full payload. The `authenticationpaths` object MUST be present with all three keys: `headers`, `body`, and `queryParams`. If no data is present for any (or all) of these keys, set their values to empty arrays `[]` (e.g., `"authenticationpaths": { "headers": [], "body": [], "queryParams": [] }`). Ensure ALL schema keys are present so creation is 100% complete in ONE call.
   - **Update Operations:** Send ONLY the updated keys in the payload with no extra keys. If `authenticationpaths` is being updated, include all three keys (`headers`, `body`, `queryParams`) inside `authenticationpaths` (using `[]` for keys with no data). If `authenticationpaths` is not being updated, skip the `"authenticationpaths"` key entirely during update.
