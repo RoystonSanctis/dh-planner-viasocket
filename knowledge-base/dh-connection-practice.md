@@ -121,7 +121,7 @@ Basic Auth is a simple authentication method where credentials (username + passw
 The standard field ordering/section flow for a Basic Auth Connection follows this sequence:
 
 1. **Configure your Fields** → Credential Auth fields the user fills to authenticate (e.g. `api_key`, `username`, `password`). Values become available as `context.authData.<field_key>`.
-2. **Configure Test (Me) API** *(Required)* → A lightweight authenticated `GET` request (e.g. `/me`, `/user`, `/profile`) that validates the entered credentials.
+2. **Configure Test (Me) API** *(Required)* → A lightweight authenticated `GET` request (e.g. `/me`, `/user`, `/profile`, or if unavailable, any suitable lightweight authenticated endpoint like `/workspaces` or `/teams`) that validates the entered credentials.
 3. **Add Connection Label** → A dynamic, human-readable identifier for the saved connection, built from auth fields or the Test API response.
 4. **Add Icon** → Visual icon for the connection.
 5. **Add Urls to Whitelist** → Base domains this Connection is authorized to call.
@@ -157,7 +157,7 @@ return await testcode();
 - **Match API field names exactly** — the `key` of each field must match what the target API expects as a parameter name.
 - **Use `password` type for anything sensitive** — API keys, secrets, and tokens must obscure input.
 - **Always link to the credential source in `help`** — e.g. `` `Get your API key` `` linking to the app's settings/developer page.
-- **Prefer a lightweight Test endpoint** — `/me`, `/user`, `/profile`, or any authenticated endpoint requiring no extra parameters. The goal is only to confirm auth works.
+- **Single Test endpoint rule** — Test exactly ONE API endpoint: prefer a Me/User API (`/me`, `/user`, `/profile`); if unavailable, use any suitable lightweight authenticated endpoint requiring no extra parameters.
 - **Never hardcode credentials in Request Parameters** — always reference them dynamically via `context.authData.<field_key>`, never as static values, so token/key rotation is respected.
 - **Mask sensitive Connection Labels** — if the label value could expose sensitive data, enable label masking.
 
@@ -201,7 +201,7 @@ The standard 13-step section flow:
 5. **Configure Access Token API** *(Required)* → `POST` to the Token Endpoint exchanging the authorization code for `access_token` (+ optional `refresh_token`). Built with `axios`, returning `response.data`. Stored under a key such as `context.authData?.accesstokencode?.access_token`. The authorization code is read from `context?.authData?.Authorization?.code`. When PKCE is enabled, the code verifier is read from `context?.authData?.code_verifier` and must be included as `code_verifier` in the request body.
 6. **Configure Refresh Token API** → `POST` to the Token Endpoint with `grant_type=refresh_token` and the stored `refresh_token`, returning a fresh `access_token`. Same code pattern as Step 5.
 7. **Configure Revoke Token API** → Calls the provider's revoke endpoint with the active token, pulled from `context.authData`, to cleanly disconnect.
-8. **Configure Test (Me) API** *(Required)* → Authenticated `GET /me` (or equivalent) using `Authorization: Bearer <access_token>`. Validates token exchange, header injection, and scope sufficiency together.
+8. **Configure Test (Me) API** *(Required)* → Authenticated `GET /me` (or equivalent User/Profile endpoint; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`) using `Authorization: Bearer <access_token>`. Validates token exchange, header injection, and scope sufficiency together.
 9. **Add Connection Label** → Human-friendly identifier mapped from the Test API response (e.g. `authData.testcode.profile.real_name`); maskable.
 10. **Add Icon** → Visual icon for the connection.
 11. **Add Urls to Whitelist** → Domains this Connection is authorized to call.
@@ -315,7 +315,7 @@ Identical to Authorization Code's 13-step flow **minus the "Configure Access Tok
 4. Configure Authorization Endpoint *(Required)*
 5. Configure Refresh Token API *(rarely available — Implicit typically issues no refresh token)*
 6. Configure Revoke Token API
-7. Configure Test (Me) API *(Required)*
+7. Configure Test (Me) API *(Required)* → Authenticated `GET /me` (or equivalent User/Profile endpoint; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`).
 8. Add Connection Label
 9. Add Icon
 10. Add Urls to Whitelist
@@ -383,7 +383,7 @@ A reduced 10-step flow — no redirect, consent screen, or per-user credentials 
 2. **Configure Access Token API** *(Required)* → `POST` to the Token Endpoint with `grant_type=client_credentials`, `client_id`, `client_secret`, and `scope`. Typically returns `access_token` + `expires_in` with **no refresh token**.
 3. **Configure Refresh Token API** → In most implementations this simply re-requests a new token using the same client credentials rather than a distinct refresh call.
 4. **Configure Revoke Token API** → `POST` to the revoke endpoint with the current token, `client_id`, `client_secret`.
-5. **Configure Test (Me) API** *(Required)* → Authenticated system-level `GET` request confirming the token works.
+5. **Configure Test (Me) API** *(Required)* → Authenticated `GET` request (preferring `GET /me` or `/account`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces`, `GET /status`, `GET /teams`, or `GET /ping`) confirming the token works.
 6. **Add Connection Label** → Since no user is involved, label from a stable app/workspace identifier (e.g. `api_app_id`) rather than a person's name.
 7. **Add Icon** → Visual icon for the connection.
 8. **Add Urls to Whitelist** → Domains this Connection is authorized to call.
@@ -482,7 +482,7 @@ Structurally identical to Client Credentials (10 steps), since neither flow invo
 2. **Configure Access Token API** *(Required)* → `POST` to the Token Endpoint with `grant_type=password`, `client_id`, `client_secret`, `username`, `password`. Typically returns `access_token` **and** `refresh_token`.
 3. **Configure Refresh Token API** → `POST` with `grant_type=refresh_token`, the stored `refresh_token`, `client_id`, `client_secret`.
 4. **Configure Revoke Token API** → `POST` to the revoke endpoint with the active token.
-5. **Configure Test (Me) API** *(Required)* → Authenticated `GET` confirming the token is valid.
+5. **Configure Test (Me) API** *(Required)* → Authenticated `GET` (preferring `GET /me` or `/user/profile`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`) confirming the token is valid.
 6. **Add Connection Label** → Human-friendly identifier from the Test API response.
 7. **Add Icon** → Visual icon for the connection.
 8. **Add Urls to Whitelist** → Domains this Connection is authorized to call.
@@ -584,7 +584,7 @@ The standard 9-step section flow:
 1. **Enter Application Credentials** → `Consumer Key` and `Consumer Secret` from the provider's developer console.
 2. **Copy your OAuth Redirect URL** → viaSocket-generated callback URL (e.g. `https://auth.viasocket.com/redirect/auth1`); add it to the provider's redirect/callback/allowed URL list if the provider requires one.
 3. **Configure OAuth1 Endpoint** *(Required)* → `Request Token URL`, `Authorize URL`, `Access Token URL`, and `signatureMethod` (`HMAC-SHA1` | `RSA-SHA1` | `PLAINTEXT`). Clicking **Authorize** runs viaSocket's built-in three-legged OAuth 1.0 exchange (request token → user authorization → access token) automatically using these URLs and the selected signature method — **no custom perform code is written for this step.** The resulting token is stored under `context.authData.accesstokencode`.
-4. **Configure Test (Me) API** *(Required)* → A signed authenticated request (per the selected `signatureMethod`, using the Consumer/Access Token secrets, a timestamp, and a nonce) confirming the credentials are valid.
+4. **Configure Test (Me) API** *(Required)* → A signed authenticated request (preferring `GET /me` or `/user`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`, per the selected `signatureMethod`, using the Consumer/Access Token secrets, a timestamp, and a nonce) confirming the credentials are valid.
 5. **Add Connection Label** → Human-friendly identifier from the Test API response.
 6. **Add Icon** → Visual icon for the connection.
 7. **Add Urls to Whitelist** → Domains this Connection is authorized to call.
@@ -825,6 +825,11 @@ Collect and request only what is strictly necessary:
 * **Scopes:** Request only the scopes required for the Test API and the plug's actual Actions/Triggers at the Connection level; push additional/specific scopes down to individual Action/Trigger configuration where viaSocket supports it.
 * **Fields:** Only add "Configure your Fields" entries the chosen Auth Type/Grant Type genuinely requires (e.g. do not add a Redirect URL step for Client Credentials).
 
+### Test (Me) API & `testcode` Selection Rules (CRITICAL)
+- **Single Test Endpoint Rule:** The `testcode` perform code MUST test **exactly ONE API endpoint** to validate that the connection credentials work.
+- **Primary Preference (`Me` / User Profile API):** Always prefer a **Me / Current User / User Profile / User Info / Account API** (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /profile`, `GET /oauth2/v2/userinfo`, `GET /v1/me`) that returns user or account identity details to simultaneously validate credentials and supply fields for the Connection Label.
+- **Fallback Endpoint (When `Me` API is Unavailable):** If a Me/User API is NOT provided by the target service (common in Client Credentials machine-to-machine auth, server-to-server APIs, or services without user endpoints), choose **ANY ONE suitable lightweight authenticated API endpoint** (e.g., `GET /workspaces`, `GET /organizations`, `GET /teams`, `GET /projects`, `GET /status`, `GET /ping`, or a lightweight resource list endpoint with minimal overhead) that reliably verifies connection credentials work without requiring mandatory parent parameters or mutating state.
+
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
 1. Resolve the Connection Label and Unique Connection Identifier from the Test (Me) API response wherever possible.
@@ -872,6 +877,7 @@ Use **response-derived resolution** rather than asking users to manually supply 
     * When fields exist, `fields` is an array of field objects (e.g. `[ { "key": "api_key", "label": "API Key", ... } ]`).
     * When no fields exist, `fields` MUST be an empty array `[]` (e.g., `"fields": []`). It must **NEVER** be an object, null, or non-array type.
   * **`testcode` Stringified JSON Payload Rule:**
+    * The `testcode` perform code MUST test **exactly ONE API endpoint** (preferring a Me/User API like `GET /me`, `GET /user`, `GET /users/me`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces`, `GET /teams`, `GET /status`).
     * The `testcode` field value in payloads MUST ALWAYS be a stringified JSON string wrapping an object with a `"source"` key (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`).
     * The actual JavaScript perform code must NEVER be placed directly on the `testcode` key as a raw code string.
     * If no test code is present or required, set `testcode` to `"{\"source\":null}"`.
