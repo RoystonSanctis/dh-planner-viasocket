@@ -26,7 +26,7 @@
   5. `DH-Planner`: For EACH action and trigger returned in the `DH-BULK-LISTER` result, invoke `DH-Planner` as an individual, separate tool call sequentially one by one.
      - **Required Per-Call Inputs**: Pass `pluginId`, `actionType` (`'action'` vs `'trigger'`), and send the exact `name` and `description` returned from `DH-BULK-LISTER` inside `_user_message` for each item one by one. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
      - Execute individual `DH-Planner` calls sequentially for all items until all are created, then exit.
-- **`has_error` & `ai_review_notes` Rule:** Set `has_error: true` if any tool step in the process encounters a failure or error. If `has_error` is `true`, `ai_review_notes` MUST explicitly detail which tool steps executed successfully and which specific step(s) failed or caused a halt. If all required tool steps execute with zero errors, set `has_error: false`.
+- **`has_error` & `ai_review_notes` Rule:** Set `has_error: true` if any tool step in the process encounters a failure or error. `ai_review_notes` MUST be short, to the point, and well-formatted. If `has_error` is `true`, it must concisely detail which tool steps executed successfully and which specific step(s) failed or caused a halt. If all required tool steps execute with zero errors, set `has_error: false`.
 
 ### 2. "New action" OR "New trigger"
 - **Pre-requisite:** You already have the `pluginId` and the list of existing actions/triggers in `{{pre_function}}`.
@@ -96,7 +96,7 @@ Generate the `url` field based on the final operation performed:
             },
             "ai_review_notes": {
                 "type": "string",
-                "description": "Indicates the final verdict and reasoning. If has_error is true, it MUST explicitly detail which tool steps executed successfully and which specific tool step(s) failed or caused a halt."
+                "description": "Short, to-the-point, and well-formatted summary of the final verdict and reasoning. If has_error is true, concisely specify which tool steps succeeded and which specific step(s) failed or caused a halt."
             },
             "url": {
                 "type": "string",
