@@ -11,15 +11,15 @@
 
 ### 1. "New app"
 - **Check Exists & Status Routing:** Match requested app against existing plugs using the Priority list below (ignoring any plug with status `deleted`):
-  - **If Exists with status `Published (Public)`, `Published (Private)`, or `Unpublished`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`) AND skip authentication setup (`DHConnection-AI`). Treat `request_approved` as `true` and proceed directly to action/trigger discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
-  - **If Exists with status `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). Treat `request_approved` as `true` and proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
+  - **If Exists with status `Published (Public)` or `Published (Private)`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`) AND skip authentication setup (`DHConnection-AI`). Treat `request_approved` as `true` and proceed directly to action/trigger discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
+  - **If Exists with status `Unpublished` or `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). Treat `request_approved` as `true` and proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
   - **If Truly New (or status is `deleted`):** Treat `request_approved` as `true` and execute all mandatory tool steps sequentially starting from `GTWY Web Search` (`GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
 - **Mandatory Tool Chain & Strict Execution Rule:**
   1. `GTWY Web Search` *(Skip if plug exists)*: Search for official website to find the main parent domain URL (e.g. `service.com`) and conduct research for plug creation.
   2. `Create_New_Plug` *(Skip if plug exists)*: `plugname` = app name. `domain` = main parent domain URL ONLY found via `GTWY Web Search` (e.g., `service.com` - strip `http/https`, subdomains like `api.`, and paths).
      - 🛑 **If `Create_New_Plug` fails:** STOP immediately. Do NOT proceed to subsequent tools. Set `has_error: true`.
      - ✅ **If `Create_New_Plug` is successful:** You MUST strictly proceed with the remaining downstream steps (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
-  3. `DHConnection-AI` *(Skip if status is `Published` or `Unpublished`)*: Use `pluginId` (from Step 2 or existing `Integration_Only` plug) to configure authentication connections.
+  3. `DHConnection-AI` *(Skip if status is `Published`)*: Use `pluginId` (from Step 2 or existing `Unpublished` / `Integration_Only` plug) to configure authentication connections.
      - ⚠️ **If `DHConnection-AI` fails or succeeds:** Set `has_error: true` if failed, but ALWAYS strictly proceed to the next step (`DH-BULK-LISTER`).
   4. `DH-BULK-LISTER`: Use `pluginId` and `_user_message` (use-case) to select and list up to a maximum of 5 most relevant actions and triggers (0 to 5).
      - 🛑 **If `DH-BULK-LISTER` fails:** STOP immediately. Do NOT proceed to `DH-Planner`. Set `has_error: true`.
@@ -47,8 +47,8 @@ When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this
 | `userNeed` / Status | Target Subagent(s) / Tool(s) | Required Inputs |
 |---|---|---|
 | **New app (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
-| **New app (`Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
-| **New app (`Published` / `Unpublished`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New app (`Unpublished` / `Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New app (`Published (Public)` / `Published (Private)`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
 | **New action/trigger** | Direct `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
 | **Improve action/trigger** | Direct `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
 
