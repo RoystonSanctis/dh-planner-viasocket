@@ -286,9 +286,14 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 > The `fields` key inside `authfields.authentication` **MUST ALWAYS** be an Array. If fields are defined, `fields` is an array of field objects (e.g. `[ { "key": "api_key", ... } ]`). If no fields exist, `fields` MUST be an empty array `[]` (e.g. `"fields": []`). It must **NEVER** be an object, null, or non-array type.
 
 > [!IMPORTANT]
-> **`testcode` Single Test Endpoint & Stringified JSON Structure Rule:**
-> The `testcode` perform code MUST test **exactly ONE API endpoint** to validate that connection credentials work: prefer a **Me / Current User / Profile / User Info / Account API** (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /profile`, `GET /oauth2/v2/userinfo`); if unavailable, choose **ANY ONE suitable lightweight authenticated API endpoint** (e.g., `GET /workspaces`, `GET /teams`, `GET /organizations`, `GET /status`, `GET /ping`).
-> The `testcode` field **MUST ALWAYS** be a stringified JSON string wrapping an object with a `"source"` key (e.g. `"{\"source\":\"async function testcode() { ... } return await testcode();\"}"`). The raw JavaScript perform code must **NEVER** be placed directly as the string value of `testcode`. If no test code is present, it MUST be `"{\"source\":null}"`.
+> **`testcode` Structure & Execution Rules:**
+> - `testcode` MUST be a stringified JSON object with exactly one `"source"` property (e.g. `"{\"source\":\"async function testcode() { ... } return await testcode();\"}"`). If no test code is present, it MUST be `"{\"source\":null}"`.
+> - `source` MUST contain valid JavaScript.
+> - `source` MUST contain **exactly ONE** API request/fetch call.
+> - Do not call secondary endpoints.
+> - Do not perform quota checks, session checks, or additional validation through another API request.
+> - Prefer one lightweight authenticated "current user", "me", "session", or equivalent endpoint (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /profile`, `GET /oauth2/v2/userinfo`; if unavailable, choose any suitable lightweight authenticated endpoint like `GET /workspaces`, `GET /teams`, `GET /status`, `GET /ping`).
+> - If the endpoint returns a successful authenticated response, the connection test passes.
 
 ## Create Connection JSON Schema
 

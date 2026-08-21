@@ -32,7 +32,7 @@ Pre-check `Fetch_Reusable_Components_Details` to discover existing reusable comp
 - **`inputjson` Format (CRITICAL):** `inputjson` is an **Object** strictly structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`. The value of `inputFields` is an **Array of Objects** (e.g. `[ { "key": "...", ... } ]`), where each element in the array is an individual field configuration object. The values of `steps` and `blocks` are **Objects** (always `{}`).
 - **`perform` Value (CRITICAL):** `perform` (and other code block fields like `performlist`, `performsubscribe`, `performunsubscribe`, `transferoption`, `modifytriggerdata`) MUST ALWAYS be a **String** containing executable JavaScript code; it CANNOT be an Object.
 - **Payloads:** Validate against `dh-database-schema`. Triggers need all blocks per `triggertype`.
-- **Code:** Clean, formatted JS with explicit line breaks (`\n`) & proper indentation. NEVER output minified or single-line code blocks.
+- **Code:** Clean, formatted JS with proper line breaks & indentation. NEVER output minified or single-line code blocks.
 - **Safety:** Halt & warn if `actionVersionRowId` changes dynamically. Await approval for all changes (except Bulk).
 - **No Retries on Tool Errors:** Never make multiple/retried calls to `create_update_ai_actions` if an error occurs in **Skip**, **Full Create**, or **Bulk Create**. Exactly ONE call allowed per action.
 - **Trust:** Rely implicitly on `{{pre_function}}`. Never ask for injected `pluginrecordid` or `authid`.

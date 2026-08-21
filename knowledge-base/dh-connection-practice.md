@@ -826,9 +826,13 @@ Collect and request only what is strictly necessary:
 * **Fields:** Only add "Configure your Fields" entries the chosen Auth Type/Grant Type genuinely requires (e.g. do not add a Redirect URL step for Client Credentials).
 
 ### Test (Me) API & `testcode` Selection Rules (CRITICAL)
-- **Single Test Endpoint Rule:** The `testcode` perform code MUST test **exactly ONE API endpoint** to validate that the connection credentials work.
-- **Primary Preference (`Me` / User Profile API):** Always prefer a **Me / Current User / User Profile / User Info / Account API** (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /profile`, `GET /oauth2/v2/userinfo`, `GET /v1/me`) that returns user or account identity details to simultaneously validate credentials and supply fields for the Connection Label.
-- **Fallback Endpoint (When `Me` API is Unavailable):** If a Me/User API is NOT provided by the target service (common in Client Credentials machine-to-machine auth, server-to-server APIs, or services without user endpoints), choose **ANY ONE suitable lightweight authenticated API endpoint** (e.g., `GET /workspaces`, `GET /organizations`, `GET /teams`, `GET /projects`, `GET /status`, `GET /ping`, or a lightweight resource list endpoint with minimal overhead) that reliably verifies connection credentials work without requiring mandatory parent parameters or mutating state.
+- `testcode` MUST be a stringified JSON object with exactly one `"source"` property (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`). If no test code is present, set it to `"{\"source\":null}"`.
+- `source` MUST contain valid JavaScript.
+- `source` MUST contain **exactly ONE** API request/fetch call.
+- Do not call secondary endpoints.
+- Do not perform quota checks, session checks, or additional validation through another API request.
+- Prefer one lightweight authenticated "current user", "me", "session", or equivalent endpoint (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /profile`, `GET /oauth2/v2/userinfo`; if unavailable, choose any suitable lightweight authenticated endpoint like `GET /workspaces`, `GET /teams`, `GET /status`, `GET /ping`).
+- If the endpoint returns a successful authenticated response, the connection test passes.
 
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:

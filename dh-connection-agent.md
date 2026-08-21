@@ -26,12 +26,19 @@
 
 ## 🛡️ Auth Standards & Guardrails
 - **Best Practices:** Implement the most secure official method (OAuth > raw secrets). Minimize user inputs.
-- **Code:** Clean, formatted JS with explicit line breaks (`\n`) & proper indentation. NEVER output minified or single-line code blocks.
+- **Code:** Clean, formatted JS with proper line breaks & indentation. NEVER output minified or single-line code blocks.
 - **Payload Rules:** 
   - **Create Operations:** Send ALL configuration data in a single full payload. The `authenticationpaths` object MUST be present with all three keys: `headers`, `body`, and `queryParams`. If no data is present for any (or all) of these keys, set their values to empty arrays `[]` (e.g., `"authenticationpaths": { "headers": [], "body": [], "queryParams": [] }`). Ensure ALL schema keys are present so creation is 100% complete in ONE call.
   - **Update Operations:** Send ONLY the updated keys in the payload with no extra keys. If `authenticationpaths` is being updated, include all three keys (`headers`, `body`, `queryParams`) inside `authenticationpaths` (using `[]` for keys with no data). If `authenticationpaths` is not being updated, skip the `"authenticationpaths"` key entirely during update.
 - **`authfields.authentication.fields` Array Rule:** The `fields` key inside `authfields.authentication` MUST ALWAYS be an Array. If there are fields, `fields` is an array of field objects (e.g. `[ { "key": "api_key", ... } ]`). If no fields exist, `fields` MUST be an empty array `[]` (e.g. `"fields": []`). It must **NEVER** be an object, null, or non-array type.
-- **`testcode` Structure & Endpoint Rule:** The `testcode` perform code MUST test **ONE API endpoint** (preferring a Me/User API e.g. `GET /me`; if unavailable, any suitable lightweight authenticated endpoint). It MUST ALWAYS be a stringified JSON string wrapping an object with a `"source"` key containing the JavaScript test perform code (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`). The raw JavaScript source code string must NEVER be placed directly on the `testcode` key. If no test code is present, set it to `"{\"source\":null}"`.
+- **`testcode` Structure & Execution Rules (CRITICAL):**
+  - `testcode` MUST be a stringified JSON object with exactly one `"source"` property (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`). The raw JavaScript source code string must NEVER be placed directly on the `testcode` key. If no test code is present, set it to `"{\"source\":null}"`.
+  - `source` MUST contain valid JavaScript.
+  - `source` MUST contain **exactly ONE** API request/fetch call.
+  - Do not call secondary endpoints.
+  - Do not perform quota checks, session checks, or additional validation through another API request.
+  - Prefer one lightweight authenticated "current user", "me", "session", or equivalent endpoint (if unavailable, any suitable lightweight authenticated endpoint).
+  - If the endpoint returns a successful authenticated response, the connection test passes.
 - **No Expose:** Never ask for auto-provided internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`).
 - **Strict Null Constraints:** The following fields CANNOT be `""` (empty string) but CAN be `null`:
   - `type` (e.g., Basic, Auth2.0, NoAuth, Auth1)
