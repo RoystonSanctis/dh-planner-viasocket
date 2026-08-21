@@ -57,7 +57,7 @@ Generate the `url` field based on the final operation performed:
 - **No `pluginId`**: Return `""` (do not generate a URL if `pluginId` is missing).
 - **New app created**: `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics`
 - **New action / New trigger / Improvement in action or trigger**: `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
-  - *(Fallback if `actionId` or `actionVersionRowId` are missing)*: `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>/`
+  - *(Strict Fallback)*: If `actionId` or `actionVersionRowId` are NOT known/missing, NEVER hallucinate IDs. Fall back directly to: `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics`
 - **Fallback**: `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics`
 
 ## 🧠 Context & Existing Resources
@@ -100,7 +100,7 @@ Generate the `url` field based on the final operation performed:
             },
             "url": {
                 "type": "string",
-                "description": "The final generated URL based on the operation performed. If pluginId is missing, return empty string. For New App: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics. For New Action/Trigger or Improvement: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (if actionId or actionVersionRowId are missing, fall back to analytics URL). Fallback: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>"
+                "description": "The final generated URL based on the operation performed. If pluginId is missing: return empty string. For New App created: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics. For New Action / New Trigger / Improvement in action or trigger: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; if actionId or actionVersionRowId are missing/unknown, fall back to analytics URL). Fallback: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics"
             }
         },
         "required": [

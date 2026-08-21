@@ -2383,9 +2383,14 @@ A Static Help field is used to display static instructional content, warnings, o
 ### Help Static Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a static help field.
 
-**When to Use**
-- Use a Static Help field when you need to provide detailed step-by-step instructions, display important information, or guide the user visually within the form.
-- Use it in manual triggers to define step-by-step instructions for copying a webhook link from viaSocket and pasting it into the SaaS platform.
+**When to Use (Strict Necessity Rule)**
+- Use a Static Help field (`type: "help"`) **ONLY when strictly necessary** for critical notices or mandatory structural requirements. ❌ NEVER create standalone help fields for ordinary descriptions or common fields (use the input field's own `help` property instead).
+- **Valid Use Cases**:
+  1. **DELETE / High-Stakes Actions**: Irreversibility and permanent deletion warnings.
+  2. **Behavior-Changing Selections**: When selecting a certain field/option fundamentally changes action behavior or downstream flow.
+  3. **Strict Prerequisites**: When mandatory setup, account tiers, or special permissions are required before running.
+  4. **Manual Webhook Setup (`manual_webhook`)**: The single mandatory static `help` field containing step-by-step HTML webhook setup instructions.
+  5. **Lookahead / Polling Math**: Explaining complex polling lookback/lookahead window math (e.g. `minutesBefore`).
 
 **1. Core Rules**
 - Create one object with `type: "help"`.
@@ -4237,8 +4242,8 @@ A Dynamic Help field is used to generate and display real-time instructional con
 ### Help Dynamic Input Field Generation Rules:
 Generate a JSON object strictly following the rules below for a dynamic help field.
 
-**When to Use**
-- Use a Dynamic Help field when the informative text or warning needs to be generated on-the-fly based on API responses or current user selections.
+**When to Use (Strict Necessity Rule)**
+- Use a Dynamic Help field (`type: "help"`) **ONLY when strictly necessary** to generate real-time critical validation messages, permissions/account checks, or contextual alerts based on user selections or live API responses. ❌ Do NOT use for static or routine field descriptions.
 
 **1. Core Rules**
 - Create an object with `type: "help"`.
