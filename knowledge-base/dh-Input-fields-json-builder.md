@@ -2389,7 +2389,7 @@ Generate a JSON object strictly following the rules below for a static help fiel
   1. **DELETE / High-Stakes Actions**: Irreversibility and permanent deletion warnings.
   2. **Behavior-Changing Selections**: When selecting a certain field/option fundamentally changes action behavior or downstream flow.
   3. **Strict Prerequisites**: When mandatory setup, account tiers, or special permissions are required before running.
-  4. **Manual Webhook Setup (`manual_webhook`)**: The single mandatory static `help` field containing step-by-step HTML webhook setup instructions.
+  4. **Manual Webhook Setup (`manual_webhook`)**: The single mandatory static `help` field containing two-part HTML webhook setup instructions (`🔗 Webhook Setup Guide` + `📤 What happens next?`).
   5. **Lookahead / Polling Math**: Explaining complex polling lookback/lookahead window math (e.g. `minutesBefore`).
 
 **1. Core Rules**
@@ -2503,7 +2503,7 @@ schema:
 [ 
   {
     "key": "help_webhook",
-    "help": "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",
+    "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <p>Follow these steps to connect your webhook:</p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul>\n\n  <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
     "type": "help"
   },
   {
@@ -2518,7 +2518,7 @@ schema:
 ```toon
 [2]:
   - key: help_webhook
-    help: "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>"
+    help: "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <p>Follow these steps to connect your webhook:</p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul>\n\n  <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>"
     type: help
   - key: help_send_message
     help: You can send a message on Instagram DM up to 24 hours after receiving a message from a user.<br> <br>A maximum of 3 buttons (URL and postback combined) are allowed in the button template message.

@@ -266,14 +266,16 @@ The `inputFields` array for a Manual Trigger must only contain a single field: a
 
 ### Manual Trigger Common Input Fields:
 *   **No Auth Rule:** Manual webhook triggers always use 'No Auth'; do not request or configure any authentication/authid.
-*   **Single Field Limit:** The `inputFields` array (inputjson) for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field. No other fields are allowed.
-*   **Help Content:** The `help` field must contain step-by-step instructions in HTML format showing the user how to configure the webhook in the external SaaS platform.
-*   **Example Manual Trigger JSON:**
+*   **Single Field Limit:** The `inputFields` array (inputjson) for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field (`type: "help"`). No other fields are allowed.
+*   **Mandatory Two-Part HTML Structure in `help`:** The `help` HTML content MUST strictly follow a 2-part structure with standard inline styling (`<div style="font-family: Arial, sans-serif; line-height: 1.6;">`):
+    1. **`🔗 Webhook Setup Guide`**: Clear, step-by-step navigation instructions (using `<ul>` / `<ol>` and `<li>`) guiding the user where in the external platform dashboard to navigate, create/connect the webhook, select events, paste the copied **Webhook URL**, and save.
+    2. **`📤 What happens next?`**: Clear bullet points explaining what event data the external service will automatically dispatch to this webhook URL once connected.
+*   **Example Manual Trigger JSON (CallHippo Call Log Activity):**
     ```json
     [
       {
         "key": "help",
-        "help": "<ul style=\"list-style-type: disc; padding-left: 20px;\">    <li>Sign in to <strong>WordPress account</strong>.</li>    <li>Locate and edit the form that you wish to integrate.</li>    <li>Within the form settings, navigate to the <strong>\"Actions after submit\"</strong> section.</li>    <li>Add a new action by selecting <strong>\"Webhook\"</strong>.</li>    <li>Enable the Webhook functionality by toggling it on.</li>    <li>Enter the previously copied <strong>webhook URL</strong> into the designated field.</li>    <li>Save the changes made to the page.</li>    <li>Access the live version of the page.</li>    <li>Fill out and submit the form.</li>    <li>This submission will trigger the sending of the webhook to <strong>viaSocket</strong>.</li> </ul>",
+        "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <p>Follow these steps to connect your webhook:</p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul>\n\n  <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
         "type": "help"
       }
     ]
@@ -284,7 +286,8 @@ The `inputFields` array for a Manual Trigger must only contain a single field: a
 - See [Perform Code Knowledge Base → Manual Trigger](perform-code.md) for code patterns.
 
 ### Manual Trigger Best Practices:
-- **Always use a single Help block** as the only input field to guide the user through webhook setup with HTML formatting.
+- **Always use a single Help block** as the only input field to guide the user through webhook setup with the standard two-part HTML structure (`🔗 Webhook Setup Guide` and `📤 What happens next?`).
+- **Use clear typography and formatting:** Use `<div style="font-family: Arial, sans-serif; line-height: 1.6;">` wrapper and `<strong>` for UI labels/buttons.
 
 ---
 

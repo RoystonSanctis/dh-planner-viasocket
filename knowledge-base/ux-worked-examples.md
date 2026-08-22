@@ -39,6 +39,8 @@ published: true
 - SCHEDULED TRIGGER Examples
   - Google Calendar — New Upcoming Events (Scheduled Trigger)
   - Google Meet — New Upcoming Meeting (Scheduled Trigger)
+- MANUAL TRIGGER Examples
+  - CallHippo — Call Log Activity (Manual Trigger)
 - Cross-Cutting UX Patterns (Extracted)
 - Advanced Best Approaches for Actions
   - Action - Insert or Update Data with Linking Module (Sangam CRM)
@@ -3888,6 +3890,56 @@ async function fetchUpcomingMeetings() {
 }
 
 return await fetchUpcomingMeetings();
+```
+
+---
+
+# MANUAL TRIGGER Examples
+
+## CallHippo — Call Log Activity (Manual Trigger)
+
+**Rationale**
+- **Service:** CallHippo
+- **Trigger Type:** Manual (`manual_webhook`)
+- **Use Case:** Receives real-time call log events from CallHippo via a manually configured webhook URL in the CallHippo platform dashboard.
+- **UX Pattern & Rules:**
+  - **Single Field Limit:** The `inputFields` array for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field (`type: "help"`). No other fields (strings, dropdowns, etc.) are allowed.
+  - **No Auth:** Manual Triggers always use 'No Auth'; never configure `authid` or authentication headers.
+  - **Mandatory Two-Part HTML Structure in `help`:** The `help` property MUST strictly follow this exact 2-part structure with standard styling (`font-family: Arial, sans-serif; line-height: 1.6;`):
+    1. **`🔗 Webhook Setup Guide`**: Clear, numbered/bulleted step-by-step navigation instructions showing the user where in the external dashboard to paste the webhook URL and select the event.
+    2. **`📤 What happens next?`**: Clear bullet points explaining what data CallHippo sends to the webhook upon event trigger.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "help",
+    "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <p>Follow these steps to connect your webhook:</p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul>\n\n  <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
+    "type": "help"
+  }
+]
+```
+
+**Perform Code**
+```javascript
+// Sample Data Code (performlist)
+try {
+  return [
+    {
+      viasocket_help: "To test this trigger, trigger a real call in CallHippo or use this sample data.",
+      id: "call_987654321",
+      call_type: "outgoing",
+      from: "+14155552671",
+      to: "+14155552672",
+      duration: 145,
+      status: "completed",
+      recording_url: "https://api.callhippo.com/recordings/rec_987654321.mp3",
+      timestamp: "2026-08-22T12:00:00Z"
+    }
+  ];
+} catch (error) {
+  await errorComponent(error);
+}
 ```
 
 ---

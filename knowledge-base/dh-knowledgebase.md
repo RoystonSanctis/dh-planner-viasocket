@@ -121,7 +121,7 @@ Required first, optionals grouped after. **`canPaginate`/`enableSearchApi` prior
 |---|---|
 | Instant | DynDropdown(resource) → whereClause Group? → DynHelp(permission check)? → conditionals |
 | Scheduled | DynDropdown → DynDropdown(dependent) → Boolean? → Multiselect(field filter)? → Group(filter only — no pagination fields)? → AIField? |
-| Manual | HelpStatic (only allowed field — step-by-step webhook setup HTML instructions) |
+| Manual | HelpStatic (only allowed field — two-part HTML instructions: 🔗 Webhook Setup Guide + 📤 What happens next?) |
 | GET | DynDropdown(parent) → DynDropdown/String(record ID) → Multiselect(fields)? → Group? |
 | LIST | DynDropdown(parent) → DropdownStatic(Mode: List All, Search by…, Search by ID, Advance Search) → DropdownStatic(find_by)? → Boolean(Enable Pagination)? → Group(limit, offset)? → String(search/ID input)? → AIField(Advance Search)? → Group(filters)? → Multiselect(return fields, curated defaults)? |
 | FIND/SEARCH | DynDropdown(parent) → DynDropdown(child)? → Boolean(Basic/Advanced) → Group(filter) → Boolean(bulk)? → Group(sort+limit)? → DropdownStatic(response mode)? → Multiselect(return)? |
@@ -134,7 +134,7 @@ Required first, optionals grouped after. **`canPaginate`/`enableSearchApi` prior
 **Category deltas**:
 - **Instant**: DynHelp validates permissions after resource pick; whereClause renders multi-filter as sentence (all labels sentence case; only first capitalized; subsequent lowercase unless proper nouns).
 - **Scheduled**: Never expose pagination fields (limit, page size, cursor, next page token) or `scheduledTime` in UI — pagination via `canpaginate:true` config, `scheduledTime` is global. Perform returns array from a **single page** fetch, capped at max 1000 items (or service limit if smaller), no internal looping. Transfer `data` limit: 200/batch.
-- **Manual**: Supports `performlist` + `modifytriggerdata` (raw payload via `context?.req?.body`). Only a single static `help` field allowed in `inputFields`. Note: No auth in manual trigger, so `modifytriggerdata` can only reshape payload (no API call).
+- **Manual**: Supports `performlist` + `modifytriggerdata` (raw payload via `context?.req?.body`). Only a single static `help` field allowed in `inputFields` (`type: "help"`). The HTML content MUST follow the 2-part format: `🔗 Webhook Setup Guide` (step-by-step setup instructions) + `📤 What happens next?` (explaining incoming data). Note: No auth in manual trigger, so `modifytriggerdata` can only reshape payload (no API call).
 - **GET**: Always provide manual-ID triplet (`customHelp`/`customInputLabel`/`customPlaceholder`).
 - **LIST**: Combines List All, Search by…, Search by ID, Advance Search via `mode` dropdown. Multiple search attributes → secondary `find_by` dropdown + chained `visibilityCondition`. List All + pagination true → show limit/offset; pagination false → client-side fetch all. Unique search → no pagination. Search by ID → direct GET, no pagination. Advance Search → AIField (only if service supports). Multiselect return fields (default all if empty; curated ~10–12 as `defaultValue`). Comma-separated multi-values in String for quick lookups. Status/date filter Input Group for List All/Recently Updated.
 - **FIND/SEARCH**: Boolean toggles Basic (column + operator? + value) vs Advanced (AIField + `suggestionGenerator`). Multiple operators (=, LIKE, >, <) → Static Dropdown. Sort → dynamic dropdown + static direction. Bulk toggle → exhaustive vs standard limit. Response mode dropdown (Basic/Custom/Full); Custom → column multiselect.
@@ -179,7 +179,7 @@ Two UI states:
     1. **DELETE / High-Stakes Actions**: Irreversibility or permanent deletion warnings.
     2. **Behavior-Changing Selections**: When selecting a certain field/option fundamentally changes action behavior, modifies billing, or alters workflow execution.
     3. **Mandatory Prerequisites**: When external prerequisites, special account tiers, or third-party permissions are required before the step can work.
-    4. **Manual Webhook Setup (`manual_webhook`)**: The single mandatory static `help` field containing step-by-step HTML webhook setup instructions.
+    4. **Manual Webhook Setup (`manual_webhook`)**: The single mandatory static `help` field containing two-part HTML webhook instructions (`🔗 Webhook Setup Guide` + `📤 What happens next?`).
     5. **Lookahead / Polling Math**: Explaining complex polling lookback/lookahead window math (e.g. `minutesBefore`).
 
 # Visibility & dependsOn
