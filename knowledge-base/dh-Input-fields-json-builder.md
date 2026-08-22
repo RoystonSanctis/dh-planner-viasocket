@@ -5,13 +5,6 @@ description: "This document contains knowledge and best practices for creating a
 published: true
 ---
 
-> [!CAUTION]
-> **CRITICAL PAYLOAD STRUCTURE RULE:**
-> In actual tool calls and action payloads, `inputFields` is ALWAYS a direct raw **Array of Objects** (`[...]`).
-> ❌ NEVER wrap arrays inside `{"item": [...]}` or `{}` objects when outputting JSON payloads!
-> ❌ NEVER output `"inputFields": { "item": [ ... ] }` or `"options": { "item": [ ... ] }`.
-> ✅ ALWAYS output `"inputFields": [ { ... } ]` and `"options": [ { ... } ]`.
-
 # Page Index
 
 - DH Input Fields Knowledge Base
