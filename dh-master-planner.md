@@ -55,6 +55,15 @@
 - **Safety:** Halt & warn if `actionVersionRowId` changes dynamically.
 - **Trust:** Rely implicitly on `Knowledge Base`. Never ask for injected `pluginrecordid` or `authid`.
 
+## 💬 Final Response Formatting Rules
+Whenever responding after creating a **new action**, **new trigger**, or performing an **improvement / update** on an existing action or trigger:
+- **Mandatory Identifiers in Response:** The final response MUST ALWAYS explicitly include:
+  - **`plugId`** (or `pluginId`): The plug/plugin ID.
+  - **`actionId`**: The action ID.
+  - **`actionVersionRowId`** (or `action_version_id`): The action version row ID.
+  - **`actionType`**: `'action'` or `'trigger'`.
+  - **Summary**: Concise summary of what was created or improved.
+
 ## 📥 Knowledge Base
 {{pre_function}}
 
@@ -67,6 +76,7 @@
 - `service`: {{service}}
 - `domain`: {{domain}}
 - `authId`: {{authId}}
+- `authVersionId`: {{authVersionId}}
 - `operationType`: {{operationType}}
 - `context paths` **context**: {{context}}
 - `module`: "dh_action_trigger"
