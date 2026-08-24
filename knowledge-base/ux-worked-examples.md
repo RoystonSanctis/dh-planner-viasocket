@@ -39,6 +39,7 @@ published: true
 - SCHEDULED TRIGGER Examples
   - Google Calendar — New Upcoming Events (Scheduled Trigger)
   - Google Meet — New Upcoming Meeting (Scheduled Trigger)
+  - RSS Feed — RSS Feed Update Tracker (Scheduled Trigger)
 - MANUAL TRIGGER Examples
   - CallHippo — Call Log Activity (Manual Trigger)
 - Cross-Cutting UX Patterns (Extracted)
@@ -3892,6 +3893,313 @@ async function fetchUpcomingMeetings() {
 return await fetchUpcomingMeetings();
 ```
 
+
+---
+
+## RSS Feed — RSS Feed Update Tracker (Scheduled Trigger)
+
+**Rationale**
+- **Category:** SCHEDULED TRIGGER (Polling)
+- **Service:** RSS Feed
+- **Action:** RSS Feed Update Tracker
+- **Use Case:** Polls multiple configured RSS feed URLs at regular intervals and triggers the workflow whenever new items or updates are published, tracking processed items by `pubDate` using pagination cursors.
+- **UX Highlights:**
+  - **Preconfigured Multi-Item List (`feed_url` with `list: true`):** In triggers, dynamic data mapping from upstream steps is impossible because triggers start the workflow. Therefore, when multiple items (e.g. RSS Feed URLs) need to be configured, use `list: true` on the `string` field so users can enter multiple items in a clean line-item list UI during setup.
+  - **Filter Type Selection (`filter_type`):** Dropdown to select deduplication strategy (`Different Publish Date` / `pubDate`) to ensure each item is processed only once, paired with matching `defaultValue`.
+  - **Multi-Feed Aggregation & XML Parsing:** Loops through configured feed URLs, parses XML using `XMLParser`, filters items by `pubDate` against `context.paginationData` (or fallback window from `scheduledTime`), and merges channel metadata into each item.
+  - **Chronological Sorting & Cursor Management:** Sorts items oldest-first so flows process events in natural sequence, caps results at 1000 items, and saves the latest item timestamp to `context.paginationData`.
+  - **Representative Sample Data (`performlist`):** Scans the configured feed URLs to return the latest item found across feeds with a helpful `viasocket_help` message, falling back to a structured schema if feeds are currently empty or unreachable.
+  - **Bulk Transfer Capability (`transferoption`):** Slices aggregated items in batches of 200 using `offset`, sorted oldest-first with `uniqueIdentifier` set to `guid` if present.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "feed_url",
+    "help": "Provide the publicly accessible RSS feed URLs to fetch data from.",
+    "list": true,
+    "type": "string",
+    "label": "Feed URL",
+    "required": true,
+    "placeholder": "https://example.com/rss.xml"
+  },
+  {
+    "key": "filter_type",
+    "help": "Choose the filter type to ensure that each item is processed only once.",
+    "type": "dropdown",
+    "label": "Filter Type",
+    "options": [
+      {
+        "label": "Different Publish Date",
+        "value": "pubDate",
+        "sample": "pubDate"
+      }
+    ],
+    "required": true,
+    "placeholder": "Choose Filter Type",
+    "defaultValue": {
+      "label": "Different Publish Date",
+      "value": "pubDate",
+      "sample": "pubDate"
+    }
+  }
+]
+```
+
+**Perform Code**
+```javascript
+async function fetchRSS() {
+  try {
+    const scheduledMinutes = context?.inputData?.scheduledTime || 15;
+    const timeAgo = new Date(__executionStartTime__ - scheduledMinutes * 60 * 1000);
+    
+    // If paginationData exists from a previous run, use it. Otherwise, fall back to the time window.
+    const startDate = context?.paginationData ? new Date(context.paginationData) : timeAgo;
+
+    const feedUrls = context?.inputData?.feed_url;
+    if (!Array.isArray(feedUrls) || feedUrls.length === 0) {
+      throw new Error("feed_url must be a non-empty array.");
+    }
+
+    const allItems = [];
+
+    // Case-insensitive pubDate extractor
+    function getPubDate(item) {
+      const key = Object.keys(item || {}).find(k => k.toLowerCase() === 'pubdate');
+      if (!key || !item[key]) return null;
+      const date = new Date(item[key]);
+      return isNaN(date.getTime()) ? null : date;
+    }
+
+    for (let url of feedUrls) {
+      url = url && url.trim();
+      if (!url) continue;
+
+      const response = await axios.get(url);
+      const parser = new XMLParser();
+      const feedData = parser.parse(response.data);
+
+      const channel = feedData?.rss?.channel || {};
+      const { item, ...channelData } = channel;
+      
+      let items = channel?.item || [];
+      if (!Array.isArray(items)) items = [items];
+
+      const filteredItems = items.filter(i => {
+        const pubDate = getPubDate(i);
+        if (!pubDate) return false;
+        
+        // If paginating from a saved cursor, use strict greater-than (>) to prevent duplicates
+        return context?.paginationData ? pubDate > startDate : pubDate >= startDate;
+      });
+
+      const itemsWithChannelData = filteredItems.map(i => ({
+        ...i,
+        channelData,
+        _parsedPubDate: getPubDate(i) // Temp key for sorting
+      }));
+
+      allItems.push(...itemsWithChannelData);
+    }
+
+    // Sort chronologically (oldest first) so we process items in the correct order
+    allItems.sort((a, b) => a._parsedPubDate - b._parsedPubDate);
+
+    // Clean up temporary sorting key
+    allItems.forEach(i => delete i._parsedPubDate);
+
+    const limit = 1000;
+    let results = allItems;
+
+    // Pagination Logic: Limit to 1000 and save the cursor
+    if (allItems.length > limit) {
+      results = allItems.slice(0, limit);
+      
+      const lastItem = results[results.length - 1];
+      const pubDateKey = Object.keys(lastItem).find(k => k.toLowerCase() === 'pubdate');
+      
+      if (pubDateKey && lastItem[pubDateKey]) {
+        // Save the timestamp of the last processed item as the new pagination token
+        context.paginationData = new Date(lastItem[pubDateKey]).getTime();
+      }
+    } else if (results.length > 0) {
+      // Advance cursor to the latest item processed in this batch
+      const lastItem = results[results.length - 1];
+      const pubDateKey = Object.keys(lastItem).find(k => k.toLowerCase() === 'pubdate');
+      if (pubDateKey && lastItem[pubDateKey]) {
+        context.paginationData = new Date(lastItem[pubDateKey]).getTime();
+      }
+    }
+
+    return results;
+
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await fetchRSS();
+```
+
+**Sample Code (performlist)**
+```javascript
+async function getSampleData() {
+  try {
+    const feedUrls = context?.inputData?.feed_url;
+    if (!Array.isArray(feedUrls) || feedUrls.length === 0) {
+      throw new Error("feed_url must be a non-empty array.");
+    }
+    
+    // Case-insensitive pubDate extractor for sorting
+    function getPubDate(i) {
+      const key = Object.keys(i || {}).find(k => k.toLowerCase() === 'pubdate');
+      return key ? new Date(i[key]).getTime() : 0;
+    }
+
+    // Iterate through all URLs until we find one with items
+    for (let url of feedUrls) {
+      url = url && url.trim();
+      if (!url) continue;
+
+      try {
+        const response = await axios.get(url);
+        const parser = new XMLParser();
+        const feedData = parser.parse(response.data);
+        
+        const channel = feedData?.rss?.channel || {};
+        const { item, ...channelData } = channel;
+
+        let items = channel?.item || [];
+        if (!Array.isArray(items)) items = [items];
+        
+        // If items are found in this feed, process and return them immediately
+        if (items.length > 0) {
+          items.sort((a, b) => getPubDate(b) - getPubDate(a)); // Newest first
+
+          return {
+            viasocket_help: "This is the latest item found in the feed. Save the trigger and publish the flow. During the actual run, you will receive data from all feed links.",
+            ...items[0],
+            channelData
+          };
+        }
+      } catch (innerError) {
+        // If a specific URL fails (e.g., 404 or invalid XML), silently continue to the next URL
+        continue;
+      }
+    }
+    
+    // Fallback schema (if all URLs fail or contain no items)
+    return {
+      viasocket_help: "This is just a sample schema. Save the trigger and publish the flow to receive new feed items.",
+      title: "Sample Title of News Article",
+      link: "https://example.com/sample-news-article",
+      description: "This is a sample description for the news article.",
+      pubDate: new Date().toISOString(),
+      guid: "https://example.com/sample-news-article-123456",
+      channelData: {
+        title: "Sample Channel Title",
+        link: "https://example.com/sample-channel-link",
+        description: "This is a sample channel description.",
+        language: "en-us"
+      }
+    };
+
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await getSampleData();
+```
+
+**Transfer Code (transferoption)**
+```javascript
+async function transferRSSData() {
+  try {
+    const feedUrls = context?.inputData?.feed_url;
+    if (!Array.isArray(feedUrls) || feedUrls.length === 0) {
+      throw new Error("feed_url must be a non-empty array.");
+    }
+    
+    // Extract offset for pagination (defaults to 0)
+    const offset = Number(context?.inputData?.transferOption?.offset) || 0;
+    const limit = 200; // viaSocket standard max for Transfer batching
+    
+    let allItems = [];
+
+    // Case-insensitive pubDate extractor
+    function getPubDate(item) {
+      const key = Object.keys(item || {}).find(k => k.toLowerCase() === 'pubdate');
+      if (!key || !item[key]) return null;
+      const date = new Date(item[key]);
+      return isNaN(date.getTime()) ? null : date;
+    }
+
+    for (let url of feedUrls) {
+      url = url && url.trim();
+      if (!url) continue;
+      
+      const response = await axios.get(url);
+      const parser = new XMLParser();
+      const feedData = parser.parse(response.data);
+      
+      const channel = feedData?.rss?.channel || {};
+      
+      // Dynamically construct channelData per your requirement
+      const channelData = {};
+      for (let key in channel) {
+        if (channel[key] && Array.isArray(channel[key]) && key === "image") {
+          channelData[key] = channel[key][0]?.url || "";
+        } else if (channel[key] && typeof channel[key] !== "object") {
+          channelData[key] = channel[key] || "";
+        }
+      }
+      
+      let items = channel?.item || [];
+      if (!Array.isArray(items)) items = [items];
+      
+      const itemsWithChannelData = items.map(i => ({
+        ...i,
+        channelData,
+        _parsedPubDate: getPubDate(i)
+      })).filter(i => i._parsedPubDate !== null);
+      
+      allItems.push(...itemsWithChannelData);
+    }
+    
+    // Sort oldest-first to simulate natural flow ingestion order for historical data
+    allItems.sort((a, b) => a._parsedPubDate - b._parsedPubDate);
+    allItems.forEach(i => delete i._parsedPubDate);
+    
+    // Pagination slicing
+    const slicedItems = allItems.slice(offset, offset + limit);
+    const nextOffset = (offset + limit < allItems.length) ? offset + limit : null;
+    
+    // Check for a case-insensitive guid key in the results to set uniqueIdentifier
+    let guidKey = null;
+    if (slicedItems.length > 0) {
+      guidKey = Object.keys(slicedItems[0]).find(k => k.toLowerCase() === 'guid');
+    }
+
+    const responsePayload = {
+      data: slicedItems,
+      offset: nextOffset
+    };
+
+    if (guidKey) {
+      responsePayload.uniqueIdentifier = guidKey;
+    }
+
+    return responsePayload;
+
+  } catch(error) {
+    await errorComponent(error);
+  }
+}
+
+return await transferRSSData();
+```
+
 ---
 
 # MANUAL TRIGGER Examples
@@ -3977,6 +4285,11 @@ These are the reusable moves that recur across the examples above. When designin
 **14. No console.log; use errorComponent.** Production perform code has no debug logging and uses `await errorComponent(error)` in catch (except Reusable Components, which throw). Don't modify the error message.
 
 **15. Never expose auth.** Tokens/keys/credentials are handled by viaSocket configuration and must never appear as input fields or be hardcoded in perform code.
+
+**16. Preconfigured lists (`list: true`) in Triggers vs Comma-separated Text in Actions.**
+- **In Triggers:** Dynamic data mapping from previous steps is impossible (triggers start the workflow). When a trigger requires multiple values during setup (e.g. multiple RSS Feed URLs, multiple status codes), set `list: true` (and `limit: N` if capped) on the `string` or `number` field so users can enter multiple items in the preconfigured UI list.
+- **In Actions:** Data is typically dynamic (mapped from upstream trigger/action steps). Always prefer a standard text (`string`) field and instruct users in the `help`/`customHelp` text to provide comma-separated values (or an array).
+- **Exception in Actions:** If a field is strictly intended for static preconfiguration during workflow design (no dynamic mapping expected), `list: true` and `limit` where applicable can be used.
 
 
 ---

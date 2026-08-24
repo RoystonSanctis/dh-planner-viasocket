@@ -216,6 +216,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 
 ### Scheduled Trigger Common Input Fields:
 - **Dropdown / Multiselect Dynamic** — Used for selecting the resource to poll (e.g., Data Source, Spreadsheet, Sheet, Calendars). Cascading dropdowns are common (Spreadsheet → Sheet).
+- **String / Number (with list: true, optional limit: N)** — Used when users preconfigure multiple values during trigger setup (e.g. multiple RSS Feed URLs, status codes). Since triggers start workflows and cannot receive dynamic data from upstream steps, `list: true` provides a clean UI where users can add multiple items.
 - **Number** — Used for relative time window offsets in upcoming event triggers (e.g., `meetingBefore`).
 - **Help** — Used below relative time fields with `visibilityCondition` to explain the 5-min polling cron window.
 - **Boolean** — Used for configuration toggles that change behavior (e.g., column naming mode). *Do not include pagination toggles.*
@@ -248,6 +249,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 - **AI Field for complex filters** — When a service supports complex query syntax (like Notion's filter API), use an AI Field with a `suggestionGenerator` that fetches the schema.
 - **Clean labels** — Use "Select Data Source" not "Select Notion Data Source".
 - **Multi-item Pagination**: If pagination is enabled and the input accepts multiple items (either as a `multiselect` field, or via `list: true` in `string` or `number` fields, e.g. selecting multiple Form IDs), and each item has separate pagination, track active items and cursors explicitly as an object in `context.paginationData` to prevent pagination bleed across items.
+- **Preconfigured Lists (`list: true`) in Triggers**: In triggers, dynamic data mapping is impossible (triggers start the workflow). When a trigger requires multiple input values during setup (e.g., multiple RSS feed URLs, multiple status filters), configure the field with `list: true` (and `limit: N` if capped) so users can enter multiple items in the preconfigured UI list. In perform code, validate that the received value is a non-empty array before iterating.
 
 ---
 
@@ -793,6 +795,10 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
           - In static dropdown/multiselect: if options are few, mention them in `customHelp` and explain. If options are many, write `"Enter {{label name}} ...benefits of the field"` (e.g., `"Enter priority level... to filter tasks."`).
       - `customPlaceholder` in place of the standard `placeholder` (required/mandatory; must show an actual value sample e.g. `"true"`, `"false"`, or a specific ID).
     * *Mandatory Custom Keys*: For all boolean, dropdown, and multiselect fields (static and dynamic), `customInputLabel`, `customHelp`, and `customPlaceholder` are **mandatory** and must always be provided. Both the `help` key and `customHelp` must be very crisp and to the point.
+  * **Preconfigured Lists (`list: true`) vs Dynamic Comma-Separated Inputs (`string`):**
+    - **In Triggers:** Dynamic data mapping from previous workflow steps is impossible since triggers originate workflows. When a trigger requires multiple input values during setup (e.g. multiple RSS Feed URLs, multiple status codes, multiple channels), configure `list: true` (and `limit: N` if capped) on the `string` or `number` field. This gives users a clean multi-item line input UI during preconfiguration.
+    - **In Actions:** Data is typically dynamic (mapped from upstream trigger or action steps). Standard `list: true` inputs do not accommodate dynamic array/string mapping in the UI as effectively as standard string fields. Therefore, **always prefer a standard text (`string`) field** and ask users in the `help`/`customHelp` text to provide comma-separated values (or an array).
+    - **Exception in Actions:** If the field is strictly intended for static preconfiguration during workflow design (no dynamic value will be mapped from upstream steps), `list: true` (and `limit: N` where applicable) can be used.
 * **Structural Constraint Handling:**
   * If only one return value is allowed but multiple are needed, concatenate values using a consistent, safe delimiter and parse internally. Redesign the generator if constraints severely impact clarity.
 * **Cross-Cutting UX Patterns:**
@@ -812,6 +818,7 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
   * **Dynamic Questionnaire Loading** — For booking or questionnaire flows with customizable fields, use a dynamic input group (`fieldsGenerator`) that executes only after a parent identifier (e.g. Event Type) is chosen, ensuring only relevant fields are rendered.
   * **Conditional Filters Grouping** — Group optional filters into an **Input Group** containing child inputs gated by `visibilityCondition` based on a selected filter-by dimension (e.g. filtering by Video ID only when "Filter Dimension" is set to "Video").
   * **Endpoint Scoping via Parent Selectors** — Scope dynamic dropdown lists (e.g. Event Types) by switching the API endpoint or query parameters inside `optionsGenerator` based on a parent mode selection (e.g. Personal vs Team/Organization scope), conditionally requiring parent IDs only when necessary.
+  * **Preconfigured Lists (`list: true`) in Triggers vs Comma-Separated Text in Actions** — Use `list: true` (and optional `limit: N`) on `string`/`number` fields when users preconfigure multiple static values during setup (especially in Triggers where dynamic upstream data cannot be entered). For Actions where data can be dynamically mapped from upstream steps, always prefer a standard text (`string`) field with help text asking for comma-separated values, using `list: true` only in rare static-preconfiguration exceptions.
 
 ---
 

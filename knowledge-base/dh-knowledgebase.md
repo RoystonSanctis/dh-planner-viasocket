@@ -101,6 +101,7 @@ Single Perform call from `context.inputData`. Categories: GET · LIST · FIND/SE
 - **Dynamic Questionnaire/Form Loading**: `fieldsGenerator` to fetch custom fields after parent selection.
 - **Grouped Conditional Filters**: Group filters in Input Group; gate value fields with `visibilityCondition`.
 - **Dynamic Endpoint Scoping**: Adjust endpoints/params in `optionsGenerator` based on parent scope selector.
+- **List/Limit Preconfiguration vs Comma-Separated Actions**: Use `list: true` (and `limit: N`) on `string`/`number` fields for static preconfiguration where no dynamic values are mapped (primarily in Triggers). For Actions where data is dynamically mapped from upstream steps, always prefer standard `string` text fields asking users for comma-separated values (use `list: true' in actions only for rare static preconfiguration).
 
 # Naming
 | Item | Format |
@@ -148,7 +149,7 @@ Base keys (every field): `key` (unique, pattern `^[^.\[\]]*$`) · `type` · `lab
 
 | `type` | Required (beyond base) | Constraints |
 |---|---|---|
-| `string` `number` `html` `markdown` | `placeholder` | For non-standard date formats use `string`. For `string` fields (especially ID fields like `parent_task_id`), `help` MUST start with `"Enter"` (e.g. `"Enter a parent task ID..."`) and MUST NOT say `"Select from the list"` or `"Select..."`. `list:true` (string/number only) for preconfigured array; `limit:N` requires `list:true`. `list:false` (default) for single/dynamic array values. |
+| `string` `number` `html` `markdown` | `placeholder` | For non-standard date formats use `string`. For `string` fields (especially ID fields like `parent_task_id`), `help` MUST start with `"Enter"` (e.g. `"Enter a parent task ID..."`) and MUST NOT say `"Select from the list"` or `"Select..."`. `list:true` & `limit:N` (string/number only): Use for static preconfiguration where no dynamic values are mapped — primarily in Triggers (e.g. multiple feed URLs, statuses). In Actions, data is dynamic, so always prefer standard text (`string`) fields with help text asking for comma-separated values (exception: `list:true` in actions only for rare static preconfiguration). `list:false` (default) for single/dynamic array values. |
 | `date` | `placeholder`, `dateFormat` | Only 4 formats: `YYYY-MM-DDTHH:mm:ssZ`, `YYYY-MM-DD HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss`. `placeholder` must match `dateFormat`. Date fields return formatted output (unlike `string` pass-through). |
 | `dictionary` | `template` | `template` FIXED: `{key:{type:string,placeholder},value:{type:string,placeholder}}` — both types always `string`; only placeholder text varies. |
 | `boolean` | `options`, `customPlaceholder`, `customInputLabel`, `customHelp` | 2 options `{label,value}`, true-first. `defaultValue` must equal an option. `customInputLabel` must NOT start with "Enter". `customHelp` specifies actual values + outcomes (e.g. "Enter true for [outcome] and false for [outcome]"). `help` starts with "Select". |
