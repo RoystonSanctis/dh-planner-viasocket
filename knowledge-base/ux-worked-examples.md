@@ -4214,15 +4214,15 @@ return await transferRSSData();
   - **Single Field Limit:** The `inputFields` array for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field (`type: "help"`). No other fields (strings, dropdowns, etc.) are allowed.
   - **No Auth:** Manual Triggers always use 'No Auth'; never configure `authid` or authentication headers.
   - **Mandatory Two-Part HTML Structure in `help`:** The `help` property MUST strictly follow this exact 2-part structure with standard styling (`font-family: Arial, sans-serif; line-height: 1.6;`):
-    1. **`🔗 Webhook Setup Guide`**: Clear, numbered/bulleted step-by-step navigation instructions showing the user where in the external dashboard to paste the webhook URL and select the event.
-    2. **`📤 What happens next?`**: Clear bullet points explaining what data CallHippo sends to the webhook upon event trigger.
+    1. **`🔗 Webhook Setup Guide`**: Followed strictly by a list (`<ul>` or `<ol>`) containing clear step-by-step navigation instructions showing the user where in the external dashboard to paste the webhook URL and select the event. (Strict format: Heading -> List. No intermediate text/paragraphs).
+    2. **`📤 What happens next?`**: Followed strictly by a list (`<ul>`) containing clear bullet points explaining what data CallHippo sends to the webhook upon event trigger. (Strict format: Heading -> List. No intermediate text/paragraphs).
 
 **Input Fields JSON**
 ```json
 [
   {
     "key": "help",
-    "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <p>Follow these steps to connect your webhook:</p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul>\n\n  <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
+    "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul><br> <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
     "type": "help"
   }
 ]
