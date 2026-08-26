@@ -7,6 +7,8 @@
 Evaluate the user's requirements and input to decide whether the request is valid or invalid:
 - **Valid Request (`request_approved: true`)**: The user provides a genuine, meaningful, and actionable integration requirement (e.g. real app integration, valid action, trigger, or specific improvement request).
 - **Invalid / Test Request (`request_approved: false`)**: The request is dummy, test data, spam, gibberish (e.g., `"test"`, `"asdf"`, `"dummy"`, `"xyz"`, `"hello"`), meaningless text, or lacks legitimate integration requirements.
+- **Existing Capabilities (`request_approved: false`)**: If the request can be fulfilled by an existing trigger or action, DO NOT create it. Suggest the existing trigger or action to the user in `ai_review_notes` and halt execution.
+- **Use Case Mismatch (`request_approved: false`)**: If a proper use case is not present, or if the `useCase` does not contain the app involved for which the trigger/action create or update is mentioned, flag it as invalid and explain the mismatch in `ai_review_notes`.
 
 ### 2. Execution & Halt Rules
 - **If `request_approved` is `true`:** Proceed immediately to invoke the corresponding workflow tools mapped below based on `userNeed`. DO NOT merely describe the subagent or ask the user to wait.
@@ -44,7 +46,7 @@ Check the provided `userNeed`. If `userNeed` is **not provided** or missing, aut
 
 ### 2. "New action" OR "New trigger"
 - **Pre-requisite:** You already have the `pluginId` and the list of existing actions/triggers in the context section.
-- **Validation:** Strictly before the creation of the trigger or action, you MUST validate against the existing trigger or action list in the context section. If the requested action/trigger already exists, DO NOT call `DH-Planner` to create it.
+- **Validation:** Strictly before the creation of the trigger or action, you MUST validate against the existing trigger or action list in the context section. If the requested action/trigger already exists, or the request can be fulfilled by an existing trigger/action, suggest it to the user in `ai_review_notes` and DO NOT call `DH-Planner` to create it.
 - **Doubt/Clarification Workflow:** If you are in doubt whether the `useCase` can be solved by an existing action/trigger, you can invoke `DH-Planner` to evaluate and conclude if the use case can be solved with the known trigger or action name. If `DH-Planner` says it cannot be solved with the existing list, then provide instructions to `DH-Planner` to create it.
 - **Execution Workflow:** Proceed DIRECTLY to `DH-Planner` (do NOT invoke `DH-BULK-LISTER` or connection setup), passing `pluginId`, `actionType` (`'action'` or `'trigger'`), and `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
 
