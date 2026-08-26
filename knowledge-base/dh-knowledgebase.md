@@ -72,7 +72,7 @@ Plug = **Triggers** (start workflows) + **Actions** (do things). Each = **Input 
 3. **Manual**: platform supports manual webhook entry.
 4. **Fallback**: ask user for trigger type and API doc/cURL.
 
-**Block roles**: **Subscribe** register webhook, return data viaSocket stores for unsub · **Unsubscribe** deregister using stored response · **Sample** latest 1 item else fallback schema (wrap `{viasocket_help, ...item}`) · **Perform(modify)** reshape payload or GET details from ID (exception: manual webhook can only reshape payload; no API call due to no auth) · **Transfer** bulk-pull history; new-event only; pagination enabled; `≤200/batch`.
+**Block roles**: **Subscribe** register webhook, return data viaSocket stores for unsub · **Unsubscribe** deregister using stored response · **Sample** latest 1 item else fallback schema (wrap `{viasocket_help, ...item}`) · **Perform(modify)** reshape payload or GET details from ID (can be empty to auto-return `context?.req?.body`; return `[]` to filter/stop execution; exception: manual webhook can only reshape payload) · **Transfer** bulk-pull history; new-event only; pagination enabled; `≤200/batch` (can be empty unless GET API exists & it's a new-event trigger).
 
 ## Actions
 Single Perform call from `context.inputData`. Categories: GET · LIST · FIND/SEARCH · CREATE · UPDATE · FIND OR CREATE · FIND + UPDATE · DELETE.
@@ -388,6 +388,7 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 - **Reusable Component**:
   - *Create*: `function_name`, `description`, `params:[{name,sample}]` (string samples double-quoted e.g. `"sample":"\"field ID\""`; other types unwrapped), `code`, `pluginrecordid`, `function_code` (async wrapper), `componentgenerationsource`, `functionId`.
   - *Update*: `rowid`, `description`, `function_code`, `componentgenerationsource`, `code`.
+
 - **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. `path` is either a dedicated section key path (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key when mapped in an `optionsGenerator` for dynamic dropdowns, multiselects, or dynamic input groups (e.g. `"page_id"`; for fields inside input groups, use only the field key `"page_id"`, no nested input group path). Toggle behavior (first call maps, second unmaps).
 
 # Review

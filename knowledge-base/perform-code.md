@@ -188,6 +188,8 @@ C. Webhook data contains nested object format. Now need to flatten the nested ob
 1. The webhook payload (data sent by the external service) is accessed using the input path:
    `const rawPayload = context?.req?.body;`
 2. The Perform Code block (`modifytriggerdata`) processes or modifies this data. For example, if it contains only an ID, you use that ID to fetch the full record from the service's API.
+   - **Empty Code:** The Perform Code can be empty. If no modification is needed and it is left empty, it is considered automatically as `return context?.req?.body;`.
+   - **Filtering / No Log:** If a condition is not met or if no data should be sent to the flow for this webhook event, you MUST return `[]` (an empty array).
 3. The modified/fetched data is returned to the flow.
 
 > [!NOTE]
@@ -229,6 +231,7 @@ The following internal variables can be used in the **Unsubscribe** code:
 
 ### Instant Trigger Transfer Code Rules:
 
+- **Empty Transfer Code:** The transfer data code can also be empty (unless there is a GET API available to fetch historical data AND it is a New Item trigger).
 - **Purpose**: Used to transfer historical data to the flow after the trigger is published.
 - **Pagination**: The GET List endpoint must have pagination enabled.
 - **Input Path**: The global path used for the pagination input is `context?.inputData?.transferOption?.offset`.
