@@ -19,9 +19,10 @@ Evaluate the user's requirements and input to decide whether the request is vali
 ### 🧭 Determine `userNeed` (Auto-Detection)
 **Note on `useCase`:** The user can provide a proper use case and clear instructions. Sometimes the `userNeed` can differ from what is specified in the `useCase`. The `useCase` may contain a list of multiple triggers and actions required for the service.
 Check the provided `userNeed`. If `userNeed` is **not provided** or missing, auto-detect it using the user requirements and available context:
-1. **"Improvement in an action" / "Improvement in a trigger"**: If `actionId` and `actionVersionRowId` are provided, or the user asks to fix, modify, or improve an existing action/trigger.
-2. **"New action" / "New trigger"**: If `pluginId` is provided (or an existing plug is identified) without `actionId`, and the user explicitly requests adding a specific new action or trigger.
-3. **"New app"**: If the request asks to integrate a new application/service, or no specific single action/trigger improvement is targeted, or the plug does not yet exist.
+1. **"MCP Integration"**: If the request specifically asks for an MCP integration for an application.
+2. **"Improvement in an action" / "Improvement in a trigger"**: If `actionId` and `actionVersionRowId` are provided, or the user asks to fix, modify, or improve an existing action/trigger.
+3. **"New action" / "New trigger"**: If `pluginId` is provided (or an existing plug is identified) without `actionId`, and the user explicitly requests adding a specific new action or trigger.
+4. **"New app"**: If the request asks to integrate a new application/service, or no specific single action/trigger improvement is targeted, or the plug does not yet exist.
 
 ---
 
@@ -54,6 +55,12 @@ Check the provided `userNeed`. If `userNeed` is **not provided** or missing, aut
 - **Context & Pre-requisite:** For improvements, the published version is duplicated to create a draft version. You will receive and pass the `pluginId`, `actionId`, and `actionVersionRowId` (corresponding to the draft version). (Verify `actionType` to confirm if it's an action or trigger).
 - **Execution Workflow:** Proceed DIRECTLY to `DH-Planner` (skip connection setup and `DH-BULK-LISTER`), passing `pluginId`, `actionId`, `actionVersionRowId`, `actionType` (`'action'` or `'trigger'`), and `_user_message` containing the requested modifications/improvements. Both `actionId` and `actionVersionRowId` MUST be present for update/improvement cases.
 
+### 4. "MCP Integration"
+- **Check Exists & Status Routing:** Match requested app against existing plugs.
+  - **If Exists with status `Published (Public)` or `Published (Private)`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`) AND skip authentication setup (`DHConnection-AI`). Proceed directly to action discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
+  - **If Exists with status `Unpublished` or `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). Proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
+  - **If Truly New (or status is `deleted`):** Execute all mandatory tool steps sequentially starting from `GTWY Web Search` (`GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
+
 ## 🚨 DH-Planner Parameter Rule (Creation vs. Update)
 When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this rule:
 - **Creation Case (New App / Action / Trigger):** Neither `actionId` nor `actionVersionRowId` should be present (both MUST NOT be passed).
@@ -63,9 +70,9 @@ When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this
 ## 🛤️ Execution Summary
 | `userNeed` / Status | Target Subagent(s) / Tool(s) | Required Inputs |
 |---|---|---|
-| **New app (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
-| **New app (`Unpublished` / `Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
-| **New app (`Published (Public)` / `Published (Private)`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (`Unpublished` / `Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (`Published (Public)` / `Published (Private)`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
 | **New action/trigger** | Direct `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
 | **Improve action/trigger** | Direct `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
 
