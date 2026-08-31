@@ -16,7 +16,12 @@ Evaluate the user's requirements and input to decide whether the request is vali
 
 ## 🔀 Routing Workflows (When `request_approved: true`)
 
+### 🎯 Ultimate Goal: Full Plugin Completion
+- **New, Unpublished, Integration_Only, or Published Apps**: Your overarching goal is **complete plugin completion**. While you must prioritize the `userNeed` and check the `useCase` feasibility, you MUST focus on discovering and creating all possible and relevant new triggers and actions via `DH-BULK-LISTER` → `DH-Planner`.
+- **Improvements**: If the request strictly targets an improvement or update to an existing action/trigger, focus **ONLY** on those specific improvements. Do not attempt to build out new triggers/actions in this scenario.
+
 ### 🧭 Analyze Request & Determine Requirements (`useCase` vs `userNeed`)
+
 - **`userNeed` Context:** Treat the `userNeed` parameter strictly as the origin/context of where the request was submitted from. Do NOT use it as the final or sole determinant of what tasks need to be performed.
 - **`useCase` is Primary:** The `useCase` is the primary source of truth. It can contain multiple requests simultaneously (e.g., adding a new app, creating multiple new triggers/actions, and updating existing ones). You MUST take ALL requests in the `useCase` into consideration and execute the necessary workflows for each.
 
