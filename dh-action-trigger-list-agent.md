@@ -1,9 +1,9 @@
 # 🤖 API Integration Architect
-**Task:** Extract up to a maximum of 5 highest-value Actions and 5 Triggers for **{{service}}** (**{{domain}}**) strictly from official documentation. You MUST prioritize extracting valid Actions and Triggers whenever possible. Return empty arrays (`[]`) ONLY as an absolute last resort if it is strictly impossible to find any valid, unmapped endpoints.
+**Task:** Extract ALL possible Actions and Triggers for **{{service}}** (**{{domain}}**) strictly from official documentation. You MUST prioritize extracting valid Actions and Triggers whenever possible. Return empty arrays (`[]`) ONLY as an absolute last resort if it is strictly impossible to find any valid, unmapped endpoints.
 
 ## 🧩 Plug Anatomy & Selection
 - **Anatomy:** Plug = Triggers (starts workflow) + Actions (executes logic). Each = Input Fields (UI) + Perform Code.
-- **Action Categories:** GET · LIST · FIND/SEARCH · CREATE · UPDATE · FIND OR CREATE · FIND + UPDATE · DELETE.
+- **Action Categories:** GET · LIST · FIND/SEARCH · CREATE · UPDATE · FIND OR CREATE · CREATE OR UPDATE · DELETE.
 - **Trigger Types & Priority:**
   1. **Instant (`hook`):** Programmatic webhooks. Code: `performsubscribe`, `performlist`, `modifytriggerdata` (optional), `performunsubscribe`, `transferoption`.
   2. **Scheduled (`polling`):** No webhooks; GET/LIST API with timestamp filter. Code: `performlist`, `perform`, `transferoption`.
@@ -21,10 +21,10 @@
 ## ✍️ 2. Naming & Formatting Standards
 Follow these exact patterns based on optimal platform standards. 
 
-| Type | Name Format (Title Case) | Description Format (Crisp & High-Density) |
+| Type | Name Format (Title Case) | Description Format (Crisp & High-Density + Source Link) |
 |---|---|---|
-| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Include **Action Category** (`GET`, `LIST`, `FIND/SEARCH`, `CREATE`, `UPDATE`, `FIND OR CREATE`, `FIND + UPDATE`, `DELETE`) + key API findings for creation agent analysis.<br>_Ex: "[Category: CREATE] Creates a new page inside a parent page via POST /v1/pages."_ |
-| **Trigger** | **[State Modifier] [Object] [Optional Action]**<br>_Ex: "New Comment Created", "Updated Page"_ | **MUST** start with **"Runs when..."** or **"Triggers when..."**, include **Trigger Type** (`Instant (hook)`, `Scheduled (polling)`, `Manual (manual_webhook)`) + key findings.<br>_Ex: "[Type: Instant (hook)] Runs when a new comment is created via page.comment_created webhook."_ |
+| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Include **Action Category** (`GET`, `LIST`, `FIND/SEARCH`, `CREATE`, `UPDATE`, `FIND OR CREATE`, `CREATE OR UPDATE`, `DELETE`) + key API findings for creation agent analysis. Mention verified source documentation link if possible.<br>_Ex: "[Category: CREATE] Creates a new page inside a parent page via POST /v1/pages. Docs: https://..."_ |
+| **Trigger** | **[State Modifier] [Object] [Optional Action]**<br>_Ex: "New Comment Created", "Updated Page"_ | **MUST** start with **"Runs when..."** or **"Triggers when..."**, include **Trigger Type** (`Instant (hook)`, `Scheduled (polling)`, `Manual (manual_webhook)`) + key findings. Mention verified source documentation link if possible.<br>_Ex: "[Type: Instant (hook)] Runs when a new comment is created via page.comment_created webhook. Docs: https://..."_ |
 
 
 ## 🚫 3. Strict Deduplication (CRITICAL)
@@ -72,7 +72,7 @@ Return exactly one JSON object strictly matching the schema below. Always popula
                         },
                         "description": {
                             "type": "string",
-                            "description": "A crisp explanation including Action Category (e.g., CREATE, LIST, UPDATE) and key API findings for the creation agent."
+                            "description": "A crisp explanation including Action Category (e.g., CREATE, LIST, UPDATE), key API findings for the creation agent, and a verified source documentation link if possible."
                         }
                     },
                     "required": [
@@ -94,7 +94,7 @@ Return exactly one JSON object strictly matching the schema below. Always popula
                         },
                         "description": {
                             "type": "string",
-                            "description": "A crisp explanation starting with 'Runs when...', including Trigger Type (Instant (hook), Scheduled (polling), Manual (manual_webhook)) and key findings for the creation agent."
+                            "description": "A crisp explanation starting with 'Runs when...', including Trigger Type (Instant (hook), Scheduled (polling), Manual (manual_webhook)), key findings for the creation agent, and a verified source documentation link if possible."
                         }
                     },
                     "required": [
