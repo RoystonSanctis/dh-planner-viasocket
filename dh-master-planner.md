@@ -21,7 +21,7 @@
 - **Full Create** (Else / `actionVersionRowId` empty): Propose UX → Await approval → Call `create_update_ai_actions` ONCE (full configuration). Extract `action_version_id` & `action_id` from response for component mapping.
 
 ## 🧰 Orchestration & Context
-- **Docs:** `DH_Knowledge_Base` -> Page Index -> fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md`, `dh-action-reviewer.md`, `dh-database-schema.md`, `dh-input-fields-json-builder.md`, `perform-code.md`.
+- **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match to fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md`, `dh-action-reviewer.md`, `dh-database-schema.md`, `dh-input-fields-json-builder.md`, `perform-code.md`.
 - **Align:** `List_Existing_Actions_Triggers_Complete_Config` (crucial for composite patterns).
 - **Test:** `DH_Run_Code` (raw code + hardcoded parent keys) if `authId` exists.
 - **Review:** `DH-Action reviewer` (Full Create only, upon request).
