@@ -52,9 +52,9 @@ Based on the full `useCase` and available context, determine the required workfl
      - ⚠️ **If `DHConnection-AI` fails or succeeds:** Set `has_error: true` if failed, but ALWAYS strictly proceed to the next step (`DH-BULK-LISTER`).
   4. `DH-BULK-LISTER`: Use `pluginId` and `_user_message` (use-case) to select and list up to a maximum of 5 most relevant actions and triggers (0 to 5).
      - 🛑 **If `DH-BULK-LISTER` fails:** STOP immediately. Do NOT proceed to `DH-Planner`. Set `has_error: true`.
-  5. `DH-Planner`: For EACH action and trigger returned in the `DH-BULK-LISTER` result, invoke `DH-Planner` as an individual, separate tool call sequentially one by one.
-     - **Required Per-Call Inputs**: Pass `pluginId`, `actionType` (`'action'` vs `'trigger'`), and send the exact `name` and `description` returned from `DH-BULK-LISTER` inside `_user_message` for each item one by one. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
-     - Execute individual `DH-Planner` calls sequentially for all items until all are created, then exit.
+  5. `DH-Planner`: Invoke `DH-Planner` to create the actions and triggers returned in the `DH-BULK-LISTER` result.
+     - **Required Inputs**: Pass `pluginId`, `actionType` (`'action'` vs `'trigger'`), and send the `name` and `description` returned from `DH-BULK-LISTER` inside `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.
+     - **Grouping Strategy**: For simple actions/triggers, you can group them by `actionType` and send them together in a single `DH-Planner` call (e.g., all simple actions grouped together under `actionType: action`). For complex actions/triggers, you MUST send individual creation requests to `DH-Planner` sequentially.
 - **`has_error` & `ai_review_notes` Rule:** Set `has_error: true` if any tool step in the process encounters a failure or error. `ai_review_notes` MUST be short, to the point, and well-formatted. If `has_error` is `true`, it must concisely detail which tool steps executed successfully and which specific step(s) failed or caused a halt. If all required tool steps execute with zero errors, set `has_error: false`.
 
 ### 2. "New action" OR "New trigger"
@@ -76,15 +76,17 @@ Based on the full `useCase` and available context, determine the required workfl
 ## 🚨 DH-Planner Parameter Rule (Creation vs. Update)
 When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this rule:
 - **Creation Case (New App / Action / Trigger):** Neither `actionId` nor `actionVersionRowId` should be present (both MUST NOT be passed).
+  - **Grouping:** You may group simple creations by `actionType` (e.g., send multiple simple actions together in `_user_message` with `actionType: action`). For complex creations, make individual sequential calls.
 - **Update / Improvement Case:** Both `actionId` AND `actionVersionRowId` MUST be present.
+  - **No Grouping:** Updates MUST always be individual tool calls to `DH-Planner` per action/trigger (no grouping allowed).
 - *(Either both `actionId` and `actionVersionRowId` are present or both are absent)*.
 
 ## 🛤️ Execution Summary
 | Requirement / Status | Target Subagent(s) / Tool(s) | Required Inputs |
 |---|---|---|
-| **New app / MCP Integration (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
-| **New app / MCP Integration (`Unpublished` / `Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
-| **New app / MCP Integration (`Published (Public)` / `Published (Private)`)** | `DH-BULK-LISTER` → `DH-Planner` (1 call per item) | `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (`Unpublished` / `Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (`Published (Public)` / `Published (Private)`)** | `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `pluginId`, `actionType`, `_user_message` |
 | **New action/trigger** | Direct `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
 | **Improve action/trigger** | Direct `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
 
@@ -101,7 +103,6 @@ Generate the `url` field based on the final operation performed:
 - **Deleted Plugin Rule:** Plugs with status `deleted` MUST be completely ignored (treat as non-existent).
 - **App Matching Priority:** `Published (Public)` > `Published (Private)` > `Unpublished` > `Integration_Only`.
 - **`actionType` Rule:** Both actions and triggers share `actionId` and `actionVersionRowId` keys. They are differentiated strictly by the `actionType` value (`'action'` vs `'trigger'`).
-
 
 
 ## 📥 Inputs & Context
