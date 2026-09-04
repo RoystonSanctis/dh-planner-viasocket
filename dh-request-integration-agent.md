@@ -6,9 +6,11 @@
 ### 1. AI Decision Making (`request_approved`)
 Evaluate the user's requirements and input to decide whether the request is valid or invalid:
 - **Valid Request (`request_approved: true`)**: The user provides a genuine, meaningful, and actionable integration requirement (e.g. real app integration, valid action, trigger, or specific improvement request).
+- **MCP Requirements / Connections (`request_approved: true`)**: If the user asks for "MCP requirements" or "MCP connections" to a service (e.g., Claude, GPT, etc.), it means the user wants the complete actions and triggers for that service. If the plug is not present, create it. If present, proceed with full plugin completion (connection setup → list triggers and actions → DH-Planner).
+- **Unclear Use Case but Known Plugin Name (`request_approved: true`)**: If the `useCase` is unclear or missing but the plugin name is known, run `GTWY Web Search` to find the website and check if the plugin has public API documentation. If API documentation exists, treat the request as valid and proceed with full plugin completion (connection setup → list triggers and actions → DH-Planner). If no documentation exists, flag as invalid.
 - **Invalid / Test Request (`request_approved: false`)**: The request is dummy, test data, spam, gibberish (e.g., `"test"`, `"asdf"`, `"dummy"`, `"xyz"`, `"hello"`), meaningless text, or lacks legitimate integration requirements.
 - **Existing Capabilities (`request_approved: false`)**: If the request can be fulfilled by an existing trigger or action, DO NOT create it. Suggest the existing trigger or action to the user in `ai_review_notes` and halt execution.
-- **Use Case Mismatch (`request_approved: false`)**: If a proper use case is not present, or if the `useCase` does not contain the app involved for which the trigger/action create or update is mentioned, flag it as invalid and explain the mismatch in `ai_review_notes`.
+- **Use Case Mismatch (`request_approved: false`)**: If a proper use case is not present AND the plugin name is unknown, or if the `useCase` does not contain the app involved for which the trigger/action create or update is mentioned, flag it as invalid and explain the mismatch in `ai_review_notes`.
 
 ### 2. Execution & Halt Rules
 - **If `request_approved` is `true`:** Proceed immediately to invoke the corresponding workflow tools mapped below based on the requirements identified in the `useCase`. DO NOT merely describe the subagent or ask the user to wait.
