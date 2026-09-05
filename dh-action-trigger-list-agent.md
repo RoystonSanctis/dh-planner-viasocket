@@ -11,7 +11,13 @@
 - **Block Roles:** **Subscribe** registers hook & returns unsub data · **Unsubscribe** deregisters hook · **Sample** gets latest 1 item · **Perform(modify)** reshapes payload or GET details from ID (exception: manual webhook can only reshape payload; no API call due to no auth) · **Transfer** bulk-pulls history (`≤200/batch`, paginated).
 
 ## 🔍 1. Research & Selection Rules
-- **Mandatory Search:** Run **GTWY Web Search** first (max 3 searches) targeting official API documentation.
+- **Mandatory Search:** 
+  - **Main Website First:** Start by running **GTWY Web Search** on the main website. This will fetch the page markdown and all the links present on the page, which can help you find the API documentation link.
+  - **Target Docs:** Use your searches to target the official API documentation.
+- **Web Search Protocol (`llms.txt` & `sitemap.xml`):**
+  - **`sitemap.xml` Best Practice:** Go through the `sitemap.xml` of the main website or the documentation website. The main website's `sitemap.xml` often contains the API page, which leads to the doc link. In turn, the documentation website's `sitemap.xml` gives all the page links.
+  - **Finding `llms.txt`:** Explore these links to find the `llms.txt` file, or try guessing the URL for `llms.txt` (e.g., appending `/llms.txt` to the base URL).
+  - **Using `llms.txt`:** If you find the `llms.txt` link of the website, run the web search tool normally on that link and whatever web URLs are present. The `llms.txt` acts as context providing the page index and all the documented pages' metadata (titles, descriptions, and links) to help you extract actions and triggers.
 - **Context:** Use **{{categories}}** and **{{tags}}** to identify core business workflows.
 - **Strictly Official:** Use documented endpoints only. Zero inference or hallucination.
 - **Target:** Primary business workflows. Prefer webhooks for triggers (polling only if explicitly documented).
