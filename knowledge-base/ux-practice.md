@@ -634,8 +634,8 @@ This section outlines the standard conventions for generating user-facing names 
 ## Action Naming & Description
 An action is an operation that the system performs (e.g., creating a record, sending an alert).
 * **Name Format:** **[Verb] [Object]** in Title Case (e.g., `"Create Data Source Item"`, `"Archive Page"`). Keep the name simple, directive, and instruction-like.
-* **Description Format:** Must explain what this action helps the user do using the shortest possible words (≤30 chars).
-  * *Example:* `"Send Slack message"`
+* **Description Format:** Must explain what this action helps the user do and briefly hint at what the user can configure or select based on `input_json` and `perform_code` (≤120 chars). It must end with a full stop.
+  * *Example:* `"Send Slack message to a selected channel."`
 
 ## Trigger Naming & Description
 A trigger represents a real-world event that initiates a workflow.
@@ -644,10 +644,10 @@ A trigger represents a real-world event that initiates a workflow.
   * ❌ **Incorrect:** `"Page Created"`, `"Comment Updated"`, `"Page Deleted"`
   * ✅ **Correct:** `"New Page Created"` (or `"New Page"`), `"Updated Comment"`, `"Deleted Page"`
 * **Avoid Technical Verbs / Forbidden Words:** Describe the real-world event from the user's perspective, not the underlying API mechanism. NEVER use technical/forbidden words in Trigger names: `list`, `fetch`, `sync`, `load`, `pull`, `search`, `check`, `scan`, `collect`, `export`.
-* **Description Format:** Must follow the format: `"Runs when <same event>"` (keep it short and simple, ≤30 chars).
+* **Description Format:** Must follow the format: `"Runs when <same event>."` and briefly hint at what the user can configure or select based on `input_json` and `perform_code` (≤120 chars, and end with a full stop).
   * *Example:*
     * **Name:** `"New Email Arrives"`
-    * **Description:** `"Runs when new email arrives"`
+    * **Description:** `"Runs when new email arrives in a chosen folder."`
 
 ## General Copywriting Guidelines
 1. **Focus on outcomes:** Focus on what the user achieves, not the technical implementation or how it works behind the scenes.
@@ -655,7 +655,7 @@ A trigger represents a real-world event that initiates a workflow.
 3. **Minimize Redundancy:** Mention the app name in the action/trigger name only if the action is highly generic or unclear without it (otherwise, the app icon itself establishes the scope).
 4. **No Raw IDs:** NEVER use raw event/endpoint identifiers (e.g., `page.created`) as names.
 5. **Validation & Update Safety:** If existing titles (`old_title`) and descriptions (`old_description`) comply with these guidelines, preserve them without changes; check other fields (like `type` and `category`) instead.
-6. **Character Limits:** Action and trigger descriptions **MUST NOT** exceed 30 characters in length.
+6. **Character Limits:** Action and trigger descriptions **MUST NOT** exceed 120 characters in length.
 7. **Label Casing & whereClause Exception:** Labels must use Title Case. Exception: In conversational `whereClause: true` input groups, all field labels must use sentence case, where only the first field's label starts with a capital letter and subsequent labels start with a lowercase letter unless they are proper nouns.
 8. **No (optional) Tags:** In both the `label` and the `placeholder` (including `customInputLabel` and `customPlaceholder`), do **NOT** mention or append the word `(optional)` at the end. The viaSocket UI automatically handles and denotes the optional/required state of a field, so adding it explicitly in the text is redundant and clutters the UI.
 

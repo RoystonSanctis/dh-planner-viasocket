@@ -107,9 +107,9 @@ Single Perform call from `context.inputData`. Categories: GET · LIST · FIND/SE
 | Item | Format |
 |---|---|
 | Action name | **[Verb] [Object]** in Title Case (e.g. `"Create Data Source Item"`, `"Archive Page"`). |
-| Action desc | Short description, ≤30 chars (e.g. `"Send Slack message"`). |
+| Action desc | Short description, ≤120 chars (e.g. `"Send Slack message to a selected channel."`). |
 | Trigger name | **[State Modifier] [Object] [Optional Action]** in Title Case (e.g. `"New Comment Created"`, `"Updated Page"`). **MUST** start with state change prefixes (**"New"**, **"Updated"**, **"Deleted"**). ❌ Incorrect: `"Page Created"`, `"Comment Updated"`, `"Page Deleted"`; ✅ Correct: `"New Page Created"` (or `"New Page"`), `"Updated Comment"`, `"Deleted Page"`. Avoid forbidden words: `list`, `fetch`, `sync`, `load`, `pull`, `search`, `check`, `scan`, `collect`, `export`. |
-| Trigger desc | `Runs when <event>`, ≤30 chars (e.g. `"Runs when new email arrives"`). |
+| Trigger desc | `Runs when <event>`, ≤120 chars (e.g. `"Runs when new email arrives in a chosen folder."`). |
 
 App Name Rule: Omit the app name (e.g. "{{pluginName}}") from names and descriptions unless the context is too generic without it.
 No Raw IDs: NEVER use raw event/endpoint identifiers (e.g. `page.created`) as names.

@@ -48,6 +48,10 @@ Follow these exact patterns based on optimal platform standards.
 - **No Raw IDs:** NEVER use raw event/endpoint identifiers (e.g., `page.created`) as names.
 - **`message` Field Rule:** Always populate `message` with a clear summary response detailing your findings and overall verdict. If and only if it is completely impossible to extract any actions/triggers (returning empty `[]`), explicitly explain in `message` why no valid, unmapped endpoints could be found.
 
+## 🏷️ 4. Type & Category Selection
+- **Type (Developer Friendly):** Represents the technical API operation. Choose from: `GET`, `CREATE`, `UPDATE`, `DELETE`, `FIND`, `FIND OR CREATE`, `CREATE OR UPDATE`. 
+- **Category (User Friendly Tag):** Represents the business object or domain entity (e.g., `DATA SOURCE`, `PAGE`, `COMMENTS`, `BLOCK`). This acts as a tag to help users organize and easily find actions in the flow builder. Use UPPERCASE for categories and keep them consistent across related actions and triggers.
+
 ## 📋 Existing Actions & Triggers List
 {{pre_function}}
 
@@ -79,11 +83,21 @@ Return exactly one JSON object strictly matching the schema below. Always popula
                         "description": {
                             "type": "string",
                             "description": "A crisp explanation including Action Category (e.g., CREATE, LIST, UPDATE), key API findings for the creation agent, and a verified source documentation link if possible."
+                        },
+                        "type": {
+                            "type": "string",
+                            "description": "The developer-friendly technical operation (e.g., GET, CREATE, UPDATE, DELETE, FIND)."
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "The user-friendly domain tag in UPPERCASE (e.g., DATA SOURCE, PAGE, BLOCK)."
                         }
                     },
                     "required": [
                         "name",
-                        "description"
+                        "description",
+                        "type",
+                        "category"
                     ],
                     "additionalProperties": false
                 }
@@ -101,11 +115,21 @@ Return exactly one JSON object strictly matching the schema below. Always popula
                         "description": {
                             "type": "string",
                             "description": "A crisp explanation starting with 'Runs when...', including Trigger Type (Instant (hook), Scheduled (polling), Manual (manual_webhook)), key findings for the creation agent, and a verified source documentation link if possible."
+                        },
+                        "type": {
+                            "type": ["string", "null"],
+                            "description": "The developer-friendly technical operation. Can be null for triggers."
+                        },
+                        "category": {
+                            "type": ["string", "null"],
+                            "description": "The user-friendly domain tag in UPPERCASE. Can be null for triggers if not applicable."
                         }
                     },
                     "required": [
                         "name",
-                        "description"
+                        "description",
+                        "type",
+                        "category"
                     ],
                     "additionalProperties": false
                 }
