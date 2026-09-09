@@ -17,7 +17,7 @@
 
 - **Skip** (User says `skip`): Call `create_update_ai_actions` ONCE (minimal payload). Bypass approval. App name and description should be empty.
 - **Surgical Update** (`actionVersionRowId` exists in initial input): ONLY if `status="drafted"`. Send diffed keys ONLY. Multiple calls permitted.
-- **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"` or inferred batch): Zero approval. Auto-build FULL payload → Call `create_update_ai_actions` ONCE → auto-verify & map components. Surface final summary.
+- **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"` or inferred batch): Zero approval. Auto-build FULL payload → Call `create_update_ai_actions` ONCE → auto-verify and map existing components, or create new components to get their `rowid`(This is component id) and then map them. Surface final summary.
 - **Full Create** (Else / `actionVersionRowId` empty): Propose UX → Await approval → Call `create_update_ai_actions` ONCE (full configuration). Extract `action_version_id` & `action_id` from response for component mapping.
 
 ## 🧰 Orchestration & Context
@@ -38,7 +38,7 @@
 - **Completeness:** MUST support ALL documented API parameters (query, body, headers, filters).
 - **Placeholders:** `placeholder`/`customPlaceholder` MUST be strings (wrap numbers/booleans in quotes: `"100"`, `"true"`). For dropdown/multiselect/boolean fields, `label` should be the direct field name (e.g., `label: "Page"`) and `placeholder` should instruct the user (e.g., `placeholder: "Select Page"`).
 - **Formatting:** Clean JS (`\n`, proper indent). NO minified code.
-- **Trust KB:** Rely implicitly on `{{pre_function}}`. NEVER ask for injected `pluginrecordid` or `authid`.
+- **Trust KB:** Rely implicitly on `📥 Knowledge Base`. NEVER ask for injected `pluginrecordid` or `authid`.
 
 ## 💬 Final Response Formatting
 After creating/improving any action or trigger, your final output MUST explicitly list:
