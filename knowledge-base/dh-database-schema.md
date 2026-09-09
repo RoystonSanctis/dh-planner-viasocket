@@ -58,7 +58,7 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
   "isvisible": "Boolean (e.g., false)",
   "type": "String (Set to 'action')",
   "category": "String (The action category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The action sub-category, e.g., 'Page')",
+  "sub_category": "String (Optional. The action sub-category, e.g., 'PAGE')",
   "rtllayer": "Boolean (e.g., true)",
   "isAIActionTrigger": "Boolean (e.g., true)",
   "functionId": "String (Action version row ID; optional on create, required on update, e.g., 'KSniUIbOsr')",
@@ -117,7 +117,7 @@ The additional keys for each trigger which is specified are the supported keys a
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
   "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -145,7 +145,7 @@ Instant Triggers run via webhooks where external systems send events immediately
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
   "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -204,7 +204,7 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
   "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -263,7 +263,7 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
   "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'Page')",
+  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",

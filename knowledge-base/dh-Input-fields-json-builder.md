@@ -4926,7 +4926,7 @@ The following example illustrates how `dependsOn` is populated for dynamic field
 ## Special Note: Custom Mapping Behavior (Dropdown, Multiselect & Boolean)
 For `dropdown`, `multiselect`, and `boolean` fields, the user experience involves two modes in the UI:
 1. **Standard Mode (Dropdown/Toggle Selection)**:
-   - The user sees the standard **Label**, **Help**, and **Placeholder** (optional: if omitted, the backend defaults to `"Choose {{field label}}"`; if provided, it overrides this default).
+   - The user sees the standard **Label** (direct field name, e.g., `"Page"`), **Help**, and **Placeholder** (instructing the action, e.g., `"Select Page"`).
 2. **Custom Mapping Mode**:
    - When the user switches to custom mapping, the field becomes a plain text `string` input field.
    - The UI then shows:

@@ -112,8 +112,7 @@ Single Perform call from `context.inputData`. Categories: GET · LIST · FIND/SE
 | Trigger desc | `Runs when <event>`, ≤120 chars (e.g. `"Runs when new email arrives in a chosen folder."`). |
 
 App Name Rule: Omit the app name (e.g. "{{pluginName}}") from names and descriptions unless the context is too generic without it.
-No Raw IDs: NEVER use raw event/endpoint identifiers (e.g. `page.created`) as names.
-Labels clean/generic ("Select Board" not "Select Trello Board"). Preserve compliant existing names on update. Never append `(optional)` in `label`, `placeholder`, `customInputLabel`, or `customPlaceholder`.
+Labels clean/generic (e.g., "Board" not "Select Board" or "Select Trello Board"). For dropdown/multiselect/boolean fields, the `label` should be the direct field name (e.g., `"Page"`) and the `placeholder` should instruct the action (e.g., `"Select Page"`). Preserve compliant existing names on update. Never append `(optional)` in `label`, `placeholder`, `customInputLabel`, or `customPlaceholder`.
 
 # UX Field Ordering
 Required first, optionals grouped after. **`canPaginate`/`enableSearchApi` priority**: (1) both → both true; (2) search only → paginate false, search true; (3) pagination only → paginate true, search false; (4) neither → both false. Set flags true if reusing a component that implements them. Verify API capabilities via web search first. **Help placement**: static/dynamic help field always below the field it refers to.
@@ -166,7 +165,7 @@ Base keys (every field): `key` (unique, pattern `^[^.\[\]]*$`) · `type` · `lab
 
 ## Custom Mapping (Dropdown, Multiselect & Boolean)
 Two UI states:
-1. **Standard Mode**: Shows `label`, `help` (starts with "Select"), `placeholder` (defaults to "Choose {{label}}" if omitted).
+1. **Standard Mode**: Shows `label` (direct field name, e.g., "Page"), `help` (starts with "Select"), `placeholder` (e.g., "Select Page").
 2. **Custom Mapping Mode**: Switches to text input showing `customInputLabel` (must NOT start with "Enter"; same as label if not ID), `customHelp` (guides manual input), `customPlaceholder` (concrete sample value).
    - Dynamic: "Enter the ID/value… from actions like List, Find…"
    - Static/Boolean: Specify actual values and outcomes. Many options → "Enter {{label name}} …"
