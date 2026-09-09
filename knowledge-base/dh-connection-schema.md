@@ -81,7 +81,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "pluginiconurl": "String | null (URL to the plugin icon hosted on CDN, e.g., \"https://stuff.thingsofbrand.com/notion.com/images/imgf_notion.png\")",
   "iconurlpath": "String | null (Custom override path for the icon; null means use pluginiconurl, e.g., \"ASDFGH\")",
   "domain": "String (Primary domain of the service, e.g., \"notion.com\")",
-  "whitelistdomains": "Array (List of allowed domains for outgoing API requests, e.g., [\"notion.com\", \"www.notion.com\"])",
+  "whitelistdomains": "Array (List of allowed domains for outgoing API requests. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"notion.com\", \"api.notion.com\"])",
   "skipwhitelistvalidation": "Boolean | null (When true, bypasses domain whitelist checks; null means default validation applies)",
   "description": "String | null (Optional human-readable description of the connection; always null in observed data)",
   "orgid": "String (Organization ID that owns this connection configuration, e.g., \"69643\")",
@@ -424,7 +424,7 @@ The Update Connection Payload is sent by the client to modify an existing Connec
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
 
-  "whitelistdomains": "Array (List of whitelisted domains, e.g., [\"arcsite.com\", \"www.arcsite.com\"])",
+  "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "authenticationpaths": {
@@ -564,7 +564,7 @@ skipwhitelistvalidation: null (null if not set)
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
 
-  "whitelistdomains": "Array (List of whitelisted domains, e.g., [\"arcsite.com\", \"www.arcsite.com\"])",
+  "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
@@ -698,7 +698,7 @@ skipwhitelistvalidation: null (null if not set)
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
 
-  "whitelistdomains": "Array (List of whitelisted domains, e.g., [\"arcsite.com\", \"www.arcsite.com\"])",
+  "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
@@ -829,7 +829,7 @@ skipwhitelistvalidation: null (null if not set)
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
-  "whitelistdomains": "Array (List of whitelisted domains, e.g., [\"arcsite.com\", \"www.arcsite.com\"])",
+  "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
@@ -965,7 +965,7 @@ skipwhitelistvalidation: null (null if not set)
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"ASDFGH\")",
 
-  "whitelistdomains": "Array (List of whitelisted domains, e.g., [\"arcsite.com\", \"www.arcsite.com\"])",
+  "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
@@ -1088,7 +1088,7 @@ skipwhitelistvalidation: null (null if not set)
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
-  "whitelistdomains": "Array (List of whitelisted domains, e.g., [\"arcsite.com\", \"www.arcsite.com\"])",
+  "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {

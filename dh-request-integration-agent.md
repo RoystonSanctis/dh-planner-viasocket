@@ -41,14 +41,14 @@ Based on the full `useCase` and available context, determine the required workfl
 - **CRITICAL MANDATORY RULE:** If user says new app, always you will get the list of apps in the list of app if the app is already present in the publish, unpublish or integration_only never create the plug tool, proceed with the other tool calls and request. This is mandatory.
 - **Check Exists & Status Routing:** Match requested app against existing plugs using the Priority list below (ignoring any plug with status `deleted`):
   - **If Exists with status `Published (Public)` or `Published (Private)`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`) AND skip authentication setup (`DHConnection-AI`). Proceed directly to action/trigger discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
-  - **If Exists with status `Unpublished` or `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). Proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
+  - **If Exists with status `Unpublished` or `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). If `preferedauthversion` is NOT present AND there are no existing connections (check "GET PLUG DETAILS" in `{{pre_function}}`), mandatory proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`). If `preferedauthversion` is present OR existing connections are present, skip `DHConnection-AI` and proceed directly to action/trigger discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
   - **If Truly New (or status is `deleted`):** Execute all mandatory tool steps sequentially starting from `GTWY Web Search` (`GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
 - **Mandatory Tool Chain & Strict Execution Rule:**
   1. `GTWY Web Search` *(Skip if plug exists)*: Search for official website to find the main parent domain URL (e.g. `service.com`) and conduct research for plug creation.
   2. `Create_New_Plug` *(Skip if plug exists)*: `plugname` = app name. `domain` = main parent domain URL ONLY found via `GTWY Web Search` (e.g., `service.com` - strip `http/https`, subdomains like `api.`, and paths).
      - 🛑 **If `Create_New_Plug` fails:** STOP immediately. Do NOT proceed to subsequent tools. Set `has_error: true`.
      - ✅ **If `Create_New_Plug` is successful:** You MUST strictly proceed with the remaining downstream steps (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
-  3. `DHConnection-AI` *(Skip if status is `Published`)*: Use `pluginId` (from Step 2 or existing `Unpublished` / `Integration_Only` plug) to configure authentication connections.
+  3. `DHConnection-AI` *(Skip if status is `Published`, or if status is `Unpublished` / `Integration_Only` AND (`preferedauthversion` is present OR existing connections are present in "GET PLUG DETAILS"))*: Use `pluginId` (from Step 2 or existing `Unpublished` / `Integration_Only` plug) to configure authentication connections. If status is `Integration_Only` and both `preferedauthversion` and existing connections are missing (check "GET PLUG DETAILS" in `{{pre_function}}`), calling this is mandatory.
      - ⚠️ **If `DHConnection-AI` fails or succeeds:** Set `has_error: true` if failed, but ALWAYS strictly proceed to the next step (`DH-BULK-LISTER`).
   4. `DH-BULK-LISTER`: Use `pluginId` and `_user_message` (use-case) to select and list all possible actions and triggers that do not currently exist.
      - 🛑 **If `DH-BULK-LISTER` fails:** STOP immediately. Do NOT proceed to `DH-Planner`. Set `has_error: true`.
@@ -70,7 +70,7 @@ Based on the full `useCase` and available context, determine the required workfl
 ### 4. "MCP Integration"
 - **Check Exists & Status Routing:** Match requested app against existing plugs.
   - **If Exists with status `Published (Public)` or `Published (Private)`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`) AND skip authentication setup (`DHConnection-AI`). Proceed directly to action discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
-  - **If Exists with status `Unpublished` or `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). Proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
+  - **If Exists with status `Unpublished` or `Integration_Only`:** Skip plug creation (`GTWY Web Search`, `Create_New_Plug`). If `preferedauthversion` is NOT present AND there are no existing connections (check "GET PLUG DETAILS" in `{{pre_function}}`), mandatory proceed from authentication connection setup (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`). If `preferedauthversion` is present OR existing connections are present, skip `DHConnection-AI` and proceed directly to action discovery & creation (`DH-BULK-LISTER` → `DH-Planner`).
   - **If Truly New (or status is `deleted`):** Execute all mandatory tool steps sequentially starting from `GTWY Web Search` (`GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
 
 ## 🚨 DH-Planner Parameter Rule (Creation vs. Update)
@@ -85,7 +85,8 @@ When invoking `DH-Planner`, `actionId` and `actionVersionRowId` must follow this
 | Requirement / Status | Target Subagent(s) / Tool(s) | Required Inputs |
 |---|---|---|
 | **New app / MCP Integration (Truly New / `deleted`)** | `GTWY Web Search` → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `plugname`, `domain`, `pluginId`, `actionType`, `_user_message` |
-| **New app / MCP Integration (`Unpublished` / `Integration_Only`)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (`Unpublished` / `Integration_Only`, `preferedauthversion` absent & no existing connections)** | `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `pluginId`, `actionType`, `_user_message` |
+| **New app / MCP Integration (`Unpublished` / `Integration_Only`, `preferedauthversion` present OR existing connections present)** | `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `pluginId`, `actionType`, `_user_message` |
 | **New app / MCP Integration (`Published (Public)` / `Published (Private)`)** | `DH-BULK-LISTER` → `DH-Planner` (Grouped or Individual) | `pluginId`, `actionType`, `_user_message` |
 | **New action/trigger** | Direct `DH-Planner` | `pluginId`, `actionType`, `_user_message` |
 | **Improve action/trigger** | Direct `DH-Planner` | `pluginId`, `actionId`, `actionVersionRowId`, `actionType`, `_user_message` |
@@ -99,7 +100,7 @@ Generate the `url` field based on the final operation performed:
 - **Fallback**: `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics`
 
 ## 🧠 Context & Existing Resources
-- Contains plug details, existing actions/triggers, and approval status.
+- `{{pre_function}}` contains "GET PLUG DETAILS" (which includes `preferedauthversion` and existing connections list), existing actions/triggers, and approval status.
 - **Deleted Plugin Rule:** Plugs with status `deleted` MUST be completely ignored (treat as non-existent).
 - **App Matching Priority:** `Published (Public)` > `Published (Private)` > `Unpublished` > `Integration_Only`.
 - **`actionType` Rule:** Both actions and triggers share `actionId` and `actionVersionRowId` keys. They are differentiated strictly by the `actionType` value (`'action'` vs `'trigger'`).
