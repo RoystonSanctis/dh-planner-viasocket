@@ -50,7 +50,7 @@ Based on the full `useCase` and available context, determine the required workfl
      - ✅ **If `Create_New_Plug` is successful:** You MUST strictly proceed with the remaining downstream steps (`DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`).
   3. `DHConnection-AI` *(Skip if status is `Published`)*: Use `pluginId` (from Step 2 or existing `Unpublished` / `Integration_Only` plug) to configure authentication connections.
      - ⚠️ **If `DHConnection-AI` fails or succeeds:** Set `has_error: true` if failed, but ALWAYS strictly proceed to the next step (`DH-BULK-LISTER`).
-  4. `DH-BULK-LISTER`: Use `pluginId` and `_user_message` (use-case) to select and list up to a maximum of 5 most relevant actions and triggers (0 to 5).
+  4. `DH-BULK-LISTER`: Use `pluginId` and `_user_message` (use-case) to select and list all possible actions and triggers that do not currently exist.
      - 🛑 **If `DH-BULK-LISTER` fails:** STOP immediately. Do NOT proceed to `DH-Planner`. Set `has_error: true`.
   5. `DH-Planner`: Invoke `DH-Planner` to create the actions and triggers returned in the `DH-BULK-LISTER` result.
      - **Required Inputs**: Pass `pluginId`, `actionType` (`'action'` vs `'trigger'`), and send the `name` and `description` returned from `DH-BULK-LISTER` inside `_user_message`. Note: For new creation, `actionId` and `actionVersionRowId` MUST NOT be present.

@@ -130,7 +130,7 @@ The standard field ordering/section flow for a Basic Auth Connection follows thi
 ### Basic Auth Common Auth Fields
 - **String** — For non-sensitive credential parts (e.g. `username`, `account_id`).
 - **Password** — For sensitive credential parts (e.g. `api_key`, `password`, `access_token`); obscures input.
-- Each field supports: `key` (required, must match the API's expected parameter name), `label` (required, user-friendly), `type` (`string` | `password` | `dropdown` | `help`), `placeholder` (placeholder for the auth field, e.g. for email — `joy@gmail.com`), `required` (boolean), `help` (Markdown-enabled instructions with a direct link to where the credential is generated), `input format` (optional pattern hint), `default value` (optional).
+- Each field supports: `key` (required, must match the API's expected parameter name), `label` (required, user-friendly), `type` (`string` | `password` | `dropdown` | `help`), `placeholder` (placeholder for the auth field, e.g. for email — `joy@gmail.com`), `required` (boolean), `help` (Markdown-enabled instructions guiding the user on where to find the credential, followed by a direct Markdown link `[here](url)` if available), `input format` (optional pattern hint), `default value` (optional).
 
 ### Basic Auth Perform Code Reference
 - Basic Auth Connections inject credentials automatically via **Set Request Parameters** — Actions/Triggers do not need to manually attach auth headers.
@@ -741,8 +741,8 @@ return await testcode();
 Applies to all credential Auth fields collected in "Configure your Fields":
 * **Key:** Must exactly match the target API's expected parameter name (e.g. `api_key`, `client_id`, `username`).
 * **Label:** User-friendly, specific, Title Case (e.g. "API Key", "Account Username").
-* **Help Text:** Explain where to find the credential, with a direct Markdown link to the provider's settings/developer page. Focus on business meaning, not internal storage mechanics.
-  * *Good:* `` `Get your API key` `` (linked)
+* **Help Text:** Explain where to find the credential, followed by a direct Markdown link `[here](url)` to the provider's settings/developer page if available. Focus on business meaning, not internal storage mechanics.
+  * *Good:* "Please enter your API Key. You can generate this key from your account Settings -> Developer -> API Key, or click [here](https://example.com/api-keys)."
   * *Bad:* "Paste the value found in the token JSON response"
 
 ## General Copywriting Guidelines

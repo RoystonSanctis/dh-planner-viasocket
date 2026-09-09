@@ -118,7 +118,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
           "label": "String (Human-readable display label shown in UI, e.g., \"API Key\")",
           "type": "String (Input field type: \"string\" | \"password\")",
           "required": "Boolean (Whether the user must fill this field to create the connection, e.g., true)",
-          "help": "String (Help text or HTML displayed below the input; can be empty string, e.g., \"Enter client ID here.\")",
+          "help": "String (Help text displayed below the input supporting both HTML and Markdown. Must guide the user on where to find the value, followed by a direct Markdown link `[here](url)` if available. E.g., \"Please enter your API Key. You can generate this key from your account Settings -> Developer -> API Key, or click [here](https://example.com/api-keys).\")",
           "placeholder": "String (Example value shown inside the input, e.g., \"https://your-domain.okta.com\")",
           "value": "String (Default pre-filled value; empty string means no default, e.g., \"\")",
           "source": "String (URL linking to official docs where the user can find this field's value)",
