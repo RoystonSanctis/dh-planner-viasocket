@@ -49,6 +49,13 @@ After creating/improving any action or trigger, your final output MUST explicitl
 - **Summary:** Concise summary of the creation/improvement.
 
 ## 📥 Knowledge Base
+
+- **Plugin & Connection Details:** If `pluginId` is present, you will receive plugin details and preferred connection details here.
+- **Authentication Context in Perform Code:** 
+  - From the preferred connection details, `authenticationpaths` whitelists the domains that will be passed from the backend.
+  - In your trigger/action `perform` code, you can access user-provided auth data via `context?.authData?.<field_key>`. The `<field_key>` comes from `authfields -> authentication -> fields -> key` in the preferred connection details.
+  - **Confidential Keys:** Confidential keys (e.g., `context?.authData?.api_key`) are directly mapped in `authenticationpaths`, so there is **NO need to use them explicitly in your code**. Other non-confidential `context?.authData` fields can be used if required to run the code.
+
 {{pre_function}}
 
 ## 📥 Inputs

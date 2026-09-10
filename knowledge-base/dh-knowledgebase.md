@@ -36,6 +36,8 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 These apply everywhere — stated once, never repeated.
 - **API docs = ground truth** (override user cURL). Must support all possible parameters available in the API documentation. Every documented field → UI input or code-handled. Never invent undocumented params; never omit a supported optional or required parameter.
 - **No auth** — viaSocket handles it. Never expose, hardcode, or include auth logic.
+  - You can access user-provided auth data in code via `context?.authData?.<field_key>` (where `<field_key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details from the Knowledge Base).
+  - **Confidential Keys**: Confidential auth keys (e.g., `context?.authData?.api_key`) are directly mapped in `authenticationpaths` (whitelisted domains from backend), so there is **NO need to use them explicitly in your code**. Other non-confidential `context?.authData` fields can be used if required to run the code.
 - **Never ask** for `pluginrecordid` or `authid` (internally passed).
 - **Output / `inputjson` Format (CRITICAL JSON SCHEMA RULES)**: `inputjson` in `request_payload` is structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
   - **NO `"item"` WRAPPERS EVER:** You are STRICTLY FORBIDDEN from wrapping ANY array inside an `"item"` key. This applies to `inputFields`, `options`, or any other list.

@@ -81,6 +81,11 @@ published: true
 
 This document contains structured UX guidelines and best practices for creating viaSocket plug Connections. It defines the standard UX patterns, common auth field types, field ordering conventions, and perform code references for each Connection/Auth type.
 
+## Authentication Context & Perform Code usage
+- **`authenticationpaths`**: This represents the whitelisted domains that will be passed from the backend, configured in preferred connection details.
+- **Using `context?.authData`**: In Trigger or Action perform codes, you can access user-provided auth fields via `context?.authData?.<field_key>` (where `<field_key>` is mapped from `authfields -> authentication -> fields -> key`).
+- **Confidential Keys**: Confidential keys (e.g., `context?.authData?.api_key`) are directly mapped in `authenticationpaths` by the backend. Therefore, there is **NO need to explicitly include them in the perform code**. You may use other non-confidential `context?.authData` properties if they are required to run the code.
+
 # Connections
 
 A Connection lets users prove their identity to a plug's target app and authorize viaSocket to access their data. Every Action and Trigger in a plug runs on top of a Connection. There are four Auth Types, one of which (OAuth 2.0) has four distinct Grant Types, giving **six total Connection UX flows**.
