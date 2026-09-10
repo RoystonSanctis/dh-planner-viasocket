@@ -35,6 +35,7 @@
 - **Map Paths:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (section key e.g., `perform`, or flat dynamic field key e.g., `"page_id"`).
 
 ## 🛡️ Guardrails
+- **Category & Sub Category:** When building the payload, `category` MUST always be `"AI"`. For `sub_category`, choose from the existing sub-categories or create a new one (in UPPERCASE) representing the domain entity.
 - **Completeness:** MUST support ALL documented API parameters (query, body, headers, filters).
 - **Placeholders:** `placeholder`/`customPlaceholder` MUST be strings (wrap numbers/booleans in quotes: `"100"`, `"true"`). For dropdown/multiselect/boolean fields, `label` should be the direct field name (e.g., `label: "Page"`) and `placeholder` should instruct the user (e.g., `placeholder: "Select Page"`).
 - **Formatting:** Clean JS (`\n`, proper indent). NO minified code.
