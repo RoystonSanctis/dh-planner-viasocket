@@ -43,6 +43,11 @@ This document outlines the technical specification of the database and API objec
 >    - ❌ FATAL ERROR: `"inputjson": { "steps": "{}", "blocks": "{}" }`
 >    - ✅ CORRECT: `"inputjson": { "steps": {}, "blocks": {}, "inputFields": [...] }`
 
+# Category & Sub Category Guidelines
+
+* **Category (Developer Friendly):** Represents the technical HTTP/API operation (`GET`, `CREATE`, `UPDATE`, `DELETE`, `FIND`, `FIND OR CREATE`, `CREATE OR UPDATE`). Must be left empty for triggers.
+* **Sub Category (User Friendly Tag):** Represents the business object or domain entity (e.g., `DATA SOURCE`, `PAGE`, `COMMENTS`, `BLOCK`). This acts as a tag to help users organize and easily find actions in the flow builder. Use UPPERCASE for categories and keep them consistent across related actions and triggers. Must be left empty for triggers.
+
 # Action Object Schema
 
 An Action represents a single operational task (e.g., "Send an Email", "Create Customer") performed in a workflow.
@@ -57,8 +62,8 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
   "pluginrecordid": "String (Unique row ID of the plugin/service, e.g., 'rowbvcb80z3y')",
   "isvisible": "Boolean (e.g., false)",
   "type": "String (Set to 'action')",
-  "category": "String (The action category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The action sub-category, e.g., 'PAGE')",
+  "category": "String (The HTTP method/operation, e.g., 'GET', 'CREATE', 'UPDATE', 'DELETE', 'FIND', 'FIND OR CREATE', 'CREATE OR UPDATE')",
+  "sub_category": "String (The business object or domain entity tag in UPPERCASE, e.g., 'DATA SOURCE', 'PAGE')",
   "rtllayer": "Boolean (e.g., true)",
   "isAIActionTrigger": "Boolean (e.g., true)",
   "functionId": "String (Action version row ID; optional on create, required on update, e.g., 'KSniUIbOsr')",
@@ -86,8 +91,8 @@ description: String
 pluginrecordid: String
 isvisible: Boolean (e.g., false)
 type: String ('action')
-category: String
-sub_category: String (optional)
+category: String (HTTP method)
+sub_category: String (UPPERCASE domain entity)
 rtllayer: Boolean
 isAIActionTrigger: Boolean
 functionId: String (optional on create, required on update)
@@ -116,8 +121,8 @@ The additional keys for each trigger which is specified are the supported keys a
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
-  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
+  "category": "String (Must be empty `\"\"` for triggers)",
+  "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -144,8 +149,8 @@ Instant Triggers run via webhooks where external systems send events immediately
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
-  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
+  "category": "String (Must be empty `\"\"` for triggers)",
+  "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -172,8 +177,8 @@ Instant Triggers run via webhooks where external systems send events immediately
 #### Instant Trigger TOON Schema
 ```toon
 authid: String (optional)
-category: String
-sub_category: String (optional)
+category: String (Must be empty for triggers)
+sub_category: String (Must be empty for triggers)
 description: String
 ignoreuniversalsampledata: Boolean
 isvisible: Boolean (e.g., false)
@@ -203,8 +208,8 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
-  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
+  "category": "String (Must be empty `\"\"` for triggers)",
+  "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -231,8 +236,8 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
 #### Schedule Trigger TOON Schema
 ```toon
 authid: String (optional)
-category: String
-sub_category: String (optional)
+category: String (Must be empty for triggers)
+sub_category: String (Must be empty for triggers)
 description: String
 ignoreuniversalsampledata: Boolean
 isvisible: Boolean (e.g., false)
@@ -262,8 +267,8 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
-  "category": "String (The trigger category, e.g., 'UPDATE' or 'AI')",
-  "sub_category": "String (Optional. The trigger sub-category, e.g., 'PAGE')",
+  "category": "String (Must be empty `\"\"` for triggers)",
+  "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
   "ignoreuniversalsampledata": "Boolean (e.g., false)",
   "isvisible": "Boolean (e.g., false)",
@@ -287,8 +292,8 @@ Manual Webhook Triggers are user-configured webhooks where the user manually cop
 #### Manual Trigger TOON Schema
 ```toon
 authid: String (optional)
-category: String
-sub_category: String (optional)
+category: String (Must be empty for triggers)
+sub_category: String (Must be empty for triggers)
 description: String
 ignoreuniversalsampledata: Boolean
 isvisible: Boolean (e.g., false)
