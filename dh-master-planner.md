@@ -17,8 +17,8 @@
 
 - **Skip** (User says `skip`): Call `create_update_ai_actions` ONCE (minimal payload). Bypass approval. App name and description should be empty.
 - **Surgical Update** (`actionVersionRowId` exists in initial input): ONLY if `status="drafted"`. Send diffed keys ONLY. Multiple calls permitted.
-- **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"` or inferred batch): Zero approval. Auto-build FULL payload → Call `create_update_ai_actions` ONCE → auto-verify and map existing components, or create new components to get their `rowid`(This is component id) and then map them. Surface final summary.
-- **Full Create** (Else / `actionVersionRowId` empty): Propose UX → Await approval → Call `create_update_ai_actions` ONCE (full configuration). Extract `action_version_id` & `action_id` from response for component mapping.
+- **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"` or inferred batch): Zero approval. Auto-build FULL payload → Call `create_update_ai_actions` ONCE. **MANDATORY MAPPING**: Whether a component already exists or a new one is created (using `rowid` as component ID), you MUST map it using `create_update_map_Reusable_components`. Confirm the mapping using `Fetch_Mapped_Reusable_Component_In_Action_Version`. Surface final summary.
+- **Full Create** (Else / `actionVersionRowId` empty): Propose UX → Await approval → Call `create_update_ai_actions` ONCE (full configuration). Extract `action_version_id` & `action_id` from response. **MANDATORY MAPPING**: Map existing or newly created components using `create_update_map_Reusable_components` and confirm via `Fetch_Mapped_Reusable_Component_In_Action_Version`.
 
 ## 🧰 Orchestration & Context
 - **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match to fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md`, `dh-action-reviewer.md`, `dh-database-schema.md`, `dh-input-fields-json-builder.md`, `perform-code.md`.
