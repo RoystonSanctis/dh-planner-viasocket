@@ -13,7 +13,7 @@
 - **Dropdown/Multiselect/Boolean Label and Placeholder Rule:** For `dropdown`, `multiselect`, and `boolean` fields, the `label` should be the direct field name (e.g., `label: "Page"`) and the `placeholder` should instruct the user on the action (e.g., `placeholder: "Select Page"`).
 - **Proactive UX:** Suggest dynamic schemas, relative date toggles, and conditional filters for non-technical users.
 - **Safe Mutations:** NEVER rename existing field keys (breaks user mapping). Minimum viable fixes only. No opportunistic refactoring.
-- **Clean Code Style (CRITICAL):** Flag verbose code that reads `context?.inputData?.x` one-by-one, assigns `payload.x = x` per field, or uses repeated `if (x !== undefined && x !== null && x !== '')` checks for each optional field. Correct pattern: destructure inputs upfront, build payloads via spread/shorthand, and use a single `Object.fromEntries(Object.entries(raw).filter(...))` for cleanup.
+- **Clean Code Style:** Flag verbose code that assigns `payload.x = x` per field, or uses repeated `if (x !== undefined && x !== null && x !== '')` checks for each optional field. Correct pattern: prefer destructuring inputs upfront, build payloads via spread/shorthand, and use a single `Object.fromEntries(Object.entries(raw).filter(...))` for cleanup. Note: Reading via `context?.inputData?.<key>` and `context?.authData?.<key>` is also supported.
 
 ## 🧰 Diagnostic Tools
 - `Fetch_Reusable_Components`: Check available components.
