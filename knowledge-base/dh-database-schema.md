@@ -8,6 +8,7 @@ published: true
 # Page Index
 
 - Database Schema for the Tool Call Model
+- Category & Sub Category Guidelines
 - Action Object Schema
   - Action JSON Schema
   - Action TOON Schema

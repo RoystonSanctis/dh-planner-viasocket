@@ -7,6 +7,7 @@ published: true
 # Page Index
 
 - Connection Practices Knowledge Base
+  - Authentication Context & Perform Code usage
 - Connections
   - Connection Selection & Priority Guidelines
   - Basic Auth
@@ -68,6 +69,7 @@ published: true
     - Technical Reasoning Principles
   - Connection Design Strategy
     - The Minimal Trust Principle
+    - Test (Me) API & `testcode` Selection Rules (CRITICAL)
     - Identifier & Token Resolution
     - Grant Type Evaluation
   - Field Design & Dynamic UI Rules
