@@ -1713,12 +1713,19 @@ Actions perform request/response operations on external services. Unlike schedul
 
 ## Action Perform Code Rules:
 
+**🧹 Clean Code Style (applies to ALL perform code patterns below):**
+All generated code MUST be short, to-the-point, and well-structured. When code is passed as a string (e.g., `perform`, `testcode`), use raw `\n` for newlines — NEVER double-escaped `\\n`. Follow these principles:
+1. **Destructure inputs upfront:** Prefer a single destructuring assignment from `context?.inputData || {}` at the top of the function. Reading via `context?.inputData?.<key>` is also supported.
+2. **Build payloads via spread:** Construct a raw payload object using the spread operator (`...`) and shorthand property names, NOT by assigning each field one-by-one with `payload.x = x`.
+3. **Centralized cleanup:** Strip `undefined`, `null`, and `''` values from the payload using a single `Object.fromEntries(Object.entries(raw).filter(...))` call instead of repeating `if (x !== undefined && x !== null && x !== '') payload.x = x` for every optional field.
+4. **No redundant variables:** Avoid unnecessary intermediate variables. Keep the code minimal and readable.
+
 **Best Practice Algorithm:**
 First identify what the action is trying to do: read data, create data, update data, find-or-create data, or delete/archive data. Then choose the closest pseudo-code pattern below and adapt the endpoint, method, query params, body, and response path according to the service API.
 
 - **Scheduled Trigger Perform vs Sample Output:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine automatically loops through that array and runs the workflow for each individual item. The Sample Code, however, must return a single object `{ ... }` representing just one of those items (which can be retrieved through the GET code pattern) to ensure the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array.
 - **Required Field Validation:** For every input field defined with `required: true` in the input fields JSON, validate the value at the top of the function before making any API call. If the value is missing, empty, `null`, or `undefined`, throw an error immediately.
-- **Input Reading:** Read all user inputs from `context?.inputData?.<key>`.
+- **Input Reading:** Prefer destructuring all user inputs from `context?.inputData || {}` at the top of the function. Reading via `context?.inputData?.<key>` is also supported.
 - **HTTP Request:** Use `axios()` for all HTTP requests.
 - **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
 - **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
@@ -1957,31 +1964,32 @@ Use this category when the action creates a new record in the external service.
 ```javascript
 async function createRecord() {
   try {
-    // Step 1: Read required input
-    const title = context?.inputData?.title;
+    // Step 1: Destructure all inputs upfront
+    const { title, description, status, priority } = context?.inputData || {};
 
-    if (!title) {
-      throw new Error('title is required.');
-    }
+    // Step 2: Validate required fields
+    if (!title) throw new Error('Title is required.');
 
-    // Step 2: Build payload from action input fields
-    const payload = {};
+    // Step 3: Build raw payload using spread and shorthand properties
+    const rawPayload = { title, description, status, priority };
 
-    payload.title = title;
-    // any other input added in the payload from the inputData.
+    // Step 4: Clean payload — remove undefined, null, and empty string values
+    const payload = Object.fromEntries(
+      Object.entries(rawPayload).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
 
-    // Step 3: Make API request
+    // Step 5: Make API request
     const response = await axios({
       method: 'POST',
       url: `https://api.service.com/resources/records`,
       data: payload
     });
 
-    // Step 4: Return created record
+    // Step 6: Return created record
     return response?.data;
 
   } catch (error) {
-    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+    await errorComponent(error);
   }
 }
 return await createRecord();
@@ -2032,44 +2040,35 @@ Use this category when the action updates an existing record. Send only values p
 ```javascript
 async function updateRecord() {
   try {
-    // Step 1: Read required identifiers
-    const recordId = context?.inputData?.record_id;
+    // Step 1: Destructure all inputs upfront
+    const { record_id, title, description, status, priority } = context?.inputData || {};
 
-    if (!recordId) {
-      throw new Error('Record ID is required.');
-    }
+    // Step 2: Validate required identifiers
+    if (!record_id) throw new Error('Record ID is required.');
 
-    // Step 2: Build partial update payload
-    const payload = {};
-    const ignoredKeys = ['record_id', 'config_key'];
+    // Step 3: Build raw payload (exclude identifier keys)
+    const rawPayload = { title, description, status, priority };
 
-    for (const key of Object.keys(context?.inputData || {})) {
-      if (ignoredKeys.includes(key)) {
-        continue;
-      }
+    // Step 4: Clean payload — remove undefined, null, and empty string values
+    const payload = Object.fromEntries(
+      Object.entries(rawPayload).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    );
 
-      const value = context.inputData[key];
-
-      if (value !== undefined && value !== null && value !== '') {
-        payload[key] = value;
-      }
-    }
-
-    // Step 3: Make PATCH/PUT/POST request depending on the API
+    // Step 5: Make PATCH/PUT/POST request depending on the API
     const response = await axios({
       method: 'PATCH',
-      url: `https://api.service.com/resources/${recordId}`,
+      url: `https://api.service.com/resources/${record_id}`,
       headers: {
         'Content-Type': 'application/json'
       },
       data: payload
     });
 
-    // Step 4: Return updated record
+    // Step 6: Return updated record
     return response?.data;
 
   } catch (error) {
-    await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
+    await errorComponent(error);
   }
 }
 return await updateRecord();
@@ -2130,3 +2129,4 @@ return await deleteRecord();
 - Don't modify the error response. Just call `await errorComponent(error);`.
 - No need to use the authentication configuration in the perform code. It will be handled by viaSocket. The authentication can be passed through header, query parameter or body, these are aleady configured in backend while the API call is made. Can include the additional header/query parameter/body if needed for the API call.
 - **Required Field Validation**: Always throw an error before the API call if a required input field is missing. Do not silently pass `undefined` or `null` to the API for required fields.
+- **Clean Code Style**: Verify the code uses destructuring from `context?.inputData || {}`, builds payloads via spread/shorthand, and cleans optional fields with a single `Object.fromEntries` filter. Flag and refactor any verbose per-field `if`-check patterns.

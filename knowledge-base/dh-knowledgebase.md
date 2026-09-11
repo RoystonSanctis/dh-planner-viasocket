@@ -224,9 +224,14 @@ try {
   await errorComponent(error);
 }
 ```
-- Read inputs via `context?.inputData?.<key>`. GET uses `params`, POST uses `data`.
+- Read inputs via destructuring from `context?.inputData || {}` at the top of the function. Reading via `context?.inputData?.<key>` is also supported. GET uses `params`, POST uses `data`.
 - Handle API rate limits in loops (delay/retry/headers).
 - **Scheduled Perform vs Sample**: Perform returns array `[{item1},{item2}]` (engine loops per item). Sample returns single object `{...}` (one item via GET pattern for schema mapping).
+- **Formatting & Code Style:** Clean JS with proper indent. NO minified code. When code is passed as a string (e.g., `perform`, `testcode`), use raw `\n` for newlines — NEVER double-escaped `\\n`. All generated code MUST follow these principles:
+  - **Destructure inputs upfront:** Prefer a single destructuring assignment from `context?.inputData || {}`. Reading via `context?.inputData?.<key>` is also supported.
+  - **Build payloads via spread:** Construct a raw payload object using the spread operator (`...`) and shorthand property names, NOT by assigning each field one-by-one with `payload.x = x`.
+  - **Centralized cleanup:** Strip `undefined`, `null`, and `''` values from the payload using a single `Object.fromEntries(Object.entries(raw).filter(...))` call instead of repeating `if (x !== undefined && x !== null && x !== '') payload.x = x` for every optional field.
+  - **Keep it minimal:** Avoid redundant intermediate variables. The code should be short, to-the-point, and well-structured.
 
 ## Libraries
 Direct, no import: `axios` `fetch`(node-fetch) `https` `crypto` `setTimeout` `Buffer` `atob` `FormData`(form-data) `jwt`(jsonwebtoken) `_`(lodash) `cheerio` `moment` `URLSearchParams` `XMLParser` `XMLBuilder` `XMLValidator`. `axios` accepts `maxBodyLength:Infinity`. Same set in reusable components.

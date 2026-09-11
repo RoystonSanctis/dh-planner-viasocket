@@ -38,7 +38,11 @@
 - **Category & Sub Category:** When building the payload, `category` MUST always be `"AI"`. For `sub_category`, choose from the existing sub-categories or create a new one (in UPPERCASE) representing the domain entity.
 - **Completeness:** MUST support ALL documented API parameters (query, body, headers, filters).
 - **Placeholders:** `placeholder`/`customPlaceholder` MUST be strings (wrap numbers/booleans in quotes: `"100"`, `"true"`). For dropdown/multiselect/boolean fields, `label` should be the direct field name (e.g., `label: "Page"`) and `placeholder` should instruct the user (e.g., `placeholder: "Select Page"`).
-- **Formatting:** Clean JS (`\n`, proper indent). NO minified code.
+- **Formatting & Code Style:** Clean JS with proper indent. NO minified code. When code is passed as a string (e.g., `perform`, `testcode`), use raw `\n` for newlines — NEVER double-escaped `\\n`. All generated code MUST follow these principles:
+  - **Destructure inputs upfront:** Prefer a single destructuring assignment from `context?.inputData || {}`. Reading via `context?.inputData?.<key>` is also supported.
+  - **Build payloads via spread:** Construct a raw payload object using the spread operator (`...`) and shorthand property names, NOT by assigning each field one-by-one with `payload.x = x`.
+  - **Centralized cleanup:** Strip `undefined`, `null`, and `''` values from the payload using a single `Object.fromEntries(Object.entries(raw).filter(...))` call instead of repeating `if (x !== undefined && x !== null && x !== '') payload.x = x` for every optional field.
+  - **Keep it minimal:** Avoid redundant intermediate variables. The code should be short, to-the-point, and well-structured.
 - **Trust KB:** Rely implicitly on `📥 Knowledge Base`. NEVER ask for injected `pluginrecordid` or `authid`.
 
 ## 💬 Final Response Formatting
