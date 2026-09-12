@@ -35,9 +35,9 @@ description: "Token-minimal knowledge base for designing viaSocket plugs. Reason
 # Universal Rules
 These apply everywhere — stated once, never repeated.
 - **API docs = ground truth** (override user cURL). Must support all possible parameters available in the API documentation. Every documented field → UI input or code-handled. Never invent undocumented params; never omit a supported optional or required parameter.
-- **No auth** — viaSocket handles it. Never expose, hardcode, or include auth logic.
-  - You can access user-provided auth data in code via `context?.authData?.<field_key>` (where `<field_key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details from the Knowledge Base).
-  - **Confidential Keys**: Confidential auth keys (e.g., `context?.authData?.api_key`) are directly mapped in `authenticationpaths` (whitelisted domains from backend), so there is **NO need to use them explicitly in your code**. Other non-confidential `context?.authData` fields can be used if required to run the code.
+- **No auth in Payload**: viaSocket handles it. All authentication is passed from the backend via connections (`authenticationpaths` like headers, params, or body). Never expose, hardcode, or include auth logic in the API payload.
+  - **Direct Auth Usage**: If an auth path is directly used in the code, it MUST be flagged. Do NOT flag for auth not being passed.
+  - **Non-Confidential Keys**: Apart from authentication keys, any other keys like domains or IDs that must be passed from the auth data and used in the request body can be accessed via the `context?.authData?.<field_key>` path.
 - **Never ask** for `pluginrecordid` or `authid` (internally passed).
 - **Output / `inputjson` Format (CRITICAL JSON SCHEMA RULES)**: `inputjson` in `request_payload` is structured as `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
   - **NO `"item"` WRAPPERS EVER:** You are STRICTLY FORBIDDEN from wrapping ANY array inside an `"item"` key. This applies to `inputFields`, `options`, or any other list.
