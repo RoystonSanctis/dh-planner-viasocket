@@ -706,19 +706,23 @@ A Connection Label uniquely identifies a saved connection so users can distingui
 * **Masking:** Enable masking whenever the label value is sensitive (e.g. partially hidden email or ID).
 
 ### Connection Value Path Rules (Single Value & Composite Keys)
-* **Single Value Path Only:** The `connectionlabelvalue` (and `_connectionlabelvalue`) field MUST contain **exactly one single path** (e.g., `context?.res?.data?.workspace_name` or `context?.authData?.testcode?.bot?.workspace_name`).
+* **Mandatory `context?.authData?` Prefix:** The `connectionlabelvalue` (and `_connectionlabelvalue`) MUST begin with `context?.authData?`. The value returned by the Test (Me) API perform code is stored at `context.authData.testcode`, so label paths resolve from there.
+  * *INVALID (never emit):* `context?.res?.data?.<anything>` — `res` / `response` is a **local variable inside the `testcode` function scope**. It does not exist on `context` at label-resolution time, so this always resolves to `undefined`.
+  * *Valid:* `context?.authData?.testcode?.["workspace_name"]`
+* **Bracket Notation for Keys:** Access each property with bracket notation and double quotes, e.g. `context?.authData?.testcode?.["connection_label"]`, not `context?.authData?.testcode?.connection_label`.
+* **Single Value Path Only:** The field MUST contain **exactly one single path** (e.g., `context?.authData?.testcode?.["workspace_name"]` or `context?.authData?.testcode?.["bot"]?.["workspace_name"]`).
 * **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` is **STRICTLY PROHIBITED**.
-  * *Bad (PROHIBITED):* `"context?.res?.data?.workspace_name || context?.res?.data?.bot?.owner?.name || context?.authData?.clientid"`
-  * *Good:* `"context?.res?.data?.workspace_name"`
+  * *Bad (PROHIBITED):* `"context?.authData?.testcode?.[\"workspace_name\"] || context?.authData?.testcode?.[\"email\"]"`
+  * *Good:* `"context?.authData?.testcode?.[\"workspace_name\"]"`
 * **Composite or Fallback Keys in Test API Code:** If a fallback across multiple fields or a composite string (e.g., workspace name falling back to user name, or combining first and last name) is required to form the connection label:
   1. The composite/fallback logic **must be constructed inside the Test (Me) API perform code (`testcode`)**.
   2. The `testcode` function must set and return that composite property as a single key on its response object (e.g., `data.workspace_name = data.bot?.workspace_name || data.name || data.email;`).
-  3. Map that single composite property directly in `connectionlabelvalue` (e.g., `context?.authData?.testcode?.workspace_name`).
+  3. Map that single composite property directly in `connectionlabelvalue` (e.g., `context?.authData?.testcode?.["workspace_name"]`).
 
 **Example 1 — Single Direct Path (e.g., Notion/Workspace):**
 * `connectionlabelkey`: `"workspace"`
-* `connectionlabelvalue`: `"context?.res?.data?.workspace_name"`
-* `_connectionlabelvalue`: `"${context?.res?.data?.workspace_name}"`
+* `connectionlabelvalue`: `"context?.authData?.testcode?.[\"workspace_name\"]"`
+* `_connectionlabelvalue`: `"${context?.authData?.testcode?.[\"workspace_name\"]}"`
 
 **Example 2 — Composite / Fallback Property inside Test (Me) API Perform Code (`testcode`):**
 ```javascript
@@ -741,8 +745,8 @@ return await testcode();
 ```
 * **Mapping in Connection configuration:**
   * `connectionlabelkey`: `"connection_label"`
-  * `connectionlabelvalue`: `"context?.authData?.testcode?.connection_label"`
-  * `_connectionlabelvalue`: `"${context?.authData?.testcode?.connection_label}"`
+  * `connectionlabelvalue`: `"context?.authData?.testcode?.[\"connection_label\"]"`
+  * `_connectionlabelvalue`: `"${context?.authData?.testcode?.[\"connection_label\"]}"`
 
 ## Field Naming & Description
 Applies to all credential Auth fields collected in "Configure your Fields":
@@ -844,7 +848,7 @@ Collect and request only what is strictly necessary:
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
 1. Resolve the Connection Label and Unique Connection Identifier from the Test (Me) API response wherever possible.
-2. Ensure `connectionlabelvalue` maps to **exactly one path** (e.g., `context?.authData?.testcode?.bot?.workspace_name`). Never chain multiple paths with `||`.
+2. Ensure `connectionlabelvalue` maps to **exactly one path**, beginning with `context?.authData?` and using bracket notation (e.g., `context?.authData?.testcode?.["bot"]?.["workspace_name"]`). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
 3. If a composite or fallback label is required across multiple response fields, construct that composite key directly inside the Test (Me) API perform code (`testcode`) and map its single key path to `connectionlabelvalue`.
 4. If no user-identifiable field exists in the response, fall back to a stable non-sensitive value (e.g. account/workspace ID) constructed in `testcode` or mapped directly, noting this fallback explicitly in the design output.
 5. Never ask the user to manually paste internal system IDs when the Test API can supply them.
@@ -892,7 +896,7 @@ Use **response-derived resolution** rather than asking users to manually supply 
     * The `testcode` field value in payloads MUST ALWAYS be a stringified JSON string wrapping an object with a `"source"` key (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`).
     * The actual JavaScript perform code must NEVER be placed directly on the `testcode` key as a raw code string.
     * If no test code is present or required, set `testcode` to `"{\"source\":null}"`.
-  * **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.connection_label`), ensuring no `||` operators are present in `connectionlabelvalue`.
+  * **Fallback Label Pattern** — When no user-identifiable field exists in the Test response or fallback field resolution is needed, construct a composite key (e.g. `data.connection_label`) inside `testcode` perform code and map `connectionlabelvalue` to that single path (`context?.authData?.testcode?.["connection_label"]`), ensuring no `||` operators are present in `connectionlabelvalue`.
   * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 
 ---

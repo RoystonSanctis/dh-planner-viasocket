@@ -153,8 +153,8 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     "_uniqueKey": "String (Template string version of uniqueKey, e.g., \"${context?.authData?.clientid}\")"
   },
   "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace\")",
-  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account; MUST be a single path without '||' fallback operators, e.g., \"context?.res?.data?.workspace_name\" or \"context?.authData?.testcode?.bot?.workspace_name\". Never use || fallback chains like \"context?.res?.data?.workspace_name || context?.res?.data?.bot?.owner?.name\"). If a composite value or fallback is needed, create the composite key in testcode perform code and map its single path here.",
-  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.res?.data?.workspace_name}\")",
+  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account. MUST begin with context?.authData? and be exactly ONE path with no '||' operators. Use bracket notation for the final key, e.g., context?.authData?.testcode?.[\"workspace_name\"] or context?.authData?.testcode?.[\"bot\"]?.[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is a local variable inside perform-code function scope and is NOT in scope at label resolution; the testcode return value is stored at context.authData.testcode. Never use || fallback chains. If a composite value or fallback is needed, create the composite key in testcode perform code and map its single path here.)",
+  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "connectionlabelname": "null (Reserved field; always null in observed data)",
   "_connectionlabelkey": "null (Reserved field; always null in observed data)",
   "connectionlabelkey_copy": "null (Reserved copy field; always null in observed data)",
@@ -418,8 +418,8 @@ The Update Connection Payload is sent by the client to modify an existing Connec
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.res?.data?.workspace_name\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.res?.data?.workspace_name}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value. MUST begin with context?.authData? and be a single path without '||' operators, using bracket notation for the final key, e.g., context?.authData?.testcode?.[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is function-local to perform code and is NOT in scope at label resolution.)",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
@@ -558,8 +558,8 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.res?.data?.workspace_name\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.res?.data?.workspace_name}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value. MUST begin with context?.authData? and be a single path without '||' operators, using bracket notation for the final key, e.g., context?.authData?.testcode?.[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is function-local to perform code and is NOT in scope at label resolution.)",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
   "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
