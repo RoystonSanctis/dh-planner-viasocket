@@ -14,6 +14,7 @@
 - **Mandatory Search:** 
   - **Main Website First:** Start by running **GTWY Web Search** on the main website. This will fetch the page markdown and all the links present on the page, which can help you find the API documentation link.
   - **Target Docs:** Use your searches to target the official API documentation.
+  - **Competitor Analysis:** Use the web search tool to search for competitor integrations (e.g., Zapier, Pabbly Connect, Make, n8n) for the given service. Analyze what triggers and actions they have built to identify the most useful and popular use cases for inspiration.
 - **Web Search Protocol (`llms.txt` & `sitemap.xml`):**
   - **`sitemap.xml` Best Practice:** Go through the `sitemap.xml` of the main website or the documentation website. The main website's `sitemap.xml` often contains the API page, which leads to the doc link. In turn, the documentation website's `sitemap.xml` gives all the page links.
   - **Finding `llms.txt`:** Explore these links to find the `llms.txt` file, or try guessing the URL for `llms.txt` (e.g., appending `/llms.txt` to the base URL).
