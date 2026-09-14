@@ -88,6 +88,17 @@ This document contains structured UX guidelines and best practices for creating 
 - **Using `context?.authData`**: In Trigger or Action perform codes, you can access user-provided auth fields via `context?.authData?.<field_key>` (where `<field_key>` is mapped from `authfields -> authentication -> fields -> key`).
 - **Confidential Keys**: Confidential keys (e.g., `context?.authData?.api_key`) are directly mapped in `authenticationpaths` by the backend. Therefore, there is **NO need to explicitly include them in the perform code**. You may use other non-confidential `context?.authData` properties if they are required to run the code.
 
+## Code Style & Newline Escaping
+- **Newline Escaping (DEPTH-AWARE, CRITICAL):** Generated JS MUST decode to real newlines and indentation. The correct escape depends on how deeply the field is nested — applying one uniform escape to every code field is WRONG.
+  - **Double-encoded fields — use `\\n`:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. These wrap a `"source"` key, so their value is decoded TWICE (once as the payload string, once by `JSON.parse`). A newline MUST be written as `\\n` so it survives both decodes.
+    - Correct: `"testcode": "{\"source\":\"async function testcode() {\\n  const { api_key } = context?.authData || {};\\n}\\n\\nreturn await testcode();\"}"`
+    - Wrong (unparseable — raw newline inside the inner JSON string): `"{\"source\":\"async function testcode() {\n  ...\"}"`
+  - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.uniqueKey`, `uniquekeytostoreauth._uniqueKey`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
+    - Correct: `"value": "function returnHeaders() {\n  const { api_key } = context?.authData || {};\n\n  return \`Api-Key ${api_key}\`;\n}\n\nreturn returnHeaders();"`
+    - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor and collapses the code onto one line): `"value": "function returnHeaders() {\\n  ..."`
+  - **The rule in one line:** escape levels MUST equal decode passes — 2 levels (`\\n`) for wrapper fields, 1 level (`\n`) for plain fields. `queryparams` is also a stringified JSON field but holds only static params, never code or newlines.
+  - **Self-check before every call:** `JSON.parse(testcode).source` MUST parse successfully AND span multiple lines. Every `authenticationpaths.*[].value` MUST contain NO `\\n`. Build these values with `JSON.stringify(...)` rather than hand-counting backslashes.
+
 # Connections
 
 A Connection lets users prove their identity to a plug's target app and authorize viaSocket to access their data. Every Action and Trigger in a plug runs on top of a Connection. There are four Auth Types, one of which (OAuth 2.0) has four distinct Grant Types, giving **six total Connection UX flows**.

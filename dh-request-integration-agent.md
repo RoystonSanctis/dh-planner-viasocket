@@ -36,7 +36,7 @@ Determine the starting point based on plug status and auth context:
 - **Route:** DIRECT to `DH-Planner`.
 
 ## 🛠️ 3. Tool Constraints (`DH-Planner`)
-- **`preferedauthversion`:** ALWAYS pass (from `DHConnection-AI` response or context). Fallback: `""`.
+- **`preferedauthversion`:** MANDATORY for `DH-Planner`. If a new connection is created via `DHConnection-AI`, extract it from the successful response. If the connection already exists, retrieve it from the Inputs & Context section. If the preferred connection is unknown, use the fallback: `""`.
 - **Creation (New App/Action/Trigger):**
   - `actionId` and `actionVersionRowId` **MUST BE OMITTED**.
   - *Grouping:* May group simple creations by `actionType` into one call. Complex creations require sequential individual calls.

@@ -295,6 +295,18 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 > - Prefer one lightweight authenticated "current user", "me", "session", or equivalent endpoint (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /profile`, `GET /oauth2/v2/userinfo`; if unavailable, choose any suitable lightweight authenticated endpoint like `GET /workspaces`, `GET /teams`, `GET /status`, `GET /ping`).
 > - If the endpoint returns a successful authenticated response, the connection test passes.
 
+> [!IMPORTANT]
+> **Newline Escaping (DEPTH-AWARE, CRITICAL):**
+> Generated JS MUST decode to real newlines and indentation. The correct escape depends on how deeply the field is nested — applying one uniform escape to every code field is WRONG.
+> - **Double-encoded fields — use `\\n`:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. These wrap a `"source"` key, so their value is decoded TWICE (once as the payload string, once by `JSON.parse`). A newline MUST be written as `\\n` so it survives both decodes.
+>   - Correct: `"testcode": "{\"source\":\"async function testcode() {\\n  const { api_key } = context?.authData || {};\\n}\\n\\nreturn await testcode();\"}"`
+>   - Wrong (unparseable — raw newline inside the inner JSON string): `"{\"source\":\"async function testcode() {\n  ...\"}"`
+> - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.uniqueKey`, `uniquekeytostoreauth._uniqueKey`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
+>   - Correct: `"value": "function returnHeaders() {\n  const { api_key } = context?.authData || {};\n\n  return \`Api-Key ${api_key}\`;\n}\n\nreturn returnHeaders();"`
+>   - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor and collapses the code onto one line): `"value": "function returnHeaders() {\\n  ..."`
+> - **The rule in one line:** escape levels MUST equal decode passes — 2 levels (`\\n`) for wrapper fields, 1 level (`\n`) for plain fields. `queryparams` is also a stringified JSON field but holds only static params, never code or newlines.
+> - **Self-check before every call:** `JSON.parse(testcode).source` MUST parse successfully AND span multiple lines. Every `authenticationpaths.*[].value` MUST contain NO `\\n`. Build these values with `JSON.stringify(...)` rather than hand-counting backslashes.
+
 ## Create Connection JSON Schema
 
 ```json
