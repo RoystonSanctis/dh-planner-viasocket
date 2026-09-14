@@ -10,72 +10,72 @@ published: true
 - Triggers
   - Trigger Selection & Priority Guidelines
   - Instant Trigger
-    - Instant Trigger Purpose:
-    - Instant Trigger UX Pattern:
-    - Instant Trigger Common Input Fields:
-    - Instant Trigger Perform Code Reference:
-    - Instant Trigger Best Practices:
+    - Instant Trigger Purpose
+    - Instant Trigger UX Pattern
+    - Instant Trigger Common Input Fields
+    - Instant Trigger Perform Code Reference
+    - Instant Trigger Best Practices
   - Scheduled Trigger
-    - Scheduled Trigger Purpose:
-    - Scheduled Trigger UX Pattern:
-    - Scheduled Trigger Common Input Fields:
-    - Scheduled Trigger Perform Code Reference:
-    - Scheduled Trigger Best Practices:
+    - Scheduled Trigger Purpose
+    - Scheduled Trigger UX Pattern
+    - Scheduled Trigger Common Input Fields
+    - Scheduled Trigger Perform Code Reference
+    - Scheduled Trigger Best Practices
   - Manual Trigger
-    - Manual Trigger Purpose:
-    - Manual Trigger UX Pattern:
-    - Manual Trigger Common Input Fields:
-    - Manual Trigger Perform Code Reference:
-    - Manual Trigger Best Practices:
+    - Manual Trigger Purpose
+    - Manual Trigger UX Pattern
+    - Manual Trigger Common Input Fields
+    - Manual Trigger Perform Code Reference
+    - Manual Trigger Best Practices
 - Actions
   - GET
-    - GET Purpose:
-    - GET UX Pattern:
-    - GET Common Input Fields:
-    - GET Perform Code Reference:
-    - GET Best Practices:
+    - GET Purpose
+    - GET UX Pattern
+    - GET Common Input Fields
+    - GET Perform Code Reference
+    - GET Best Practices
   - LIST
-    - LIST Purpose:
-    - LIST UX Pattern:
-    - LIST Common Input Fields:
-    - LIST Perform Code Reference:
-    - LIST Best Practices:
+    - LIST Purpose
+    - LIST UX Pattern
+    - LIST Common Input Fields
+    - LIST Perform Code Reference
+    - LIST Best Practices
   - FIND/SEARCH
-    - FIND/SEARCH Purpose:
-    - FIND/SEARCH UX Pattern:
-    - FIND/SEARCH Common Input Fields:
-    - FIND/SEARCH Perform Code Reference:
-    - FIND/SEARCH Best Practices:
+    - FIND/SEARCH Purpose
+    - FIND/SEARCH UX Pattern
+    - FIND/SEARCH Common Input Fields
+    - FIND/SEARCH Perform Code Reference
+    - FIND/SEARCH Best Practices
   - CREATE
-    - CREATE Purpose:
-    - CREATE UX Pattern:
-    - CREATE Common Input Fields:
-    - CREATE Perform Code Reference:
-    - CREATE Best Practices:
+    - CREATE Purpose
+    - CREATE UX Pattern
+    - CREATE Common Input Fields
+    - CREATE Perform Code Reference
+    - CREATE Best Practices
   - UPDATE
-    - UPDATE Purpose:
-    - UPDATE UX Pattern:
-    - UPDATE Common Input Fields:
-    - UPDATE Perform Code Reference:
-    - UPDATE Best Practices:
+    - UPDATE Purpose
+    - UPDATE UX Pattern
+    - UPDATE Common Input Fields
+    - UPDATE Perform Code Reference
+    - UPDATE Best Practices
   - FIND OR CREATE
-    - FIND OR CREATE Purpose:
-    - FIND OR CREATE UX Pattern:
-    - FIND OR CREATE Common Input Fields:
-    - FIND OR CREATE Perform Code Reference:
-    - FIND OR CREATE Best Practices:
+    - FIND OR CREATE Purpose
+    - FIND OR CREATE UX Pattern
+    - FIND OR CREATE Common Input Fields
+    - FIND OR CREATE Perform Code Reference
+    - FIND OR CREATE Best Practices
   - FIND + UPDATE
-    - FIND + UPDATE Purpose:
-    - FIND + UPDATE UX Pattern:
-    - FIND + UPDATE Common Input Fields:
-    - FIND + UPDATE Perform Code Reference:
-    - FIND + UPDATE Best Practices:
+    - FIND + UPDATE Purpose
+    - FIND + UPDATE UX Pattern
+    - FIND + UPDATE Common Input Fields
+    - FIND + UPDATE Perform Code Reference
+    - FIND + UPDATE Best Practices
   - DELETE
-    - DELETE Purpose:
-    - DELETE UX Pattern:
-    - DELETE Common Input Fields:
-    - DELETE Perform Code Reference:
-    - DELETE Best Practices:
+    - DELETE Purpose
+    - DELETE UX Pattern
+    - DELETE Common Input Fields
+    - DELETE Perform Code Reference
+    - DELETE Best Practices
 - Title & Description Naming Guidelines
   - Action Naming & Description
   - Trigger Naming & Description
@@ -129,7 +129,7 @@ If the trigger type is not specified, evaluate capabilities in this order:
 
 ## Instant Trigger
 
-### Instant Trigger Purpose:
+### Instant Trigger Purpose
 An Instant Trigger fires in real-time when an event occurs in the external service. It uses webhooks that will be provided by viaSocket when the user subscribes to the trigger. the external service sends data directly to viaSocket the moment something happens (e.g., new form submission, new lead, new message). No polling or interval checks needed.
 
 **When to use:**
@@ -137,7 +137,7 @@ An Instant Trigger fires in real-time when an event occurs in the external servi
 - When real-time, immediate data processing is required.
 - Example: New Facebook Lead, New Shopify Order, New form submission on WordPress.
 
-### Instant Trigger UX Pattern:
+### Instant Trigger UX Pattern
 The standard field ordering for an Instant Trigger follows this flow:
 
 1. **Dynamic Dropdown** → Resource selection (e.g., select Facebook Page, select form, select channel). This narrows the scope of incoming webhooks.
@@ -145,13 +145,13 @@ The standard field ordering for an Instant Trigger follows this flow:
 3. **Dynamic Help** *(optional)* → Permission checks, eligibility validation, or contextual warnings displayed based on user selections.
 4. **Conditional Fields** → Additional fields shown/hidden via `visibilityCondition` based on prior selections.
 
-### Instant Trigger Common Input Fields:
+### Instant Trigger Common Input Fields
 - **Dropdown Dynamic** — Used for selecting the resource to listen to (e.g., Page, Form, Channel). Configure `canPaginate` and `enableSearchApi` flags using the priority rules based on API capability: (1) both search and pagination supported ⇒ `canPaginate:true, enableSearchApi:true`; (2) search only, no pagination ⇒ `canPaginate:false, enableSearchApi:true`; (3) pagination only, no search ⇒ `canPaginate:true, enableSearchApi:false`; (4) neither ⇒ `canPaginate:false, enableSearchApi:false`. Verify support via web search; if reusing an existing component that implements pagination/search, set the corresponding flags to `true`.
 - **Input Group Static (whereClause)** — Used for sentence-based event configuration. Only contains `dropdown` and `multiselect` fields when `whereClause: true`.
 - **Help Dynamic** — Used for real-time permission checks or validation (e.g., checking if the user has admin access to a Facebook page).
 - **Boolean** — Used for toggling event subtypes or configuration modes.
 
-### Instant Trigger Perform Code Reference:
+### Instant Trigger Perform Code Reference
 - **Subscribe Code** (Required) - Used to register the webhook with the external service to receive events in real-time. This code tells the external service where to send the webhook data (to the viaSocket endpoint).
 - **Sample Code** (Required) - Used to fetch test data for the trigger configuration UI.
 - **Perform Code (Modify response)** (Optional) - Instant Triggers typically do **not** require perform code since the webhook handles data delivery. This is only used to modify the response data from the webhook if needed.
@@ -184,7 +184,7 @@ The standard field ordering for an Instant Trigger follows this flow:
 - The items are then sent to the flow in batches. (e.g. the number of items in the list is 500 and if the user clicks on "Transfer all items", 200 items will be sent in first batch, 200 items in the second batch and 100 items in the third batch). This process is called as the bulk transfer of the old historical data.
 - The limit for the number of items that can be sent in each batch is 200.
 
-### Instant Trigger Best Practices:
+### Instant Trigger Best Practices
 
 - **Dynamic Help for validation** — Use a dynamic help field after resource selection to check permissions or display relevant warnings.
 - **Clean labels** — Use "Select Page" not "Select Facebook Page". Keep labels generic.
@@ -194,7 +194,7 @@ The standard field ordering for an Instant Trigger follows this flow:
 
 ## Scheduled Trigger
 
-### Scheduled Trigger Purpose:
+### Scheduled Trigger Purpose
 A Scheduled Trigger runs at regular time intervals by repeatedly checking the external service for new, updated, or upcoming data. If something matches the polling window, the workflow runs. It acts as a polling mechanism.
 
 **When to use:**
@@ -202,7 +202,7 @@ A Scheduled Trigger runs at regular time intervals by repeatedly checking the ex
 - When data needs to be checked manually at intervals.
 - Example: New row in Google Sheet (every 5 min), New lead in CRM (every 10 min), Updated database item in Notion, New Upcoming Events in Google Calendar (every 5 min lookahead window).
 
-### Scheduled Trigger UX Pattern:
+### Scheduled Trigger UX Pattern
 The standard field ordering for a Scheduled Trigger follows this flow:
 
 1. **Dynamic Dropdown / Multiselect** → Primary resource selection (e.g., select Data Source, select Spreadsheet, select Calendar(s)). Configure `canPaginate` and `enableSearchApi` flags using the priority rules based on API capability: (1) both search and pagination supported ⇒ `canPaginate:true, enableSearchApi:true`; (2) search only, no pagination ⇒ `canPaginate:false, enableSearchApi:true`; (3) pagination only, no search ⇒ `canPaginate:true, enableSearchApi:false`; (4) neither ⇒ `canPaginate:false, enableSearchApi:false`. Verify support via web search; if reusing an existing component that implements pagination/search, set the corresponding flags to `true`.
@@ -214,7 +214,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 7. **Input Group Static** *(optional)* → Grouped filter settings (e.g., Filter Properties, Search Query). *Note: Do not include page limit, start cursor, or offset fields.*
 8. **AI Field** *(optional)* → Advanced filter conditions using AI-generated queries.
 
-### Scheduled Trigger Common Input Fields:
+### Scheduled Trigger Common Input Fields
 - **Dropdown / Multiselect Dynamic** — Used for selecting the resource to poll (e.g., Data Source, Spreadsheet, Sheet, Calendars). Cascading dropdowns are common (Spreadsheet → Sheet).
 - **String / Number (with list: true, optional limit: N)** — Used when users preconfigure multiple values during trigger setup (e.g. multiple RSS Feed URLs, status codes). Since triggers start workflows and cannot receive dynamic data from upstream steps, `list: true` provides a clean UI where users can add multiple items.
 - **Number** — Used for relative time window offsets in upcoming event triggers (e.g., `meetingBefore`).
@@ -224,7 +224,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 - **Input Group Static** — Used for grouping related filtering or sorting settings. *Do not include pagination fields like page limit or next page token.*
 - **AI Field** — Used for advanced filter conditions where the user can describe the filter in natural language and AI generates the structured query.
 
-### Scheduled Trigger Perform Code Reference:
+### Scheduled Trigger Perform Code Reference
 - Scheduled Triggers require **Perform Code** for polling, filtering, sorting, and pagination.
   - **Output Limit**: The perform code must return an array of items from a **single page** fetch. Capped at a maximum of 1000 items per request (or the service's supported limit, whichever is smaller). The perform code must **not** perform internal client-side loops to fetch multiple pages or accumulate up to 1000 items; instead, fetch exactly one page and use `context.paginationData` to paginate across runs/executions. If the API supports a limit greater than 1000, specify a limit of 1000 or less.
 - They also require **Sample Code** for fetching test data or generating fallback schema.
@@ -232,7 +232,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
   - **Transfer Output Limit**: The `data` key in the returned transfer object must contain a maximum of 200 items per batch.
 - See [Perform Code Knowledge Base → Scheduled Trigger](perform-code.md) for detailed rules, pseudo code, and examples.
 
-### Scheduled Trigger Best Practices:
+### Scheduled Trigger Best Practices
 - **No pagination input fields**: Never ask the user for pagination fields (such as limit, page size, start cursor, next page token). These should be defined internally within the perform code, and the `canpaginate: true` feature should be enabled in the trigger database schema.
 - **No scheduledTime in UI**: Do not suggest or include `scheduledTime` as an input field in the UI. `scheduledTime` is a global variable available in code under `context?.inputData?.scheduledTime`.
 - **Upcoming Events / Relative Time Window Triggers**:
@@ -255,7 +255,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 
 ## Manual Trigger
 
-### Manual Trigger Purpose:
+### Manual Trigger Purpose
 A Manual Trigger (in viaSocket, this corresponds to `manual_webhook`) is used when the external service supports webhooks but does not have a programmatic subscribe/unsubscribe API. The user must manually copy the viaSocket webhook URL and paste it into the external service's platform dashboard.
 
 **When to use:**
@@ -263,10 +263,10 @@ A Manual Trigger (in viaSocket, this corresponds to `manual_webhook`) is used wh
 - When scheduled polling is not possible or not preferred.
 - Example: WordPress form webhook submissions.
 
-### Manual Trigger UX Pattern:
+### Manual Trigger UX Pattern
 The `inputFields` array for a Manual Trigger must only contain a single field: a static `help` field. No other fields (strings, dropdowns, etc.) are allowed.
 
-### Manual Trigger Common Input Fields:
+### Manual Trigger Common Input Fields
 *   **No Auth Rule:** Manual webhook triggers always use 'No Auth'; do not request or configure any authentication/authid.
 *   **Single Field Limit:** The `inputFields` array (inputjson) for a Manual Trigger (`manual_webhook`) must only contain **one field**: a static `help` field (`type: "help"`). No other fields are allowed.
 *   **Mandatory Two-Part HTML Structure in `help`:** The `help` HTML content MUST strictly follow a 2-part structure with standard inline styling (`<div style="font-family: Arial, sans-serif; line-height: 1.6;">`):
@@ -283,11 +283,11 @@ The `inputFields` array for a Manual Trigger must only contain a single field: a
     ]
     ```
 
-### Manual Trigger Perform Code Reference:
+### Manual Trigger Perform Code Reference
 - Manual Triggers use a direct API call pattern without scheduling or pagination logic.
 - See [Perform Code Knowledge Base → Manual Trigger](perform-code.md) for code patterns.
 
-### Manual Trigger Best Practices:
+### Manual Trigger Best Practices
 - **Always use a single Help block** as the only input field to guide the user through webhook setup with the standard two-part HTML structure (`🔗 Webhook Setup Guide` and `📤 What happens next?`).
 - **Use clear typography and formatting:** Use `<div style="font-family: Arial, sans-serif; line-height: 1.6;">` wrapper and `<strong>` for UI labels/buttons.
 
@@ -299,28 +299,28 @@ Actions perform operations on external services. They are organized by category 
 
 ## GET
 
-### GET Purpose:
+### GET Purpose
 A GET action retrieves a **single specific record** by its unique identifier (ID). It returns the full details of one item.
 
 **Examples:** Get Page by ID, Get User by ID, Get Order Details, Get Spreadsheet by ID.
 
-### GET UX Pattern:
+### GET UX Pattern
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet). Configure `canPaginate` and `enableSearchApi` flags using the priority rules based on API capability: (1) both search and pagination supported ⇒ `canPaginate:true, enableSearchApi:true`; (2) search only, no pagination ⇒ `canPaginate:false, enableSearchApi:true`; (3) pagination only, no search ⇒ `canPaginate:true, enableSearchApi:false`; (4) neither ⇒ `canPaginate:false, enableSearchApi:false`. Verify support via web search; if reusing an existing component that implements pagination/search, set the corresponding flags to `true`.
 2. **Dynamic Dropdown / String** → Record ID selection. Either a searchable dropdown that lists records, or a plain string field where the user enters the ID directly.
 3. **Multiselect Dynamic** *(optional)* → Select which fields/properties to include in the response.
 4. **Input Group Static** *(optional)* → Additional options (e.g., output format, include metadata).
 
-### GET Common Input Fields:
+### GET Common Input Fields
 - **Dropdown Dynamic** — For selecting the parent resource and/or the specific record to retrieve. `customHelp` should explain where the user can find the ID manually.
 - **String** — For directly entering a record ID when a dropdown isn't practical.
 - **Multiselect Dynamic** *(optional)* — For filtering which properties/fields to return.
 - **Boolean** *(optional)* — For toggling response options (e.g., include archived, include metadata).
 
-### GET Perform Code Reference:
+### GET Perform Code Reference
 - GET actions use a simple `GET` HTTP request with the record ID in the URL path or query params.
 - See [Perform Code Knowledge Base → Actions → GET](perform-code.md) for code patterns.
 
-### GET Best Practices:
+### GET Best Practices
 - **Provide manual input guidance** — Always include `customHelp`, `customInputLabel`, and `customPlaceholder` so users can manually map record IDs from previous workflow steps.
 - **Single record return** — GET actions return one record. If multiple records are needed, use LIST instead.
 - **Date Range Selection UX (`date_mode`)** — For report or analytics GET actions requiring date parameters, provide a static `date_mode` dropdown to let users switch between relative ranges ("Relative (Last N Days)") and fixed date bounds ("Fixed Dates"), keeping the date math internal to perform code.
@@ -331,12 +331,12 @@ A GET action retrieves a **single specific record** by its unique identifier (ID
 
 ## LIST
 
-### LIST Purpose:
+### LIST Purpose
 A LIST action retrieves **multiple records** from a resource, typically with pagination, filtering, and field selection support. It returns an array of items.
 
 **Examples:** List Data Source Items, List Spreadsheets, List Channels, List Orders, List Users.
 
-### LIST UX Pattern:
+### LIST UX Pattern
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source).
 2. **Dropdown Static (Mode)** → Choose the retrieval mode:
    - **List All**: Retrieve all records (with pagination options).
@@ -360,7 +360,7 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 4. **Input Group Static (Filters)** *(optional)* → Grouped filter fields (e.g., status multiselect, date filters) visible for modes that support narrowing (e.g., "List All", "Recently Updated"). May contain an **AI Field** for natural-language date normalization.
 5. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned. Pre-select a curated set of ~10-12 essential fields as `defaultValue`.
 
-### LIST Common Input Fields:
+### LIST Common Input Fields
 - **Dropdown Dynamic** — For selecting the parent resource to list items from.
 - **Dropdown Static (Mode)** — For choosing between "List All", "Search by... (identifier)", "Search by ID", or "Advance Search".
 - **Boolean** — "Enable Pagination" toggle (shown under Mode: "List All", or under Mode: "Search by... (identifier)" when the search identifier is not unique).
@@ -369,7 +369,7 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 - **AI Field** — For advanced filter conditions (only shown under Mode: "Advance Search").
 - **Multiselect Dynamic** — Optional field chooser to select which fields/properties to return in the response.
 
-### LIST Perform Code Reference:
+### LIST Perform Code Reference
 - Code must fork dynamically based on the selected `mode`:
   - **List All**: If "Enable Pagination" is true, execute a single paginated API request with `limit` and `offset`. If false, implement a client-side loop (internal pagination) using a `while` loop or recursion to fetch all records and return the consolidated list.
   - **Search by... (identifier)**: Execute the search API using the provided identifier. If pagination is enabled (for non-unique search fields), handle pagination parameters accordingly.
@@ -378,7 +378,7 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 - If the optional field-selection multiselect is populated, filter the returned response payload to only include selected keys/fields. Otherwise, return all keys.
 - See [Perform Code Knowledge Base → Actions → LIST](perform-code.md) for code patterns.
 
-### LIST Best Practices:
+### LIST Best Practices
 - **Combine operations** — Always combine listing ("List All"), searching (by specific identifiers), "Search by ID", and "Advance Search" (if supported) into a single LIST action using a Mode selector.
 - **Conditional pagination** — Offer pagination settings (limit, offset) only when Mode is 'List All' or when Mode is a non-unique search identifier, and "Enable Pagination" is enabled. Do not show pagination options for 'Search by ID' mode.
 - **Client-side pagination** — If Mode is 'List All' (or a non-unique search identifier) and "Enable Pagination" is disabled, the perform code must automatically iterate through all pages (internal pagination) to return all records.
@@ -394,12 +394,12 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 
 ## FIND/SEARCH
 
-### FIND/SEARCH Purpose:
+### FIND/SEARCH Purpose
 A FIND/SEARCH action searches for records matching specific criteria. It may return one or multiple matching records. Unlike GET (which uses a known ID), FIND/SEARCH uses query parameters, filters, or search terms.
 
 **Examples:** Find Row in Google Sheet, Search Data Source Items, Find Contact by Email, Search Products.
 
-### FIND/SEARCH UX Pattern:
+### FIND/SEARCH UX Pattern
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Spreadsheet, select Data Source).
 2. **Dynamic Dropdown** → Secondary resource selection (e.g., select Sheet). Uses `visibilityCondition`.
 3. **Boolean** → Search mode selector (e.g., "Basic" vs "Advanced" filter type).
@@ -415,7 +415,7 @@ A FIND/SEARCH action searches for records matching specific criteria. It may ret
 7. **Static Dropdown (Response Mode)** *(optional)* → Controls response shape (e.g., Basic / Custom Columns / Full Raw Data). "Custom" reveals a **Dynamic Multiselect** for column selection.
 8. **Multiselect Dynamic** *(optional)* → Select which columns/properties to return.
 
-### FIND/SEARCH Common Input Fields:
+### FIND/SEARCH Common Input Fields
 - **Dropdown Dynamic** — For selecting the resource to search within.
 - **Boolean** — For toggling between Basic (exact match) and Advanced (query-based) search modes.
 - **Input Group Static** — For grouping search filter fields together. May use `visibilityCondition` on the entire group.
@@ -426,12 +426,12 @@ A FIND/SEARCH action searches for records matching specific criteria. It may ret
 - **Number** — For result limit/row count.
 - **Help Static** — For explaining search behavior (e.g., "case sensitive exact match").
 
-### FIND/SEARCH Perform Code Reference:
+### FIND/SEARCH Perform Code Reference
 - FIND/SEARCH actions use `GET` or `POST` requests with search parameters.
 - May require client-side filtering if the API doesn't support native search.
 - See [Perform Code Knowledge Base → Actions → FIND/SEARCH](perform-code.md) for code patterns.
 
-### FIND/SEARCH Best Practices:
+### FIND/SEARCH Best Practices
 - **Offer dual search modes** — Use a Boolean field to toggle between "Basic" (single column exact match) and "Advanced" (AI-powered multi-column query).
 - **Group search criteria** — Use `Input Group Static` to bundle all search-related fields.
 - **Visibility conditions for modes** — Show Basic fields when filter type is `true`, Advanced fields when `false`.
@@ -447,12 +447,12 @@ A FIND/SEARCH action searches for records matching specific criteria. It may ret
 
 ## CREATE
 
-### CREATE Purpose:
+### CREATE Purpose
 A CREATE action creates a **new record** in the external service. The user provides the required data through input fields, which are mapped to the API payload.
 
 **Examples:** Create Data Source Item, Create Row in Google Sheet, Create Contact, Create Order, Create Page.
 
-### CREATE UX Pattern:
+### CREATE UX Pattern
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet).
 2. **Dynamic Dropdown** → Secondary resource selection (e.g., select Sheet). Uses `visibilityCondition`.
 3. **Boolean** *(optional)* → Configuration toggles (e.g., column naming mode).
@@ -461,7 +461,7 @@ A CREATE action creates a **new record** in the external service. The user provi
 6. **AI Field** *(optional)* → For complex content blocks or structured data generation.
 7. **Dictionary** *(optional)* → For custom key-value pairs when the schema is unknown.
 
-### CREATE Common Input Fields:
+### CREATE Common Input Fields
 - **Dropdown Dynamic** — For selecting the parent resource where the new record will be created.
 - **Boolean** — For configuration toggles that affect field generation.
 - **Multiselect Dynamic** — For selecting which fields/columns to populate (field chooser).
@@ -470,11 +470,11 @@ A CREATE action creates a **new record** in the external service. The user provi
 - **AI Field** — For complex content generation (e.g., Notion content blocks).
 - **Dictionary** — For custom key-value pairs when the field structure is variable.
 
-### CREATE Perform Code Reference:
+### CREATE Perform Code Reference
 - CREATE actions use `POST` requests with the payload mapped from `context.inputData.<key>`.
 - See [Perform Code Knowledge Base → Actions → CREATE](perform-code.md) for code patterns.
 
-### CREATE Best Practices:
+### CREATE Best Practices
 - **Dynamic Input Groups for schema-driven fields** — Use `fieldsGenerator` to query the API schema and dynamically generate typed fields (string, number, dropdown, multiselect, boolean) based on the resource structure. Map API property types to the correct viaSocket field type instead of dumping everything as strings.
 - **Key naming (Static vs. Dynamic)** — For static input fields, the `key` must never contain a dot (`.`) or square brackets (`[` or `]`). For dynamic fields generated within dynamic input groups via `fieldsGenerator`, they CAN contain a dot (`.`) and square brackets (`[` or `]`), and dot/bracket-to-underscore normalization is not required.
 - **Field chooser pattern (Complex Actions)** — For complex actions with numerous fields or nested objects (like CRM Create), use a "Fields to Create" Multiselect chooser. List major top-level fields and distinct sections (e.g., Billing Address, Contacts, Advanced Options). The user selects only what they want to populate. This cleanly reveals dedicated Input Groups for each selected section via `visibilityCondition`, preventing UI bloat. Pre-select the fields 90% of users need as `defaultValue`.
@@ -489,19 +489,19 @@ A CREATE action creates a **new record** in the external service. The user provi
 
 ## UPDATE
 
-### UPDATE Purpose:
+### UPDATE Purpose
 An UPDATE action modifies an **existing record** in the external service. The user selects the record to update and provides the new values for specific fields.
 
 **Examples:** Update Data Source Item, Update Row in Google Sheet, Update Contact, Update Product.
 
-### UPDATE UX Pattern:
+### UPDATE UX Pattern
 1. **Dynamic Dropdown** → Primary resource/parent selection (e.g., select Data Source, select Spreadsheet).
 2. **Dynamic Dropdown** → Secondary resource selection (e.g., select Sheet). Uses `visibilityCondition`.
 3. **Dynamic Dropdown / String** → Record ID selection (e.g., select the specific row, page, or record to update).
 4. **Multiselect** *(optional)* → Select which fields/columns to update (field chooser). Can be static or dynamic.
 5. **Fields Input Group** → Inputs for the selected fields. If the fields are static, organize them inside a static input group where each field has a `visibilityCondition` based on the multiselect choice. If the fields are truly dynamic/schema-driven, use a dynamic input group with a `fieldsGenerator`.
 
-### UPDATE Common Input Fields:
+### UPDATE Common Input Fields
 - **Dropdown Dynamic** — For selecting the resource and the specific record to update.
 - **String** — For directly entering a record ID.
 - **Multiselect** — For selecting which fields/columns to update (acts as field chooser).
@@ -509,11 +509,11 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Input Group Dynamic** — Uses `fieldsGenerator` to generate fields based on the resource schema, filtered by the user's field selection.
 - **String / Number / HTML / Markdown** — For direct value fields when the schema is known.
 
-### UPDATE Perform Code Reference:
+### UPDATE Perform Code Reference
 - UPDATE actions use `PUT`, `PATCH`, or `POST` requests with the record ID and partial payload.
 - See [Perform Code Knowledge Base → Actions → UPDATE](perform-code.md) for code patterns.
 
-### UPDATE Best Practices:
+### UPDATE Best Practices
 - **Partial updates** — Only send fields the user has filled. Don't send empty fields as `null` unless explicitly intended.
 - **Field chooser for complex updates (Static vs. Dynamic Fields)** — For complex actions with numerous fields or nested objects (such as a CRM Update):
   - **If the fields are static/known**: Use a static "Fields to Update" Multiselect chooser and organize the fields in static input groups, using a `visibilityCondition` on each field or group to only show what the user selected. This avoids using a dynamic `fieldsGenerator` for known static fields, preventing UI bloat and ensuring a clean step-by-step entry.
@@ -525,12 +525,12 @@ An UPDATE action modifies an **existing record** in the external service. The us
 
 ## FIND OR CREATE
 
-### FIND OR CREATE Purpose:
+### FIND OR CREATE Purpose
  A FIND OR CREATE action first searches for a record matching specific criteria. If a match is found, it returns the existing record. If no match is found, it creates a new record with the provided data.
 
 **Examples:** Find or Create Contact, Find or Create Row in Google Sheet, Find or Create Data Source Item.
 
-### FIND OR CREATE UX Pattern:
+### FIND OR CREATE UX Pattern
 1. **Dynamic Dropdown** → Primary resource/parent selection.
 2. **Dynamic Dropdown** → Secondary resource selection. Uses `visibilityCondition`.
 3. **Input Group Static (Search Section)** → Search criteria fields:
@@ -540,7 +540,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 5. **Dynamic Input Group** *(conditional)* → Schema-based fields for creating a new record. Visible only when the "Create if not found" toggle is `true` (Yes). Uses `visibilityCondition: "context?.inputData?.create_if_not_found"`.
 6. **Multiselect Dynamic** *(optional)* → Select columns/fields for the create operation.
 
-### FIND OR CREATE Common Input Fields:
+### FIND OR CREATE Common Input Fields
 - **Dropdown Dynamic** — For resource selection, and (if simple filter is supported) for selecting the lookup field.
 - **Input Group Static** — For grouping search criteria.
 - **AI Field** — For complex search queries (when supported).
@@ -549,11 +549,11 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Input Group Dynamic** — For dynamically generated create fields, conditionally visible.
 - **Multiselect Dynamic** — For selecting which fields to populate during creation.
 
-### FIND OR CREATE Perform Code Reference:
+### FIND OR CREATE Perform Code Reference
 - FIND OR CREATE actions combine a search request followed by a conditional create request.
 - See [Perform Code Knowledge Base → Actions → FIND OR CREATE](perform-code.md) for code patterns.
 
-### FIND OR CREATE Best Practices:
+### FIND OR CREATE Best Practices
 - **Clear separation** — Visually separate the "Find" section and the "Create" section using Input Groups.
 - **Search field selection based on service capabilities** — Evaluate the external API's search capabilities: if it supports complex query structures, implement an AI Field; if it only supports basic filters, implement a dropdown to choose the search field and a string input for the lookup value.
 - **Conditional create fields** — Use `visibilityCondition` on the create section (Dynamic Input Group) so it only appears when the user selects "Yes" for "Create if not found?".
@@ -569,28 +569,28 @@ An UPDATE action modifies an **existing record** in the external service. The us
 
 ## FIND + UPDATE
 
-### FIND + UPDATE Purpose:
+### FIND + UPDATE Purpose
 A FIND + UPDATE action first searches for a record by criteria (e.g., email, phone, subject), then performs a mutation on the found record (e.g., add/remove tags, apply labels, update fields). Unlike UPDATE (which takes a known ID), the user provides search criteria and the action resolves the record internally.
 
 **Examples:** Add Tags on Contact (search by email → tag), Add Label to Email (search by sender/subject → label), Add or Remove Tag on Contact.
 
-### FIND + UPDATE UX Pattern:
+### FIND + UPDATE UX Pattern
 1. **Static Dropdown** → Search criteria selector (e.g., "Search by Email" / "Search by Phone").
 2. **String** → The lookup value (e.g., email address, phone number). Label/placeholder adapts to the chosen criteria.
 3. **Dynamic Multiselect / Dynamic Dropdown** → The mutation payload (e.g., tags to add, labels to apply). Options fetched from a list API.
 4. **Boolean** *(optional)* → Operation mode toggle when the action supports opposing operations (e.g., "Add" vs "Remove"). The mutation field's `optionsGenerator` changes based on this toggle.
 
-### FIND + UPDATE Common Input Fields:
+### FIND + UPDATE Common Input Fields
 - **Dropdown Static** — For selecting the search/lookup criteria.
 - **String** — For the lookup value.
 - **Multiselect Dynamic / Dropdown Dynamic** — For the mutation payload (tags, labels, values to apply).
 - **Boolean** — For toggling operation mode (add vs remove) when applicable.
 
-### FIND + UPDATE Perform Code Reference:
+### FIND + UPDATE Perform Code Reference
 - FIND + UPDATE actions combine a search request (to resolve the record) followed by an update/mutation request on the found record.
 - See [Perform Code Knowledge Base → Actions](perform-code.md) for code patterns.
 
-### FIND + UPDATE Best Practices:
+### FIND + UPDATE Best Practices
 - **Search-first resolution** — Resolve the record internally using a stable identifier (email, phone). Never ask the user for raw record IDs.
 - **Adaptive option source** — When the action supports opposing operations (add vs remove), the mutation field's `optionsGenerator` should return different options based on the operation toggle (e.g., "Add" → all available tags; "Remove" → only tags currently on the record).
 - **Single lookup value field** — Use one **String** field whose label/placeholder adapts to the search criteria selector, rather than showing multiple always-visible fields.
@@ -599,26 +599,26 @@ A FIND + UPDATE action first searches for a record by criteria (e.g., email, pho
 
 ## DELETE
 
-### DELETE Purpose:
+### DELETE Purpose
 A DELETE action removes or archives a **specific record** from the external service. The user selects the record to delete by its ID.
 
 **Examples:** Delete Data Source Item, Delete Row, Delete Contact, Archive Page.
 
-### DELETE UX Pattern:
+### DELETE UX Pattern
 1. **String** → Record ID (the specific record to delete directly, no dropdown logic).
 2. **Help Static** *(optional)* → Warning message about the permanence of the deletion.
 
-### DELETE Common Input Fields:
+### DELETE Common Input Fields
 - **Dropdown/String** — Prioritize dropdowns/multiselects for record ID selection if an options-fetching API is available. Fall back to a string field for directly entering the record ID only if no options-fetching API is available.
 - **Help Static** *(optional)* — For displaying warnings about irreversible actions.
 - **Boolean** *(optional)* — For confirming the delete action or choosing between "delete" and "archive".
 
-### DELETE Perform Code Reference:
+### DELETE Perform Code Reference
 - DELETE actions use `DELETE` HTTP requests with the record ID in the URL path.
 - Some services use `PATCH`/`POST` for archiving instead of hard deletion.
 - See [Perform Code Knowledge Base → Actions → DELETE](perform-code.md) for code patterns.
 
-### DELETE Best Practices:
+### DELETE Best Practices
 - **Keep it minimal** — DELETE actions must only require the record ID directly. Do not use dropdowns or resource/parent selection dropdowns.
 - **Warn about permanence** — Use a Help Static field to warn users if the deletion is irreversible.
 - **Archive vs Delete** — If the service supports archiving, offer a Boolean toggle ("Delete permanently" vs "Move to archive").

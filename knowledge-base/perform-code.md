@@ -8,25 +8,25 @@ published: true
 
 - Perform Code Knowledge Base
 - Trigger
-  - Trigger Code Generation Rules:
+  - Trigger Code Generation Rules
   - Instant Trigger
-  - Instant Trigger Code Generation Rules:
-    - Instant Trigger Subscribe Code Rules:
-    - Instant Trigger Sample Code:
-    - Instant Trigger Perform Code (Modify data before send to flow) Rules:
-    - Instant Trigger Unsubscribe Code Rules:
-    - Instant Trigger Transfer Code Rules:
-    - Instant Trigger Transfer Code Patterns:
+  - Instant Trigger Code Generation Rules
+    - Instant Trigger Subscribe Code Rules
+    - Instant Trigger Sample Code
+    - Instant Trigger Perform Code (Modify data before send to flow) Rules
+    - Instant Trigger Unsubscribe Code Rules
+    - Instant Trigger Transfer Code Rules
+    - Instant Trigger Transfer Code Patterns
   - Scheduled Trigger
-    - Scheduled Trigger Code Generation Rules:
-    - Scheduled Trigger Perform Code Rules:
-      - Scheduled Trigger Perform Code Patterns:
+    - Scheduled Trigger Code Generation Rules
+    - Scheduled Trigger Perform Code Rules
+      - Scheduled Trigger Perform Code Patterns
         - Fetching New Items from an API with pagination
         - Fetching Updated Items from an API with pagination
         - Fetching items with client-side field filtering and page-number pagination
         - Fetching items utilizing Native API query parameters (Most Optimized)
         - Fetching Upcoming Items for Relative Future Time Windows (Event/Meeting Reminders)
-      - Scheduled Trigger Perform Code Example Code:
+      - Scheduled Trigger Perform Code Example Code
         - Example 1: Fetching new items from an API with pagination
         - Example 2: Fetching updated items from an API with pagination
         - Example 3: Fetching items with client-side field filtering and page-number pagination
@@ -34,27 +34,27 @@ published: true
         - Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
         - Example 6: Fetching Upcoming Events for Relative Future Time Windows (Google Calendar)
         - Example 7: Fetching Upcoming Meetings with Google Meet Filter for Relative Future Time Windows (Google Meet)
-    - Schedule Trigger Sample Code:
-      - Schedule Trigger Sample Code Rules:
-      - Schedule Trigger Sample Code Pattern:
-      - Schedule Trigger Sample Example Code:
-    - Scheduled Trigger Transfer Code Rules:
-    - Scheduled Trigger Transfer Code Patterns:
+    - Schedule Trigger Sample Code
+      - Schedule Trigger Sample Code Rules
+      - Schedule Trigger Sample Code Pattern
+      - Schedule Trigger Sample Example Code
+    - Scheduled Trigger Transfer Code Rules
+    - Scheduled Trigger Transfer Code Patterns
   - Manual Trigger
-    - Manual Trigger Perform Code Rules:
-    - Manual Trigger Perform Code (Modify data before send to flow) Rules:
-    - Manual Trigger Sample Code Pattern:
+    - Manual Trigger Perform Code Rules
+    - Manual Trigger Perform Code (Modify data before send to flow) Rules
+    - Manual Trigger Sample Code Pattern
 - Actions
-  - Action Perform Code Rules:
-      - Action Perform Code Patterns:
+  - Action Perform Code Rules
+      - Action Perform Code Patterns
         - Read Data from an API (GET Family)
         - Create Data in an API
         - Update Data in an API
         - Delete or Archive Data in an API
-- Special Note:
-  - Special Note - API Request Error Handling:
-  - Special Note - Success Code Handling:
-  - Special Note - Final Code Review:
+- Special Note
+  - Special Note - API Request Error Handling
+  - Special Note - Success Code Handling
+  - Special Note - Final Code Review
 
 # Perform Code Knowledge Base
 
@@ -62,7 +62,7 @@ This document contains knowledge, snippets, and best practices for writing robus
 
 # Trigger
 
-## Trigger Code Generation Rules:
+## Trigger Code Generation Rules
 
 ## Instant Trigger
 
@@ -79,7 +79,7 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 - When the external service supports webhooks subscription/unsubscription.
 - When real-time, immediate data processing is required.
 
-## Instant Trigger Code Generation Rules:
+## Instant Trigger Code Generation Rules
 The instant trigger contains the following code blocks:
 - `Subscribe Code`
 - `Sample Code`
@@ -87,7 +87,7 @@ The instant trigger contains the following code blocks:
 - `Unsubscribe Code`
 - `Transfer Code`
 
-### Instant Trigger Subscribe Code Rules:
+### Instant Trigger Subscribe Code Rules
 The following internal variables can be used in the subscribe code:
 - `context?.inputData?.hookUrl`: The viaSocket hook URL. This is always required to tell the external service where to send events.
 - `context?.inputData`: Contains the input JSON fields. Used when the subscription requires additional configurations in the API request body.
@@ -124,7 +124,7 @@ try {
 }
 ```
 
-### Instant Trigger Sample Code:
+### Instant Trigger Sample Code
 
 **Note:**
 A **Sample Code** block is required to fetch test/sample data for the trigger configuration UI.
@@ -169,7 +169,7 @@ try {
 }
 ```
 
-### Instant Trigger Perform Code (Modify data before send to flow) Rules:
+### Instant Trigger Perform Code (Modify data before send to flow) Rules
 
 **Simple understanding**
 - The Perform Code block is used to modify the data before sending it to the flow. It is not used all the time, if the webhook is well structured and has enough data for you to use, you can skip this block.
@@ -224,12 +224,12 @@ try {
 ```
 
 
-### Instant Trigger Unsubscribe Code Rules:
+### Instant Trigger Unsubscribe Code Rules
 The following internal variables can be used in the **Unsubscribe** code:
 - `context?.inputData?.performsubscribe`: The response received from the subscribe code.
 - `context?.inputData`: The data entered by the user in the trigger UI.
 
-### Instant Trigger Transfer Code Rules:
+### Instant Trigger Transfer Code Rules
 
 - **Empty Transfer Code:** The transfer data code can also be empty (unless there is a GET API available to fetch historical data AND it is a New Item trigger).
 - **Purpose**: Used to transfer historical data to the flow after the trigger is published.
@@ -244,7 +244,7 @@ The following internal variables can be used in the **Unsubscribe** code:
 
 
 
-### Instant Trigger Transfer Code Patterns:
+### Instant Trigger Transfer Code Patterns
 
 **1. Generic historical data retrieval with pagination**
 ```javascript
@@ -314,9 +314,9 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 - New lead in CRM → every 10 min
 - New order → every 15 min
 
-### Scheduled Trigger Code Generation Rules:
+### Scheduled Trigger Code Generation Rules
 
-### Scheduled Trigger Perform Code Rules:
+### Scheduled Trigger Perform Code Rules
 
 - **Output Structure:** The Perform Code returns an array of items `[ {item1}, {item2} ]` because the viaSocket engine will automatically loop through that array and run the workflow for each individual item.
 - **Backend Limit**: Capped at a maximum of 1000 items per single page request. If the service's API supports a limit/page size larger than 1000, the perform code must cap it at 1000 (or less). If the service's maximum limit is smaller than 1000 (e.g. 100), the perform code must use that smaller limit.
@@ -401,7 +401,7 @@ If enabled and the API supports pagination, use the global variable `context?.pa
      ```
   4. Only reassign/update `context.paginationData` at the end if at least one form/item needs to continue paginating (i.e. has more pages). If no forms/items have more pages, do not reassign or modify `context.paginationData` to stop the loop naturally.
 
-#### Scheduled Trigger Perform Code Patterns:
+#### Scheduled Trigger Perform Code Patterns
 
 ##### Fetching New Items from an API with pagination
 ```javascript
@@ -766,7 +766,7 @@ async function fetchUpcomingItems() {
 return await fetchUpcomingItems();
 ```
 
-#### Scheduled Trigger Perform Code Example Code:
+#### Scheduled Trigger Perform Code Example Code
 
 ##### Example 1: Fetching new items from an API with pagination
 - **Service:** Notion
@@ -1329,9 +1329,9 @@ async function fetchUpcomingMeetings() {
 return await fetchUpcomingMeetings();
 ```
 
-### Schedule Trigger Sample Code:
+### Schedule Trigger Sample Code
 
-#### Schedule Trigger Sample Code Rules:
+#### Schedule Trigger Sample Code Rules
 
 Always follow these rules while creating a sample code for the Schedule Trigger:
 1. The Sample Code must return a single object `{ ... }` representing just one of those items. This ensures the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array. This single item can be retrieved through the GET code pattern.
@@ -1341,7 +1341,7 @@ Always follow these rules while creating a sample code for the Schedule Trigger:
 5. Map the exact schema properties to empty/default values
 6. Return the dynamic fallback item with an exact matching structure
 
-#### Schedule Trigger Sample Code Pattern:
+#### Schedule Trigger Sample Code Pattern
 
 **Fetch the latest 1 item or any item or fallback structure**
 ```javascript
@@ -1414,7 +1414,7 @@ try {
 }
 ```
 
-#### Schedule Trigger Sample Example Code:
+#### Schedule Trigger Sample Example Code
 
 **Example 1: Fetching only the latest item from the data source or fallback with schema**
 - **Service:** Notion
@@ -1572,7 +1572,7 @@ try {
   await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
 }
 ```
-### Scheduled Trigger Transfer Code Rules:
+### Scheduled Trigger Transfer Code Rules
 
 - **Purpose**: Used to transfer historical data to the flow after the trigger is published.
 - **Pagination**: The GET List endpoint must have pagination enabled.
@@ -1584,7 +1584,7 @@ try {
   - `offset`: The next pagination token.
   - `uniqueIdentifier`: The key name containing the unique value for each record.
 
-### Scheduled Trigger Transfer Code Patterns:
+### Scheduled Trigger Transfer Code Patterns
 
 **1. Generic historical data retrieval with pagination**
 ```javascript
@@ -1644,12 +1644,12 @@ Fires in real-time when an event occurs in the external service via a webhook. T
 - When the external service supports webhooks that can be copied from the UI and pasted in the trigger configuration of the external service.
 - When real-time, immediate data processing is required.
 
-### Manual Trigger Perform Code Rules:
+### Manual Trigger Perform Code Rules
 - Manual Triggers support **Perform Code (Modify data before send to flow) / modifytriggerdata** block to transform/modify the incoming webhook payload before sending it to the workflow.
 - **No Auth Constraint:** Manual Triggers do not contain authentication context (`no auth`), so `modifytriggerdata` can only reshape/transform payload data locally and CANNOT make API calls.
 - No scheduling logic, no `__executionStartTime__`, no pagination state.
 
-### Manual Trigger Perform Code (Modify data before send to flow) Rules:
+### Manual Trigger Perform Code (Modify data before send to flow) Rules
 
 **Simple understanding**
 - The Perform Code block (`modifytriggerdata`) is used to modify/transform the manual webhook data before sending it to the workflow. Because manual triggers lack authentication context, `modifytriggerdata` is strictly for local payload reshaping (no external API calls). If the manual webhook payload is already well-structured, you can omit/skip this block.
@@ -1696,7 +1696,7 @@ try {
 }
 ```
 
-### Manual Trigger Sample Code Pattern:
+### Manual Trigger Sample Code Pattern
 ```javascript
 try {
  // Actual Trigger Sample Schema
@@ -1711,7 +1711,7 @@ try {
 
 Actions perform request/response operations on external services. Unlike scheduled triggers, actions run only when the workflow reaches that action step and usually depend on user-provided input values.
 
-## Action Perform Code Rules:
+## Action Perform Code Rules
 
 **🧹 Clean Code Style (applies to ALL perform code patterns below):**
 All generated code MUST be short, to-the-point, and well-structured. When code is passed as a string (e.g., `perform`, `testcode`), use raw `\n` for newlines — NEVER double-escaped `\\n`. Follow these principles:
@@ -1761,7 +1761,7 @@ if (!context?.inputData?.record_id) {
 }
 ```
 
-#### Action Perform Code Patterns:
+#### Action Perform Code Patterns
 
 ##### Read Data from an API (GET Family)
 
@@ -2107,9 +2107,9 @@ async function deleteRecord() {
 return await deleteRecord();
 ```
 
-# Special Note:
+# Special Note
 
-## Special Note - API Request Error Handling:
+## Special Note - API Request Error Handling
 
 - Use try-catch blocks to handle errors gracefully.
 - Provide meaningful error messages to the user.
@@ -2118,13 +2118,13 @@ return await deleteRecord();
 - viaSocket will identify the error based on the errorComponent invocation.
 - Don't modify the error message in the catch block. Just call `await errorComponent(error);`. Let the viaSocket handle the error message.
 
-## Special Note - Success Code Handling:
+## Special Note - Success Code Handling
 
 - Return the data as it is. Don't modify it.
 - Don't add any additional fields to the response. Just return the data.
 - The actual data of the response is in the `data` property of the response object. Which looks like `{ data: { ... } }`. So, return `response.data`.
 
-## Special Note - Final Code Review:
+## Special Note - Final Code Review
 - Don't use any console.log() in the perform code.
 - Don't modify the error response. Just call `await errorComponent(error);`.
 - No need to use the authentication configuration in the perform code. It will be handled by viaSocket. The authentication can be passed through header, query parameter or body, these are aleady configured in backend while the API call is made. Can include the additional header/query parameter/body if needed for the API call.

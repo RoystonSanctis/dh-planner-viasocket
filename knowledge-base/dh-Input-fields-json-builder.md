@@ -10,107 +10,107 @@ published: true
 - DH Input Fields Knowledge Base
 - Static Input Fields
   - String | Date | Number | HTML | Markdown
-    - String | Date | Number | HTML | Markdown Input Field Generation Rules:
-    - String | Date | Number | HTML | Markdown JSON Schema:
-    - String | Date | Number | HTML | Markdown TOON Schema:
-    - String | Date | Number | HTML | Markdown Examples:
-      - String | Date | Number | HTML | Markdown JSON Example:
-      - String | Date | Number | HTML | Markdown TOON Example:
+    - String | Date | Number | HTML | Markdown Input Field Generation Rules
+    - String | Date | Number | HTML | Markdown JSON Schema
+    - String | Date | Number | HTML | Markdown TOON Schema
+    - String | Date | Number | HTML | Markdown Examples
+      - String | Date | Number | HTML | Markdown JSON Example
+      - String | Date | Number | HTML | Markdown TOON Example
   - Dictionary
-    - Dictionary Input Field Generation Rules:
-    - Dictionary Input Field JSON Schema:
-    - Dictionary TOON Schema:
-    - Dictionary Examples:
-      - Dictionary JSON Example:
-      - Dictionary TOON Example:
+    - Dictionary Input Field Generation Rules
+    - Dictionary Input Field JSON Schema
+    - Dictionary TOON Schema
+    - Dictionary Examples
+      - Dictionary JSON Example
+      - Dictionary TOON Example
   - Boolean
-    - Boolean Input Field Generation Rules:
-    - Boolean JSON Schema:
-    - Boolean TOON Schema:
-    - Boolean Examples:
-      - Boolean JSON Example:
-      - Boolean TOON Example:
+    - Boolean Input Field Generation Rules
+    - Boolean JSON Schema
+    - Boolean TOON Schema
+    - Boolean Examples
+      - Boolean JSON Example
+      - Boolean TOON Example
   - Dropdown Static
-    - Dropdown Static Input Field Generation Rules:
-    - Dropdown Static JSON Schema:
-    - Dropdown Static TOON Schema:
-    - Dropdown Static Examples:
-      - Dropdown Static JSON Example:
-      - Dropdown Static TOON Example:
+    - Dropdown Static Input Field Generation Rules
+    - Dropdown Static JSON Schema
+    - Dropdown Static TOON Schema
+    - Dropdown Static Examples
+      - Dropdown Static JSON Example
+      - Dropdown Static TOON Example
   - Multiselect Static
-    - Multiselect Static Input Field Generation Rules:
-    - Multiselect Static JSON Schema:
-    - Multiselect Static TOON Schema:
-    - Multiselect Static JSON Example:
-    - Multiselect Static TOON Example:
+    - Multiselect Static Input Field Generation Rules
+    - Multiselect Static JSON Schema
+    - Multiselect Static TOON Schema
+    - Multiselect Static JSON Example
+    - Multiselect Static TOON Example
   - AI Field
-    - AI Field Input Field Generation Rules:
-    - AI Field JSON Schema:
-    - AI Field TOON Schema:
+    - AI Field Input Field Generation Rules
+    - AI Field JSON Schema
+    - AI Field TOON Schema
     - AI Field Examples
-      - AI Field JSON Example:
-      - AI Field TOON Example:
+      - AI Field JSON Example
+      - AI Field TOON Example
   - Help Static
-    - Help Static Input Field Generation Rules:
-    - Help Static JSON Schema:
-    - Help Static TOON Schema:
-    - Help Static Examples:
-      - Help Static JSON Example:
-      - Help Static TOON Example:
+    - Help Static Input Field Generation Rules
+    - Help Static JSON Schema
+    - Help Static TOON Schema
+    - Help Static Examples
+      - Help Static JSON Example
+      - Help Static TOON Example
   - Input Group Static
-    - Input Group Static Input Field Generation Rules:
-    - Input Group Static JSON Schema:
-    - Input Group Static TOON Schema:
-    - Input Group Static Examples:
-      - Input Group Static JSON Example:
-      - Input Group Static TOON Example:
+    - Input Group Static Input Field Generation Rules
+    - Input Group Static JSON Schema
+    - Input Group Static TOON Schema
+    - Input Group Static Examples
+      - Input Group Static JSON Example
+      - Input Group Static TOON Example
 - Dynamic Input Fields
   - Dropdown Dynamic
-    - Dropdown Dynamic Input Field Generation Rules:
-    - Dropdown Dynamic JSON Schema:
-    - Dropdown Dynamic TOON Schema:
-    - Dropdown Dynamic Examples:
-      - Dropdown Dynamic JSON Example:
-      - Dropdown Dynamic TOON Example:
-    - Reusable Component In Dropdown Dynamic:
-      - Reusable Component In Dropdown Dynamic Code Rules:
-      - Reusable Component In Dropdown Dynamic Example Code and Usage:
+    - Dropdown Dynamic Input Field Generation Rules
+    - Dropdown Dynamic JSON Schema
+    - Dropdown Dynamic TOON Schema
+    - Dropdown Dynamic Examples
+      - Dropdown Dynamic JSON Example
+      - Dropdown Dynamic TOON Example
+    - Reusable Component In Dropdown Dynamic
+      - Reusable Component In Dropdown Dynamic Code Rules
+      - Reusable Component In Dropdown Dynamic Example Code and Usage
         - Example 1: Facebook Lead Form Dropdown Dynamic
         - Example 2: Google Sheet Spreadsheet Dropdown Dynamic
   - Multi Select Dynamic
-    - Multi Select Dynamic Input Field Generation Rules:
-    - Multi Select Dynamic JSON Schema:
-    - Multi Select Dynamic TOON Schema:
-    - Multi Select Dynamic Examples:
-      - Multi Select Dynamic JSON Example:
-      - Multi Select Dynamic TOON Example:
-    - Reusable Component In Multi Select Dynamic:
-      - Reusable Component In Multi Select Dynamic Code Rules:
-      - Reusable Component In Multi Select Dynamic Example Code and Usage:
+    - Multi Select Dynamic Input Field Generation Rules
+    - Multi Select Dynamic JSON Schema
+    - Multi Select Dynamic TOON Schema
+    - Multi Select Dynamic Examples
+      - Multi Select Dynamic JSON Example
+      - Multi Select Dynamic TOON Example
+    - Reusable Component In Multi Select Dynamic
+      - Reusable Component In Multi Select Dynamic Code Rules
+      - Reusable Component In Multi Select Dynamic Example Code and Usage
         - Example 1: Google Sheets Column Multi Select Dynamic
         - Example 2: Notion Data Source Property Multi Select Dynamic
   - Help Dynamic
-    - Help Dynamic Input Field Generation Rules:
-    - Help Dynamic JSON Schema:
-    - Help Dynamic TOON Schema:
-    - Help Dynamic Examples:
-      - Help Dynamic JSON Example:
-      - Help Dynamic TOON Example:
+    - Help Dynamic Input Field Generation Rules
+    - Help Dynamic JSON Schema
+    - Help Dynamic TOON Schema
+    - Help Dynamic Examples
+      - Help Dynamic JSON Example
+      - Help Dynamic TOON Example
   - Input Group Dynamic
-    - Input Group Dynamic Input Field Generation Rules:
-    - Input Group Dynamic JSON Schema:
-    - Input Group Dynamic TOON Schema:
-    - Input Group Dynamic Examples:
-      - Input Group Dynamic JSON Example:
-      - Input Group Dynamic TOON Example:
-- Special Note:
+    - Input Group Dynamic Input Field Generation Rules
+    - Input Group Dynamic JSON Schema
+    - Input Group Dynamic TOON Schema
+    - Input Group Dynamic Examples
+      - Input Group Dynamic JSON Example
+      - Input Group Dynamic TOON Example
+- Special Note
   - Special Note: Static Input Group: `whereClause` Feature (Special Layout)
-  - Special Note: Dropdown & Multiselect:
-  - Special Note: Visibility Condition Rules:
-  - Special Note: `list` and `limit` usage in the text and number field types:
+  - Special Note: Dropdown & Multiselect
+  - Special Note: Visibility Condition Rules
+  - Special Note: `list` and `limit` usage in the text and number field types
   - Special Note: Raw `inputFields` and auto generated keys in the final json input fields [`steps`,`blocks` and `dependsOn`]
     - Understanding `dependsOn` vs `visibilityCondition`
-    - `dependsOn` vs `visibilityCondition` Examples:
+    - `dependsOn` vs `visibilityCondition` Examples
       - Example 1: Generic Example (Static Fields & Input Groups)
       - Example 2: Dynamic Fields (`dependsOn` vs `visibilityCondition`)
   - Special Note: `required` key in the input fields
@@ -141,7 +141,7 @@ The input fields, which are static, have fixed values. The depends on other feil
 - An HTML input type is used to capture rich text content that includes HTML tags. It is suitable when the input needs structured formatting and the HTML is required in the payload.
 - A Markdown input type is used to capture formatted text using Markdown syntax. It is ideal for content that needs lightweight formatting such as headings, lists, links, or emphasis.
 
-### String | Date | Number | HTML | Markdown Input Field Generation Rules:
+### String | Date | Number | HTML | Markdown Input Field Generation Rules
 Generate a JSON object strictly following the rules below.
 
 **When to Use**
@@ -206,7 +206,7 @@ Generate a JSON object strictly following the rules below.
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
-### String | Date | Number | HTML | Markdown JSON Schema:
+### String | Date | Number | HTML | Markdown JSON Schema
 ```json
 {
     "name": "input_field_creator",
@@ -276,7 +276,7 @@ Generate a JSON object strictly following the rules below.
     }
 }
 ```
-### String | Date | Number | HTML | Markdown TOON Schema:
+### String | Date | Number | HTML | Markdown TOON Schema
 ```toon
 name: input_field_creator
 strict: false
@@ -324,9 +324,9 @@ schema:
   required[4]: key,type,label,help
 ```
 
-### String | Date | Number | HTML | Markdown Examples:
+### String | Date | Number | HTML | Markdown Examples
 
-#### String | Date | Number | HTML | Markdown JSON Example:
+#### String | Date | Number | HTML | Markdown JSON Example
 ```json
 [
   {
@@ -424,7 +424,7 @@ schema:
   }
 ]
 ```
-#### String | Date | Number | HTML | Markdown TOON Example:
+#### String | Date | Number | HTML | Markdown TOON Example
 ```toon
 [10]:
   - key: email
@@ -505,7 +505,7 @@ schema:
 **Dictionary Purpose:**
 A Dictionary (also called Map or Key-Value Pair) is a special input type in viaSocket that lets users dynamically define custom pairs of keys and values. This provides high flexibility when the structure of input data is variable or unknown in advance.
 
-### Dictionary Input Field Generation Rules:
+### Dictionary Input Field Generation Rules
 Generate a JSON object strictly following the rules below for a dictionary.
 
 **When to Use**
@@ -536,7 +536,7 @@ Do not add extra properties.
 **7. Output Rules**
 Return only valid JSON.
 
-### Dictionary Input Field JSON Schema:
+### Dictionary Input Field JSON Schema
 ```json
 {
     "name": "Dictionary_Field",
@@ -645,7 +645,7 @@ Return only valid JSON.
 }
 ```
 
-### Dictionary TOON Schema:
+### Dictionary TOON Schema
 ```toon
 name: Dictionary_Field
 strict: false
@@ -713,9 +713,9 @@ schema:
 ```
 
 
-### Dictionary Examples:
+### Dictionary Examples
 
-#### Dictionary JSON Example:
+#### Dictionary JSON Example
 ```json
 [
 {
@@ -770,7 +770,7 @@ schema:
   }
   ]
   ```
-#### Dictionary TOON Example:
+#### Dictionary TOON Example
 
 ```toon
 [3]:
@@ -824,7 +824,7 @@ This input type is ideal when:
 - The UI label may vary (e.g., Yes/No, Basic/Advance, Workspace/Parent Page), but internally resolves to a Boolean value
 
 
-### Boolean Input Field Generation Rules:
+### Boolean Input Field Generation Rules
 Generate a JSON object strictly following the rules below for a boolean field.
 
 **When to Use**
@@ -873,7 +873,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 - Return only valid JSON
 - Do not add explanations, comments, or extra keys
 
-### Boolean JSON Schema:
+### Boolean JSON Schema
 ```json
 {
     "name": "generate_boolean_field",
@@ -993,7 +993,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 }
 ```
 
-### Boolean TOON Schema:
+### Boolean TOON Schema
 ```toon
 name: generate_boolean_field
 strict: false
@@ -1068,9 +1068,9 @@ schema:
   required[1]: inputFields
 ```
 
-### Boolean Examples:
+### Boolean Examples
 
-#### Boolean JSON Example:
+#### Boolean JSON Example
 ```json
 [
    {
@@ -1172,7 +1172,7 @@ schema:
       }
     ]
     ```
-#### Boolean TOON Example:
+#### Boolean TOON Example
 ```toon
 [4]:
   - key: column_key
@@ -1240,7 +1240,7 @@ schema:
 
 A Static Dropdown input type is used when the user must select one value from a predefined, fixed list of options. It is suitable when all possible values are known in advance and should not change dynamically.
 
-### Dropdown Static Input Field Generation Rules:
+### Dropdown Static Input Field Generation Rules
 Generate a JSON object strictly following the rules below for a static dropdown field.
 
 **When to Use**
@@ -1292,7 +1292,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
 - Do not add extra properties.
 - Do not include explanations or comments.
 
-### Dropdown Static JSON Schema:
+### Dropdown Static JSON Schema
 ```json
 {
     "name": "generate_static_dropdown_field",
@@ -1444,7 +1444,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
     }
 }
 ```
-### Dropdown Static TOON Schema:
+### Dropdown Static TOON Schema
 ```toon
 name: generate_static_dropdown_field
 strict: false
@@ -1533,9 +1533,9 @@ schema:
   required[1]: inputFields
 ```
 
-### Dropdown Static Examples:
+### Dropdown Static Examples
 
-#### Dropdown Static JSON Example:
+#### Dropdown Static JSON Example
 ```json
 [
   {
@@ -1694,7 +1694,7 @@ schema:
   }
   ]
 ```
-#### Dropdown Static TOON Example:
+#### Dropdown Static TOON Example
 ```toon
 [3]:
   - key: message_type
@@ -1763,7 +1763,7 @@ schema:
 
 A Static Multiselect input type is used when the user needs to select multiple values from a predefined list of options. It is suitable when all selectable values are known in advance and multiple selections are allowed.
 
-### Multiselect Static Input Field Generation Rules:
+### Multiselect Static Input Field Generation Rules
 Generate a JSON object strictly following the rules below for a static multiselect field.
 
 **When to Use**
@@ -1814,7 +1814,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Do not add extra properties.
 - Do not include explanations or comments.
 
-### Multiselect Static JSON Schema:
+### Multiselect Static JSON Schema
 ```json
 {
     "name": "generate_multiselect_field",
@@ -1950,7 +1950,7 @@ Generate a JSON object strictly following the rules below for a static multisele
     }
 }
 ```
-### Multiselect Static TOON Schema:
+### Multiselect Static TOON Schema
 ```toon
 name: generate_multiselect_field
 strict: false
@@ -2035,7 +2035,7 @@ schema:
   required[1]: inputFields
 ```
 
-### Multiselect Static JSON Example:
+### Multiselect Static JSON Example
 ```json
 [
   {
@@ -2109,7 +2109,7 @@ schema:
 ]
 ```
 
-### Multiselect Static TOON Example:
+### Multiselect Static TOON Example
 ```toon
 [2]:
   - key: output_response
@@ -2149,7 +2149,7 @@ schema:
 
 The AI Field provides customizable AI responses to automate processes based on structured prompts and dynamic data inputs. The user interacts with the AI only during setup configuration, allowing the AI to generate a structured response that is then used in the perform code.
 
-### AI Field Input Field Generation Rules:
+### AI Field Input Field Generation Rules
 Generate a JSON object strictly following the rules below for an AI field.
 
 **When to Use**
@@ -2194,7 +2194,7 @@ Generate a JSON object strictly following the rules below for an AI field.
 - Do not add extra properties not defined in the schema.
 - Do not include explanations or comments.
 
-### AI Field JSON Schema:
+### AI Field JSON Schema
 ```json
 {
     "name": "generate_aifield",
@@ -2267,7 +2267,7 @@ Generate a JSON object strictly following the rules below for an AI field.
 }
 ```
 
-### AI Field TOON Schema:
+### AI Field TOON Schema
 ```toon
 name: generate_aifield
 strict: false
@@ -2318,7 +2318,7 @@ schema:
 
 ### AI Field Examples
 
-#### AI Field JSON Example:
+#### AI Field JSON Example
 ```json
 [
     {
@@ -2345,7 +2345,7 @@ schema:
 ]
 ```
 
-#### AI Field TOON Example:
+#### AI Field TOON Example
 ```toon
 [2]:
   - key: filterConditions
@@ -2373,7 +2373,7 @@ schema:
 
 A Static Help field is used to display static instructional content, warnings, or detailed guides directly within the UI (typically presented as an info block). It does not natively accept user input but instead provides structured information using plain text, HTML, or Markdown to guide the user during setup or configuration.
 
-### Help Static Input Field Generation Rules:
+### Help Static Input Field Generation Rules
 Generate a JSON object strictly following the rules below for a static help field.
 
 **When to Use (Strict Necessity Rule)**
@@ -2411,7 +2411,7 @@ Generate a JSON object strictly following the rules below for a static help fiel
 - Do not add extra properties not defined in the schema (e.g., no `label`, `required`, or `placeholder` as they do not apply to a help display block).
 - Do not include explanations or comments.
 
-### Help Static JSON Schema:
+### Help Static JSON Schema
 ```json
 {
     "name": "generate_help_field",
@@ -2460,7 +2460,7 @@ Generate a JSON object strictly following the rules below for a static help fiel
     }
 }
 ```
-### Help Static TOON Schema:
+### Help Static TOON Schema
 ```toon
 name: generate_help_field
 strict: false
@@ -2490,8 +2490,8 @@ schema:
         required[3]: key,type,help
   required[1]: inputFields
 ```
-### Help Static Examples:
-#### Help Static JSON Example:
+### Help Static Examples
+#### Help Static JSON Example
 ```json
 [ 
   {
@@ -2507,7 +2507,7 @@ schema:
   }
 ]
 ```
-#### Help Static TOON Example:
+#### Help Static TOON Example
 ```toon
 [2]:
   - key: help_webhook
@@ -2525,7 +2525,7 @@ schema:
 
 An Input Group Static field is used to logically group related input fields together under a single label and optional help text. It helps organize complex forms and, by leveraging the `whereClause` feature, can uniquely display nested dropdown and multiselect fields inline as a readable sentence.
 
-### Input Group Static Input Field Generation Rules:
+### Input Group Static Input Field Generation Rules
 Generate a JSON object strictly following the rules below for an input group.
 
 **When to Use**
@@ -2570,7 +2570,7 @@ Generate a JSON object strictly following the rules below for an input group.
 - Return only valid JSON.
 - Never add undocumented fields.
 
-### Input Group Static JSON Schema:
+### Input Group Static JSON Schema
 ```json
 {
     "name": "generate_input_group_field",
@@ -2660,7 +2660,7 @@ Generate a JSON object strictly following the rules below for an input group.
     }
 }
 ```
-### Input Group Static TOON Schema:
+### Input Group Static TOON Schema
 ```toon
 name: generate_input_group_field
 strict: false
@@ -2710,8 +2710,8 @@ schema:
         required[5]: key,type,label,help,fields
   required[1]: inputFields
 ```
-### Input Group Static Examples:
-#### Input Group Static JSON Example:
+### Input Group Static Examples
+#### Input Group Static JSON Example
 ```json
 [
   {
@@ -2971,7 +2971,7 @@ schema:
 ]
 ]
 ```
-#### Input Group Static TOON Example:
+#### Input Group Static TOON Example
 ```toon
 [4]:
   - key: paging
@@ -3119,7 +3119,7 @@ schema:
 The Dropdown Dynamic field allows users to select from a dynamically generated list of options. These options are usually fetched via an API call or calculated by custom logic at runtime. This is highly effective for paginated lists, searchable item lists, or data retrieved directly from external integrations. 
 You can use **Reusable Components** inside the `optionsGenerator` to securely fetch data. This hides sensitive logic like API tokens and reduces duplicate code by allowing you to share the same retrieval logic across multiple dropdowns if needed.
 
-### Dropdown Dynamic Input Field Generation Rules:
+### Dropdown Dynamic Input Field Generation Rules
 - When creating a dynamic dropdown field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "dropdown"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep the API fetching secure, centralized, and easy to maintain.
@@ -3134,7 +3134,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
 - All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included for the manual input mode. The value of `placeholder` and `customPlaceholder` must always be a string and wrapped in a string/quotes. The `help` key must focus on selection and start with "Select" (e.g. "Select the spreadsheet."). It supports string format and markdown links like `[Lean More](https://example.com)`. **The `customInputLabel` must be short and must NOT start with "Enter"** (e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`). If not an ID field, standard label and `customInputLabel` must be the same. **The `customHelp` must guide manual input with "Enter the ID/value... You will get it from the actions like List, Find..."** (e.g. `"Enter the Spreadsheet ID manually. You can get the spreadsheet ID from actions like List Spreadsheets or Find Spreadsheet."`). Both `help` and `customHelp` must be very crisp and to the point.
 - **Reference the schema and examples:** Carefully check the **Dropdown Dynamic JSON/TOON Schema** and look at the **Dropdown Dynamic Examples** below to see fully structured implementations, formatting rules, and expected options return formats (e.g., `[{label, value, sample}]` or `{data: [{label, value, sample}], offset: ...}`). MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
 
-### Dropdown Dynamic JSON Schema:
+### Dropdown Dynamic JSON Schema
 ```json
 {
     "name": "generate_dynamic_dropdown_field",
@@ -3260,7 +3260,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
     }
 }
 ```
-### Dropdown Dynamic TOON Schema:
+### Dropdown Dynamic TOON Schema
 ```toon
 name: generate_dynamic_dropdown_field
 strict: false
@@ -3339,8 +3339,8 @@ schema:
   required[1]: inputFields
 ```
 
-### Dropdown Dynamic Examples:
-#### Dropdown Dynamic JSON Example:
+### Dropdown Dynamic Examples
+#### Dropdown Dynamic JSON Example
 ```json
 [
   {
@@ -3426,7 +3426,7 @@ schema:
   }
 ]
 ```
-#### Dropdown Dynamic TOON Example:
+#### Dropdown Dynamic TOON Example
 ```toon
 [6]:
   - key: data_source_id
@@ -3499,7 +3499,7 @@ schema:
     visibilityCondition: context?.inputData?.page_id
     customHelp: "Enter the Lead Form ID manually. You can get the Lead Form ID from actions like List Lead Forms."
 ```
-### Reusable Component In Dropdown Dynamic:
+### Reusable Component In Dropdown Dynamic
 
 **Reusable Component In Dropdown Dynamic Purpose:**
 
@@ -3514,7 +3514,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Reuse common logic:** Use the same component across multiple fields (e.g., multiple dropdowns, API config).
 - **Reduce duplicate code:** Simplify maintenance.
 
-#### Reusable Component In Dropdown Dynamic Code Rules:
+#### Reusable Component In Dropdown Dynamic Code Rules
 
 **Reusable Components fields:**
 - **Component Name:** must be unique (cannot change once component is being used).
@@ -3558,7 +3558,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Reusable Component Mapping Path:** When mapping the component for a dynamic dropdown in `optionsGenerator`, the mapping `path` sent to the API/tool is the field key (e.g., `"page_id"`). Even if the dropdown field is inside an input group, the mapping `path` is STILL strictly the field key itself (e.g., `"page_id"`), never a nested input group path.
 - **Alternative to Reusable Components (Inline Code):** If not using a Reusable Component, the function code and its invocation must be written directly inside the `optionsGenerator` (i.e., you must define the function and explicitly call/invoke it at the end, e.g., `async function getOptions() { ... }; return await getOptions();`). If a Reusable Component is used, the function code resides inside the component itself, and `optionsGenerator` only needs to call that component function (e.g., `return await fetchComponent(param1, param2);`).
 
-#### Reusable Component In Dropdown Dynamic Example Code and Usage:
+#### Reusable Component In Dropdown Dynamic Example Code and Usage
 
 ##### Example 1: Facebook Lead Form Dropdown Dynamic
 
@@ -3741,7 +3741,7 @@ Usage inside a dynamic dropdown's `optionsGenerator`:
 The Multi Select Dynamic field allows users to select multiple options from a dynamically generated list. These options are typically fetched via an API call or returned by custom logic at runtime. This is highly effective when users need to pick multiple items simultaneously, such as filtering by multiple properties or selecting several columns to return.
 Just like the Dropdown Dynamic field, you can use **Reusable Components** inside the `optionsGenerator` to securely execute API calls and handle options generation logic cleanly, improving maintainability and code reuse.
 
-### Multi Select Dynamic Input Field Generation Rules:
+### Multi Select Dynamic Input Field Generation Rules
 - When creating a dynamic multiselect field, adhere to the strict structure outlined in the JSON/TOON schemas format.
 - Set `type: "multiselect"` and define essential fields such as `key`, `label`, `help`, and `optionsGenerator`.
 - In the `optionsGenerator` property, write or invoke JavaScript code that fetches and transforms options. **It is highly recommended to attach Reusable Components here** to keep your code clean and secure. The return format MUST be an array of objects `[{label, value, sample}]`. MANDATORY RULE: If the value is an ID, the sample MUST be included in the return object. If the label and sample are exactly the same, then NO sample is needed.
@@ -3765,7 +3765,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
 - A proper manual input option must be configured. All three custom keys: `customPlaceholder` (compulsory), `customInputLabel` (compulsory), and `customHelp` (compulsory) must be included. `customPlaceholder` must illustrate how the array of multiple selections looks as a serialized string array (e.g., `"[\"title\",\"status\"]"` or `"[\"Name\"]"`). Do NOT use "E.g." or "e.g." in placeholders. The `help` key must focus on selection and start with "Select" (e.g. "Select the fields to include in the response."). It supports string format and markdown links like `[Lean More](https://example.com)`. **The `customInputLabel` must be short and must NOT start with "Enter"** (e.g. standard label `"Properties"`, customInputLabel `"Properties in Array"`). If not an ID field, standard label and `customInputLabel` must be the same. **The `customHelp` must guide manual input with "Enter the ID/value... You will get it from the actions like List, Find..."** (e.g. `"Enter the properties manually in array format. You can get the property IDs from actions like List Properties."`). Both `help` and `customHelp` must be very crisp and to the point.
 - **Reference the schema and examples:** Carefully check the **Multi Select Dynamic JSON/TOON Schema** and look at the **Multi Select Dynamic Examples** to see fully structured implementations, formatting rules, and expected options return structures.
 
-### Multi Select Dynamic JSON Schema:
+### Multi Select Dynamic JSON Schema
 ```json
 {
     "name": "generate_dynamic_multiselect_field",
@@ -3876,7 +3876,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
     }
 }
 ```
-### Multi Select Dynamic TOON Schema:
+### Multi Select Dynamic TOON Schema
 ```toon
 name: generate_dynamic_multiselect_field
 strict: false
@@ -3947,8 +3947,8 @@ schema:
         required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
   ```
-### Multi Select Dynamic Examples:
-#### Multi Select Dynamic JSON Example:
+### Multi Select Dynamic Examples
+#### Multi Select Dynamic JSON Example
 ```json
 [
    {
@@ -3989,7 +3989,7 @@ schema:
       }
 ]
 ```
-#### Multi Select Dynamic TOON Example:
+#### Multi Select Dynamic TOON Example
 ```toon
 [3]:
   - key: filter_properties
@@ -4024,7 +4024,7 @@ schema:
     customInputLabel: Filter Properties in Array
 ```
 
-### Reusable Component In Multi Select Dynamic:
+### Reusable Component In Multi Select Dynamic
 
 **Reusable Component In Multi Select Dynamic Purpose:**
 
@@ -4039,7 +4039,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Reuse common logic:** Use the same component across multiple fields (e.g., multiple multiselects, API config).
 - **Reduce duplicate code:** Simplify maintenance when fetching common arrays (like columns, properties, tags).
 
-#### Reusable Component In Multi Select Dynamic Code Rules:
+#### Reusable Component In Multi Select Dynamic Code Rules
 
 **Reusable Components fields:**
 - **Component Name:** must be unique (cannot change once component is being used).
@@ -4082,7 +4082,7 @@ They help keep your plugin code cleaner, safer, and easier to maintain.
 - **Reusable Component Mapping Path:** When mapping the component for a dynamic multiselect in `optionsGenerator`, the mapping `path` sent to the API/tool is the field key (e.g., `"page_id"`). Even if the multiselect field is inside an input group, the mapping `path` is STILL strictly the field key itself (e.g., `"page_id"`), never a nested input group path.
 - **Alternative to Reusable Components:** If not using the reusable component, the code can be directly added the same way: the function and the function call can be written directly inside the `optionsGenerator`.
 
-#### Reusable Component In Multi Select Dynamic Example Code and Usage:
+#### Reusable Component In Multi Select Dynamic Example Code and Usage
 
 ##### Example 1: Google Sheets Column Multi Select Dynamic
 
@@ -4232,7 +4232,7 @@ A Dynamic Help field is used to generate and display real-time instructional con
 *   Ensuring resources (e.g., project ID, table columns) exist
 *   Alerting for unsupported settings
 
-### Help Dynamic Input Field Generation Rules:
+### Help Dynamic Input Field Generation Rules
 Generate a JSON object strictly following the rules below for a dynamic help field.
 
 **When to Use (Strict Necessity Rule)**
@@ -4267,7 +4267,7 @@ Generate a JSON object strictly following the rules below for a dynamic help fie
 - Return only valid JSON.
 - Do not add undocumented fields (e.g., do not add generic `help` or `placeholder` attributes as they do not apply to this specific dynamic help generation block).
 
-### Help Dynamic JSON Schema:
+### Help Dynamic JSON Schema
 ```json
 {
     "name": "generate_dynamic_help_field",
@@ -4320,7 +4320,7 @@ Generate a JSON object strictly following the rules below for a dynamic help fie
     }
 }
 ```
-### Help Dynamic TOON Schema:
+### Help Dynamic TOON Schema
 ```toon
 name: generate_dynamic_help_field
 strict: false
@@ -4354,8 +4354,8 @@ schema:
   required[1]: inputFields
 ```
 
-### Help Dynamic Examples:
-#### Help Dynamic JSON Example:
+### Help Dynamic Examples
+#### Help Dynamic JSON Example
 ```json
 [
   {
@@ -4384,7 +4384,7 @@ schema:
   }
 ]
 ```
-#### Help Dynamic TOON Example:
+#### Help Dynamic TOON Example
 ```toon
 [4]:
   - key: help_page_status
@@ -4410,7 +4410,7 @@ schema:
 **Input Group Dynamic Purpose:**
 The Input Group Dynamic field is designed to dynamically render an entire group of fields based on the user's prior selections or external data schemas. Instead of hardcoding every possible parameter, you can execute JavaScript at runtime to fetch a schema (like a Notion database structure or Google Sheet columns) and dynamically return an array of new fields appropriately patterned on that data (creating text strings, multiselects, dropdowns, etc., customized to the user's setup).
 
-### Input Group Dynamic Input Field Generation Rules:
+### Input Group Dynamic Input Field Generation Rules
 - When creating a dynamic input group field, ensure you correctly construct the field structure following the JSON/TOON schemas format.
 - Set `type: "input groups"` and define the essential top-level fields such as `key`, `label`, `help`, and `required`.
 - **Nesting Support**: Input group fields can be nested (created inside a static input group or a dynamic input group).
@@ -4422,7 +4422,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
   - **Context Access:** Utilize `context?.inputData?.['other_field_key']` to pass previous user inputs directly into the generator.
 - **Reference the schema and examples:** Carefully check the **Input Group Dynamic JSON/TOON Schema** and look at the **Input Group Dynamic Examples** to see how the code queries APIs and maps the results into complex field definitions based on properties or types.
 
-### Input Group Dynamic JSON Schema:
+### Input Group Dynamic JSON Schema
 ```json
 {
     "name": "generate_dynamic_input_group_field",
@@ -4484,7 +4484,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
     }
 }
 ```
-### Input Group Dynamic TOON Schema:
+### Input Group Dynamic TOON Schema
 ```toon
 name: generate_dynamic_input_group_field
 strict: false
@@ -4524,8 +4524,8 @@ schema:
   required[1]: inputFields
 ```
 
-### Input Group Dynamic Examples:
-#### Input Group Dynamic JSON Example:
+### Input Group Dynamic Examples
+#### Input Group Dynamic JSON Example
 ```json
 [
   {
@@ -4555,7 +4555,7 @@ schema:
   }
 ]
 ```
-#### Input Group Dynamic TOON Example:
+#### Input Group Dynamic TOON Example
 ```toon
 [3]:
   - key: dynamic_field
@@ -4579,7 +4579,7 @@ schema:
     visibilityCondition: context?.inputData?.agent_extraValue === 'variables' || context?.inputData?.agent_extraValue === 'variables_vision'
 ```
 
-# Special Note:
+# Special Note
 
 ## Special Note: Static Input Group: `whereClause` Feature (Special Layout)
 The `whereClause` feature allows you to display an input group as a readable sentence instead of separate fields. It transforms input groups into sentence-based configurations, improving UX and making workflows feel more natural by reducing confusion in complex actions.
@@ -4653,11 +4653,11 @@ The `whereClause` feature allows you to display an input group as a readable sen
 **Example Use Case (Instagram Trigger New Comment):**
 Instead of showing stacked disconnected fields (*Select Media, Select Type*), you can construct a readable sentence using dropdowns:
 *"When commented on `[dropdown: specific media]` Media `[dropdown: choose media]`"*
-## Special Note: Dropdown & Multiselect:
+## Special Note: Dropdown & Multiselect
 When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 1. **The `sample` attribute**: The `sample` string must **always** be identical to the option's `value`. MANDATORY RULE: If the value is an ID, the `sample` MUST be included. If the `label` and `sample` are exactly the same, then NO `sample` is needed. Omit otherwise.
 2. **The `extraValue` key**: In static and dynamic dropdown use cases, the `extraValue` key can be added to options to hold hidden metadata. This metadata supports every JSON data type (string, number, boolean, object, array, etc.). It is highly useful when a dropdown option uses an ID as the `value` and you want to pass extra information (like the resource type or category) to drive complex visibility conditions, dynamic `fieldsGenerator` logic, or to be consumed directly inside the perform code or trigger code blocks. In code blocks and visibility conditions, the hidden state is read via the path `context?.inputData?.{dropdown_key}_extraValue` (or nested within input groups as `context?.inputData?.{input_group_key}?.{dropdown_key}_extraValue`).
-## Special Note: Visibility Condition Rules:
+## Special Note: Visibility Condition Rules
 
 When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed. **Any valid JavaScript condition is supported, including complex calculations, array methods (like `.includes()`), and dynamic key value checks.**
 
@@ -4733,7 +4733,7 @@ Here are the various patterns you should use based on what field type it depends
      ```javascript
      Object.keys(context?.inputData?.custom_metadata || {}).includes('special_key')
      ```
-## Special Note: `list` and `limit` usage in the text and number field types:
+## Special Note: `list` and `limit` usage in the text and number field types
 - The `list` key is only applicable to 'string' and 'number' type fields.
 - The `limit` key is only applicable if `list` is true.
 
@@ -4777,7 +4777,7 @@ It is crucial to understand the difference between `dependsOn` and `visibilityCo
   - Using a field's path inside a `visibilityCondition` **does NOT** add it to the `dependsOn` array.
   - It provides the power to conditionally show or hide static fields, even though static fields have an empty `dependsOn` array.
 
-### `dependsOn` vs `visibilityCondition` Examples:
+### `dependsOn` vs `visibilityCondition` Examples
 
 #### Example 1: Generic Example (Static Fields & Input Groups)
 
