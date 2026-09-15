@@ -33,7 +33,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **Payload Shape**: Must match the API schema exactly. The final endpoint must match the provided cURL.
 - **API Parameter Completeness**: Input fields and perform code MUST support all possible parameters available in the target API documentation (required and optional parameters across query, body, headers, and filters). Flag any omitted documented API parameters.
 - **Auto-Derivation Fallback**: If a required value is derived (e.g., mimetype from URL) and could fail, require a safe fallback.
-- **Auth**: No auth logic or hardcoded secrets where the platform handles it (non-secret default fallbacks OK).
+- **Auth**: Strictly do not include the authentication path in the code, as it is passed from the backend. No auth logic or hardcoded secrets where the platform handles it (non-secret default fallbacks OK).
 - **Generators & Reusable Components**: On zero results, return a message key based on the configuration: (a) if ONLY pagination is enabled: return `{ data: [], offset: null, message: <user message> }`; (b) if neither pagination nor search is enabled: return `{ message: <user message> }`; (c) if ONLY search is enabled: return `{ message: <user message> }`; (d) if BOTH search and pagination are enabled: return `{ data: [], offset: <previous_offset>, message: <user message> }` (ignoring search offset and prioritizing the previous pagination offset so exiting search resumes pagination correctly). Handle "parent not selected yet" (return warning block).
 - **JSON Validity**: Reject malformed JSON (duplicate keys, broken escaping, missing commas).
 - **Required Fields**: Code must throw error at top (before API call) if a required input field is missing/empty/null (e.g. `if (!context.inputData.date) { throw new Error('Date is required.'); }`).
@@ -86,7 +86,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
     - `XMLBuilder`  (for JS Object → XML conversion)
     - `XMLValidator`(for XML validation)
 - **Payload Mapping**: Ensure `context.inputData.<key>` is correctly mapped to the API payload.
-- **No Auth**: Ensure absolutely **no authentication logic** is present.
+- **No Auth**: Strictly do not include the authentication path in the code, as it is passed from the backend. Ensure absolutely **no authentication logic** is present.
 - **Endpoint**: Ensure the final endpoint correctly matches the provided cURL.
 - **API Rate Limiting**: If the code calls an API inside a loop, it must handle the API rate limit of the service (e.g., add delays, retry logic, or respect rate limit headers).
 - **Required Field Validation**: For every input field marked `required: true` in the input fields JSON, the perform code **must** throw an error at the top of the function (before the API call) if that field's value is missing, empty, or `null`. Example: `if (!context.inputData.date) { throw new Error('Date is required.'); }`
