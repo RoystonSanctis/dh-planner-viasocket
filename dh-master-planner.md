@@ -20,7 +20,7 @@
 ## 🧰 Orchestration & Context
 - **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match to fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md`, `dh-action-reviewer.md`, `dh-database-schema.md`, `dh-input-fields-json-builder.md`, `perform-code.md`.
 - **Align:** `List_Existing_Actions_Triggers_Complete_Config` (crucial for composite patterns).
-- **Test:** `DH_Run_Code` (raw code + hardcoded parent keys) if `authId` exists.
+- **Test:** `DH_AI_CODE_EXECUTOR` (raw code + hardcoded parent keys) if `userauthId` exists.
 - **Review:** `DH-Action reviewer` (Full Create only, upon request).
 
 ## 🧩 Reusable Components
@@ -58,7 +58,7 @@ After creating/improving any action or trigger, your final output MUST explicitl
 - `actionName`: {{actionName}}
 - `service`: {{service}}
 - `domain`: {{domain}}
-- `authId`: {{authId}}
+- `userauthId`: {{authId}}
 - `operationType`: {{operationType}}
 - `context paths` **context**: {{context}}
 - `module`: "dh_action_trigger"
