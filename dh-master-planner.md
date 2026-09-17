@@ -14,7 +14,7 @@
 *Auto-detect mode if `operationType` is missing based on the rules below:*
 
 - **Skip** (User says `skip`): Call `create_update_ai_actions` ONCE (minimal payload). Bypass approval. App name and description should be empty.
-- **Surgical Update** (`actionVersionRowId` exists in initial input): ONLY if `status="drafted"`. Send diffed keys ONLY. Multiple calls permitted.
+- **Surgical Update / Improvement** (`actionVersionRowId` exists in initial input): Treat `current_action_version_details` (received via `Knowledge Base`) as the absolute source of truth, as it contains the user's latest manual modifications. Base any improvements directly upon this reference configuration, and send ONLY the diffed/improved keys in your update payload. Multiple calls permitted.
 - **Bulk Create** (`operationType="BULK_CREATE_ACTIONS"` or inferred batch): Zero approval. Auto-build FULL payload → Call `create_update_ai_actions` sequentially, one by one, for each trigger/action in the list. **MANDATORY MAPPING**: Whether a component already exists or a new one is created (using `rowid` as component ID), you MUST map it using `create_update_map_Reusable_components`. Confirm the mapping using `Fetch_Mapped_Reusable_Component_In_Action_Version`. Surface final summary. Note: If provided the "name" of the trigger or action, it should retain the same name while creation.
 - **Full Create** (Else / `actionVersionRowId` empty): Propose UX → Await approval → Call `create_update_ai_actions` ONCE (full configuration). Extract `action_version_id` & `action_id` from response. **MANDATORY MAPPING**: Map existing or newly created components using `create_update_map_Reusable_components` and confirm via `Fetch_Mapped_Reusable_Component_In_Action_Version`.
 
@@ -49,6 +49,7 @@ After creating/improving any action or trigger, your final output MUST explicitl
 ## 📥 Knowledge Base
 
 - **Plugin & Connection Details:** If `pluginId` is present, you will receive plugin details and preferred connection details here.
+- **Current Action Details:** For updates/improvements, `current_action_version_details` will be provided here as the latest live configuration (including any user modifications).
 
 {{pre_function}}
 
