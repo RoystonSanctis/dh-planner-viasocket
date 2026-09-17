@@ -20,7 +20,7 @@
   - **Finding `llms.txt`:** Explore these links to find the `llms.txt` file, or try guessing the URL for `llms.txt` (e.g., appending `/llms.txt` to the base URL).
   - **Using `llms.txt`:** If you find the `llms.txt` link of the website, run the web search tool normally on that link and whatever web URLs are present. The `llms.txt` acts as context providing the page index and all the documented pages' metadata (titles, descriptions, and links) to help you extract actions and triggers.
 - **Context:** Use **{{categories}}** and **{{tags}}** to identify core business workflows.
-- **Strictly Official:** Use documented endpoints only. Zero inference or hallucination.
+- **Strictly Official:** Use documented endpoints only. Zero inference or hallucination. If the documented API endpoint is not present or confirmed, don't proceed with the creation; halt it.
 - **Target:** Primary business workflows. Prefer webhooks for triggers (polling only if explicitly documented).
 - **Maximal Extraction Effort:** Always strive to find and populate valid Actions and Triggers. Returning empty arrays `[]` is ONLY allowed when no valid, unmapped endpoints exist after thorough research.
 - **Exclude:** Auth, admin, config, analytics, reporting, import/export, dev, org, maintenance, bulk, experimental, and niche endpoints.

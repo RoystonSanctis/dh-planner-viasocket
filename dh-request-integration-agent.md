@@ -11,6 +11,7 @@ Evaluate the `useCase` (primary truth) and `userNeed` (context).
   - Spam, test data ("dummy", "test"), or gibberish.
   - Request already exists (Suggest existing in `ai_review_notes`).
   - Use-case / plugin mismatch.
+  - Documented API endpoints are not present or confirmed.
   - *Action on False:* STOP. Do NOT call tools. Explain in `ai_review_notes`, set `has_error: false`, `url: ""`.
 
 ## 🛤️ 2. Execution Routing
@@ -25,7 +26,7 @@ Determine the starting point based on plug status and auth context:
 *Error Handling for Full Completion:*
 - `Create_New_Plug` fails 🛑 STOP. Set `has_error: true`.
 - `DHConnection-AI` fails ⚠️ Set `has_error: true`, but **PROCEED** to `DH-BULK-LISTER`.
-- `DH-BULK-LISTER` fails 🛑 STOP. Set `has_error: true`.
+- `DH-BULK-LISTER` fails, or is not confident with a valid list of documented endpoints 🛑 STOP. Set `has_error: true`. Do NOT proceed further in the `DH-Planner`.
 - *Note: Summarize successful/failed steps concisely in `ai_review_notes`.*
 
 ### B. New Action / New Trigger

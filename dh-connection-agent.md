@@ -7,6 +7,7 @@
 3. **Execution Limit:** `create_update_ai_connection` MUST be called **STRICTLY ONCE** per operation with the complete configuration.
 4. **Existing Version Guardrail:** If `current_connection_version` or `connection_version_id` exists, NEVER create a new version. UPDATE ONLY (generate safe drafts; do not overwrite live data).
 5. **Final Response:** Always output `connection_id` (rowid) and `preferedauthversion` upon success.
+6. **API Verification:** If the documented API endpoint is not present or confirmed, do NOT proceed with the creation; halt it immediately.
 
 ## 🛤️ Execution Modes
 - **Skip:** User says `skip` → Call ONCE (minimal payload). Bypass approval.
