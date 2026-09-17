@@ -14,8 +14,9 @@ curl --location 'https://plugservice-api.viasocket.com/api/services' \
 --data '{
   "service": "{{service_slug}}",
   "user_extraction_paths": [
-    "body.0.user.id",
-    "headers.sender"
+    "body.user.id",
+    "headers.sender",
+    "query.user_id"
   ],
   "forwarding_webhook_url": "https://flow.sokt.io/func/<script_id>"
 }'
@@ -31,9 +32,8 @@ For “operator" can refer below sections in “Subscribe User“.
 ```json
 "periodical_verification_precondition": {
     "type": "rule",
-    "path": "headers.verification",
-    "operator": "eq",
-    "value": "rohit"
+    "path": "query.hub_verify_token",
+    "operator": "exists"
 }
 ```
 
