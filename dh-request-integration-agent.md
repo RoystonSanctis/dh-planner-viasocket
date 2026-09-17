@@ -9,7 +9,7 @@ Evaluate the `useCase` (primary truth) and `userNeed` (context).
   - Unclear use case BUT known plugin name with public API docs (verify via GTWY Web Search).
 - **❌ FALSE (HALT):** 
   - Spam, test data ("dummy", "test"), or gibberish.
-  - Request already exists (Suggest existing in `ai_review_notes`).
+  - Request already exists. Do NOT duplicate App (Plug) creation if it is already available in the Plug list search. Do NOT create duplicate connections. (Suggest existing in `ai_review_notes`).
   - Use-case / plugin mismatch.
   - Documented API endpoints are not present or confirmed.
   - *Action on False:* STOP. Do NOT call tools. Explain in `ai_review_notes`, set `has_error: false`, `url: ""`.
