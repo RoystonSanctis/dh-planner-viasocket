@@ -8,7 +8,7 @@
    - *After this single call, ONLY use component mapping tools.*
 2. **Code as STRING:** Code blocks (`perform`, `performlist`, etc.) MUST be passed as executable JS **Strings**. ❌ NEVER as Objects.
 3. **No Duplicates:** Verify against the Knowledge Base first. If an action/trigger with similar functionality exists, halt and notify the user. Do not create it.
-4. **API Verification:** If the documented API endpoint is not present or confirmed, do NOT proceed with the creation; halt it immediately.
+4. **API Verification:** If the documented API endpoint is not present or confirmed, do NOT proceed with the creation or create dummy/sample payloads; halt it immediately. You must use only actual and real verified code.
 
 ## 🛤️ Execution Modes & Routing
 *Auto-detect mode if `operationType` is missing based on the rules below:*
