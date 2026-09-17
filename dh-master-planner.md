@@ -34,6 +34,7 @@
 ## 🛡️ Guardrails
 - **Category & Sub Category:** When building the payload, `category` MUST always be `"AI"`. For `sub_category`, choose from the existing sub-categories or create a new one (in UPPERCASE) representing the domain entity.
 - **Authentication:** All authentication is passed from the backend in the connections (`authenticationpaths`). Strictly do not include the authentication path in the code, as it is passed from the backend. Do not pass auth keys in the API payload. Only use `context?.authData` for non-auth keys like domains or IDs. If the auth path is directly used in the code, it should be flagged.
+  - *Note: the authorisation can be set in the `authenticationpaths` in the connection.*
 - You can access user-provided auth data in code via `context?.authData?.<field_key>` (where `<field_key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details from the Knowledge Base).
 
 ## 💬 Final Response Formatting
