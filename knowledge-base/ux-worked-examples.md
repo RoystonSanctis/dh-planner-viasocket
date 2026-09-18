@@ -50,6 +50,15 @@ published: true
   - List all Employees (Keka)
   - Send Message (Slack)
   - Cin7 Core — Update Customer (Advanced)
+- Full Action Reference Examples
+  - Slack — Send Message (Full Reference)
+  - Google Sheet — Add New Row to Sheet
+  - viaSocket Table — Add Records To Table
+  - viaSocket Table — Get Table Rows
+  - MSG91 — Send WhatsApp Template Message
+  - Leadconnector — Create Or Update Contact
+  - Gmail — Send Email
+  - Keka — Add a New Employee
 
 # UX Worked Examples Knowledge Base
 
@@ -7479,3 +7488,1926 @@ async function updateCustomer() {
 }
 return await updateCustomer();
 ```
+
+---
+
+# Full Action Reference Examples
+
+These are complete, production-shipped action implementations with both **Input Fields JSON** and **Perform Code**. Use them as full reference examples to understand end-to-end patterns.
+
+---
+
+## Slack — Send Message (Full Reference)
+
+**Metadata**
+- **App:** Slack
+- **Category:** Communication / Messaging
+- **Action:** Send Message
+- **Action Type:** COMPOSITE (Send / Schedule / Thread Reply)
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| (destination group) | input groups | `destination` | Groups all routing fields (target type, channel/user/thread, mentions, broadcast) |
+| Send Message To | dropdown | `messageto` | Top-level routing: channel, user, or thread reply. Drives visibility of downstream fields |
+| On (Thread Channel) | dropdown | `thread_channel_id` | Channel selector for thread mode only |
+| Channels | multiselect | `channel_id` | Multi-channel send for channel mode |
+| Users | multiselect | `userId` | Multi-user DM for user mode |
+| Thread | dropdown | `thread_ts` | Message selector within selected channel for reply |
+| Also notify | multiselect | `tagged_users` | @mention tagging, includes `@channel` option |
+| Also send as direct message | boolean | `reply_broadcast` | Broadcast thread reply to channel |
+| With message | markdown | `markdown_content` | Message body with markdown support |
+| Action Buttons | dictionary | `buttons` | Key=label, Value=URL clickable buttons |
+| Schedule With | dropdown | `schedule_type` | Optional scheduling: datetime or delay |
+| Delay (in minutes) | number | `delay_value` | Visible only for delay scheduling |
+| At | string | `post_at` | Visible only for datetime scheduling (YYYY-MM-DD HH:mm IST) |
+| (bot_details group) | input groups | `bot_details` | Bot identity: name, emoji/icon |
+| (preview group) | input groups | `preview` | Link/media unfurl toggles |
+
+**Key UX Patterns**
+- **Routing via visibility conditions**: `messageto` dropdown drives which fields appear (channel_id, userId, thread selectors)
+- **Dynamic option generators**: Channels and users fetched via helper functions
+- **Dictionary field**: `buttons` uses key/value template for action buttons
+- **Scheduling branch**: Optional schedule_type reveals either delay or datetime input
+- **Input groups for organization**: bot_details and preview group optional settings
+
+**Input Fields JSON**
+
+```json
+[
+  {
+    "key": "destination",
+    "type": "input groups",
+    "label": "",
+    "fields": [
+      {
+        "key": "messageto",
+        "type": "dropdown",
+        "label": "Send Message To ",
+        "options": [
+          { "label": "channel", "value": "channel" },
+          { "label": "user ", "value": "user" },
+          { "label": "thread as reply", "value": "thread" }
+        ],
+        "required": true,
+        "placeholder": "type",
+        "defaultValue": { "label": "channel", "value": "channel" }
+      },
+      {
+        "key": "thread_channel_id",
+        "help": "Select channel or Enter Channel ID.",
+        "type": "dropdown",
+        "label": "On",
+        "required": true,
+        "customHelp": "Enter a single Channel ID. To find it, use the List all public channels action.",
+        "placeholder": "Select Channel",
+        "customInputLabel": "Enter Channel ID",
+        "optionsGenerator": "return await get_all_channel() ",
+        "customPlaceholder": "C082WLRJLAA",
+        "visibilityCondition": "context?.inputData?.destination?.messageto === 'thread'"
+      },
+      {
+        "key": "channel_id",
+        "help": "Select channel(s) or Enter comma-separated Channel IDs.",
+        "type": "multiselect",
+        "label": "Channels",
+        "required": true,
+        "customHelp": "Enter Channel name(s) or Channel ID(s) separated by commas (e.g. general, #random, C082ACF6XQQ). To find a Channel ID, use the \"List all public channels\" action.",
+        "placeholder": "Select Channel",
+        "customInputLabel": "Channel IDs",
+        "optionsGenerator": "return await get_all_channel() ",
+        "customPlaceholder": "[\"C082ACF6XQQ\",\"C082WLRJLAA\"]",
+        "visibilityCondition": "context?.inputData?.destination?.messageto === \"channel\""
+      },
+      {
+        "key": "userId",
+        "type": "multiselect",
+        "label": "Users",
+        "required": true,
+        "customHelp": "Enter Slack User IDs separated by commas. To find a User ID use get all channel members action.",
+        "placeholder": "select user",
+        "customInputLabel": "Enter User Id",
+        "optionsGenerator": "return await get_all_users_of_workspace() ",
+        "customPlaceholder": "[\"43446456\", \"345345646\"]",
+        "visibilityCondition": "context?.inputData?.destination?.messageto === 'user'"
+      },
+      {
+        "key": "thread_ts",
+        "help": "Select or enter the message ID you want to reply to.",
+        "type": "dropdown",
+        "label": "Thread",
+        "required": true,
+        "customHelp": "Enter message ID. To find the Message ID use Get messages from slack action.",
+        "canPaginate": false,
+        "customInputLabel": "Message Id",
+        "optionsGenerator": "return await get_sendmessage_messages(context?.inputData?.destination.thread_channel_id) ",
+        "customPlaceholder": "1774073738.822629",
+        "visibilityCondition": "context?.inputData?.destination?.thread_channel_id"
+      },
+      {
+        "key": "tagged_users",
+        "type": "multiselect",
+        "label": "Also notify",
+        "required": false,
+        "customHelp": "Enter Slack User IDs separated by commas. To find a User ID use get all channel members action.",
+        "placeholder": "Select People",
+        "optionsGenerator": "try {\n  let users = [];\n  let cursor = null;\n  do {\n    const response = await axios.request({\n      method: 'get',\n      url: 'https://slack.com/api/users.list',\n      params: {\n        limit: 999,\n        cursor: cursor || undefined\n      }\n    });\n    if (!response.data.ok) {\n      throw new Error(response.data.error);\n    }\n    users.push(...response.data.members);\n    cursor = response.data.response_metadata?.next_cursor || null;\n  } while (cursor);\n\n  if (!users.length) {\n    return {\n      message: \"No users found, please make sure there is an available user to fetch\"\n    };\n  }\n\n  const staticOptions = [\n    { label: 'Everyone in the channel', value: 'channel', sample: '@channel' }\n  ];\n\n  const userOptions = users\n    .filter(member => member.id !== 'USLACKBOT')\n    .map(member => ({\n      label: member.real_name || member.name,\n      value: member.id,\n      sample: member.id\n    }));\n\n  return [...staticOptions, ...userOptions];\n\n} catch (error) {\n  throw error;\n}",
+        "customPlaceholder": "[\"U0A6THCVAH1\", \"U082S1U4DDL\"]",
+        "visibilityCondition": "context?.inputData?.destination?.thread_ts || context?.inputData?.destination?.[\"channel_id\"]?.[0]"
+      },
+      {
+        "key": "reply_broadcast",
+        "help": "Broadcast the reply to the entire channel?",
+        "type": "boolean",
+        "label": "Also send as direct message",
+        "options": [
+          { "label": "Yes", "value": true },
+          { "label": "No", "value": false }
+        ],
+        "required": false,
+        "placeholder": "select ",
+        "visibilityCondition": "context?.inputData?.destination?.thread_ts "
+      }
+    ]
+  },
+  {
+    "key": "markdown_content",
+    "help": "You can use plain text or Markdown formatting like *bold*, _italic_, code, and links.",
+    "type": "markdown",
+    "label": "With message",
+    "required": true,
+    "placeholder": "Type your message here...",
+    "visibilityCondition": "context?.inputData?.destination?.channel_id || context?.inputData?.destination?.thread_ts || context?.inputData?.destination?.userId"
+  },
+  {
+    "key": "buttons",
+    "help": "Add clickable buttons to your message. Each button opens a URL when clicked. Use the button text as the key and the link as the value.",
+    "type": "dictionary",
+    "label": "Action Buttons",
+    "required": false,
+    "template": {
+      "key": { "help": "Enter Label.", "type": "string", "placeholder": "Click Me" },
+      "value": { "help": "Enter the URL.", "type": "string", "placeholder": "https://www.example.com" }
+    }
+  },
+  {
+    "key": "schedule_type",
+    "type": "dropdown",
+    "label": "Schedule With",
+    "options": [
+      { "label": "Specific Date & Time", "value": "datetime" },
+      { "label": "Delay", "value": "delay" }
+    ],
+    "required": false,
+    "placeholder": "Select"
+  },
+  {
+    "key": "delay_value",
+    "type": "number",
+    "label": "Delay (in minutes)",
+    "required": true,
+    "placeholder": "10",
+    "visibilityCondition": "context?.inputData?.schedule_type === 'delay'"
+  },
+  {
+    "key": "post_at",
+    "help": "Enter date & time in this format only: YYYY-MM-DD HH:mm (24‑hour time in IST (UTC+5:30))",
+    "type": "string",
+    "label": "At",
+    "required": true,
+    "placeholder": "2026-02-05 18:07",
+    "visibilityCondition": "context?.inputData?.schedule_type === 'datetime'"
+  },
+  {
+    "key": "bot_details",
+    "type": "input groups",
+    "label": "Bot Details",
+    "fields": [
+      {
+        "key": "bot_name",
+        "help": "Defaults to viaSocket if left blank.",
+        "type": "string",
+        "label": "Display Name",
+        "required": false,
+        "placeholder": "viaSocket"
+      },
+      {
+        "key": "icon_type",
+        "type": "dropdown",
+        "label": "Custom Icon Type",
+        "options": [
+          { "label": "Emoji", "value": "emoji" },
+          { "label": "Image URL", "value": "url" }
+        ],
+        "required": false,
+        "placeholder": "Select"
+      },
+      {
+        "key": "emoji",
+        "help": "Paste the emoji short code that will be used as the bot's icon, e.g., :smile:.",
+        "type": "string",
+        "label": "Emoji Code",
+        "required": false,
+        "placeholder": ":smile:",
+        "visibilityCondition": "context.inputData.bot_details.icon_type === 'emoji'"
+      },
+      {
+        "key": "url",
+        "help": "Defaults to the viaSocket logo if left blank.",
+        "type": "string",
+        "label": "Icon Image URL",
+        "required": false,
+        "placeholder": "https://stuff.thingsofbrand.com/viasocket.com/images/imgf_logo-2.png",
+        "visibilityCondition": "context.inputData.bot_details.icon_type === 'url'"
+      }
+    ]
+  },
+  {
+    "key": "preview",
+    "type": "input groups",
+    "label": "preview",
+    "fields": [
+      {
+        "key": "unfurl_links",
+        "help": "Expand URLs as preview cards in the message.",
+        "type": "dropdown",
+        "label": "Show Link Preview",
+        "options": [
+          { "label": "Yes, show link previews", "value": true },
+          { "label": "No, keep message clean", "value": false }
+        ],
+        "required": false,
+        "placeholder": "Select"
+      },
+      {
+        "key": "unfurl_media",
+        "help": "Show images, videos, and GIFs inline in the message.",
+        "type": "dropdown",
+        "label": "Show Media Preview",
+        "options": [
+          { "label": "Yes, show media inline", "value": true },
+          { "label": "No, show only the URL", "value": false }
+        ],
+        "required": false,
+        "placeholder": "Select"
+      }
+    ]
+  }
+]
+```
+
+**UX Takeaways**
+- Multi-mode routing (channel/user/thread) via a single dropdown driving all downstream visibility
+- Dictionary field type is ideal for key-value pairs like buttons
+- Scheduling is treated as an optional branch, not a separate action
+- Bot identity and preview settings grouped in collapsible input groups to reduce clutter
+
+---
+
+## Google Sheet — Add New Row to Sheet
+
+**Metadata**
+- **App:** Google Sheets
+- **Category:** Spreadsheets / Data Storage
+- **Action:** Add New Row to Sheet
+- **Action Type:** CREATE
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| Spreadsheet | dropdown (paginated, searchable) | `spreadsheet_Id` | Dynamic lookup with pagination and search |
+| Sheet | dropdown | `grid_Id` | Dependent on selected spreadsheet |
+| Does your first row contain column name? | boolean | `column_key` | Determines header mode (name vs letter) |
+| Columns | multiselect | `column_selected` | Field chooser — user picks which columns to fill |
+| Column Values | input groups (fieldsGenerator) | `column_name` | Dynamic fields generated based on selected columns |
+
+**Key UX Patterns**
+- **Paginated + searchable dropdown**: `canPaginate: true` and `enableSearchApi: true` for spreadsheet selector
+- **Cascading dependency**: Sheet depends on Spreadsheet, Columns depend on Sheet
+- **Field chooser → dynamic input groups**: User selects columns first, then fieldsGenerator creates matching input fields
+- **Duplicate column handling**: Columns with same name get letter suffix (e.g., `Status--D`)
+
+**Input Fields JSON**
+
+```json
+[
+  {
+    "key": "spreadsheet_Id",
+    "help": "Select or enter the ID of the spreadsheet.",
+    "type": "dropdown",
+    "label": "Spreadsheet",
+    "required": true,
+    "customHelp": "You will find the Spreadsheet ID on the spreadsheet URL https://docs.google.com/spreadsheets/d/{spreadsheet_Id}/ or you can use the action like search spreadsheet or list spreadsheet.",
+    "canPaginate": true,
+    "placeholder": "Choose Spreadsheet",
+    "enableSearchApi": true,
+    "customInputLabel": "Enter Spreadsheet ID",
+    "optionsGenerator": "try{\n  const pageToken = context?.paginateData?.['spreadsheet_Id']\n  const searchText = __searchText\n  const pageSize = 1000;\n  return await fetchSpreadsheets(pageToken,searchText,pageSize) \n}catch(e){\n  throw e;\n}",
+    "customPlaceholder": "1PBtrnuRN_xfmilW79NgD70Z3Z0NsGs5*****"
+  },
+  {
+    "key": "grid_Id",
+    "help": "Select the Sheet or Enter Sheet ID.",
+    "type": "dropdown",
+    "label": "Sheet",
+    "required": true,
+    "customHelp": "You will find the sheet ID on the spreadsheet URL gid=, or you can use the action like search sheet or list sheet.",
+    "placeholder": "Choose Sheet",
+    "customInputLabel": "Enter Sheet ID",
+    "optionsGenerator": "try{\n  const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nreturn await fetchSheetsWithID(spreadsheet_Id);\n}catch(e){\nthrow e;\n}",
+    "customPlaceholder": "38470421"
+  },
+  {
+    "key": "column_key",
+    "help": "Determines how the data columns are labelled.",
+    "type": "boolean",
+    "label": "Does your first row contain column name?",
+    "options": [
+      { "label": "Yes", "value": true },
+      { "label": "No", "value": false }
+    ],
+    "required": true,
+    "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
+    "placeholder": "Choose Option",
+    "defaultValue": { "label": "Yes", "value": true },
+    "customPlaceholder": "true ",
+    "visibilityCondition": "context?.inputData?.spreadsheet_Id && context?.inputData?.grid_Id"
+  },
+  {
+    "key": "column_selected",
+    "help": "Select the columns for entering the values.",
+    "type": "multiselect",
+    "label": "Columns",
+    "required": true,
+    "placeholder": "Select Columns to Insert Data",
+    "customInputLabel": "Enter Column name in array.",
+    "optionsGenerator": "const spreadsheet_Id = context?.inputData?.spreadsheet_Id;\nconst sheetIdentifier = context?.inputData?.grid_Id;\nconst column_key = context?.inputData?.column_key ?? true;\n\nreturn await fetchSheetColumns(spreadsheet_Id, sheetIdentifier, column_key);",
+    "customPlaceholder": " [\"Title\", \"Status\"]"
+  },
+  {
+    "key": "column_name",
+    "help": "Enter the Column Values.",
+    "type": "input groups",
+    "label": "Column Values",
+    "required": true,
+    "fieldsGenerator": "<see full fieldsGenerator in source>"
+  }
+]
+```
+
+**UX Takeaways**
+- Field chooser (multiselect columns) + fieldsGenerator is the gold standard for sheet-like actions
+- Paginated and searchable dropdowns are critical for large datasets (thousands of spreadsheets)
+- Boolean toggle for header mode adapts the entire downstream UX
+
+---
+
+## viaSocket Table — Add Records To Table
+
+**Metadata**
+- **App:** viaSocket Table
+- **Category:** Database / Data Storage
+- **Action:** Add Records To Table
+- **Action Type:** CREATE
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| Table | dropdown | `table` | Dynamic table list with extraValue for attachment detection |
+| Add Records Mode | boolean | `bulkAdd` | Single vs bulk record toggle |
+| Want to set lookup configuration | boolean | `includeLookupFields` | Advanced: show link/lookup fields |
+| Select Fields to Fill | multiselect | `selectedFields` | Field chooser for single mode |
+| Allow adding new Dropdown Options | boolean | `addMissingOptions` | Auto-create missing dropdown options |
+| Records (JSON Array) | string | `records` | Bulk mode: raw JSON input |
+| Field Reference | help (dynamic) | `field_reference` | Bulk mode: auto-generated field guide |
+| with Fields | input groups (fieldsGenerator) | `field` | Single mode: dynamic fields from selection |
+| Attachments | input groups | `attachment_config` | Conditional on table having attachment columns |
+
+**Key UX Patterns**
+- **Mode toggle**: Boolean `bulkAdd` splits UX into single (field chooser + generator) vs bulk (JSON array + reference guide)
+- **extraValue on dropdown**: Table dropdown includes `extraValue` to detect attachment/link columns without extra API calls
+- **Help field with dynamic source**: `field_reference` generates a complete field guide for bulk JSON input
+- **Attachment handling**: Separate `attachment_config` group with upload mode (URL vs Base64)
+
+**UX Takeaways**
+- Dual-mode (single/bulk) in one action avoids creating two separate actions
+- `extraValue` on dropdown options is a powerful pattern to carry metadata without extra API calls
+- Dynamic help fields (`type: "help"` with `source`) guide users through complex inputs like JSON arrays
+
+---
+
+## viaSocket Table — Get Table Rows
+
+**Metadata**
+- **App:** viaSocket Table
+- **Category:** Database / Data Storage
+- **Action:** Get Table Rows
+- **Action Type:** FIND / SEARCH
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| Table | dropdown | `table` | Table selector |
+| Filter Mode | dropdown | `filter_mode` | 4 modes: list_all, filter_formula, query, key_value |
+| Select Column(s) | multiselect | `field_id` | For filter_formula mode |
+| Filter Conditions | input groups (fieldsGenerator) | `Filter_op` | Dynamic filter builder with operator + value per column |
+| Generate Query by AI | aifield | `query1` | AI-powered natural language → SQL filter |
+| Query Help | help (dynamic) | `QueryHelpField` | Auto-generated column reference for AI query |
+| Select Columns for Key/Value | multiselect | `key_value_columns` | For key_value mode |
+| Enter Values | input groups (fieldsGenerator) | `key_value_input_groups` | Dynamic value inputs matching selected columns |
+| Query Options | input groups | `queryopt` | Limit, offset, sort, field selection |
+| Key/Value Filter Help | help | `key_value_help` | Static help for key/value limitations |
+
+**Key UX Patterns**
+- **Multi-mode filter**: 4 filter modes from simple (list_all) to advanced (AI query)
+- **AI field type**: `type: "aifield"` with prompt and suggestionGenerator for natural language filtering
+- **Dynamic filter builder**: fieldsGenerator creates operator/value pairs per selected column with correct types (number, boolean, string)
+- **Shared query options**: Limit/offset/sort apply across all filter modes
+
+**UX Takeaways**
+- Progressive complexity: list_all → key_value → filter_formula → AI query
+- `aifield` type with `prompt` and `suggestionGenerator` enables natural language queries
+- Dynamic filter builders should adapt field types based on column schema (number columns get number inputs)
+
+---
+
+## MSG91 — Send WhatsApp Template Message
+
+**Metadata**
+- **App:** MSG91
+- **Category:** Communication / Messaging
+- **Action:** Send WhatsApp Template Message
+- **Action Type:** CREATE
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| Integrated Number | dropdown | `integrated_number` | WhatsApp number selector from MSG91 |
+| Template | dropdown | `name` | Template selector dependent on integrated number |
+| Template Field | input groups (fieldsGenerator) | `components` | Dynamic template variables |
+| Template preview | input groups (fieldsGenerator) | `gaooXaGs` | Live preview of how template will appear |
+| To | string | `to` | Comma-separated recipient phone numbers |
+
+**Key UX Patterns**
+- **Cascading dropdowns**: Template depends on Integrated Number
+- **Dynamic template fields**: fieldsGenerator populates variable fields based on selected template
+- **Preview field**: A second fieldsGenerator renders a read-only preview of the final message
+- **Simple recipient input**: Comma-separated string instead of complex multiselect for phone numbers
+
+**UX Takeaways**
+- Template-based messaging actions should show a live preview of the rendered template
+- Cascading dependencies (number → template → variables) create a natural top-down flow
+- Phone number inputs can use simple comma-separated strings when the API handles parsing
+
+---
+
+## Leadconnector — Create Or Update Contact
+
+**Metadata**
+- **App:** Leadconnector (GoHighLevel)
+- **Category:** CRM / Contact Management
+- **Action:** Create Or Update Contact
+- **Action Type:** FIND OR CREATE (Upsert)
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| Find Contact By | dropdown | `lookup_by` | Lookup strategy: email, phone, or both |
+| Email Address (required) | string | `email_required` | Required when lookup is email/both |
+| Phone Number (required) | string | `phone_required` | Required when lookup is phone/both |
+| Email Address (optional) | string | `email_optional` | Optional when lookup is phone only |
+| Phone Number (optional) | string | `phone_optional` | Optional when lookup is email only |
+| Contact Fields to Set | multiselect | `selected_fields` | Field chooser with smart defaults |
+| (individual fields) | various | various | Each appears only when selected |
+| Assign To — Find User By | dropdown | `assignedTo_method` | User ID vs Email lookup for assignment |
+| Address | input groups | `address` | Nested address fields |
+| Tags | string | `tags` | Comma-separated, replaces ALL tags |
+| Enable DND | boolean | `enable_dnd` | Triggers DND channel selection |
+| DND Channels | multiselect | `dnd_channels` | Which channels to block |
+| DND Settings | input groups | `dndSettings` | Per-channel DND configuration |
+| Select Custom Fields | multiselect | `selectedCustomFields` | Custom field chooser from API |
+| Custom Field Values | input groups (fieldsGenerator) | `customFields` | Dynamic custom field inputs |
+| Override Duplicate Behavior | boolean | `override_duplicate_behavior` | Advanced duplicate control |
+
+**Key UX Patterns**
+- **Required/optional field duality**: Same field (email/phone) appears as required or optional based on lookup mode
+- **Field chooser with defaults**: `selected_fields` multiselect pre-selects common fields, user can add more
+- **Nested field chooser**: Custom fields use a two-step select (choose fields → fill values)
+- **Progressive disclosure**: DND, duplicate override, and custom fields are hidden behind toggles
+- **Multi-level nesting**: DND settings have channel-level sub-groups with per-channel configuration
+
+**UX Takeaways**
+- Upsert actions need a clear "lookup by" selector that drives required field logic
+- Field choosers with sensible defaults reduce cognitive load while maintaining flexibility
+- Two-step custom field selection (choose → fill) prevents overwhelming users with all possible fields
+- Warning-style help text on destructive fields (tags replaces ALL) prevents data loss surprises
+
+---
+
+## Gmail — Send Email
+
+**Metadata**
+- **App:** Gmail
+- **Category:** Communication / Email
+- **Action:** Send Email
+- **Action Type:** CREATE
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| To | string | `to` | Comma-separated recipients |
+| CC | string | `cc` | Optional CC recipients |
+| BCC | string | `bcc` | Optional BCC recipients |
+| Subject | string | `subject` | Email subject line |
+| From | dropdown | `from` | SendAs email selector from Gmail settings |
+| Sender Name | string | `fromName` | Custom sender display name |
+| Reply To | string | `replyTo` | Override reply address |
+| Message Body | html | `messageBody` | Rich HTML or plain text body |
+| Attachment Size Limit | help (dynamic) | `attachment_size_help` | Size limit warning |
+| Attachments | string | `attachments` | Comma-separated file URLs |
+| Label | multiselect | `labelIds` | Gmail labels to apply to sent message |
+
+**Key UX Patterns**
+- **HTML field type**: `type: "html"` for rich email body composition
+- **Dynamic From dropdown**: Fetches SendAs addresses from Gmail API
+- **Help field for warnings**: Static help field explains 25 MB attachment limit
+- **Simple attachment input**: Comma-separated URLs instead of complex file upload
+
+**UX Takeaways**
+- Email actions follow a natural top-down flow: recipients → subject → body → attachments → labels
+- `type: "html"` enables rich content editing for email bodies
+- Help fields are excellent for surfacing important limitations (attachment size) without blocking the flow
+- Google Drive file handling in perform code shows how to support both Drive URLs and regular URLs
+
+---
+
+## Keka — Add a New Employee
+
+**Metadata**
+- **App:** Keka
+- **Category:** HR / Employee Management
+- **Action:** Add a New Employee
+- **Action Type:** CREATE
+
+**UX Components & Field Design**
+
+| Field | Type | Key | Purpose |
+|---|---|---|---|
+| Employee Core Information | input groups | `employeeCoreInformation` | Required fields: name, gender, email, phone, DOB, join date, department, job title, location |
+| Select Additional Details | multiselect | `additionalFields` | Section chooser: basicInfo, workInfo, contactDetails, jobdetails, bankd, salary |
+| Basic Information | input groups | `basicInformation` | Employee number, blood group, nationality, marital status |
+| Work Information | input groups | `workInformation` | Professional summary, business unit, legal entity |
+| Contact Details | input groups | `contactDetails` | Personal email, phones, addresses (current + permanent) |
+| Salary details | input groups | `salary` | Salary structure, amount, effective date, optional bonus |
+| Financial Details | input groups | `financialDetails` | Payment mode, bank details (conditional on bank transfer) |
+| Job details | input groups | `jobdetails` | Second-level section chooser for reporting, employment, schedule, attendance, leave, compensation |
+
+**Key UX Patterns**
+- **Two-level section chooser**: Top-level `additionalFields` multiselect reveals sections, then `jobSections` within `jobdetails` adds another level
+- **Core vs optional separation**: Mandatory fields in one group, everything else behind a field chooser
+- **Enum dropdowns with custom input**: Gender, blood group, marital status all support both dropdown selection and manual numeric/text entry with `customInputLabel` and `customPlaceholder`
+- **Address copy toggle**: `isCurrentAddressSameAsPermanent` boolean avoids duplicate address entry
+- **Conditional bank details**: Bank fields appear only when payment mode is "Bank Transfer"
+- **Cascading job details**: Department → Job Title dependency, contingent type appears only for contingent workers
+
+**UX Takeaways**
+- Complex entity creation (employee with 50+ possible fields) is best managed with section choosers
+- Two-level section choosers prevent overwhelming users even with extremely large forms
+- Core information should always be visible; optional sections should default to commonly needed ones
+- Enum fields should support both dropdown selection AND manual entry for automation flexibility
+- Address patterns (current/permanent with copy toggle) are reusable across many HR/CRM actions
+
+
+---
+
+## Perform Code Reference
+
+The following sections contain the complete perform code for each action documented above.
+
+### Slack — Send Message Perform Code
+
+```javascript
+try {
+  const destination = context.inputData.destination || {};
+  const botDetails = context.inputData.bot_details || {};
+  const preview = context.inputData.preview || {};
+
+  const targetType = destination.messageto;
+  const rawContent = context.inputData.markdown_content;
+
+  // ---------- STRICT DATE → UNIX (YYYY-MM-DD HH:mm IST) ----------
+  const toUnixTimestamp = (input) => {
+    if (!input) throw new Error('post_at is required');
+    const match = input.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/);
+    if (!match) throw new Error('Invalid date format. Use YYYY-MM-DD HH:mm');
+    const [, year, month, day, hour, minute] = match;
+    const utcMillis = Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour) - 5,
+      Number(minute) - 30,
+      0
+    );
+    if (isNaN(utcMillis)) throw new Error('Invalid date value');
+    return Math.floor(utcMillis / 1000);
+  };
+
+  // ---------- DELAY → UNIX ----------
+  const toDelayTimestamp = (delayMinutes) => {
+    if (!delayMinutes || isNaN(delayMinutes)) throw new Error('Delay value is required and must be a number');
+    return Math.floor(Date.now() / 1000) + Number(delayMinutes) * 60;
+  };
+
+  // ---------- NORMALIZER ----------
+  const normalizeIds = (input) => {
+    if (!input) return [];
+    if (Array.isArray(input)) {
+      return input
+        .flatMap((item) => {
+          if (typeof item === 'string') return item.split(',');
+          if (typeof item === 'object' && item?.value) return item.value.split(',');
+          return [];
+        })
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
+    if (typeof input === 'string') {
+      return input.split(',').map((v) => v.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
+  // ---------- CHANNEL NAME → ID RESOLVER ----------
+  const isChannelId = (val) => /^[CGD][A-Z0-9]{8,}$/i.test(val);
+
+  let channelLookupCache = null;
+  const getChannelLookup = async () => {
+    if (channelLookupCache) return channelLookupCache;
+    const allChannels = [];
+    let cursor;
+    do {
+      const response = await axios.get(
+        'https://slack.com/api/conversations.list',
+        { params: { types: 'public_channel,private_channel', exclude_archived: true, limit: 999, cursor } }
+      );
+      if (!response.data.ok) throw new Error(response.data.error);
+      allChannels.push(...(response.data.channels || []));
+      cursor = response.data.response_metadata?.next_cursor || null;
+    } while (cursor);
+
+    const map = {};
+    for (const ch of allChannels) {
+      if (ch.name && ch.id) map[ch.name.toLowerCase()] = ch.id;
+    }
+    channelLookupCache = map;
+    return map;
+  };
+
+  const resolveChannels = async (inputs) => {
+    const resolved = [];
+    let needsLookup = inputs.some((v) => !isChannelId(v));
+    let lookup = {};
+    if (needsLookup) lookup = await getChannelLookup();
+    for (const raw of inputs) {
+      if (isChannelId(raw)) { resolved.push(raw); continue; }
+      const cleaned = raw.replace(/^#/, '').trim().toLowerCase();
+      const id = lookup[cleaned];
+      if (!id) throw new Error(`Channel "${raw}" not found.`);
+      resolved.push(id);
+    }
+    return resolved;
+  };
+
+  // ---------- SCHEDULE RESOLUTION ----------
+  const scheduleType = context.inputData.schedule_type;
+  const isScheduled = scheduleType === 'datetime' || scheduleType === 'delay';
+  const performApiUrl = isScheduled
+    ? 'https://slack.com/api/chat.scheduleMessage'
+    : 'https://slack.com/api/chat.postMessage';
+
+  let post_at = undefined;
+  if (isScheduled) {
+    if (scheduleType === 'datetime') post_at = toUnixTimestamp(context.inputData.post_at);
+    else if (scheduleType === 'delay') post_at = toDelayTimestamp(context.inputData.delay_value);
+  }
+
+  const hasMarkdown = /(\*[^*]+\*|_[^_]+_|`[^`]+`|~[^~]+~|>\s|```[\s\S]*```|\[.+\]\(.+\))/.test(rawContent);
+
+  // ---------- BUTTONS ----------
+  const actions = Object.entries(context.inputData.buttons || {}).map(([key, url], index) => ({
+    type: 'button',
+    text: key.charAt(0).toUpperCase() + key.slice(1),
+    url,
+    style: index % 2 === 0 ? 'primary' : 'danger'
+  }));
+  const attachmentjson = actions.length
+    ? [{ fallback: 'Buttons', color: '#36a64f', attachment_type: 'default', actions }]
+    : undefined;
+
+  // ---------- TAGGED USERS ----------
+  const buildMentionPrefix = () => {
+    const taggedRaw = normalizeIds(destination.tagged_users);
+    if (!taggedRaw.length) return '';
+    const mentions = taggedRaw.map((id) => id === 'channel' ? '<!channel>' : `<@${id}>`);
+    return mentions.join(' ') + '\n\n';
+  };
+  const mentionPrefix = buildMentionPrefix();
+
+  // ---------- BOT IDENTITY ----------
+  const botName = botDetails.bot_name?.trim() || 'viaSocket';
+  const defaultIconUrl = 'https://stuff.thingsofbrand.com/viasocket.com/images/imgf_logo-2.png';
+  const applyBotIdentity = (data) => {
+    data.username = botName;
+    const iconType = botDetails.icon_type;
+    if (iconType === 'emoji' && botDetails.emoji) data.icon_emoji = botDetails.emoji;
+    else if (iconType === 'url') data.icon_url = botDetails.url?.trim() || defaultIconUrl;
+    else data.icon_url = defaultIconUrl;
+    return data;
+  };
+
+  const viaSocketMetadata = {
+    event_type: 'viasocket_message',
+    event_payload: { script_id: _scriptId || '' }
+  };
+
+  // ---------- SEND MESSAGE ----------
+  const sendMessage = async (channel, thread_ts = undefined, reply_broadcast = undefined) => {
+    const payload = applyBotIdentity({
+      channel,
+      text: mentionPrefix + rawContent,
+      mrkdwn: hasMarkdown,
+      metadata: viaSocketMetadata,
+      ...(attachmentjson && { attachments: attachmentjson }),
+      ...(preview.unfurl_links !== undefined && { unfurl_links: preview.unfurl_links }),
+      ...(preview.unfurl_media !== undefined && { unfurl_media: preview.unfurl_media }),
+      ...(post_at && { post_at }),
+      ...(thread_ts && { thread_ts }),
+      ...(reply_broadcast !== undefined && { reply_broadcast })
+    });
+    const response = await axios.post(performApiUrl, payload, {});
+    if (!response.data.ok) throw new Error(response.data.error);
+    return response.data;
+  };
+
+  const responses = [];
+
+  if (targetType === 'channel') {
+    const rawInputs = normalizeIds(destination.channel_id);
+    if (!rawInputs.length) throw new Error('Channel is required.');
+    const channels = await resolveChannels(rawInputs);
+    for (const channel of channels) responses.push(await sendMessage(channel));
+  } else if (targetType === 'user') {
+    const users = normalizeIds(destination.userId);
+    if (!users.length) throw new Error('User is required.');
+    for (const user of users) {
+      const payload = applyBotIdentity({
+        channel: user, text: rawContent, mrkdwn: hasMarkdown, metadata: viaSocketMetadata,
+        ...(attachmentjson && { attachments: attachmentjson }),
+        ...(preview.unfurl_links !== undefined && { unfurl_links: preview.unfurl_links }),
+        ...(preview.unfurl_media !== undefined && { unfurl_media: preview.unfurl_media }),
+        ...(post_at && { post_at })
+      });
+      const response = await axios.post(performApiUrl, payload, {});
+      if (!response.data.ok) throw new Error(response.data.error);
+      responses.push(response.data);
+    }
+  } else if (targetType === 'thread') {
+    let channel = destination.thread_channel_id;
+    const thread_ts = destination.thread_ts;
+    const reply_broadcast = destination.reply_broadcast || false;
+    if (!channel) throw new Error('Channel is required.');
+    if (!thread_ts) throw new Error('Thread message is required.');
+    if (!isChannelId(channel)) {
+      const [resolvedId] = await resolveChannels([channel]);
+      channel = resolvedId;
+    }
+    responses.push(await sendMessage(channel, thread_ts, reply_broadcast));
+  } else {
+    return { ok: false, error: 'invalid_target_type' };
+  }
+
+  return responses.length === 1 ? responses[0] : responses;
+} catch (error) {
+  if (error?.response?.status === 429) throw { success: false, status: 429, message: 'Too Many Requests' };
+  throw error;
+}
+```
+
+### Google Sheet — Add New Row Perform Code
+
+```javascript
+async function addRowToSheet() {
+    try {
+        const axiosRetry = async (fn, retries = 3, delay = 3000) => {
+            let attempt = 0;
+            while (attempt < retries) {
+                try { return await fn(); }
+                catch (error) {
+                    if (error?.response?.status >= 500 && error?.response?.status < 600) {
+                        attempt++;
+                        if (attempt < retries) { await new Promise(resolve => setTimeout(resolve, delay)); delay *= 2; }
+                        else { throw new Error(`Max retries reached. Last error: ${error?.response?.data?.error?.message || error.message}`); }
+                    } else { throw error; }
+                }
+            }
+        };
+
+        if (!context.inputData.spreadsheet_Id) throw new Error('Spreadsheet is required.');
+        if (!context.inputData.grid_Id) throw new Error('Sheet is required.');
+        if (!context.inputData.column_selected || context.inputData.column_selected.length === 0) throw new Error('Please select at least one column.');
+        if (!context.inputData.column_name) throw new Error('Column values are required.');
+
+        const spreadsheetId = context.inputData.spreadsheet_Id;
+        const sheetIdentifier = context.inputData.grid_Id;
+        const column_key = context?.inputData?.column_key ?? true;
+        const columnNameData = context.inputData.column_name || {};
+        const selectedColumns = context.inputData.column_selected || [];
+
+        function getColumnLetter(index) {
+            let letter = '';
+            while (index >= 0) { letter = String.fromCharCode((index % 26) + 65) + letter; index = Math.floor(index / 26) - 1; }
+            return letter;
+        }
+        function columnLetterToIndex(letter) {
+            let index = 0;
+            const upper = letter.trim().toUpperCase();
+            for (let i = 0; i < upper.length; i++) index = index * 26 + (upper.charCodeAt(i) - 64);
+            return index - 1;
+        }
+        function normalizeForComparison(text) {
+            if (!text) return '';
+            return text.toString().trim().replace(/\./g, '_');
+        }
+
+        const hasAtLeastOneValue = Object.values(columnNameData).some(v => v !== null && v !== undefined && String(v).trim() !== "");
+        if (!hasAtLeastOneValue) throw { success: false, message: "Empty row cannot be created." };
+
+        const isNumericId = /^\d+$/.test(String(sheetIdentifier));
+        let dataFilter = {};
+        if (isNumericId) {
+            dataFilter = { gridRange: { sheetId: parseInt(sheetIdentifier, 10), startRowIndex: 0, endRowIndex: 1 } };
+        } else {
+            const safeStringName = decodeURIComponent(sheetIdentifier).replace(/'/g, "''");
+            dataFilter = { a1Range: `'${safeStringName}'!1:1` };
+        }
+
+        const filterResponse = await axiosRetry(() => axios({
+            method: 'POST',
+            url: `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGetByDataFilter`,
+            data: { dataFilters: [dataFilter] }
+        }));
+
+        const valueRangeData = filterResponse.data?.valueRanges?.[0]?.valueRange;
+        if (!valueRangeData || !valueRangeData.range) throw new Error(`Sheet "${sheetIdentifier}" not found.`);
+
+        const rangeString = valueRangeData.range;
+        let rawSheetName = rangeString.substring(0, rangeString.lastIndexOf('!'));
+        if (rawSheetName.startsWith("'") && rawSheetName.endsWith("'")) rawSheetName = rawSheetName.slice(1, -1);
+        rawSheetName = rawSheetName.replace(/''/g, "'");
+        const headerRow = valueRangeData.values?.[0] || [];
+
+        let headerToIndexMap = {};
+        if (column_key) {
+            const cleanedHeaders = headerRow.map(cell => cell ? cell.toString().replace(/\s+/g, ' ').trim() : "");
+            const headerCounts = {};
+            cleanedHeaders.forEach(name => { if (name) headerCounts[name] = (headerCounts[name] || 0) + 1; });
+            cleanedHeaders.forEach((cleanHeader, i) => {
+                if (!cleanHeader) return;
+                const columnLetter = getColumnLetter(i);
+                let finalValue = cleanHeader;
+                if (headerCounts[cleanHeader] > 1) finalValue = `${cleanHeader}--${columnLetter}`;
+                headerToIndexMap[normalizeForComparison(finalValue)] = i;
+            });
+        }
+
+        let maxColIndex = -1;
+        const rowData = [];
+        const outputData = {};
+
+        selectedColumns.forEach(selectedKey => {
+            const normalizedInputKey = normalizeForComparison(selectedKey);
+            const value = columnNameData[normalizedInputKey] ?? "";
+            let colIndex = -1;
+            if (!column_key) colIndex = columnLetterToIndex(selectedKey);
+            else {
+                if (headerToIndexMap[normalizedInputKey] !== undefined) colIndex = headerToIndexMap[normalizedInputKey];
+                else if (selectedKey.includes('--')) colIndex = columnLetterToIndex(selectedKey.split('--')[1]);
+            }
+            const finalValue = (value !== "" && !isNaN(value)) ? parseFloat(value) : value.toString().trim();
+            if (colIndex >= 0) { rowData[colIndex] = finalValue; if (colIndex > maxColIndex) maxColIndex = colIndex; }
+            outputData[selectedKey] = finalValue;
+        });
+
+        for (let i = 0; i <= maxColIndex; i++) { if (rowData[i] === undefined) rowData[i] = ""; }
+
+        const appendResponse = await axiosRetry(() => axios({
+            method: 'POST',
+            url: `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/'${encodeURIComponent(rawSheetName)}'!A1:append`,
+            params: { valueInputOption: 'USER_ENTERED', insertDataOption: 'INSERT_ROWS' },
+            data: { majorDimension: "ROWS", values: [rowData] }
+        }));
+
+        let insertRowNumber = "unknown";
+        const updatedRangeString = appendResponse.data.updates?.updatedRange || "";
+        const match = updatedRangeString.match(/!([A-Z]+)(\d+)/);
+        if (match && match[2]) insertRowNumber = parseInt(match[2], 10);
+
+        outputData["_rowNumber"] = insertRowNumber;
+        outputData["_spreadsheet_id"] = spreadsheetId;
+        outputData["_sheet_id"] = sheetIdentifier;
+        outputData["_sheet_title"] = rawSheetName;
+
+        return { success: true, data: outputData };
+    } catch (error) {
+        await errorComponent(error);
+    }
+}
+return await addRowToSheet();
+```
+
+### MSG91 — Send WhatsApp Template Perform Code
+
+```javascript
+try {
+  const { integrated_number, name, to, components = {} } = context.inputData;
+
+  if (!to || (typeof to === 'string' && to.trim() === '') || (Array.isArray(to) && to.length === 0)) {
+    const err = new Error('Phone number is required.');
+    err.status = 400;
+    throw err;
+  }
+
+  const fetchTemplateDetails = async (number, templateName) => {
+    const res = await axios.get(`https://control.msg91.com/api/v5/whatsapp/get-template-client/${number}`);
+    const templates = res.data?.data || [];
+    const found = templates.find(t => t.name === templateName);
+    return {
+      namespace: found?.namespace,
+      languageCode: found?.languages?.[0]?.language || 'en',
+      variableType: found?.languages?.[0]?.variable_type || {}
+    };
+  };
+
+  const { namespace, languageCode, variableType } = await fetchTemplateDetails(integrated_number, name);
+
+  const normalizeRecipients = (rawTo) => {
+    if (!rawTo && rawTo !== 0) return [];
+    if (Array.isArray(rawTo)) return rawTo.flatMap(item => String(item).split(',').map(s => s.trim()).filter(Boolean));
+    return String(rawTo).split(',').map(s => s.trim()).filter(Boolean);
+  };
+  const toArray = normalizeRecipients(to);
+  if (toArray.length === 0) { const err = new Error('Phone number is required.'); err.status = 400; throw err; }
+
+  const componentObj = {};
+  if (components && typeof components === 'object' && Object.keys(components).length > 0) {
+    for (const [key, rawValue] of Object.entries(components)) {
+      if (key.endsWith('_filename')) continue;
+      const info = variableType?.[key] || {};
+      const type = info.type || (rawValue && typeof rawValue === 'object' ? rawValue.type : undefined) || 'text';
+      const subtype = info.subtype || (rawValue && typeof rawValue === 'object' ? rawValue.subtype : undefined);
+      let value = rawValue;
+      let detectedSubtype = subtype;
+      let filename;
+      if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+        if ('value' in rawValue) value = rawValue.value;
+        if ('subtype' in rawValue) detectedSubtype = rawValue.subtype;
+        if ('filename' in rawValue) filename = rawValue.filename;
+      }
+      const finalValue = (value === undefined || value === null) ? '' : value;
+      const finalType = type || 'text';
+      if (finalType === 'document') {
+        const resolvedFilename = filename || components[`${key}_filename`] || (typeof finalValue === 'string' && finalValue ? finalValue.split('/').pop().split('?')[0] || 'document' : 'document');
+        componentObj[key] = { type: finalType, ...(detectedSubtype ? { subtype: detectedSubtype } : {}), filename: resolvedFilename, value: finalValue };
+      } else {
+        componentObj[key] = { type: finalType, ...(detectedSubtype ? { subtype: detectedSubtype } : {}), value: finalValue };
+      }
+    }
+  }
+
+  const data = {
+    integrated_number,
+    content_type: 'template',
+    payload: {
+      messaging_product: 'whatsapp',
+      type: 'template',
+      template: {
+        name,
+        language: { code: languageCode, policy: 'deterministic' },
+        namespace,
+        to_and_components: [{ to: toArray, components: Object.keys(componentObj).length > 0 ? componentObj : {} }]
+      }
+    }
+  };
+
+  const response = await axios.post('https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/', data);
+  return { status: response.data.status, hasError: response.data.hasError, request_id: response.data.request_id, data: response.data.data, errors: response.data.errors };
+} catch (error) {
+  await errorComponent(error);
+}
+```
+
+### Leadconnector — Create Or Update Contact Perform Code
+
+```javascript
+try {
+  const data = context.inputData;
+
+  let config1 = {
+    method: 'get', maxBodyLength: Infinity,
+    url: `https://services.leadconnectorhq.com/locations/${context?.authData?.accesstokencode?.locationId}`,
+    headers: { 'Accept': 'application/json', 'Version': '2021-07-28' }
+  };
+  const res = await axios.request(config1);
+
+  const val = (field) => typeof field === 'object' && field !== null ? field.value : field;
+  const isSelected = (key) => Array.isArray(data.selected_fields) && data.selected_fields.some(f => (typeof f === 'object' ? f.value : f) === key);
+
+  const locationId = res.data.location.id;
+  if (!locationId) throw new Error('Location ID is missing.');
+
+  const lookupBy = val(data.lookup_by);
+  const email = data.email_required || data.email_optional;
+  const phone = data.phone_required || data.phone_optional;
+
+  if (lookupBy === 'email' && !email) throw new Error('Email is required when "Find Contact By" is set to Email.');
+  if (lookupBy === 'phone' && !phone) throw new Error('Phone is required when "Find Contact By" is set to Phone.');
+  if (lookupBy === 'both' && !email && !phone) throw new Error('At least Email or Phone is required.');
+
+  const payload = { locationId };
+  if (lookupBy === 'email') { payload.email = email; if (phone) payload.phone = phone; }
+  else if (lookupBy === 'phone') { payload.phone = phone; if (email) payload.email = email; }
+  else { if (email) payload.email = email; if (phone) payload.phone = phone; }
+
+  if (isSelected('firstName') && data.firstName) payload.firstName = data.firstName;
+  if (isSelected('lastName') && data.lastName) payload.lastName = data.lastName;
+  if (isSelected('gender') && data.gender) payload.gender = val(data.gender);
+  if (isSelected('dateOfBirth') && data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth;
+  if (isSelected('companyName') && data.companyName) payload.companyName = data.companyName;
+  if (isSelected('website') && data.website) payload.website = data.website;
+  if (isSelected('timezone') && data.timezone) payload.timezone = data.timezone;
+  if (isSelected('source') && data.source) payload.source = data.source;
+
+  if (isSelected('assignedTo')) {
+    const assignedMethod = val(data.assignedTo_method);
+    if (assignedMethod === 'id' && data.assignedTo_id) payload.assignedTo = data.assignedTo_id;
+    else if (assignedMethod === 'email' && data.assignedTo_email) {
+      const usersResp = await axios.get(`https://services.leadconnectorhq.com/users/?locationId=${locationId}`, { headers: { 'Version': '2021-07-28', 'Accept': 'application/json' } });
+      const matchedUser = (usersResp.data?.users || []).find(u => u.email?.toLowerCase() === data.assignedTo_email.toLowerCase());
+      if (!matchedUser) throw new Error(`No user found with email: ${data.assignedTo_email}`);
+      payload.assignedTo = matchedUser.id;
+    }
+  }
+
+  if (isSelected('address') && data.address) {
+    if (data.address.address1) payload.address1 = data.address.address1;
+    if (data.address.city) payload.city = data.address.city;
+    if (data.address.state) payload.state = data.address.state;
+    if (data.address.postalCode) payload.postalCode = data.address.postalCode;
+    if (data.address.country) payload.country = data.address.country;
+  }
+
+  if (isSelected('tags') && data.tags && data.tags.trim()) {
+    payload.tags = data.tags.split(',').map(t => t.trim()).filter(Boolean);
+  }
+
+  if (isSelected('dnd') && data.enable_dnd === true) {
+    payload.dnd = true;
+    payload.dndSettings = context?.inputData?.dndSettings;
+    payload.inboundDndSettings = context?.inputData?.inboundDndSettings;
+  }
+
+  if (isSelected('customFields') && data.customFields && typeof data.customFields === 'object') {
+    const cfArray = Object.entries(data.customFields)
+      .filter(([key, value]) => key && value !== undefined && value !== '')
+      .map(([key, value]) => ({ id: key, field_value: value }));
+    if (cfArray.length > 0) payload.customFields = cfArray;
+  }
+
+  if (data.override_duplicate_behavior === true) {
+    payload.createNewIfDuplicateAllowed = val(data.createNewIfDuplicateAllowed) ?? false;
+  }
+
+  const response = await axios.post('https://services.leadconnectorhq.com/contacts/upsert', payload, {
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Version': '2021-07-28' }
+  });
+  return response.data;
+} catch (error) {
+  throw error;
+}
+```
+
+### Gmail — Send Email Perform Code
+
+```javascript
+const MAX_ATTACHMENT_SIZE_BYTES = 25 * 1024 * 1024;
+const MAX_TOTAL_ATTACHMENT_SIZE_BYTES = 25 * 1024 * 1024;
+
+function encodeMessage(raw) {
+  return Buffer.from(raw).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function encodeSubjectForMIME(subject) {
+  return `=?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`;
+}
+function detectContentType(body) {
+  return /<\/?[a-z][\s\S]*>/i.test(body || '') ? 'text/html' : 'text/plain';
+}
+
+async function sendAttachment() {
+  const requestData = context.inputData;
+  let fromEmail = requestData.from;
+  if (!fromEmail) {
+    const sendAsRes = await axios.get('https://www.googleapis.com/gmail/v1/users/me/settings/sendAs');
+    const defaultSendAs = sendAsRes.data.sendAs.find(item => item.isDefault);
+    fromEmail = defaultSendAs?.sendAsEmail;
+  }
+  const fromHeader = requestData.fromName ? `${requestData.fromName} <${fromEmail}>` : fromEmail;
+
+  try {
+    const boundary = "__file_boundary__";
+    const encodedSubject = encodeSubjectForMIME(requestData.subject || '');
+    const messageBody = requestData.messageBody || '';
+    const contentType = detectContentType(messageBody);
+
+    let messageParts = [
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      "MIME-Version: 1.0",
+      `To: ${requestData.to}`,
+      ...(requestData.cc ? [`Cc: ${requestData.cc}`] : []),
+      ...(requestData.bcc && requestData.bcc.trim() ? [`Bcc: ${requestData.bcc}`] : []),
+      `From: ${fromHeader}`,
+      ...(requestData.replyTo ? [`Reply-To: ${requestData.replyTo}`] : []),
+      `Subject: ${encodedSubject}`,
+      "",
+      `--${boundary}`,
+      `Content-Type: ${contentType}; charset="UTF-8"`,
+      "",
+      messageBody,
+      ""
+    ];
+
+    // Attachment handling (URLs → download → base64 encode → MIME parts)
+    if (requestData.attachments) {
+      const urls = requestData.attachments.split(",").map(u => u.trim()).filter(Boolean);
+      let totalAttachmentSize = 0;
+      for (const url of urls) {
+        // Download file (supports Google Drive and regular URLs)
+        const res = await axios.get(url, { responseType: "arraybuffer" });
+        const buffer = Buffer.from(res.data);
+        totalAttachmentSize += buffer.length;
+        if (totalAttachmentSize > MAX_TOTAL_ATTACHMENT_SIZE_BYTES) throw new Error('Total attachment size exceeds 25 MB limit.');
+        const filename = url.split("/").pop().split("?")[0] || "file";
+        const mimeType = res.headers["content-type"] || "application/octet-stream";
+        const base64Data = buffer.toString("base64");
+        messageParts.push(
+          `--${boundary}`,
+          `Content-Type: ${mimeType}; name="${filename}"`,
+          `Content-Disposition: attachment; filename="${filename}"`,
+          `Content-Transfer-Encoding: base64`,
+          "", base64Data, ""
+        );
+      }
+    }
+
+    messageParts.push(`--${boundary}--`);
+    const raw = encodeMessage(messageParts.join("\r\n"));
+
+    const response = await axios.post("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", { raw }, { headers: {} });
+
+    if (Array.isArray(requestData.labelIds) && requestData.labelIds.length > 0) {
+      const modifyRes = await axios.post(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${response.data.id}/modify`,
+        { addLabelIds: requestData.labelIds }, { headers: {} }
+      );
+      return modifyRes.data;
+    }
+    return response.data;
+  } catch (err) {
+    if (err.response?.status === 400) {
+      const errorMessage = err.response?.data?.error?.message || "";
+      if (["Invalid To header", "Invalid Cc header", "Invalid Bcc header"].includes(errorMessage)) {
+        throw new Error("Please enter a valid email address.");
+      }
+    }
+    await errorComponent(err);
+  }
+}
+return await sendAttachment();
+```
+
+### viaSocket Table — Add Records To Table Perform Code
+
+```javascript
+try {
+  const inputData = context.inputData;
+  const isBulkAdd = !!inputData.bulkAdd;
+
+  if (isBulkAdd) {
+    // ==================== BULK ADD LOGIC ====================
+    let records;
+    try {
+      records = typeof inputData.records === 'string'
+        ? JSON.parse(inputData.records)
+        : inputData.records;
+    } catch (error) {
+      return { message: 'Please provide a valid JSON array. Example: [{"Name":"John"},{"Name":"Jane"}]' };
+    }
+
+    if (!Array.isArray(records) || records.length === 0 ||
+        !records.every(item => item && typeof item === 'object' && !Array.isArray(item))) {
+      return { message: 'Records must be a non-empty array of objects.' };
+    }
+
+    // ==================== FETCH SCHEMA — identify attachment column IDs ====================
+    const schemaResponse = await axios.get(
+      `https://table-api.viasocket.com/dbs/${context.authData.dbId}/${inputData.table}/field`
+    );
+    const tableFields = schemaResponse.data?.data?.fields || {};
+    const attachmentColumnIds = new Set(
+      Object.entries(tableFields)
+        .filter(([_, f]) => f.fieldType === 'attachment')
+        .map(([id, _]) => id)
+    );
+
+    const allCreatedRecords = [];
+    const embeddedUploadResults = {};
+
+    for (const record of records) {
+
+      const cleanRecord = {};
+      const recordAttachments = {};
+
+      for (const [key, value] of Object.entries(record)) {
+        if (attachmentColumnIds.has(key)) {
+          const values = Array.isArray(value) ? value : (value ? [value] : []);
+          if (values.length > 0) recordAttachments[key] = values;
+        } else {
+          if (value !== undefined && value !== null && value !== '') {
+            cleanRecord[key] = value;
+          }
+        }
+      }
+
+      const createResponse = await axios.request({
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `https://table-api.viasocket.com/${context.authData.dbId}/${inputData.table}`,
+        headers: { 'Content-Type': 'application/json' },
+        data: {
+          addMissingOptions: inputData.addMissingOptions,
+          records: [cleanRecord]
+        }
+      });
+
+      const createdRecord = createResponse.data?.data?.[0];
+      if (createdRecord) allCreatedRecords.push(createdRecord);
+
+      const autonumber = createdRecord?.autonumber;
+      if (!autonumber || Object.keys(recordAttachments).length === 0) continue;
+
+      embeddedUploadResults[autonumber] = {};
+
+      for (const columnId in recordAttachments) {
+        const values = recordAttachments[columnId];
+        embeddedUploadResults[autonumber][columnId] = [];
+
+        for (const value of values) {
+          if (!value) continue;
+
+          let formData = new FormData();
+          formData.append("columnId", columnId);
+
+          const isUrl = typeof value === 'string' &&
+                        (value.startsWith('http://') || value.startsWith('https://'));
+
+          if (isUrl) {
+            let fileUrl = value;
+            if (fileUrl.includes("drive.google.com")) {
+              const match = fileUrl.match(/\/d\/(.*?)\//);
+              if (match && match[1]) {
+                fileUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+              }
+            }
+            const fileResponse = await axios({
+              method: "get",
+              url: fileUrl,
+              responseType: "arraybuffer",
+              maxContentLength: Infinity,
+              maxBodyLength: Infinity
+            });
+            const mimeType = fileResponse.headers["content-type"] || "application/octet-stream";
+            const ext = mimeTypeToExt(mimeType);
+            formData.append("file", fileResponse.data, {
+              filename: `upload.${ext}`,
+              contentType: mimeType
+            });
+          } else {
+            let mimeType = "application/octet-stream";
+            let base64Data = value;
+
+            if (value.includes("base64,")) {
+              const parts = value.split(",");
+              base64Data = parts[1];
+              const match = value.match(/^data:(.*);base64,/);
+              if (match && match[1]) mimeType = match[1];
+            } else {
+              mimeType = detectMimeFromBase64(value);
+              base64Data = value;
+            }
+
+            base64Data = base64Data.replace(/\s/g, "");
+            const buffer = Buffer.from(base64Data, "base64");
+            const ext = mimeTypeToExt(mimeType);
+            formData.append("file", buffer, {
+              filename: `upload.${ext}`,
+              contentType: mimeType
+            });
+          }
+
+          const uploadResponse = await axios({
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: `https://table-api.viasocket.com/${context.authData.dbId}/${inputData.table}/${autonumber}/upload`,
+            headers: { ...formData.getHeaders() },
+            data: formData
+          });
+
+          embeddedUploadResults[autonumber][columnId].push(uploadResponse.data);
+        }
+      }
+    }
+
+    // ==================== ATTACHMENT_CONFIG SUPPORT ====================
+    const uploadResults = {};
+    if (inputData.attachment_config?.uploadType) {
+      const uploadType = inputData.attachment_config?.uploadType;
+      const attachmentFields = inputData.attachment_config?.attachmentFields || {};
+
+      if (!["link", "binary"].includes(uploadType)) {
+        return { message: "Invalid upload type." };
+      }
+
+      for (let i = 0; i < allCreatedRecords.length; i++) {
+        const autonumber = allCreatedRecords[i]?.autonumber || (i + 1000);
+        uploadResults[autonumber] = {};
+
+        for (const columnId in attachmentFields) {
+          let values = attachmentFields[columnId];
+          if (!values) continue;
+          if (!Array.isArray(values)) values = [values];
+
+          uploadResults[autonumber][columnId] = [];
+
+          for (const value of values) {
+            if (!value) continue;
+
+            let formData = new FormData();
+            formData.append("columnId", columnId);
+
+            if (uploadType === "link") {
+              let fileUrl = value;
+              if (fileUrl.includes("drive.google.com")) {
+                const match = fileUrl.match(/\/d\/(.*?)\//);
+                if (match && match[1]) {
+                  fileUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+                }
+              }
+              const fileResponse = await axios({
+                method: "get",
+                url: fileUrl,
+                responseType: "arraybuffer",
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity
+              });
+              const mimeType = fileResponse.headers["content-type"] || "application/octet-stream";
+              const ext = mimeTypeToExt(mimeType);
+              formData.append("file", fileResponse.data, {
+                filename: `upload.${ext}`,
+                contentType: mimeType
+              });
+            } else {
+              let mimeType = "application/octet-stream";
+              let base64Data = value;
+
+              if (value.includes("base64,")) {
+                const parts = value.split(",");
+                base64Data = parts[1];
+                const match = value.match(/^data:(.*);base64,/);
+                if (match && match[1]) mimeType = match[1];
+              } else {
+                mimeType = detectMimeFromBase64(value);
+                base64Data = value;
+              }
+
+              base64Data = base64Data.replace(/\s/g, "");
+              const buffer = Buffer.from(base64Data, "base64");
+              const ext = mimeTypeToExt(mimeType);
+
+              formData.append("file", buffer, {
+                filename: `upload.${ext}`,
+                contentType: mimeType
+              });
+            }
+
+            const uploadResponse = await axios({
+              method: 'post',
+              maxBodyLength: Infinity,
+              url: `https://table-api.viasocket.com/${context.authData.dbId}/${inputData.table}/${autonumber}/upload`,
+              headers: { ...formData.getHeaders() },
+              data: formData
+            });
+
+            uploadResults[autonumber][columnId].push(uploadResponse.data);
+          }
+        }
+      }
+    }
+
+    return {
+      message: `Successfully inserted ${records.length} record${records.length > 1 ? 's' : ''}.`
+    };
+
+  } else {
+    // ==================== SINGLE INSERT LOGIC ====================
+    context.inputData.field = transformObject(context.inputData.field);
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: `https://table-api.viasocket.com/${context.authData.dbId}/${context.inputData.table}`,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        addMissingOptions: context.inputData.addMissingOptions,
+        records: [{ ...context.inputData.field }]
+      }
+    };
+    const createResponse = await axios.request(config);
+    const createdRecord = createResponse.data?.data?.[0];
+    const autonumber = createdRecord?.autonumber;
+    const uploadResults = {};
+    if (context.inputData.attachment_config?.uploadType) {
+      const uploadType = context.inputData.attachment_config?.uploadType;
+      const attachmentFields = context.inputData.attachment_config?.attachmentFields || {};
+      if (!["link", "binary"].includes(uploadType)) {
+        return { message: "Invalid upload type." };
+      }
+      for (const columnId in attachmentFields) {
+        const value = attachmentFields[columnId];
+        if (!value) continue;
+        let formData = new FormData();
+        formData.append("columnId", columnId);
+        if (uploadType === "link") {
+          let fileUrl = value;
+          if (fileUrl.includes("drive.google.com")) {
+            const match = fileUrl.match(/\/d\/(.*?)\//);
+            if (match && match[1]) {
+              fileUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+            }
+          }
+          const fileResponse = await axios({
+            method: "get",
+            url: fileUrl,
+            responseType: "arraybuffer",
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
+          });
+          const mimeType = fileResponse.headers["content-type"] || "application/octet-stream";
+          const ext = mimeTypeToExt(mimeType);
+          formData.append("file", fileResponse.data, {
+            filename: `upload.${ext}`,
+            contentType: mimeType
+          });
+        } else {
+          let mimeType = "application/octet-stream";
+          let base64Data = value;
+          if (value.includes("base64,")) {
+            const parts = value.split(",");
+            base64Data = parts[1];
+            const match = value.match(/^data:(.*);base64,/);
+            if (match && match[1]) mimeType = match[1];
+          } else {
+            mimeType = detectMimeFromBase64(value);
+            base64Data = value;
+          }
+          base64Data = base64Data.replace(/\s/g, "");
+          const buffer = Buffer.from(base64Data, "base64");
+          const ext = mimeTypeToExt(mimeType);
+          formData.append("file", buffer, {
+            filename: `upload.${ext}`,
+            contentType: mimeType
+          });
+        }
+        const uploadResponse = await axios({
+          method: 'post',
+          maxBodyLength: Infinity,
+          url: `https://table-api.viasocket.com/${context.authData.dbId}/${context.inputData.table}/${autonumber}/upload`,
+          headers: {
+            ...formData.getHeaders()
+          },
+          data: formData
+        });
+        uploadResults[columnId] = uploadResponse.data;
+      }
+    }
+    const filteredRecord = Object.fromEntries(
+      Object.entries(createdRecord || {}).filter(([_, v]) => v !== null && v !== undefined)
+    );
+
+    const inlineAttachments = {};
+    for (const columnId in uploadResults) {
+      inlineAttachments[columnId] = uploadResults[columnId]?.data || uploadResults[columnId];
+    }
+
+    return {
+      ...filteredRecord,
+      ...inlineAttachments
+    };
+  }
+
+
+function detectMimeFromBase64(base64String) {
+  const s = base64String.replace(/\s/g, '');
+
+  if (s.startsWith('/9j/'))           return 'image/jpeg';
+  if (s.startsWith('iVBOR'))          return 'image/png';
+  if (s.startsWith('R0lGOD'))         return 'image/gif';
+  if (s.startsWith('Qk0'))            return 'image/bmp';
+  if (s.startsWith('SUkq') ||
+      s.startsWith('TU0A'))           return 'image/tiff';
+  if (s.startsWith('UklGR') &&
+      s.includes('V0VCUA'))           return 'image/webp';
+  if (s.startsWith('PHN2Z') ||
+      s.startsWith('PHN2Zy'))         return 'image/svg+xml';
+  if (s.startsWith('JVBERi0'))        return 'application/pdf';
+  if (s.startsWith('0M8R4KGxGuE'))    return 'application/msword';
+  if (s.startsWith('UEsDB'))          return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  if (s.startsWith('UEsD'))           return 'application/zip';
+  if (s.startsWith('H4sI') ||
+      s.startsWith('H4sIA'))          return 'application/gzip';
+  if (s.startsWith('AAAB') ||
+      s.startsWith('AAIC'))           return 'audio/mpeg';
+  if (s.startsWith('T2dn'))           return 'audio/ogg';
+
+  return 'application/octet-stream';
+}
+
+function mimeTypeToExt(mimeType) {
+  const map = {
+    'image/jpeg':        'jpg',
+    'image/png':         'png',
+    'image/gif':         'gif',
+    'image/bmp':         'bmp',
+    'image/tiff':        'tiff',
+    'image/webp':        'webp',
+    'image/svg+xml':     'svg',
+    'application/pdf':   'pdf',
+    'application/zip':   'zip',
+    'application/gzip':  'gz',
+    'application/msword':'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':       'xlsx',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation':'pptx',
+    'audio/mpeg':        'mp3',
+    'audio/ogg':         'ogg',
+    'video/mp4':         'mp4',
+    'text/plain':        'txt',
+    'text/html':         'html',
+    'text/csv':          'csv',
+  };
+  return map[mimeType] || mimeType.split('/')[1]?.replace(/[^a-z0-9]/gi, '') || 'bin';
+}
+
+function transformObject(oldObject) {
+  const newObject = {};
+  for (const key in oldObject) {
+    const parts = key.split('@');
+    const type = parts.pop();
+    const newKey = parts.join('@');
+    let value = oldObject[key];
+    if (type === 'multipleselect') {
+      newObject[newKey] = Array.isArray(value) ? value : [value];
+      continue;
+    }
+    if (type === 'checkbox') {
+      newObject[newKey] = value === true;
+      continue;
+    }
+    if (type === 'json') {
+      if (typeof value === 'string') {
+        try {
+          value = JSON.parse(value);
+        } catch (e) {
+          return { message: `Invalid JSON for ${newKey}` };
+        }
+      }
+      newObject[newKey] = value;
+      continue;
+    }
+    if ((type === 'date' || type === 'datetime') && typeof value === 'string') {
+      const p = value.split('-');
+      if (p.length === 3) {
+        const [dd, mm, yyyy] = p;
+        value = `${yyyy}-${mm}-${dd}`;
+      }
+      newObject[newKey] = value;
+      continue;
+    }
+    newObject[newKey] = value === undefined || value === null ? "" : String(value);
+  }
+  return newObject;
+}
+  } catch (error) {
+  throw await errorComponent(error)
+}
+```
+
+### viaSocket Table — Get Table Rows Perform Code
+
+```javascript
+async function getTableRows() {
+  try {
+    const filterMode = context?.inputData?.filter_mode;
+    const dbId = context?.authData?.dbId;
+    const table = context?.inputData?.table;
+
+    if (!table) throw new Error('Table is required.');
+    if (!dbId) throw new Error('Database ID is missing from authentication.');
+
+    function handleNoData(dataBlock) {
+      if (
+        !dataBlock ||
+        (Array.isArray(dataBlock) && dataBlock.length === 0) ||
+        (typeof dataBlock === 'object' && Array.isArray(dataBlock.rows) && dataBlock.rows.length === 0)
+      ) {
+        return { message: "No data found for the given search." };
+      }
+      return Array.isArray(dataBlock.rows) ? dataBlock.rows : dataBlock;
+    }
+
+    async function fetchFieldData() {
+      const random = Math.floor(Math.random() * 1000000);
+      const URL = `https://table-api.viasocket.com/dbs/${dbId}/${table}/field?random=${random}`;
+      const response = await axios.get(URL);
+      const fields = response?.data?.data?.fields || {};
+      const mapping = {};
+      const types = {};
+      for (let key in fields) {
+        if (fields[key]?.fieldName) {
+          mapping[fields[key].fieldName.toLowerCase()] = key;
+          types[fields[key].fieldName.toLowerCase()] = (fields[key].fieldType || '').toLowerCase();
+        }
+      }
+      return { mapping, types };
+    }
+
+    async function buildQueryParams(existingFieldMapping) {
+      const extra = context?.inputData?.queryopt || {};
+      const params = [];
+
+      const limit = extra.limit || '200';
+      params.push(`limit=${limit}`);
+
+      if (extra.offset) {
+        params.push(`offset=${extra.offset}`);
+      }
+
+      if (
+        extra.Show_fields &&
+        Array.isArray(extra.Show_fields) &&
+        extra.Show_fields.length > 0
+      ) {
+        params.push(`fields=${extra.Show_fields.join(',')}`);
+      }
+
+      if (extra.sortby) {
+        const fieldMapping = existingFieldMapping || (await fetchFieldData()).mapping;
+        const actualSortby = fieldMapping[extra.sortby.toLowerCase()] || extra.sortby;
+        const order = (extra.ascdesc || 'asc').toLowerCase();
+        let sortParam = actualSortby;
+        if (order === 'desc') {
+          sortParam += ' desc';
+        }
+        params.push(`sort=${encodeURIComponent(sortParam)}`);
+      }
+
+      const random = Math.floor(Math.random() * 1000000);
+      params.push(`random=${random}`);
+
+      return params.length ? params.join('&') : '';
+    }
+
+    function normalizeDate(value) {
+      if (!value) return value;
+      if (value.includes('T') && value.includes('Z')) return value;
+      if (value.includes('T')) {
+        return value.endsWith('Z') ? value : value + 'Z';
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return `${value}T00:00:00Z`;
+      }
+      return value;
+    }
+
+    function handleDateOperators(field, operator, value, actualField) {
+      const fieldLower = field.toLowerCase();
+      const isDateField = ['createdat', 'updatedat'].includes(fieldLower);
+      if (!isDateField) return null;
+
+      const normalized = normalizeDate(value);
+      if (!normalized) return null;
+
+      const dateOnly = normalized.split('T')[0];
+      const startISO = `${dateOnly}T00:00:00Z`;
+      const nextDayISO = new Date(
+        new Date(startISO).getTime() + 86400000
+      ).toISOString();
+
+      if (fieldLower === 'updatedat') {
+        const startUnix = Math.floor(new Date(startISO).getTime() / 1000);
+        const endUnix = Math.floor(new Date(nextDayISO).getTime() / 1000);
+
+        switch (operator) {
+          case '=':
+            return [`${actualField} >= ${startUnix} AND ${actualField} < ${endUnix}`];
+          case '<=':
+            return [`${actualField} < ${endUnix}`];
+          case '<':
+            return [`${actualField} < ${startUnix}`];
+          case '>=':
+            return [`${actualField} >= ${startUnix}`];
+          case '>':
+            return [`${actualField} >= ${endUnix}`];
+          case '!=':
+            return [`${actualField} < ${startUnix} OR ${actualField} >= ${endUnix}`];
+          default:
+            return [`${actualField} >= ${startUnix} AND ${actualField} < ${endUnix}`];
+        }
+      } else {
+        switch (operator) {
+          case '=':
+            return [`${actualField} >= '${startISO}'`, `${actualField} < '${nextDayISO}'`];
+          case '<=':
+            return [`${actualField} < '${nextDayISO}'`];
+          case '<':
+            return [`${actualField} < '${startISO}'`];
+          case '>=':
+            return [`${actualField} >= '${startISO}'`];
+          case '>':
+            return [`${actualField} >= '${nextDayISO}'`];
+          case '!=':
+            return [`${actualField} < '${startISO}' OR ${actualField} >= '${nextDayISO}'`];
+          default:
+            return [`${actualField} >= '${startISO}'`, `${actualField} < '${nextDayISO}'`];
+        }
+      }
+    }
+
+    function formatNonDateValue(rawValue, actualField, operator, fieldType) {
+      const type = (fieldType || '').toLowerCase();
+      if (['number', 'autonumber', 'numeric', 'int', 'bigint'].includes(type) || typeof rawValue === 'number') {
+        return `${actualField}${operator}${rawValue}`;
+      }
+      if (['checkbox', 'boolean'].includes(type) || typeof rawValue === 'boolean') {
+        return `${actualField}${operator}${rawValue}`;
+      }
+      return `${actualField}${operator}'${rawValue}'`;
+    }
+
+    if (filterMode === 'list_all') {
+      const query = await buildQueryParams();
+      const url = `https://table-api.viasocket.com/${dbId}/${table}${query ? '?' + query : ''}`;
+      const response = await axios.get(url, { timeout: 15000 });
+      return handleNoData(response?.data?.data);
+    }
+
+    if (filterMode === 'filter_formula') {
+      const inputData = context?.inputData?.Filter_op;
+      if (!inputData) {
+        return { message: 'No filter values provided.' };
+      }
+
+      const { mapping: fieldMapping, types: fieldTypes } = await fetchFieldData();
+
+      function formatData(input) {
+        const entries = Object.entries(input);
+        const conditionEntries = [];
+        let currentOperator = 'AND';
+
+        for (let i = 0; i < entries.length; i++) {
+          const [key, item] = entries[i];
+
+          if (key.endsWith('-andor')) {
+            currentOperator = (item || 'AND').toUpperCase();
+            continue;
+          }
+
+          if (item && typeof item === 'object') {
+            let operator = '';
+            let value = '';
+            for (let subKey in item) {
+              if (subKey.endsWith('-operator')) operator = item[subKey];
+              if (subKey.endsWith('-value')) value = item[subKey];
+            }
+
+            const actualField = fieldMapping[key.toLowerCase()] || key;
+            const dateConditions = handleDateOperators(key, operator, value, actualField);
+
+            if (dateConditions) {
+              conditionEntries.push({ condition: `(${dateConditions.join(' AND ')})`, operator: currentOperator });
+            } else {
+              conditionEntries.push({
+                condition: formatNonDateValue(value, actualField, operator, fieldTypes[key.toLowerCase()]),
+                operator: currentOperator
+              });
+            }
+          }
+        }
+
+        if (!conditionEntries.length) return '';
+        let result = conditionEntries[0].condition;
+        for (let i = 1; i < conditionEntries.length; i++) {
+          result += ` ${conditionEntries[i].operator} ${conditionEntries[i].condition}`;
+        }
+        return result;
+      }
+
+      const filterString = formatData(inputData);
+
+      if (!filterString) {
+        return { message: 'No valid filter conditions found.' };
+      }
+
+      const query = await buildQueryParams(fieldMapping);
+      const url = `https://table-api.viasocket.com/${dbId}/${table}?filter=${encodeURIComponent(filterString)}${query ? '&' + query : ''}`;
+      const response = await axios.get(url, { timeout: 15000 });
+      return handleNoData(response?.data?.data);
+    }
+
+    if (filterMode === 'query') {
+      const filterString = (context?.inputData?.query1 || '').trim();
+
+      if (!filterString) {
+        return { message: 'No filter condition generated by AI. Please enter a valid query.' };
+      }
+
+      const query = await buildQueryParams();
+      const url = `https://table-api.viasocket.com/${dbId}/${table}?filter=${encodeURIComponent(filterString)}${query ? '&' + query : ''}`;
+      const response = await axios.get(url, { timeout: 15000 });
+      return handleNoData(response?.data?.data);
+    }
+
+    if (filterMode === 'key_value') {
+      const columns = context?.inputData?.key_value_columns || [];
+      const values = context?.inputData?.key_value_input_groups || {};
+
+      if (columns.length === 0) {
+        return { message: 'No columns selected for filtering.' };
+      }
+
+      const parts = [];
+      for (let i = 0; i < columns.length; i++) {
+        const actualField = columns[i];
+        const v = values[actualField];
+        if (v !== undefined && v !== null && v !== '') {
+          if (typeof v === 'boolean' || typeof v === 'number') {
+            parts.push(`${actualField} = ${v}`);
+          } else {
+            parts.push(`${actualField} = '${v}'`);
+          }
+        }
+      }
+
+      const query = await buildQueryParams();
+      let url = `https://table-api.viasocket.com/${dbId}/${table}`;
+      if (parts.length > 0) {
+        url += `?filter=${encodeURIComponent(parts.join(' and '))}${query ? '&' + query : ''}`;
+      } else if (query) {
+        url += '?' + query;
+      }
+
+      const response = await axios.get(url, { timeout: 15000 });
+      return handleNoData(response?.data?.data);
+    }
+
+    return {
+      success: false,
+      message: 'Invalid filter method selected.'
+    };
+
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await getTableRows();
+```
+
+> **Note:** The Keka (Add Employee) perform code block is extensive and was truncated in the prompt. The perform code follows the same patterns: validate inputs → build payload → call API → return structured response.
