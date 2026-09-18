@@ -442,6 +442,8 @@ A FIND/SEARCH action searches for records matching specific criteria. It may ret
 - **Sort controls** — When the API supports sorting, add a **Dynamic Dropdown** for the sort field and a **Static Dropdown** for sort direction (Ascending/Descending).
 - **Bulk mode toggle** — When the action supports exhaustive fetch of all matching records, use a **Boolean** toggle that forks two different limit fields (bulk limit vs standard limit) via mirrored `visibilityCondition`s.
 - **Response mode control** — For large/nested responses, use a **Static Dropdown** (Basic / Custom / Full) to control payload size. "Custom" reveals a column multiselect.
+- **Progressive complexity (Filter Modes)** — For actions offering filters, support a progression of complexity (e.g., list_all → key_value → filter_formula → AI query) instead of overwhelming the user with one massive input.
+- **Dynamic filter builders** — Use `fieldsGenerator` to build dynamic filter inputs that adapt their field types (string, number, boolean) based on the column schema fetched from the API.
 
 ---
 
@@ -484,6 +486,17 @@ A CREATE action creates a **new record** in the external service. The user provi
 - **Repeating line items** — For invoice/order-style payloads with repeating item rows, use a repeating **Input Group** with per-item fields (name, quantity, amount, etc.).
 - **Existing-vs-inline fork** — When a payload can reference an existing record (by ID) OR carry inline details, use a **Boolean** or **Static Dropdown** to branch and gate each branch with `visibilityCondition`.
 - **Address/Data Duplication Toggles** — Use Boolean toggles (e.g., `same_as_billing`) to conditionally hide and skip redundant nested Input Groups (like Shipping Address) when they mirror previous inputs.
+- **Multi-mode routing** — Use a single dropdown to route execution (e.g., channel vs user vs thread) which drives all downstream field visibility. Avoid creating multiple separate actions if they share the same endpoint.
+- **Dictionary field type** — Ideal for arbitrary key-value pairs (like headers, action buttons, metadata).
+- **Optional scheduling branch** — Treat scheduling (e.g., send later) as an optional branch controlled by a toggle/dropdown, rather than a separate action entirely.
+- **Grouping optional settings** — Group supplementary settings (like bot identity or preview configurations) in collapsible input groups to reduce UI clutter.
+- **Dual-mode creation (Single vs. Bulk)** — Support both single record (via field chooser) and bulk JSON array creation in one action, toggled by a Boolean field.
+- **extraValue metadata** — Use `extraValue` on dropdown options to carry schema metadata (like determining if a table has attachment columns) without requiring extra API calls.
+- **Dynamic help for complex inputs** — Use `type: "help"` with a dynamic `source` to generate complete field reference guides when users must input raw JSON arrays for bulk mode.
+- **Template previews** — For template-based messaging (like WhatsApp), use a read-only `fieldsGenerator` or dynamic help field to show a live preview of the rendered template.
+- **Simple multi-inputs** — Use comma-separated strings for inputs like phone numbers or simple file URLs when the downstream API natively handles parsing.
+- **Section choosers for massive forms** — For complex entity creation (e.g. HR employee with 50+ fields), use two-level section choosers (Multiselect) to prevent overwhelming users. Keep core information always visible, and hide optional sections until selected.
+- **Hybrid Enum inputs** — Enum fields (like Gender, Blood Group) should support both dropdown selection and manual entry (using `customInputLabel` and `customPlaceholder`) to maximize automation flexibility.
 
 ---
 
@@ -564,6 +577,10 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Static + dynamic field split** — Keep standard identity fields (email, name, phone) as static inputs alongside a **Dynamic Input Group** for account-specific custom fields. This cleanly separates fixed schema from dynamic schema.
 - **Dynamic Field Selection for Search & Update** — For complex upserts with massive schemas, use Multiselect field choosers (e.g., "Search By Fields", "Fields to Update") paired with dynamic Input Groups to render exactly the specific fields the user wants to use for matching and updating.
 - **Conditionally Link or Create Related Modules** — Use a Boolean toggle to branch between linking an existing related record (via dropdown) or rendering an input group to generate fields for a new related record inline.
+- **"Lookup By" mode selector** — Provide a clear dropdown (e.g. email vs phone) that natively drives which identity fields become required inputs via visibility conditions.
+- **Field choosers with sensible defaults** — Pre-select the most commonly used fields in the field chooser to reduce cognitive load while maintaining flexibility.
+- **Two-step nested field selection** — For custom fields, use a two-step process (first choose the fields via multiselect, then fill the values via a dynamic input group) to prevent overwhelming users with all possible schema fields.
+- **Destructive field warnings** — Add warning-style help text on destructive fields (e.g., "Note: Entering tags here will replace ALL existing tags") to prevent data loss surprises.
 
 ---
 
