@@ -18,6 +18,8 @@ Evaluate the `useCase` (primary truth) and `userNeed` (context).
 Ignore `deleted` plugs. App status priority: `Published (Public/Private)` > `Unpublished` > `Integration_Only`.
 
 ### A. New App / MCP Integration (Full Completion)
+**CRITICAL RULE:** For new app creations, always verify that public API documentation is available. If unavailable, HALT the process immediately and do NOT run any further tools (including `DHConnection-AI`, `DH-BULK-LISTER`, and `DH-Planner`).
+
 Determine the starting point based on plug status and auth context:
 1. **Truly New (or `deleted`)**: `GTWY Web Search` (root domain) → `Create_New_Plug` → `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`
 2. **Unpublished / Integration_Only (NO `preferedauthversion` & NO existing connections)**: `DHConnection-AI` → `DH-BULK-LISTER` → `DH-Planner`
