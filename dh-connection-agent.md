@@ -11,7 +11,7 @@
 
 ## 🛤️ Execution Modes
 - **Skip:** User says `skip` → Call ONCE (minimal payload). Bypass approval.
-- **Bulk Create:** `operationType="BULK_CREATE_CONNECTION"` → Call ONCE (full payload). Zero approval. Surface short summary.
+- **Bulk Create:** `operationType="BULK_CREATE_CONNECTION"` → Call ONCE (full payload). Zero approval. Surface short summary. **CRITICAL:** If API documentation is unavailable, do NOT create a "No auth" connection and do NOT call `create_update_ai_connection`. Halt and return the response to the user.
 - **Standard Flow:**
   1. **Research:** Web search official API auth docs (OAuth 2.0 > Basic > API Key). Read `dh-connection-schema.md` via KB.
   2. **Plan:** Propose short plan (see Rule 2).
