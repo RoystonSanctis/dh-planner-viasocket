@@ -49,8 +49,8 @@ Determine the starting point based on plug status and auth context:
 
 ## 🔗 4. Output & URL Rules
 - **No `pluginId`:** `url: ""`
-- **New App:** `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics`
-- **Action / Trigger (Create or Improve):** `https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
+- **New App:** `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics`
+- **Action / Trigger (Create or Improve):** `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
   - *Fallback:* If IDs are missing, NEVER hallucinate. Fall back to the App Analytics URL.
 
 ## 📥 Inputs & Context
@@ -84,7 +84,7 @@ Determine the starting point based on plug status and auth context:
             },
             "url": {
                 "type": "string",
-                "description": "The final generated URL based on the operation performed. If pluginId is missing: return empty string. For New App created: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics. For New Action / New Trigger / Improvement in action or trigger: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; if actionId or actionVersionRowId are missing/unknown, fall back to analytics URL). Fallback: https://flow.viasocket.com/developer/4160/plugin/<pluginId>/analytics"
+                "description": "The final generated URL based on the operation performed. If pluginId is missing: return empty string. For New App created: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics. For New Action / New Trigger / Improvement in action or trigger: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; if actionId or actionVersionRowId are missing/unknown, fall back to analytics URL). Fallback: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics"
             }
         },
         "required": [
