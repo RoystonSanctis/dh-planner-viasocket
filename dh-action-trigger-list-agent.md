@@ -77,86 +77,130 @@ Return exactly one JSON object strictly matching the schema below. Always popula
 
 ```json
 {
-    "name": "generate_actions_and_triggers",
-    "schema": {
-        "type": "object",
-        "properties": {
-            "message": {
-                "type": "string",
-                "description": "Summary response from the AI detailing findings, overall verdict, or explaining why action and/or trigger arrays are empty []."
+  "name": "generate_actions_and_triggers",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Opens with the framing line ('This service exists to ___'), the core object vs config object split, documented rate limits, then findings, duplicate variants dropped, and any endpoint skipped for lacking a documented response. If arrays are empty, explain why."
+      },
+      "action": {
+        "type": "array",
+        "description": "Workflow actions, ordered highest value first (P0 → P4).",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "[Verb] [Object] in Title Case, e.g. 'Create Data Source Item'."
             },
-            "action": {
-                "type": "array",
-                "description": "A list of workflow actions.",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string",
-                            "description": "The name of the action (e.g., 'Create Data Source Item')."
-                        },
-                        "description": {
-                            "type": "string",
-                            "description": "A crisp explanation including Action Category (e.g., CREATE, LIST, UPDATE), key API findings for the creation agent, and a verified source documentation link if possible."
-                        },
-                        "type": {
-                            "type": "string",
-                            "description": "The developer-friendly technical operation (e.g., GET, CREATE, UPDATE, DELETE, FIND)."
-                        },
-                        "category": {
-                            "type": "string",
-                            "description": "The user-friendly domain tag in UPPERCASE (e.g., DATA SOURCE, PAGE, BLOCK)."
-                        }
-                    },
-                    "required": [
-                        "name",
-                        "description",
-                        "type",
-                        "category"
-                    ],
-                    "additionalProperties": false
-                }
+            "description": {
+              "type": "string",
+              "description": "Crisp API findings for the creation agent: method, path, required params, response shape, parent dropdown source if any."
             },
-            "trigger": {
-                "type": "array",
-                "description": "A list of workflow triggers.",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string",
-                            "description": "The name of the trigger (e.g., 'New Data Source Item')."
-                        },
-                        "description": {
-                            "type": "string",
-                            "description": "A crisp explanation starting with 'Runs when...', including Trigger Type (Instant (hook), Scheduled (polling), Manual (manual_webhook)), key findings for the creation agent, and a verified source documentation link if possible."
-                        },
-                        "type": {
-                            "type": ["string", "null"],
-                            "description": "The developer-friendly technical operation. Can be null for triggers."
-                        },
-                        "category": {
-                            "type": ["string", "null"],
-                            "description": "The user-friendly domain tag in UPPERCASE. Can be null for triggers if not applicable."
-                        }
-                    },
-                    "required": [
-                        "name",
-                        "description",
-                        "type",
-                        "category"
-                    ],
-                    "additionalProperties": false
-                }
+            "priority": {
+              "type": "string",
+              "enum": [
+                "P0",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+              ],
+              "description": "Value rank per §1.5."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "GET",
+                "FIND",
+                "CREATE",
+                "UPDATE",
+                "DELETE",
+                "FIND OR CREATE",
+                "CREATE OR UPDATE"
+              ]
+            },
+            "category": {
+              "type": "string",
+              "description": "UPPERCASE business object tag, e.g. DOCUMENT, PAGE, COMMENT."
+            },
+            "doc_url": {
+              "type": "string",
+              "description": "Verified documentation URL for this exact endpoint. Required — no URL means the item must not be output."
             }
-        },
-        "required": [
-            "message",
-            "action",
-            "trigger"
-        ],
-        "additionalProperties": false
+          },
+          "required": [
+            "name",
+            "description",
+            "priority",
+            "type",
+            "category",
+            "doc_url"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "trigger": {
+        "type": "array",
+        "description": "Workflow triggers, ordered highest value first.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "[State Modifier] [Object], e.g. 'New Document'."
+            },
+            "description": {
+              "type": "string",
+              "description": "Starts with 'Runs when...'. Include event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, and parent dropdown source."
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "P0",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+              ]
+            },
+            "trigger_type": {
+              "type": "string",
+              "enum": [
+                "Instant (hook)",
+                "Scheduled (polling)",
+                "Manual (manual_webhook)"
+              ]
+            },
+            "category": {
+              "type": "string"
+            },
+            "doc_url": {
+              "type": "string",
+              "description": "Verified documentation URL. Required."
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "priority",
+            "trigger_type",
+            "category",
+            "doc_url"
+          ],
+          "additionalProperties": false
+        }
+      }
     },
-    "strict": true
+    "required": [
+      "message",
+      "action",
+      "trigger"
+    ],
+    "additionalProperties": false
+  },
+  "strict": true
 }
 ```
