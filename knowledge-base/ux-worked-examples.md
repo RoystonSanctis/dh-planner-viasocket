@@ -23,8 +23,10 @@ published: true
   - Google Sheet — Add New Row to Sheet
   - viaSocket Table — Add Records To Table
   - Keka — Add a New Employee
+  - Freshsales classic — Create Deal
 - UPDATE Examples
   - Cin7 Core — Update Customer
+  - Keka — Update Employee Details
 - LIST Examples
   - Keka — List All Employees
   - viaSocket Table — Get Table Rows
@@ -2128,6 +2130,282 @@ return createInvoice();
 
 ---
 
+## Freshsales classic — Create Deal
+
+**Metadata**
+- **App:** Freshsales classic
+- **Category:** Marketing, Sales & CRM
+- **Action:** Create Deal
+- **Action Type:** CREATE
+
+**UX Components & Field Design**
+- `name` & `amount`: Essential fields for the deal.
+- `account_name`: Text field that auto-resolves to an existing account ID or creates one behind the scenes in the perform code.
+- `contact_email` & `contact_name`: Secondary matching criteria to attach or create a contact to the deal seamlessly.
+- `deal_stage_id`: Dynamically loaded from Freshsales API.
+- `close_date_type`, `close_date_days`, `close_date_specific`: A smart pattern allowing the user to either define "Days from today" (relative) or a specific absolute date (conditional inputs).
+- `select_additional_fields` & `additional_field_values`: A dynamic field generator pattern where selecting field names dynamically renders the exact input schemas (text, dropdown, dates) based on the CRM's custom field settings.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "name",
+    "type": "string",
+    "label": "Deal Name",
+    "required": true,
+    "placeholder": "Gold Plan - Widgetz.io"
+  },
+  {
+    "key": "amount",
+    "type": "number",
+    "label": "Deal Value",
+    "required": true,
+    "placeholder": "25000"
+  },
+  {
+    "key": "account_name",
+    "help": "Enter the account name to associate with this deal. If the account exists, it will be linked. If not, a new account will be created automatically.",
+    "type": "string",
+    "label": "Related Account",
+    "required": true,
+    "placeholder": "Widgetz.io"
+  },
+  {
+    "key": "contact_email",
+    "help": "Enter the email address of the contact to associate with this deal. If a matching contact exists, it will be linked. If not, a new contact will be created automatically.",
+    "type": "string",
+    "label": "Related Contact (Email)",
+    "required": false,
+    "placeholder": "jane@widgetz.io"
+  },
+  {
+    "key": "contact_name",
+    "help": "Enter the contact's name. Only used if a new contact needs to be created (i.e., no existing contact matches the email above).",
+    "type": "string",
+    "label": "Contact Name",
+    "required": false,
+    "placeholder": "Jane Doe"
+  },
+  {
+    "key": "deal_stage_id",
+    "help": "Select the current stage of this deal in the sales pipeline.",
+    "type": "dropdown",
+    "label": "Deal Stage",
+    "required": false,
+    "customHelp": "Enter the deal stage ID manually. You can get it from actions like List Deal Fields.",
+    "placeholder": "Select deal stage",
+    "customInputLabel": "Deal Stage ID",
+    "optionsGenerator": "return await deal_stage(context?.authData?.subDomain)",
+    "customPlaceholder": "402001850685"
+  },
+  {
+    "key": "close_date_type",
+    "help": "Select how you want to set the expected close date for this deal.",
+    "type": "boolean",
+    "label": "Expected Close Date",
+    "options": [
+      {
+        "label": "Days from today",
+        "value": true
+      },
+      {
+        "label": "Specific date",
+        "value": false
+      }
+    ],
+    "required": false,
+    "customHelp": "Enter true for days from today and false for a specific date.",
+    "defaultValue": {
+      "label": "Days from today",
+      "value": true
+    },
+    "customInputLabel": "Expected Close Date Type",
+    "customPlaceholder": "true"
+  },
+  {
+    "key": "close_date_days",
+    "help": "Enter the number of days from today when this deal is expected to close. For example, 30 means 30 days from now.",
+    "type": "number",
+    "label": "Days from Today",
+    "required": false,
+    "placeholder": "30",
+    "visibilityCondition": "context.inputData.close_date_type === true"
+  },
+  {
+    "key": "close_date_specific",
+    "help": "Enter the exact expected close date in YYYY-MM-DD format.",
+    "type": "string",
+    "label": "Close Date",
+    "required": false,
+    "placeholder": "2026-04-15",
+    "visibilityCondition": "context.inputData.close_date_type === false"
+  },
+  {
+    "key": "select_additional_fields",
+    "help": "The most common fields are shown above. Use this to add any other fields such as deal type, pipeline, owner, probability, territory, or custom fields.",
+    "type": "multiselect",
+    "label": "Additional Fields",
+    "required": false,
+    "customHelp": "Enter the field names manually in array format. You can get field names from actions like List Deal Fields.",
+    "placeholder": "Select additional fields",
+    "customInputLabel": "Additional Fields in Array",
+    "optionsGenerator": "try { const response = await axios.request({ method: 'get', maxBodyLength: Infinity, url: `${context.authData?.subDomain}/crm/sales/api/settings/deals/fields` }); const fields = response.data?.fields || []; const excludeFields = new Set([ 'name', 'amount', 'sales_account_id', 'sales_account', 'contacts', 'contacts_added_list', 'contact_email', 'contact_name', 'deal_stage_id', 'expected_close', 'created_at', 'updated_at', 'creater_id', 'updater_id', 'last_contacted_sales_activity_mode', 'last_contacted_via_sales_activity', 'age', 'recent_note', 'active_sales_sequences', 'completed_sales_sequences', 'stage_updated_time', 'last_assigned_at', 'upcoming_activities_time', 'web_form_id', 'base_currency_amount', 'expected_deal_value', 'record_type_id', 'closed_date' ]); const settableFields = fields.filter(f => !excludeFields.has(f.name)).map(f => ({ label: f.label, value: f.name, sample: f.name })); if (!settableFields.length) { return { message: 'No additional fields available.' }; } return settableFields; } catch (err) { throw err; }",
+    "customPlaceholder": "[\"deal_type_id\", \"probability\"]"
+  },
+  {
+    "key": "additional_field_values",
+    "help": "Enter values for the additional fields you selected above. Only fields with values will be sent to Freshsales.",
+    "type": "input groups",
+    "label": "Additional Field Values",
+    "required": false,
+    "visibilityCondition": "context.inputData.select_additional_fields && context.inputData.select_additional_fields.length > 0",
+    "fieldsGenerator": "try { const selectedFields = context?.inputData?.select_additional_fields || []; if (!selectedFields.length) { return { message: 'Select additional fields above to configure their values.' }; } const response = await axios.request({ method: 'get', maxBodyLength: Infinity, url: `${context.authData?.subDomain}/crm/sales/api/settings/deals/fields` }); const allFields = response.data?.fields || []; const filteredFields = allFields.filter(f => selectedFields.includes(f.name)); return filteredFields.map(field => { const base = { key: field.name, label: field.label || field.name, required: false, help: `Enter the ${(field.label || field.name).toLowerCase()} for this deal.`, placeholder: field.label || field.name }; if (field.type === 'dropdown' && field.choices?.length > 0) { return { ...base, type: 'dropdown', help: `Select the ${(field.label || field.name).toLowerCase()} for this deal.`, placeholder: `Select ${(field.label || field.name).toLowerCase()}`, options: field.choices.map(c => ({ label: c.value, value: c.id || c.value, sample: String(c.id || c.value) })), customInputLabel: `${field.label || field.name} ID`, customPlaceholder: String(field.choices[0]?.id || field.choices[0]?.value || ''), customHelp: `Enter the ${(field.label || field.name).toLowerCase()} ID manually. You can get it from actions like List Deal Fields.` }; } if (field.type === 'multi_select_dropdown' && field.choices?.length > 0) { return { ...base, type: 'multiselect', help: `Select one or more ${(field.label || field.name).toLowerCase()} options for this deal.`, placeholder: `Select ${(field.label || field.name).toLowerCase()}`, options: field.choices.map(c => ({ label: c.value, value: c.id || c.value, sample: String(c.id || c.value) })), customInputLabel: `${field.label || field.name} in Array`, customPlaceholder: `[\"${String(field.choices[0]?.id || field.choices[0]?.value || '')}\"]`, customHelp: `Enter the ${(field.label || field.name).toLowerCase()} IDs manually in array format. You can get them from actions like List Deal Fields.` }; } if (field.type === 'auto_complete') { return { ...base, type: 'string', help: `Enter the ${(field.label || field.name).toLowerCase()} name or ID.`, placeholder: `Enter ${(field.label || field.name).toLowerCase()}` }; } if (field.type === 'number') { return { ...base, type: 'number', placeholder: '0' }; } if (field.type === 'date') { return { ...base, type: 'string', help: `Enter the ${(field.label || field.name).toLowerCase()} in YYYY-MM-DD format.`, placeholder: 'YYYY-MM-DD' }; } return { ...base, type: 'string' }; }); } catch (err) { throw err; }"
+  }
+]
+```
+
+**API Configuration Perform Code**
+```javascript
+try {
+  const data = context.inputData;
+
+  if (!data.name) throw new Error('Deal name is required.');
+  if (data.amount === undefined || data.amount === null || data.amount === '') throw new Error('Deal value is required.');
+  if (!data.account_name) throw new Error('Related account name is required to create a deal.');
+
+  const payload = {
+    name: data.name,
+    amount: data.amount
+  };
+
+  // ---------- Resolve Account ----------
+  const accountLookupRes = await axios.request({
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: `${context.authData.subDomain}/crm/sales/api/lookup`,
+    params: { q: String(data.account_name).trim(), f: 'name', entities: 'sales_account' }
+  });
+
+  const accounts = accountLookupRes.data?.sales_accounts?.sales_accounts || [];
+
+  if (accounts.length === 1) {
+    payload.sales_account_id = accounts[0].id;
+  } else if (accounts.length > 1) {
+    throw new Error(`Multiple accounts found matching "${data.account_name}". Please use a more specific account name.`);
+  } else {
+    payload.sales_account = { name: data.account_name };
+  }
+
+  // ---------- Resolve Contact ----------
+  if (data.contact_email) {
+    const emailValue = String(data.contact_email).trim().toLowerCase();
+    let contactId;
+
+    // Step 1: lookup by emails (confirmed working pattern)
+    const contactLookupRes = await axios.request({
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${context.authData.subDomain}/crm/sales/api/lookup`,
+      params: { q: emailValue, f: 'emails', entities: 'contact' }
+    });
+
+    const contacts = contactLookupRes.data?.contacts?.contacts || [];
+
+    if (contacts.length >= 1) {
+      // If multiple match (shouldn't happen), take the latest one
+      contactId = contacts[0].id;
+    } else {
+      // Step 2: not found by lookup — attempt creation
+      try {
+        const nameParts = (data.contact_name || data.contact_email.split('@')[0]).trim().split(' ');
+        const firstName = nameParts.shift();
+        const lastName = nameParts.join(' ') || undefined;
+        const contactPayload = { first_name: firstName, email: data.contact_email };
+        if (lastName) contactPayload.last_name = lastName;
+
+        const createContactRes = await axios.request({
+          method: 'post',
+          maxBodyLength: Infinity,
+          url: `${context.authData.subDomain}/crm/sales/api/contacts`,
+          data: { contact: contactPayload }
+        });
+        contactId = createContactRes.data?.contact?.id;
+      } catch (createErr) {
+        // Step 3: creation failed (e.g. "email already exists") — recover via filtered_search
+        const recoveryRes = await axios.request({
+          method: 'post',
+          maxBodyLength: Infinity,
+          url: `${context.authData.subDomain}/crm/sales/api/filtered_search/contact`,
+          data: {
+            filter_rule: [
+              { attribute: 'contact_email.email', operator: 'is_in', value: emailValue }
+            ]
+          }
+        });
+        const recoveredContacts = recoveryRes.data?.contacts || [];
+        // If multiple match (shouldn't happen), take the latest one
+        contactId = recoveredContacts.length >= 1 ? recoveredContacts[0].id : null;
+        // Genuinely unresolvable — don't block deal creation, skip contact linking
+      }
+    }
+
+    if (contactId) payload.contacts_added_list = [contactId];
+  }
+
+  // ---------- Deal Stage ----------
+  if (data.deal_stage_id) {
+    const stageVal = typeof data.deal_stage_id === 'object' ? data.deal_stage_id?.value : data.deal_stage_id;
+    if (stageVal) payload.deal_stage_id = stageVal;
+  }
+
+  // ---------- Expected Close Date ----------
+  const closeDateType = data.close_date_type === true || data.close_date_type === 'true';
+  const closeDateSpecific = data.close_date_type === false || data.close_date_type === 'false';
+
+  if (closeDateType && data.close_date_days) {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + parseInt(data.close_date_days));
+    payload.expected_close = futureDate.toISOString().split('T')[0];
+  } else if (closeDateSpecific && data.close_date_specific) {
+    payload.expected_close = data.close_date_specific;
+  }
+
+  // ---------- Additional Fields ----------
+  const additionalFields = data.select_additional_fields || [];
+  const fieldValues = data.additional_field_values || {};
+  const customFieldPayload = {};
+
+  additionalFields.forEach(function(field) {
+    const rawValue = fieldValues[field];
+    if (rawValue === undefined || rawValue === null || rawValue === '' || (Array.isArray(rawValue) && rawValue.length === 0)) return;
+    const value = typeof rawValue === 'object' && rawValue?.value !== undefined ? rawValue.value : rawValue;
+    if (String(field).startsWith('cf_')) {
+      customFieldPayload[field] = value;
+    } else {
+      payload[field] = value;
+    }
+  });
+
+  if (Object.keys(customFieldPayload).length > 0) payload.custom_field = customFieldPayload;
+
+  // ---------- Create Deal ----------
+  const createRes = await axios.request({
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: `${context.authData.subDomain}/crm/sales/api/deals`,
+    data: { deal: payload }
+  });
+
+  return createRes.data?.deal || createRes.data;
+
+} catch (error) {
+  return await errorComponent(error);
+}
+```
+
+---
+
 # UPDATE Examples
 
 UPDATE actions modify an existing record.
@@ -3051,6 +3329,1588 @@ async function updateCustomer() {
   }
 }
 return await updateCustomer();
+```
+
+---
+
+## Keka — Update Employee Details
+
+**Metadata**
+- **App:** Keka
+- **Category:** HR & Recruiting
+- **Action:** Update Employee Details
+- **Action Type:** UPDATE
+
+**UX Components & Field Design**
+- `employee_selector`: An input group to allow lookup by either `Email Address` or `Employee Number / ID` via a `fetch_method` dropdown.
+- `sectionsToUpdate`: A multi-select chooser (Core Info, Basic Info, Work Info, Contact, Job, Salary, Bank).
+- `employeeCoreInformation`, `basicInformation`, etc.: Input groups that only appear if their corresponding section is chosen.
+- `jobSections`: A secondary chooser within Job Details for granular sub-section updates.
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "employee_selector",
+    "help": "Choose how you want to identify the employee to update.",
+    "type": "input groups",
+    "label": "Find Employee to Update",
+    "required": true,
+    "fields": [
+      {
+        "key": "fetch_method",
+        "help": "Select how you want to find the employee. Use Email for natural identification. Use Employee Number or ID if you already have it.",
+        "type": "dropdown",
+        "label": "Find Employee By",
+        "options": [
+          {
+            "label": "Email Address",
+            "value": "email"
+          },
+          {
+            "label": "Employee Number / ID",
+            "value": "id_number"
+          }
+        ],
+        "required": true,
+        "defaultValue": {
+          "label": "Email Address",
+          "value": "email"
+        },
+        "customInputLabel": "Enter fetch method",
+        "customPlaceholder": "email"
+      },
+      {
+        "key": "candidate_email",
+        "help": "Enter the employee's work email address. The system will search and resolve the correct employee record automatically.",
+        "type": "string",
+        "label": "Employee Work Email",
+        "required": true,
+        "placeholder": "john.doe@company.com",
+        "visibilityCondition": "context.inputData.employee_selector.fetch_method === 'email'"
+      },
+      {
+        "key": "search_employee_id_number",
+        "help": "Enter the employee's number (EMP-001) or system UUID. The system will search and validate the record automatically.",
+        "type": "string",
+        "label": "Employee Number / ID",
+        "required": true,
+        "placeholder": "EMP-001 or a1b2c3d4-5678-90ab-cdef-1234567890ab",
+        "visibilityCondition": "context.inputData.employee_selector.fetch_method === 'id_number'"
+      }
+    ]
+  },
+  {
+    "key": "sectionsToUpdate",
+    "help": "Select which sections of the employee profile you want to update. Only the selected sections will appear below. Leave a section unselected to keep its existing data unchanged.",
+    "type": "multiselect",
+    "label": "Which Sections Do You Want to Update?",
+    "options": [
+      {
+        "label": "Core Information",
+        "value": "coreInfo"
+      },
+      {
+        "label": "Basic Information",
+        "value": "basicInfo"
+      },
+      {
+        "label": "Work Information",
+        "value": "workInfo"
+      },
+      {
+        "label": "Contact Details",
+        "value": "contactDetails"
+      },
+      {
+        "label": "Job Details",
+        "value": "jobdetails"
+      },
+      {
+        "label": "Salary Details",
+        "value": "salary"
+      },
+      {
+        "label": "Bank & Financial Details",
+        "value": "bankd"
+      }
+    ],
+    "required": true,
+    "placeholder": "Select sections to update"
+  },
+  {
+    "key": "employeeCoreInformation",
+    "help": "Update the employee's basic identity and assignment details. Only fill the fields you want to change — leave others blank to keep existing values.",
+    "type": "input groups",
+    "label": "Core Information",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('coreInfo')",
+    "fields": [
+      {
+        "key": "firstName",
+        "help": "Enter the employee's legal first name to update it.",
+        "type": "string",
+        "label": "First Name",
+        "required": false,
+        "placeholder": "John"
+      },
+      {
+        "key": "middleName",
+        "help": "Enter the employee's middle name or initial. Leave blank to keep unchanged.",
+        "type": "string",
+        "label": "Middle Name",
+        "required": false,
+        "placeholder": "A. or Alan"
+      },
+      {
+        "key": "lastName",
+        "help": "Enter the employee's legal last name to update it.",
+        "type": "string",
+        "label": "Last Name",
+        "required": false,
+        "placeholder": "Doe"
+      },
+      {
+        "key": "displayName",
+        "help": "Enter the full display name as it should appear in the system.",
+        "type": "string",
+        "label": "Display Name",
+        "required": false,
+        "placeholder": "John Doe"
+      },
+      {
+        "key": "gender",
+        "help": "Select or enter the employee's gender. Accepted values: NotSpecified (0), Male (1), Female (2), Nonbinary (3), PreferNotToRespond (4).",
+        "type": "dropdown",
+        "label": "Gender",
+        "options": [
+          {
+            "label": "Not Specified",
+            "value": 0
+          },
+          {
+            "label": "Male",
+            "value": 1
+          },
+          {
+            "label": "Female",
+            "value": 2
+          },
+          {
+            "label": "Nonbinary",
+            "value": 3
+          },
+          {
+            "label": "Prefer Not To Respond",
+            "value": 4
+          }
+        ],
+        "required": false,
+        "placeholder": "Select gender",
+        "customInputLabel": "Enter gender value",
+        "customPlaceholder": "Male or 1"
+      },
+      {
+        "key": "dateOfBirth",
+        "help": "Enter the employee's date of birth in YYYY-MM-DD format.",
+        "type": "date",
+        "label": "Date of Birth",
+        "required": false,
+        "dateFormat": "",
+        "placeholder": "1990-05-10"
+      },
+      {
+        "key": "department",
+        "help": "Select or enter the department ID to reassign the employee.",
+        "type": "dropdown",
+        "label": "Department",
+        "required": false,
+        "placeholder": "Select department",
+        "customInputLabel": "Enter department ID manually",
+        "optionsGenerator": "return await departments()",
+        "customPlaceholder": "db76d978-8722-4e9a-9415-94f5bb523810"
+      },
+      {
+        "key": "jobtitles",
+        "help": "Select or enter the updated job title ID.",
+        "type": "dropdown",
+        "label": "Job Title",
+        "required": false,
+        "placeholder": "Select job title",
+        "customInputLabel": "Enter job title ID manually",
+        "optionsGenerator": "return await jobtitles()",
+        "customPlaceholder": "60996b30-7966-421b-9b99-9f3c6ec9d227",
+        "visibilityCondition": "context?.inputData?.employeeCoreInformation?.department"
+      },
+      {
+        "key": "locations",
+        "help": "Select or enter the updated work location ID.",
+        "type": "dropdown",
+        "label": "Location",
+        "required": false,
+        "placeholder": "Select location",
+        "customInputLabel": "Enter location ID manually",
+        "optionsGenerator": "return await locations()",
+        "customPlaceholder": "29d02178-a233-45b8-abda-596b2aecf05a"
+      }
+    ]
+  },
+  {
+    "key": "basicInformation",
+    "help": "Update identity-related details such as employee number, blood group, nationality, or marital status. Leave any field blank to keep its existing value.",
+    "type": "input groups",
+    "label": "Basic Information",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('basicInfo')",
+    "fields": [
+      {
+        "key": "employeeNumber",
+        "help": "Enter the updated organization-assigned employee number.",
+        "type": "string",
+        "label": "Employee Number",
+        "required": false,
+        "placeholder": "DHU123"
+      },
+      {
+        "key": "bloodGroup",
+        "help": "Select or enter the employee's blood group. Accepted: Not Available (0), A+ (1), A- (2), B+ (3), B- (4), AB+ (5), AB- (6), O+ (7), O- (8), A2+ (9), A1+ (10), A1- (11), A1B- (12), A1B+ (13), A2- (14), A2B+ (15), A2B- (16), B1+ (17).",
+        "type": "dropdown",
+        "label": "Blood Group",
+        "options": [
+          {
+            "label": "Not Available",
+            "value": 0
+          },
+          {
+            "label": "A Positive (A+)",
+            "value": 1
+          },
+          {
+            "label": "A Negative (A-)",
+            "value": 2
+          },
+          {
+            "label": "B Positive (B+)",
+            "value": 3
+          },
+          {
+            "label": "B Negative (B-)",
+            "value": 4
+          },
+          {
+            "label": "AB Positive (AB+)",
+            "value": 5
+          },
+          {
+            "label": "AB Negative (AB-)",
+            "value": 6
+          },
+          {
+            "label": "O Positive (O+)",
+            "value": 7
+          },
+          {
+            "label": "O Negative (O-)",
+            "value": 8
+          },
+          {
+            "label": "A2 Positive (A2+)",
+            "value": 9
+          },
+          {
+            "label": "A1 Positive (A1+)",
+            "value": 10
+          },
+          {
+            "label": "A1 Negative (A1-)",
+            "value": 11
+          },
+          {
+            "label": "A1B Negative (A1B-)",
+            "value": 12
+          },
+          {
+            "label": "A1B Positive (A1B+)",
+            "value": 13
+          },
+          {
+            "label": "A2 Negative (A2-)",
+            "value": 14
+          },
+          {
+            "label": "A2B Positive (A2B+)",
+            "value": 15
+          },
+          {
+            "label": "A2B Negative (A2B-)",
+            "value": 16
+          },
+          {
+            "label": "B1 Positive (B1+)",
+            "value": 17
+          }
+        ],
+        "required": false,
+        "placeholder": "Select blood group",
+        "customInputLabel": "Enter blood group (short form or numeric)",
+        "customPlaceholder": "A+ or 1"
+      },
+      {
+        "key": "nationality",
+        "help": "Select or enter the employee's nationality using a two-letter ISO country code (IN, US, GB).",
+        "type": "dropdown",
+        "label": "Nationality",
+        "options": [
+          {
+            "label": "United States",
+            "value": "US"
+          },
+          {
+            "label": "United Kingdom",
+            "value": "GB"
+          },
+          {
+            "label": "India",
+            "value": "IN"
+          },
+          {
+            "label": "Canada",
+            "value": "CA"
+          },
+          {
+            "label": "Australia",
+            "value": "AU"
+          },
+          {
+            "label": "Germany",
+            "value": "DE"
+          },
+          {
+            "label": "France",
+            "value": "FR"
+          },
+          {
+            "label": "Japan",
+            "value": "JP"
+          },
+          {
+            "label": "Italy",
+            "value": "IT"
+          },
+          {
+            "label": "United Arab Emirates",
+            "value": "AE"
+          }
+        ],
+        "required": false,
+        "placeholder": "Select nationality",
+        "customInputLabel": "Enter ISO country code",
+        "customPlaceholder": "IN"
+      },
+      {
+        "key": "maritalStatus",
+        "help": "Select or Enter the employee’s marital status. Accepted values: None (0), Single (1), Married (2), Widowed (3), Separated (4). You may enter text (Single, Married, etc.) or numeric values (0–4). The system will automatically convert it to the correct value.",
+        "type": "dropdown",
+        "label": "Marital Status",
+        "options": [
+          {
+            "label": "None",
+            "value": 0
+          },
+          {
+            "label": "Single",
+            "value": 1
+          },
+          {
+            "label": "Married",
+            "value": 2
+          },
+          {
+            "label": "Widowed",
+            "value": 3
+          },
+          {
+            "label": "Separated",
+            "value": 4
+          }
+        ],
+        "required": false,
+        "placeholder": "Select marital status",
+        "customInputLabel": "Enter marital status value",
+        "customPlaceholder": "Married or 2"
+      },
+      {
+        "key": "marriageDate",
+        "help": "Enter the employee's marriage date in YYYY-MM-DD format. Applicable only when marital status is Married.",
+        "type": "string",
+        "label": "Marriage Date",
+        "required": false,
+        "placeholder": "2021-05-12",
+        "visibilityCondition": "context.inputData?.basicInformation?.maritalStatus =='2'"
+      }
+    ]
+  },
+  {
+    "key": "workInformation",
+    "help": "Update organization-related details such as business unit or professional summary. Leave any field blank to keep its existing value.",
+    "type": "input groups",
+    "label": "Work Information",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('workInfo')",
+    "fields": [
+      {
+        "key": "professionalSummary",
+        "help": "Enter an updated professional summary (1–2 sentences).",
+        "type": "string",
+        "label": "Professional Summary",
+        "required": false,
+        "placeholder": "Senior engineer with 10 years of experience in cloud infrastructure"
+      },
+      {
+        "key": "businessUnit",
+        "help": "Select or enter the updated Business Unit ID.",
+        "type": "dropdown",
+        "label": "Business Unit",
+        "required": false,
+        "placeholder": "Select business unit",
+        "customInputLabel": "Enter Business Unit ID manually",
+        "optionsGenerator": "return await Business_Units()",
+        "customPlaceholder": "db76d978-8722-4e9a-9415-94f5bb523810"
+      }
+    ]
+  },
+  {
+    "key": "contactDetails",
+    "help": "Update contact information such as personal email, phone numbers, and address. Leave any field blank to keep its existing value.",
+    "type": "input groups",
+    "label": "Contact Details",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('contactDetails')",
+    "fields": [
+      {
+        "key": "personalEmail",
+        "help": "Enter an updated personal email address.",
+        "type": "string",
+        "label": "Personal Email Address",
+        "required": false,
+        "placeholder": "john.personal@gmail.com"
+      },
+      {
+        "key": "workPhone",
+        "help": "Enter the updated office or desk phone number.",
+        "type": "string",
+        "label": "Work Phone",
+        "required": false,
+        "placeholder": "07311234567"
+      },
+      {
+        "key": "homePhone",
+        "help": "Enter the updated home phone number.",
+        "type": "string",
+        "label": "Home Phone",
+        "required": false,
+        "placeholder": "07311234567"
+      },
+      {
+        "key": "skypeId",
+        "help": "Enter the employee's updated Skype ID.",
+        "type": "string",
+        "label": "Skype ID",
+        "required": false,
+        "placeholder": "live:john123"
+      },
+      {
+        "key": "updateCurrentAddress",
+        "help": "Enable this to update the employee's current address.",
+        "type": "boolean",
+        "label": "Update Current Address?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "defaultValue": {
+          "label": "No",
+          "value": false
+        }
+      },
+      {
+        "key": "currentAddress",
+        "type": "input groups",
+        "label": "Current Address",
+        "required": false,
+        "visibilityCondition": "context.inputData?.contactDetails?.updateCurrentAddress === true",
+        "fields": [
+          {
+            "key": "addressLine1",
+            "help": "Enter the street address or house number.",
+            "type": "string",
+            "label": "Address Line 1",
+            "required": false,
+            "placeholder": "123 MG Road"
+          },
+          {
+            "key": "addressLine2",
+            "help": "Enter apartment, building, or landmark.",
+            "type": "string",
+            "label": "Address Line 2",
+            "required": false,
+            "placeholder": "Apt 4B, Near City Center"
+          },
+          {
+            "key": "countryCode",
+            "help": "Select or enter the two-letter ISO country code.",
+            "type": "dropdown",
+            "label": "Country",
+            "options": [
+              {
+                "label": "United States (US)",
+                "value": "US"
+              },
+              {
+                "label": "United Kingdom (GB)",
+                "value": "GB"
+              },
+              {
+                "label": "India (IN)",
+                "value": "IN"
+              },
+              {
+                "label": "Canada (CA)",
+                "value": "CA"
+              },
+              {
+                "label": "Australia (AU)",
+                "value": "AU"
+              },
+              {
+                "label": "Germany (DE)",
+                "value": "DE"
+              },
+              {
+                "label": "France (FR)",
+                "value": "FR"
+              },
+              {
+                "label": "Japan (JP)",
+                "value": "JP"
+              },
+              {
+                "label": "Italy (IT)",
+                "value": "IT"
+              },
+              {
+                "label": "United Arab Emirates (AE)",
+                "value": "AE"
+              }
+            ],
+            "required": false,
+            "placeholder": "Select country",
+            "customInputLabel": "Enter ISO country code",
+            "customPlaceholder": "IN"
+          },
+          {
+            "key": "city",
+            "type": "string",
+            "label": "City",
+            "required": false,
+            "placeholder": "Indore"
+          },
+          {
+            "key": "state",
+            "type": "string",
+            "label": "State",
+            "required": false,
+            "placeholder": "Madhya Pradesh"
+          },
+          {
+            "key": "zip",
+            "type": "string",
+            "label": "Zip Code",
+            "required": false,
+            "placeholder": "452001"
+          }
+        ]
+      },
+      {
+        "key": "isCurrentAddressSameAsPermanent",
+        "help": "Select Yes if the permanent address is the same as the updated current address.",
+        "type": "boolean",
+        "label": "Is Current Address Same as Permanent Address?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "defaultValue": {
+          "label": "Yes",
+          "value": true
+        },
+        "visibilityCondition": "context.inputData?.contactDetails?.updateCurrentAddress === true"
+      },
+      {
+        "key": "permanentAddress",
+        "type": "input groups",
+        "label": "Permanent Address",
+        "required": false,
+        "visibilityCondition": "context.inputData?.contactDetails?.updateCurrentAddress === true && context.inputData?.contactDetails?.isCurrentAddressSameAsPermanent === false",
+        "fields": [
+          {
+            "key": "addressLine1",
+            "type": "string",
+            "label": "Address Line 1",
+            "required": false,
+            "placeholder": "123 MG Road"
+          },
+          {
+            "key": "addressLine2",
+            "type": "string",
+            "label": "Address Line 2",
+            "required": false,
+            "placeholder": "Apt 4B"
+          },
+          {
+            "key": "countryCode",
+            "type": "dropdown",
+            "label": "Country",
+            "options": [
+              {
+                "label": "United States (US)",
+                "value": "US"
+              },
+              {
+                "label": "United Kingdom (GB)",
+                "value": "GB"
+              },
+              {
+                "label": "India (IN)",
+                "value": "IN"
+              },
+              {
+                "label": "Canada (CA)",
+                "value": "CA"
+              },
+              {
+                "label": "Australia (AU)",
+                "value": "AU"
+              },
+              {
+                "label": "Germany (DE)",
+                "value": "DE"
+              },
+              {
+                "label": "France (FR)",
+                "value": "FR"
+              },
+              {
+                "label": "Japan (JP)",
+                "value": "JP"
+              },
+              {
+                "label": "Italy (IT)",
+                "value": "IT"
+              },
+              {
+                "label": "United Arab Emirates (AE)",
+                "value": "AE"
+              }
+            ],
+            "required": false,
+            "placeholder": "Select country",
+            "customInputLabel": "Enter ISO country code",
+            "customPlaceholder": "IN"
+          },
+          {
+            "key": "city",
+            "type": "string",
+            "label": "City",
+            "required": false,
+            "placeholder": "Indore"
+          },
+          {
+            "key": "state",
+            "type": "string",
+            "label": "State",
+            "required": false,
+            "placeholder": "Madhya Pradesh"
+          },
+          {
+            "key": "zip",
+            "type": "string",
+            "label": "Zip Code",
+            "required": false,
+            "placeholder": "452001"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "jobdetails",
+    "help": "Update job-specific settings. Choose which sub-sections to update — only selected sub-sections will appear.",
+    "type": "input groups",
+    "label": "Job Details",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('jobdetails')",
+    "fields": [
+      {
+        "key": "jobSections",
+        "help": "Select which job-related sub-sections you want to update.",
+        "type": "multiselect",
+        "label": "Choose Job Sub-Sections to Update",
+        "options": [
+          {
+            "label": "Reporting Structure",
+            "value": "reportingStructure"
+          },
+          {
+            "label": "Employment Details",
+            "value": "employmentDetails"
+          },
+          {
+            "label": "Schedule & Calendar",
+            "value": "scheduleCalendar"
+          },
+          {
+            "label": "Attendance",
+            "value": "attendance"
+          },
+          {
+            "label": "Leave",
+            "value": "leave"
+          },
+          {
+            "label": "Compensation",
+            "value": "compensation"
+          }
+        ],
+        "required": true,
+        "placeholder": "Select sub-sections to update"
+      },
+      {
+        "key": "reportingStructure",
+        "help": "Update the employee's reporting manager or dotted-line manager.",
+        "type": "input groups",
+        "label": "Reporting Structure",
+        "required": false,
+        "visibilityCondition": "context?.inputData?.jobdetails?.jobSections?.includes('reportingStructure')",
+        "fields": [
+          {
+            "key": "reportingManager",
+            "help": "Select or enter the updated reporting manager's employee ID.",
+            "type": "dropdown",
+            "label": "Reporting Manager",
+            "required": false,
+            "placeholder": "Select reporting manager",
+            "customInputLabel": "Enter Manager Employee ID",
+            "optionsGenerator": "return await employees()",
+            "customPlaceholder": "EMP-1023"
+          },
+          {
+            "key": "dottedLineManager",
+            "help": "Select or enter the updated dotted-line (secondary) manager.",
+            "type": "dropdown",
+            "label": "Dotted Line Manager",
+            "required": false,
+            "placeholder": "Select dotted-line manager",
+            "customInputLabel": "Enter Manager Employee ID",
+            "optionsGenerator": "return await employees()",
+            "customPlaceholder": "EMP-2045"
+          }
+        ]
+      },
+      {
+        "key": "employmentDetails",
+        "help": "Update the employee's time type, worker type, or contingent classification.",
+        "type": "input groups",
+        "label": "Employment Details",
+        "required": false,
+        "visibilityCondition": "context?.inputData?.jobdetails?.jobSections?.includes('employmentDetails')",
+        "fields": [
+          {
+            "key": "timeType",
+            "help": "Select the updated working time classification. None (0), Full Time (1), Part Time (2).",
+            "type": "dropdown",
+            "label": "Time Type",
+            "options": [
+              {
+                "label": "None",
+                "value": 0
+              },
+              {
+                "label": "Full Time",
+                "value": 1
+              },
+              {
+                "label": "Part Time",
+                "value": 2
+              }
+            ],
+            "required": false,
+            "placeholder": "Select time type",
+            "customInputLabel": "Enter time type manually",
+            "customPlaceholder": "1 for Full Time"
+          },
+          {
+            "key": "workerType",
+            "help": "Select the updated worker classification. None (0), Permanent (1), Contingent (2).",
+            "type": "dropdown",
+            "label": "Worker Type",
+            "options": [
+              {
+                "label": "None",
+                "value": 0
+              },
+              {
+                "label": "Permanent",
+                "value": 1
+              },
+              {
+                "label": "Contingent",
+                "value": 2
+              }
+            ],
+            "required": false,
+            "placeholder": "Select worker type",
+            "customInputLabel": "Enter worker type manually",
+            "customPlaceholder": "1 for Permanent"
+          },
+          {
+            "key": "contingentTypeId",
+            "help": "Select the contingent category. Only applies when Worker Type is Contingent.",
+            "type": "dropdown",
+            "label": "Contingent Type",
+            "required": false,
+            "placeholder": "Select contingent type",
+            "customInputLabel": "Enter Contingent Type ID manually",
+            "optionsGenerator": "try {\n  const base = `https://${context?.authData?.company}.${context?.authData?.environment}.com`;\n  const r = await axios.request({ method: 'get', url: `${base}/api/v1/hris/contingenttypes`, headers: { accept: 'application/json' } });\n  const items = r.data?.data || [];\n  if (!items.length) return { message: 'No contingent types found.' };\n  return items.map(i => ({ label: i.name, value: i.id, sample: i.id }));\n} catch (e) { throw e; }",
+            "customPlaceholder": "6a7b8c9d-1234-5678-abcd-9876543210ef",
+            "visibilityCondition": "context.inputData?.jobdetails?.employmentDetails?.workerType == 2"
+          }
+        ]
+      },
+      {
+        "key": "scheduleCalendar",
+        "help": "Update the employee's weekly off policy, shift policy, or holiday calendar.",
+        "type": "input groups",
+        "label": "Schedule & Calendar",
+        "required": false,
+        "visibilityCondition": "context?.inputData?.jobdetails?.jobSections?.includes('scheduleCalendar')",
+        "fields": [
+          {
+            "key": "weeklyOffPolicy",
+            "help": "Select or enter the updated weekly off policy ID.",
+            "type": "dropdown",
+            "label": "Weekly Off Policy",
+            "required": false,
+            "placeholder": "Select weekly off policy",
+            "customInputLabel": "Enter Weekly Off Policy ID manually",
+            "optionsGenerator": "return await weeklyoffpolicies()",
+            "customPlaceholder": "8f3a2b4c-1234-4567-890a-bcdef1234567"
+          },
+          {
+            "key": "shiftPolicy",
+            "help": "Select or enter the updated shift policy ID.",
+            "type": "dropdown",
+            "label": "Shift Policy",
+            "required": false,
+            "placeholder": "Select shift policy",
+            "customInputLabel": "Enter Shift Policy ID manually",
+            "optionsGenerator": "return await shiftpolicies()",
+            "customPlaceholder": "7a1c9d2e-9876-4321-abcd-ef1234567890"
+          },
+          {
+            "key": "holidayList",
+            "help": "Select or enter the updated holiday calendar ID.",
+            "type": "dropdown",
+            "label": "Holiday Calendar",
+            "required": false,
+            "placeholder": "Select holiday calendar",
+            "customInputLabel": "Enter Holiday Calendar ID manually",
+            "optionsGenerator": "return await holidayscalendar()",
+            "customPlaceholder": "5c6d7e8f-1122-3344-5566-77889900abcd"
+          }
+        ]
+      },
+      {
+        "key": "attendance",
+        "help": "Update the employee's attendance number or capture scheme.",
+        "type": "input groups",
+        "label": "Attendance",
+        "required": false,
+        "visibilityCondition": "context?.inputData?.jobdetails?.jobSections?.includes('attendance')",
+        "fields": [
+          {
+            "key": "attendanceNumber",
+            "help": "Enter the updated attendance tracking number.",
+            "type": "string",
+            "label": "Attendance Number",
+            "required": false,
+            "placeholder": "001234"
+          },
+          {
+            "key": "attendanceCaptureScheme",
+            "help": "Select or enter the updated attendance capture scheme ID.",
+            "type": "dropdown",
+            "label": "Attendance Capture Scheme",
+            "required": false,
+            "placeholder": "Select attendance capture scheme",
+            "customInputLabel": "Enter Attendance Capture Scheme ID manually",
+            "optionsGenerator": "try {\n  const base = `https://${context?.authData?.company}.${context?.authData?.environment}.com`;\n  const r = await axios.request({ method: 'get', url: `${base}/api/v1/time/capturescheme`, headers: { accept: 'application/json' } });\n  const items = r.data?.data || [];\n  if (!items.length) return { message: 'No attendance capture schemes found.' };\n  return items.map(i => ({ label: i.name, value: i.id, sample: i.id }));\n} catch (e) { throw e; }",
+            "customPlaceholder": "3f7c2b1a-9d8e-4c6a-b123-abcdef456789"
+          }
+        ]
+      },
+      {
+        "key": "leave",
+        "help": "Update the employee's leave plan or notice period policy.",
+        "type": "input groups",
+        "label": "Leave",
+        "required": false,
+        "visibilityCondition": "context?.inputData?.jobdetails?.jobSections?.includes('leave')",
+        "fields": [
+          {
+            "key": "leavePlan",
+            "help": "Select or enter the updated leave plan ID.",
+            "type": "dropdown",
+            "label": "Leave Plan",
+            "required": false,
+            "placeholder": "Select leave plan",
+            "customInputLabel": "Enter Leave Plan ID manually",
+            "optionsGenerator": "return await leaveplans()",
+            "customPlaceholder": "1a2b3c4d-5678-90ab-cdef-1234567890ab"
+          },
+          {
+            "key": "noticePeriod",
+            "help": "Select or enter the updated notice period policy ID.",
+            "type": "dropdown",
+            "label": "Notice Period",
+            "required": false,
+            "placeholder": "Select notice period",
+            "customInputLabel": "Enter Notice Period ID manually",
+            "optionsGenerator": "return await noticeperiods()",
+            "customPlaceholder": "9f8e7d6c-5432-1abc-def0-9876543210ab"
+          }
+        ]
+      },
+      {
+        "key": "compensation",
+        "help": "Update the employee's pay band, pay grade, or expense policy.",
+        "type": "input groups",
+        "label": "Compensation",
+        "required": false,
+        "visibilityCondition": "context?.inputData?.jobdetails?.jobSections?.includes('compensation')",
+        "fields": [
+          {
+            "key": "payBand",
+            "help": "Select or enter the updated pay band ID.",
+            "type": "dropdown",
+            "label": "Pay Band",
+            "required": false,
+            "placeholder": "Select pay band",
+            "customInputLabel": "Enter Pay Band ID manually",
+            "optionsGenerator": "return await paybands()",
+            "customPlaceholder": "4b8d2c1a-1234-5678-9abc-def012345678"
+          },
+          {
+            "key": "payGrade",
+            "help": "Select or enter the updated pay grade ID.",
+            "type": "dropdown",
+            "label": "Pay Grade",
+            "required": false,
+            "placeholder": "Select pay grade",
+            "customInputLabel": "Enter Pay Grade ID manually",
+            "optionsGenerator": "return await paygrades()",
+            "customPlaceholder": "8c7f6e5d-4321-9876-abcd-1234567890ef"
+          },
+          {
+            "key": "expensePolicy",
+            "help": "Select or enter the updated expense policy ID.",
+            "type": "dropdown",
+            "label": "Expense Policy",
+            "required": false,
+            "placeholder": "Select expense policy",
+            "customInputLabel": "Enter Expense Policy ID manually",
+            "optionsGenerator": "return await expensepolicies()",
+            "customPlaceholder": "2d3e4f5a-6789-1234-abcd-567890abcdef"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "salary",
+    "help": "Revise the employee's salary. Provide the updated structure and effective date.",
+    "type": "input groups",
+    "label": "Salary Details",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('salary')",
+    "fields": [
+      {
+        "key": "structureId",
+        "help": "Select or enter the salary structure ID to apply.",
+        "type": "dropdown",
+        "label": "Salary Structure",
+        "required": true,
+        "placeholder": "Select salary structure",
+        "customInputLabel": "Enter salary structure ID",
+        "optionsGenerator": "return await salary_structures()",
+        "customPlaceholder": "9c0a3a2d-6f34-4e6d-a1d3-123456789abc"
+      },
+      {
+        "key": "amount",
+        "help": "Enter the updated annual gross salary amount. Example: 600000 = ₹6,00,000 per year.",
+        "type": "number",
+        "label": "Amount",
+        "required": true,
+        "placeholder": "720000"
+      },
+      {
+        "key": "effectiveFrom",
+        "help": "Enter the date from which the updated salary becomes effective. Use YYYY-MM-DD format.",
+        "type": "date",
+        "label": "Effective From",
+        "required": true,
+        "placeholder": "2025-04-01"
+      },
+      {
+        "key": "add_bonus_information",
+        "help": "Enable this to add bonus information along with the salary revision.",
+        "type": "boolean",
+        "label": "Add Bonus Information?",
+        "options": [
+          {
+            "label": "Yes",
+            "value": true
+          },
+          {
+            "label": "No",
+            "value": false
+          }
+        ],
+        "required": false,
+        "defaultValue": {
+          "label": "No",
+          "value": false
+        }
+      },
+      {
+        "key": "apiBonusDto",
+        "help": "Provide the bonus details to attach to this salary revision.",
+        "type": "input groups",
+        "label": "Bonus Details",
+        "required": false,
+        "visibilityCondition": "context.inputData?.salary?.add_bonus_information === true",
+        "fields": [
+          {
+            "key": "bonusId",
+            "type": "dropdown",
+            "label": "Bonus Type",
+            "required": true,
+            "placeholder": "Select bonus type",
+            "optionsGenerator": "return await bonustypes()"
+          },
+          {
+            "key": "amount",
+            "help": "Enter the bonus amount without currency symbols.",
+            "type": "number",
+            "label": "Bonus Amount",
+            "required": true,
+            "placeholder": "5000",
+            "visibilityCondition": "context?.inputData?.salary?.apiBonusDto?.bonusId"
+          },
+          {
+            "key": "dueDate",
+            "help": "Enter the bonus payout date in YYYY-MM-DD format.",
+            "type": "date",
+            "label": "Payout Date",
+            "required": true,
+            "placeholder": "2025-03-31"
+          },
+          {
+            "key": "note",
+            "help": "Add any remarks related to this bonus.",
+            "type": "string",
+            "label": "Note",
+            "required": true,
+            "placeholder": "Annual performance bonus"
+          },
+          {
+            "key": "isBonusAmountIncludedInSalary",
+            "help": "Is the bonus amount already included in the salary figure above?",
+            "type": "boolean",
+            "label": "Is Bonus Included in Salary?",
+            "options": [
+              {
+                "label": "Yes",
+                "value": true
+              },
+              {
+                "label": "No",
+                "value": false
+              }
+            ],
+            "required": false,
+            "defaultValue": {
+              "label": "No",
+              "value": false
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "financialDetails",
+    "help": "Update the employee's salary payment mode or bank account details.",
+    "type": "input groups",
+    "label": "Bank & Financial Details",
+    "required": false,
+    "visibilityCondition": "context?.inputData?.sectionsToUpdate?.includes('bankd')",
+    "fields": [
+      {
+        "key": "salaryPaymentMode",
+        "help": "Select or enter the updated payment mode. None (0), Bank Transfer (1), Cash (2), Cheque (3), Unknown (4).",
+        "type": "dropdown",
+        "label": "Salary Payment Mode",
+        "options": [
+          {
+            "label": "None (Not Set)",
+            "value": 0
+          },
+          {
+            "label": "Bank Transfer",
+            "value": 1
+          },
+          {
+            "label": "Cash",
+            "value": 2
+          },
+          {
+            "label": "Cheque",
+            "value": 3
+          },
+          {
+            "label": "Unknown",
+            "value": 4
+          }
+        ],
+        "required": true,
+        "placeholder": "Select salary payment mode",
+        "defaultValue": {
+          "label": "Bank Transfer",
+          "value": 1
+        },
+        "customInputLabel": "Enter payment mode manually",
+        "customPlaceholder": "1 for Bank Transfer"
+      },
+      {
+        "key": "bankDetails",
+        "help": "Provide the updated bank account details. Required when payment mode is Bank Transfer.",
+        "type": "input groups",
+        "label": "Bank Details",
+        "required": false,
+        "visibilityCondition": "context.inputData?.financialDetails?.salaryPaymentMode == 1",
+        "fields": [
+          {
+            "key": "id",
+            "help": "Select or enter the Bank ID.",
+            "type": "dropdown",
+            "label": "Bank Name",
+            "required": false,
+            "canPaginate": true,
+            "placeholder": "Select bank",
+            "customInputLabel": "Enter the bank ID manually",
+            "optionsGenerator": "return await fetchBanks()",
+            "customPlaceholder": "HDFC Bank"
+          },
+          {
+            "key": "branchName",
+            "help": "Enter the updated bank branch name.",
+            "type": "string",
+            "label": "Branch Name",
+            "required": false,
+            "placeholder": "Indore Main Branch"
+          },
+          {
+            "key": "ifscCode",
+            "help": "Enter the 11-character IFSC code of the bank branch.",
+            "type": "string",
+            "label": "IFSC Code",
+            "required": true,
+            "placeholder": "HDFC0001234"
+          },
+          {
+            "key": "accountNumber",
+            "help": "Enter the employee's updated bank account number.",
+            "type": "string",
+            "label": "Account Number",
+            "required": true,
+            "placeholder": "91113288432614"
+          },
+          {
+            "key": "nameOnTheAccount",
+            "help": "Enter the name as it appears on the bank account.",
+            "type": "string",
+            "label": "Name on Account",
+            "required": true,
+            "placeholder": "John Doe"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+**API Configuration Perform Code**
+```javascript
+try {
+
+  const base = `https://${context?.authData?.company}.${context?.authData?.environment}.com`;
+  const selector = context?.inputData?.employee_selector;
+  let employeeId = null;
+
+  if (selector?.fetch_method === 'email') {
+    const searchRes = await axios.request({
+      method: 'post',
+      url: `${base}/api/v1/hris/employees/search`,
+      headers: { 'Content-Type': 'application/json' },
+      data: { workEmail: selector?.candidate_email?.trim() }
+    });
+    const matched = searchRes?.data?.data;
+    if (!matched?.id) {
+      return { message: 'No employee found with the provided email. Please check that the email is correct and belongs to an active employee in your organization.' };
+    }
+    employeeId = matched.id;
+  }
+
+  if (selector?.fetch_method === 'id_number') {
+    const raw = selector?.search_employee_id_number?.trim();
+    const isUUID = raw?.includes('-') && raw?.length > 20;
+    let page = 1;
+    let totalPages = 1;
+    while (page <= totalPages) {
+      const res = await axios.request({
+        method: 'get',
+        url: `${base}/api/v1/hris/employees`,
+        params: {
+          employeeIds: isUUID ? raw : undefined,
+          employeeNumbers: !isUUID ? raw : undefined,
+          pageNumber: page,
+          pageSize: 200
+        }
+      });
+      const data = res.data?.data || [];
+      totalPages = res.data?.totalPages || 1;
+      const matched = data.find(e => isUUID ? e.id === raw : e.employeeNumber === raw);
+      if (matched) { employeeId = matched.id; break; }
+      page++;
+    }
+    if (!employeeId) {
+      return { message: 'No employee found with the provided Employee Number or ID. Please verify it is correct and the employee exists in your organization.' };
+    }
+  }
+
+  if (!employeeId) {
+    return { message: 'Employee could not be identified. Please provide a valid email or employee number.' };
+  }
+
+  const sections = context?.inputData?.sectionsToUpdate || [];
+
+  const strip = (obj) => {
+    if (!obj || typeof obj !== 'object') return undefined;
+    const cleaned = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (v === undefined || v === null || v === '') continue;
+      if (typeof v === 'object' && !Array.isArray(v)) {
+        const nested = strip(v);
+        if (nested && Object.keys(nested).length > 0) cleaned[k] = nested;
+      } else {
+        cleaned[k] = v;
+      }
+    }
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+  };
+
+  const genderMap = {
+    "0": 0, "notspecified": 0,
+    "1": 1, "male": 1, "m": 1,
+    "2": 2, "female": 2, "f": 2,
+    "3": 3, "nonbinary": 3, "nb": 3,
+    "4": 4, "prefernottorespond": 4, "pntr": 4
+  };
+
+  const bloodGroupMap = {
+    "0": 0, "notavailable": 0,
+    "1": 1, "a+": 1, "2": 2, "a-": 2,
+    "3": 3, "b+": 3, "4": 4, "b-": 4,
+    "5": 5, "ab+": 5, "6": 6, "ab-": 6,
+    "7": 7, "o+": 7, "8": 8, "o-": 8,
+    "9": 9, "a2+": 9, "10": 10, "a1+": 10,
+    "11": 11, "a1-": 11, "12": 12, "a1b-": 12,
+    "13": 13, "a1b+": 13, "14": 14, "a2-": 14,
+    "15": 15, "a2b+": 15, "16": 16, "a2b-": 16,
+    "17": 17, "b1+": 17
+  };
+
+  const maritalStatusMap = {
+     "0": 0, "none": 0,
+    "1": 1, "single": 1,
+    "2": 2, "married": 2,
+    "3": 3, "widowed": 3,
+    "4": 4, "separated": 4
+  };
+
+  const nationalityMap = {
+    "us": "US", "usa": "US", "unitedstates": "US",
+    "gb": "GB", "uk": "GB", "unitedkingdom": "GB",
+    "in": "IN", "india": "IN", "ind": "IN",
+    "ca": "CA", "canada": "CA",
+    "au": "AU", "australia": "AU",
+    "de": "DE", "germany": "DE",
+    "fr": "FR", "france": "FR",
+    "jp": "JP", "japan": "JP",
+    "it": "IT", "italy": "IT",
+    "ae": "AE", "uae": "AE", "unitedarabemirates": "AE"
+  };
+
+  const salaryPaymentModeMap = {
+    "0": 0, "none": 0, "notset": 0,
+    "1": 1, "banktransfer": 1, "bank": 1,
+    "2": 2, "cash": 2,
+    "3": 3, "cheque": 3, "check": 3,
+    "4": 4, "unknown": 4
+  };
+
+  const parseEnum = (input, map, fieldName, maxNumeric = null) => {
+    if (input === undefined || input === null || input === '') return null;
+    const raw = String(input).trim();
+    const normalized = raw.toLowerCase().replace(/\s/g, '');
+    if (/^\d+$/.test(normalized)) {
+      const num = Number(normalized);
+      if (maxNumeric !== null && (num < 0 || num > maxNumeric)) {
+        return { error: `Invalid ${fieldName}. Accepted numeric values are 0–${maxNumeric}.` };
+      }
+      return num;
+    }
+    if (map.hasOwnProperty(normalized)) return map[normalized];
+    const matchedKey = Object.keys(map).find(key => key.startsWith(normalized));
+    if (matchedKey !== undefined) return map[matchedKey];
+    return { error: `Invalid ${fieldName} value. Please enter a valid value as described in the field help.` };
+  };
+
+  const parseNationality = (input) => {
+    if (input === undefined || input === null || input === '') return null;
+    const raw = String(input).trim();
+    const normalized = raw.toLowerCase().replace(/\s/g, '');
+    if (/^[a-z]{2}$/i.test(raw)) return raw.toUpperCase();
+    if (nationalityMap.hasOwnProperty(normalized)) return nationalityMap[normalized];
+    const matchedKey = Object.keys(nationalityMap).find(key => key.startsWith(normalized));
+    if (matchedKey !== undefined) return nationalityMap[matchedKey];
+    return { error: 'Invalid nationality value. Please enter a valid country name or ISO code.' };
+  };
+
+  const parsedGender = parseEnum(context?.inputData?.employeeCoreInformation?.gender, genderMap, 'gender', 4);
+  if (parsedGender?.error) return { message: parsedGender.error };
+
+  const parsedBlood = parseEnum(context?.inputData?.basicInformation?.bloodGroup, bloodGroupMap, 'blood group', 17);
+  if (parsedBlood?.error) return { message: parsedBlood.error };
+
+  const parsedMarital = parseEnum(context?.inputData?.basicInformation?.maritalStatus, maritalStatusMap, 'marital status', 4);
+  if (parsedMarital?.error) return { message: parsedMarital.error };
+
+  const parsedNationality = parseNationality(context?.inputData?.basicInformation?.nationality);
+  if (parsedNationality?.error) return { message: parsedNationality.error };
+
+  const parsedSalaryPaymentMode = parseEnum(context?.inputData?.financialDetails?.salaryPaymentMode, salaryPaymentModeMap, 'salary payment mode', 4);
+  if (parsedSalaryPaymentMode?.error) return { message: parsedSalaryPaymentMode.error };
+
+  const results = { employeeId };
+
+  /* JOB DETAILS */
+
+  const needsJobUpdate =
+    sections.includes('jobdetails') ||
+    sections.includes('coreInfo') ||
+    sections.includes('workInfo');
+
+  if (needsJobUpdate) {
+    const ci = context?.inputData?.employeeCoreInformation;
+    const jd = context?.inputData?.jobdetails;
+    const wi = context?.inputData?.workInformation;
+
+    const jobBody = strip({
+      employeeNumber: context?.inputData?.basicInformation?.employeeNumber,
+      location: ci?.locations,
+      businessUnit: wi?.businessUnit,
+      department: ci?.department,
+      jobTitle: ci?.jobtitles,
+      legalEntity: wi?.legalEntity,
+      reportingManager: jd?.reportingStructure?.reportingManager,
+      dottedLineManager: jd?.reportingStructure?.dottedLineManager,
+      attendanceNumber: jd?.attendance?.attendanceNumber,
+      timeType: jd?.employmentDetails?.timeType !== undefined ? Number(jd?.employmentDetails?.timeType) : undefined,
+      attendanceCaptureScheme: jd?.attendance?.attendanceCaptureScheme,
+      expensePolicy: jd?.compensation?.expensePolicy,
+      noticePeriod: jd?.leave?.noticePeriod,
+      holidayList: jd?.scheduleCalendar?.holidayList,
+      leavePlan: jd?.leave?.leavePlan,
+      payBand: jd?.compensation?.payBand,
+      payGrade: jd?.compensation?.payGrade,
+      shiftPolicy: jd?.scheduleCalendar?.shiftPolicy,
+      weeklyOffPolicy: jd?.scheduleCalendar?.weeklyOffPolicy,
+      workerType: jd?.employmentDetails?.workerType !== undefined ? Number(jd?.employmentDetails?.workerType) : undefined,
+      contingentTypeId: jd?.employmentDetails?.contingentTypeId
+    });
+
+    if (jobBody && Object.keys(jobBody).length > 0) {
+      const jdRes = await axios.request({
+        method: 'put',
+        url: `${base}/api/v1/hris/employees/jobdetails`,
+        params: { employeeId },
+        headers: { 'Content-Type': 'application/json', accept: 'application/json' },
+        data: jobBody
+      });
+      results.jobDetails = jdRes?.data;
+    }
+  }
+
+  /* PERSONAL DETAILS */
+
+  const needsPersonalUpdate =
+    sections.includes('contactDetails') ||
+    sections.includes('basicInfo') ||
+    sections.includes('workInfo') ||
+    sections.includes('coreInfo');
+
+  if (needsPersonalUpdate) {
+    const ci = context?.inputData?.employeeCoreInformation;
+    const bi = context?.inputData?.basicInformation;
+    const cd = context?.inputData?.contactDetails;
+    const wi = context?.inputData?.workInformation;
+
+    const sameAddress = cd?.isCurrentAddressSameAsPermanent === true;
+
+    const personalBody = strip({
+      displayName: ci?.displayName,
+      firstName: ci?.firstName,
+      middleName: ci?.middleName,
+      lastName: ci?.lastName,
+      gender: parsedGender !== null ? parsedGender : undefined,
+      dateOfBirth: ci?.dateOfBirth,
+      workPhone: cd?.workPhone,
+      homePhone: cd?.homePhone,
+      personalEmail: cd?.personalEmail,
+      skypeId: cd?.skypeId,
+      maritalStatus: parsedMarital !== null ? parsedMarital : undefined,
+      marriageDate: bi?.marriageDate,
+      bloodGroup: parsedBlood !== null ? parsedBlood : undefined,
+      currentAddress: cd?.updateCurrentAddress === true ? cd?.currentAddress : undefined,
+      permanentAddress: cd?.updateCurrentAddress === true
+        ? (sameAddress ? cd?.currentAddress : cd?.permanentAddress)
+        : undefined,
+      professionalSummary: wi?.professionalSummary,
+      nationality: parsedNationality !== null ? parsedNationality : undefined
+    });
+
+    if (personalBody && Object.keys(personalBody).length > 0) {
+      const personalRes = await axios.request({
+        method: 'put',
+        url: `${base}/api/v1/hris/employees/personaldetails`,
+        params: { employeeId },
+        headers: { 'Content-Type': 'application/json', accept: 'application/json' },
+        data: personalBody
+      });
+      results.personalDetails = personalRes?.data;
+    }
+  }
+
+  /* SALARY */
+
+  if (sections.includes('salary')) {
+    const salaryInput = context?.inputData?.salary;
+    const bonusInput = salaryInput?.apiBonusDto;
+    const addBonus = salaryInput?.add_bonus_information === true;
+
+    let apiBonusDto = [];
+    if (addBonus && bonusInput?.bonusId) {
+      apiBonusDto = [{
+        bounsId: bonusInput?.bonusId,
+        amount: bonusInput?.amount ? Number(bonusInput.amount) : null,
+        dueDate: bonusInput?.dueDate || null,
+        note: bonusInput?.note || null
+      }];
+    }
+
+    const salaryRes = await axios.request({
+      method: 'put',
+      url: `${base}/api/v1/payroll/employees/salary`,
+      params: { employeeId },
+      headers: { 'Content-Type': 'application/json', accept: 'application/json' },
+      data: {
+        structureId: salaryInput?.structureId,
+        amount: Number(salaryInput?.amount),
+        effectiveFrom: salaryInput?.effectiveFrom,
+        isBonusAmountIncludedInSalary: addBonus ? (bonusInput?.isBonusAmountIncludedInSalary ?? false) : false,
+        apiBonusDto
+      }
+    });
+    results.salary = salaryRes?.data;
+  }
+
+  /* BANK & FINANCIAL DETAILS */
+
+  if (sections.includes('bankd')) {
+    const fd = context?.inputData?.financialDetails;
+
+    if (parsedSalaryPaymentMode === 1) {
+      const bankId = fd?.bankDetails?.id;
+      if (!bankId) return { message: 'Bank ID is required when payment mode is Bank Transfer.' };
+
+      const financialRes = await axios.put(
+        `${base}/api/v1/payroll/employees/financialdetails/banks?employeeId=${employeeId}`,
+        {
+          salaryPaymentMode: parsedSalaryPaymentMode,
+          bankDetails: {
+            id: bankId,
+            branchName: fd?.bankDetails?.branchName||null,
+            ifscCode: fd?.bankDetails?.ifscCode||null,
+            accountNumber: fd?.bankDetails?.accountNumber||null,
+            nameOnTheAccount: fd?.bankDetails?.nameOnTheAccount||null
+          }
+        },
+        { headers: { accept: 'application/json', 'content-type': 'application/*+json' } }
+      );
+      results.financialDetails = financialRes?.data;
+
+    } else {
+      const financialRes = await axios.put(
+        `${base}/api/v1/payroll/employees/financialdetails/banks?employeeId=${employeeId}`,
+        { salaryPaymentMode: parsedSalaryPaymentMode },
+        { headers: { accept: 'application/json', 'content-type': 'application/*+json' } }
+      );
+      results.financialDetails = financialRes?.data;
+    }
+  }
+
+  return results;
+
+} catch (error) {
+  throw error;
+}
 ```
 
 ---
