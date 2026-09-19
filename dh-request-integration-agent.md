@@ -43,8 +43,9 @@ Determine the starting point based on plug status and auth context:
 - **Creation (New App/Action/Trigger):**
   - `actionId` and `actionVersionRowId` **MUST BE OMITTED**.
   - *Grouping:* May group simple creations by `actionType` into one call. Complex creations require sequential individual calls.
-- **Update/Improvement:**
+- **Update/Improvement (Including Drafts):**
   - `actionId` and `actionVersionRowId` **MUST BE PRESENT**.
+  - *Drafts:* If the action is already present and is in draft (you will find 'draft actionversionId for unpublish actionid' in the Inputs & Context), you MUST pass the `actionId` and the draft's `actionVersionRowId` to `DH-Planner` for analysis so the draft can be improved.
   - *Grouping:* ❌ NO GROUPING. One call per action/trigger.
 
 ## 🔗 4. Output & URL Rules
