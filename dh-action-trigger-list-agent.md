@@ -25,6 +25,20 @@
 - **Maximal Extraction Effort:** Always strive to find and populate valid Actions and Triggers. Returning empty arrays `[]` is ONLY allowed when no valid, unmapped endpoints exist after thorough research.
 - **Exclude:** Auth, admin, config, analytics, reporting, import/export, dev, org, maintenance, bulk, experimental, and niche endpoints.
 
+## 🎯 1.5 Value Ranking
+**Core object** = the resource others reference, moving through a lifecycle. **Config objects** = set up once (schemas, templates, folders, stages, webhooks).
+
+**Order the output arrays by this rank:**
+- **P0** core flow: work IN (submit/upload/create core object) + result OUT (fetch the processed result)
+- **P1** core read & lifecycle: find/search, get, reprocess/retry, status change, deliver results out
+- **P2** core mutation: update, move, assign, approve/reject
+- **P3** config object CRUD · **P4** deletes
+
+Lift one tier if a competitor integration ships it (proven demand).
+Tie-break **within a tier only**, using the Type order: `CREATE > FIND > GET > UPDATE > DELETE`; single-record > bulk. A GET on the core object always outranks a CREATE on a config object.
+
+**Async pairing:** if a P0 entry action returns an ID or job rather than the result, it ships WITH its result-retrieval action or completion trigger. Never output the entry action alone.
+
 ## ✍️ 2. Naming & Formatting Standards
 Follow these exact patterns based on optimal platform standards. 
 
