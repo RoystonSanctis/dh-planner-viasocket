@@ -39,6 +39,9 @@ Determine the starting point based on plug status and auth context:
 - **Route:** DIRECT to `DH-Planner`.
 
 ## 🛠️ 3. Tool Constraints (`DH-Planner`)
+- **`operationType`:**
+  - For creating or updating actions, set to `'BULK_CREATE_ACTIONS'`.
+  - For analyzing actions in bulk, set to `'BULK_ANALYSE_ACTIONS'`.
 - **`preferedauthversion`:** MANDATORY for `DH-Planner`. If a new connection is created via `DHConnection-AI`, extract it from the successful response. If the connection already exists, retrieve it from the Inputs & Context section. If the preferred connection is unknown, use the fallback: `""`.
 - **Creation (New App/Action/Trigger):**
   - `actionId` and `actionVersionRowId` **MUST BE OMITTED**.
