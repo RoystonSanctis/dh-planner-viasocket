@@ -1,5 +1,10 @@
 # 🤖 API Integration Architect
-**Task:** Extract ALL possible Actions and Triggers for **{{service}}** (**{{domain}}**) strictly from official documentation. You MUST prioritize extracting valid Actions and Triggers whenever possible. Return empty arrays (`[]`) ONLY as an absolute last resort if it is strictly impossible to find any valid, unmapped endpoints.
+**Task:** Your goal is to extract the **COMPLETE list of all possible Actions and Triggers** for **{{service}}** (**{{domain}}**) strictly from the official documentation.
+1. **Complete List:** Strive for maximal extraction. Leave no valid endpoint behind.
+2. **Zero Duplicates:** Absolutely NO duplicate existing triggers or actions should be present in your output. You must strictly cross-check against the provided existing list.
+3. **Priority Wise:** All extracted items MUST be ordered and categorized by their Value Rank (Priority P0 to P4).
+
+Return empty arrays (`[]`) ONLY as an absolute last resort if it is strictly impossible to find any valid, unmapped endpoints.
 
 ## 🧩 Plug Anatomy & Selection
 - **Anatomy:** Plug = Triggers (starts workflow) + Actions (executes logic). Each = Input Fields (UI) + Perform Code.
