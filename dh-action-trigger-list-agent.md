@@ -8,6 +8,11 @@
   1. **Instant (`hook`):** Programmatic webhooks. Code: `performsubscribe`, `performlist`, `modifytriggerdata` (optional), `performunsubscribe`, `transferoption`.
   2. **Scheduled (`polling`):** No webhooks; GET/LIST API with timestamp filter. Code: `performlist`, `perform`, `transferoption`.
   3. **Manual (`manual_webhook`):** User pastes hook URL into service. Code: `performlist`, `modifytriggerdata` (optional).
+- **Type Selection (in order):**
+  1. Documented event + documented endpoint to register/deregister webhooks programmatically → **Instant**. Record the signature scheme and the unique field used for dedup.
+  2. Documented event but webhooks configurable ONLY in the service UI → **Manual**.
+  3. No events → **Scheduled**, ONLY if the list/search endpoint has a stable unique ID AND a sortable created/updated timestamp. Neither → no trigger; state why in `message`.
+  4. Webhooks scoped to a parent resource → expose that parent as a Dropdown input field.
 - **Block Roles:** **Subscribe** registers hook & returns unsub data · **Unsubscribe** deregisters hook · **Sample** gets latest 1 item · **Perform(modify)** reshapes payload or GET details from ID (exception: manual webhook can only reshape payload; no API call due to no auth) · **Transfer** bulk-pulls history (`≤200/batch`, paginated).
 
 ## 🔍 1. Research & Selection Rules
@@ -40,13 +45,12 @@ Tie-break **within a tier only**, using the Type order: `CREATE > FIND > GET > U
 **Async pairing:** if a P0 entry action returns an ID or job rather than the result, it ships WITH its result-retrieval action or completion trigger. Never output the entry action alone.
 
 ## ✍️ 2. Naming & Formatting Standards
-Follow these exact patterns based on optimal platform standards. 
-
-| Type | Name Format (Title Case) | Description Format (Crisp & High-Density + Source Link) |
+| Type | Name Format (Title Case) | Description Format (Crisp & High-Density) |
 |---|---|---|
-| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Include **Action Category** (`GET`, `LIST`, `FIND/SEARCH`, `CREATE`, `UPDATE`, `FIND OR CREATE`, `CREATE OR UPDATE`, `DELETE`) + key API findings for creation agent analysis. Mention verified source documentation link if possible.<br>_Ex: "[Category: CREATE] Creates a new page inside a parent page via POST /v1/pages. Docs: https://..."_ |
-| **Trigger** | **[State Modifier] [Object] [Optional Action]**<br>_Ex: "New Comment Created", "Updated Page"_ | **MUST** start with **"Runs when..."** or **"Triggers when..."**, include **Trigger Type** (`Instant (hook)`, `Scheduled (polling)`, `Manual (manual_webhook)`) + key findings. Mention verified source documentation link if possible.<br>_Ex: "[Type: Instant (hook)] Runs when a new comment is created via page.comment_created webhook. Docs: https://..."_ |
+| **Action** | **[Verb] [Object]**<br>_Ex: "Create Data Source Item", "Archive Page"_ | Format as: `[Priority] [Type] [Category] [Method, path, required params, response shape, and parent dropdown source if any] Docs: [URL]`.<br>_Ex: "[P0] [CREATE] [PAGE] Creates a page inside a parent page via POST /v1/pages. Requires parent_id (dropdown: List Pages). Returns page object with id, url, created_time. Docs: https://..."_ |
+| **Trigger** | **[State Modifier] [Object]**<br>_Ex: "New Comment", "Updated Page"_ | Format as: `[Priority] [Trigger Type] [Category] Runs when...`. Include event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, parent dropdown. End with Docs URL.<br>_Ex: "[P0] [Instant (hook)] [COMMENT] Runs when a comment is created. Event page.comment_created; subscribe POST /v1/hooks, unsubscribe DELETE /v1/hooks/{id}; dedup on data.id; HMAC signature header. Docs: https://..."_ |
 
+**`doc_url` is mandatory inside the description: no verified URL for that exact endpoint → do not output the item.**
 
 ## 🚫 3. Strict Deduplication (CRITICAL)
 - **Analyze Existing List:** You MUST cross-check the JSON array `actions` and `triggers` in the existing list.
@@ -97,47 +101,12 @@ Return exactly one JSON object strictly matching the schema below. Always popula
             },
             "description": {
               "type": "string",
-              "description": "Crisp API findings for the creation agent: method, path, required params, response shape, parent dropdown source if any."
-            },
-            "priority": {
-              "type": "string",
-              "enum": [
-                "P0",
-                "P1",
-                "P2",
-                "P3",
-                "P4"
-              ],
-              "description": "Value rank per §1.5."
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "GET",
-                "FIND",
-                "CREATE",
-                "UPDATE",
-                "DELETE",
-                "FIND OR CREATE",
-                "CREATE OR UPDATE"
-              ]
-            },
-            "category": {
-              "type": "string",
-              "description": "UPPERCASE business object tag, e.g. DOCUMENT, PAGE, COMMENT."
-            },
-            "doc_url": {
-              "type": "string",
-              "description": "Verified documentation URL for this exact endpoint. Required — no URL means the item must not be output."
+              "description": "Must include [Priority] [Type] [Category] and Doc URL. Crisp API findings for the creation agent: method, path, required params, response shape, parent dropdown source if any."
             }
           },
           "required": [
             "name",
-            "description",
-            "priority",
-            "type",
-            "category",
-            "doc_url"
+            "description"
           ],
           "additionalProperties": false
         }
@@ -154,41 +123,12 @@ Return exactly one JSON object strictly matching the schema below. Always popula
             },
             "description": {
               "type": "string",
-              "description": "Starts with 'Runs when...'. Include event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, and parent dropdown source."
-            },
-            "priority": {
-              "type": "string",
-              "enum": [
-                "P0",
-                "P1",
-                "P2",
-                "P3",
-                "P4"
-              ]
-            },
-            "trigger_type": {
-              "type": "string",
-              "enum": [
-                "Instant (hook)",
-                "Scheduled (polling)",
-                "Manual (manual_webhook)"
-              ]
-            },
-            "category": {
-              "type": "string"
-            },
-            "doc_url": {
-              "type": "string",
-              "description": "Verified documentation URL. Required."
+              "description": "Must include [Priority] [Trigger Type] [Category] and Doc URL. Starts with 'Runs when...'. Include event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, and parent dropdown source."
             }
           },
           "required": [
             "name",
-            "description",
-            "priority",
-            "trigger_type",
-            "category",
-            "doc_url"
+            "description"
           ],
           "additionalProperties": false
         }
