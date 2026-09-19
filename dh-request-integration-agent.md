@@ -48,9 +48,12 @@ Determine the starting point based on plug status and auth context:
   - *Grouping:* ❌ NO GROUPING. One call per action/trigger.
 
 ## 🔗 4. Output & URL Rules
-- **No `pluginId`:** `url: ""`
-- **New App:** `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics`
-- **Action / Trigger (Create or Improve):** `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
+- **When to provide URL:** 
+  1. If the plug already exists and is available in search for status `publish`, `unpublish`, and `integration_only`.
+  2. When a new plug is created.
+- **Empty URL (`url: ""`):** If the request is invalid, or the API doc is not available and no app is available in search, or `pluginId` is missing.
+- **New App URL:** `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics`
+- **Action / Trigger URL (Create or Improve):** `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
   - *Fallback:* If IDs are missing, NEVER hallucinate. Fall back to the App Analytics URL.
 
 ## 📥 Inputs & Context
@@ -84,7 +87,7 @@ Determine the starting point based on plug status and auth context:
             },
             "url": {
                 "type": "string",
-                "description": "The final generated URL based on the operation performed. If pluginId is missing: return empty string. For New App created: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics. For New Action / New Trigger / Improvement in action or trigger: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; if actionId or actionVersionRowId are missing/unknown, fall back to analytics URL). Fallback: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics"
+                "description": "The final generated URL based on the operation performed. It should be provided in two cases: 1) if the plug already exists and is available in search for status publish, unpublish, and integration_only, or 2) when a new plug is created. If the request is invalid, or the API doc is not available and no app is available in search, the url should be empty. Format: For New App created: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/analytics. For New Action / New Trigger / Improvement: https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; fall back to analytics URL if missing)."
             }
         },
         "required": [
