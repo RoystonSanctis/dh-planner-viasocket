@@ -82,7 +82,7 @@ Return exactly one JSON object grouped by Category.
             },
             "description": {
               "type": "string",
-              "description": "Must include Capability Evaluation Contract and API details: [Priority] [Type] [Category]. Details: app, capability, capability_type ('action'|'helper'), requested_change ('create'|'modify'), method & path, required_inputs (array of input keys), expected_outputs (array of returned keys), success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), parent dropdown source if any, and verified source_doc_url."
+              "description": "Must include Capability Evaluation Contract and API details:[Type] [Category]. Details: app, capability, capability_type ('action'|'helper'), requested_change ('create'|'modify'), method & path, required_inputs (array of input keys), expected_outputs (array of returned keys), success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), parent dropdown source if any, and verified source_doc_url."
             }
           },
           "required": [
