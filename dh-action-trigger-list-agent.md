@@ -104,7 +104,7 @@ Return exactly one JSON object grouped by Category.
             },
             "description": {
               "type": "string",
-              "description": "Must include Capability Evaluation Contract and Trigger details. Starts with 'Runs when...'. Specify: [Priority] [Trigger Type] [Category]. Details: app, capability, capability_type ('trigger'), event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, parent dropdown source if parent-scoped, required_inputs, expected_outputs, success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), and verified source_doc_url."
+              "description": "Must include Capability Evaluation Contract and Trigger details. Starts with 'Runs when...'. Specify:[Trigger Type] [Category]. Details: app, capability, capability_type ('trigger'), event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, parent dropdown source if parent-scoped, required_inputs, expected_outputs, success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), and verified source_doc_url."
             }
           },
           "required": [
