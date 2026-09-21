@@ -50,7 +50,6 @@ function createMarkdownChunks(mdContent) {
   return { chunks };
 }
 
-// Added allowPartialMatch as a parameter
 async function extractKnowledgeBaseSections(module, knowledge_base, query, allowPartialMatch = false) {
   let kbsToFetch = [];
   const moduleKBs = KB_URLS[module] || {};
@@ -68,15 +67,23 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query, allow
       const { metadata, body } = parseFrontmatter(rawMd);
       const { chunks } = createMarkdownChunks(body);
 
-      let extractedResult = { knowledge_base: kb };
+      // Keys are strictly assigned upfront
+      let extractedResult = { 
+        knowledge_base: kb,
+        title: metadata.title || kb,
+        description: metadata.description || "",
+        content: "" 
+      };
+      
       let matchedSections = [];
-      let isPageIndexRequested = false;
 
       (Array.isArray(query) ? query : []).forEach(q => {
         const qLower = String(q || '').toLowerCase();
-        if (qLower === 'page index') isPageIndexRequested = true;
         
-        // Updated filtering logic based on the boolean
+        // The "page index" specific check is no longer needed to gate the title/description
+        // but we still allow it as a valid query if you were mapping it for other reasons.
+        if (qLower === 'page index') return; 
+        
         const matches = chunks.filter(c => {
           const headerLower = c.vectorSource.toLowerCase();
           return allowPartialMatch 
@@ -88,13 +95,10 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query, allow
       });
 
       matchedSections = [...new Set(matchedSections)];
-
-      if (isPageIndexRequested) {
-        extractedResult.title = metadata.title || kb;
-        extractedResult.description = metadata.description || "";
-      }
-
+      
+      // Finally assign content
       extractedResult.content = matchedSections.join('\n\n');
+      
       results.push(extractedResult);
     } catch (error) {
       results.push({ knowledge_base: kb, error: error.message });
@@ -104,7 +108,6 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query, allow
   return results;
 }
 
-// Define the boolean here, or map it to a variable provided by your environment. This will enable searching for partial heading matches.
 const isPartialMatchAllowed = false;
 
 // Execute and return the promise so the workflow receives the output
