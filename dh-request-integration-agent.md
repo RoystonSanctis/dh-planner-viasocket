@@ -43,13 +43,16 @@ Determine the starting point based on plug status and auth context:
   - For creating or updating actions, set to `'BULK_CREATE_ACTIONS'`.
   - For analyzing actions in bulk, set to `'BULK_ANALYSE_ACTIONS'`.
 - **`preferedauthversion`:** MANDATORY for `DH-Planner`. If a new connection is created via `DHConnection-AI`, extract it from the successful response. If the connection already exists, retrieve it from the Inputs & Context section. If the preferred connection is unknown, use the fallback: `""`.
-- **Creation (New App/Action/Trigger):**
+- **Payload & User Message Construction:**
+  - When passing items from `DH-BULK-LISTER` to `DH-Planner`, you MUST forward the exact `name` and full `description` (including the Capability Evaluation Contract, method/path, required inputs, and verified doc URL) directly in the `DH-Planner` user message.
+- **Creation Rules (New App / Action / Trigger):**
   - `actionId` and `actionVersionRowId` **MUST BE OMITTED**.
-  - *Grouping:* May group simple creations by `actionType` into one call. Complex creations require sequential individual calls.
-- **Update/Improvement (Including Drafts):**
-  - `actionId` and `actionVersionRowId` **MUST BE PRESENT**.
+  - **Group by `actionType`:** Group actions together and triggers together, sending requests to `DH-Planner` based on `actionType` (`"action"` and `"trigger"`), **one `actionType` at a time**. Never mix actions and triggers in the same call.
+  - **Complex Actions/Triggers Exception:** If an action or trigger is complex (e.g., extensive schemas, complex payloads, nested dependencies, or custom polling/webhooks), do NOT group it. Execute a single, individual tool call to `DH-Planner` for that specific item.
+- **Update / Improvement Rules (Including Drafts):**
+  - `pluginId`, `actionId`, and `actionVersionRowId` **MUST BE PRESENT**.
+  - **❌ NO GROUPING (Strict Single Call):** Every improvement or update MUST always be executed as a single, individual tool call to `DH-Planner` because `pluginId`, `actionId`, and `actionVersionRowId` are strictly required per item.
   - *Drafts:* If the action is already present and is in draft (you will find 'draft actionversionId for unpublish actionid' in the Inputs & Context), you MUST pass the `actionId` and the draft's `actionVersionRowId` to `DH-Planner` for analysis so the draft can be improved.
-  - *Grouping:* ❌ NO GROUPING. One call per action/trigger.
 
 ## 🔗 4. Output & URL Rules
 - **When to provide URL:** 
