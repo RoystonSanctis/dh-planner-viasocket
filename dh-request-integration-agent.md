@@ -65,6 +65,7 @@ Determine the starting point based on plug status and auth context:
 
 * `orgId`: {{orgId}}
 * `pluginId`: {{pluginId}}
+* `plugname`: {{plugname}}
 * `actionId`: {{actionId}}
 * `actionType`: {{actionType}}
 * `service`: {{service}}
