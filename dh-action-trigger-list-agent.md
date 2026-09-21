@@ -72,7 +72,7 @@ Return exactly one JSON object grouped by Category.
       },
       "action": {
         "type": "array",
-        "description": "Workflow actions, ordered highest value first (P0 → P4).",
+        "description": "List of workflow actions.",
         "items": {
           "type": "object",
           "properties": {
@@ -94,7 +94,7 @@ Return exactly one JSON object grouped by Category.
       },
       "trigger": {
         "type": "array",
-        "description": "Workflow triggers, ordered highest value first.",
+        "description": "List of workflow triggers.",
         "items": {
           "type": "object",
           "properties": {
