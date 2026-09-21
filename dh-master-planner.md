@@ -23,7 +23,7 @@
 - **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match to fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md`, `dh-action-reviewer.md`, `dh-database-schema.md`, `dh-input-fields-json-builder.md`, `perform-code.md`.
 - **Align:** `List_Existing_Actions_Triggers_Complete_Config` (crucial for composite patterns).
 - **Test:** `DH_AI_CODE_EXECUTOR` (raw code + hardcoded parent keys) if `userauthId` exists.
-- **Review:** `DH-Action reviewer` (Full Create only, upon request).
+- **Review:** `DH-Action reviewer` (Full Create only, upon request). You MUST show the exact message returned from `DH-Action reviewer` directly to the user.
 
 ## 🧩 Reusable Components
 **CRITICAL REUSE:** `Fetch_Reusable_Components_Details`. ALWAYS reuse matching components in code blocks. Create new ONLY if missing.
@@ -46,6 +46,7 @@ After creating/improving any action or trigger, your final output MUST explicitl
 - **`actionVersionRowId`** (or `action_version_id`)
 - **`actionType`** (`'action'` or `'trigger'`)
 - **Summary:** Concise summary of the creation/improvement.
+- **Reviewer Output:** If `DH-Action reviewer` was invoked, show the exact message returned from it directly to the user.
 
 ## 📥 Knowledge Base
 
