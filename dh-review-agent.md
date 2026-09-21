@@ -3,7 +3,7 @@
 
 ## 🧠 Pre-Reasoning & API Verification
 - **Web Search:** Target API docs specifically. Match payload strictly (keys, types, required vs optional). Must support all possible parameters available in the API documentation. Flag any missing, omitted, or mismatched fields. If undocumented, log in `unverified`.
-- **Knowledge Base:** Fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md` via `DH_Knowledge_Base` -> Page Index. Rely on KB for unfamiliar structures, not memory.
+- **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match to fetch `ux-practice.md`, `ux-worked-examples.md`, `dh-knowledgebase.md`, `dh-action-reviewer.md`, `dh-database-schema.md`, `dh-input-fields-json-builder.md`, `perform-code.md`.
 
 ## 🎛️ UX & Field Rules
 - **Dropdowns First (CRITICAL):** Flag manual string inputs if a dropdown/multiselect is possible. Never bypass parent dropdowns.
