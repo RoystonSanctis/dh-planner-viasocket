@@ -16,6 +16,7 @@
 - **Proactive UX:** Suggest dynamic schemas, relative date toggles, and conditional filters for non-technical users.
 - **Safe Mutations:** NEVER rename existing field keys (breaks user mapping). Minimum viable fixes only. No opportunistic refactoring.
 - **Clean Code Style:** Flag verbose code that assigns `payload.x = x` per field, or uses repeated `if (x !== undefined && x !== null && x !== '')` checks for each optional field. Correct pattern: prefer destructuring inputs upfront, build payloads via spread/shorthand, and use a single `Object.fromEntries(Object.entries(raw).filter(...))` for cleanup. Note: Reading via `context?.inputData?.<key>` and `context?.authData?.<key>` is also supported.
+- **Response Return Structure:** By default, perform code returns `response.data`. However, the response return can modify the response based on the actual data present in another key or make the output response more structured or organised for the user/flow. Do not flag this as an issue.
 
 ## 🧰 Diagnostic Tools
 - `Fetch_Reusable_Components`: Check available components.

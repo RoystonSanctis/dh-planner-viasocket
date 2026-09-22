@@ -50,7 +50,7 @@ These apply everywhere — stated once, never repeated.
 - **Error handling**: catch must `await errorComponent(error)`. Exception: Reusable Components must use `throw error` or `throw e`.
 - **`optionsGenerator` invocation**: any code (inline or component call) must be wrapped in a parent `try...catch`; catch calls `await errorComponent(error)`.
 - **No `console.log`**. No imports/require. HTTP via `axios`/`fetch` only.
-- **Return `response.data` raw** — don't reshape. Array return → flow iterates per item.
+- **Response Return**: By default, return `response.data`. However, the response return can modify the response based on the actual data present in another key or make the output response more structured or organised. Array return → flow iterates per item.
 - **Required-field guards**: validate every `required:true` field at top of perform — `throw` before API call if missing/empty/null.
 - **`throw` inside `try`** for validation and for 200-responses carrying error body (viaSocket reads final response code).
 - **No hard-coded input values** (except documented default fallbacks).
@@ -406,7 +406,7 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 - **P3 (Text)**: Help: short, plain, non-technical · `label` = Title Case · `help`/`placeholder`/errors = sentence case · whereClause labels: sentence case (first capitalized, rest lowercase unless proper noun) · `customHelp`/`customInputLabel`/`customPlaceholder` valid only on dropdown/multiselect/boolean · scan for typos, trailing spaces, sibling inconsistencies.
 
 ## Validation Checklist
-- Perform: wrapper correct · `axios`/`fetch` only · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards · rate-limit handled · returns raw `response.data`.
+- Perform: wrapper correct · `axios`/`fetch` only · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards · rate-limit handled · returns `response.data` by default (can modify the response based on the actual data present in another key or make the output response more structured or organised).
 - Generator output: dynamic dropdown returns `{data, offset}` if `canPaginate` or `enableSearchApi` is true, or `[{label, value, sample}]` if both are false/omitted. Multiselect strictly returns `[{label, value, sample}]` (with client-side pagination if needed). Zero results return appropriate shape per config.
 - `help` required on input fields unless `label`+`key` are completely self-explanatory. Starts with "Enter" for string/ID fields (e.g. `"Enter a parent task ID..."`; never `"Select from the list"`). No "E.g." in `placeholder`/`customPlaceholder` — direct sample values only.
 - Standalone `help` field (`type: "help"`): Include ONLY if strictly necessary for high-impact notices (DELETE warnings, behavior-changing fields, prerequisites, manual webhook HTML, or polling math). Never add unnecessary help banner fields.

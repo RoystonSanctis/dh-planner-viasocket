@@ -90,6 +90,7 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **Endpoint**: Ensure the final endpoint correctly matches the provided cURL.
 - **API Rate Limiting**: If the code calls an API inside a loop, it must handle the API rate limit of the service (e.g., add delays, retry logic, or respect rate limit headers).
 - **Required Field Validation**: For every input field marked `required: true` in the input fields JSON, the perform code **must** throw an error at the top of the function (before the API call) if that field's value is missing, empty, or `null`. Example: `if (!context.inputData.date) { throw new Error('Date is required.'); }`
+- **Response Return**: By default, perform code returns `response.data`. However, the response return can modify the response based on the actual data present in another key or make the output response more structured or organised for the user or downstream workflow. Do NOT flag structured/modified response returns as an issue.
 
 **Required Structure:**
 The code block can use either of the two formats below. The reviewer must not flag either as an issue. The `context` object is available globally.

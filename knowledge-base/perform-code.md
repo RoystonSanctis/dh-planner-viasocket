@@ -2120,9 +2120,8 @@ return await deleteRecord();
 
 ## Special Note - Success Code Handling
 
-- Return the data as it is. Don't modify it.
-- Don't add any additional fields to the response. Just return the data.
-- The actual data of the response is in the `data` property of the response object. Which looks like `{ data: { ... } }`. So, return `response.data`.
+- By default, return `response.data` (the actual response payload returned by the API).
+- The response return can modify the response based on the actual data present in another key or make the output response more structured or organised for the user or downstream flow.
 
 ## Special Note - Final Code Review
 - Don't use any console.log() in the perform code.
