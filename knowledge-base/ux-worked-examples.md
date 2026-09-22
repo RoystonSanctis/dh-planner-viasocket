@@ -7951,6 +7951,302 @@ return await sendMessage();
 
 ---
 
+# INSTANT TRIGGER Examples
+
+## LinkedIn Campaign Manager- New Organic Lead Form Response (Instant Trigger-Backend Service):
+
+- **Category:** INSTANT TRIGGER (Instant Backend Service)
+- **Use Case:** Triggers when a new lead is submitted through a LinkedIn Campaign Manager organic lead form
+
+**Input Fields JSON**
+```json
+[
+  {
+    "key": "organization",
+    "help": "Select the organization hosting the organic lead source.",
+    "type": "dropdown",
+    "label": "Organization",
+    "required": true,
+    "customHelp": "Enter the Organization URN from an action that lists organizations.",
+    "canPaginate": true,
+    "enableSearchApi": false,
+    "customInputLabel": "Organization URN",
+    "optionsGenerator": "async function getOrganizations() {\n  try {\n    const pageToken = context?.paginateData?.['organization'];\n    const start = pageToken === 'empty' || pageToken === null || pageToken === undefined\n      ? 0\n      : Number(pageToken) || 0;\n    const res = await axios.get('https://api.linkedin.com/rest/organizationAcls', {\n      params: {\n        q: 'roleAssignee',\n        count: 50,\n        start\n      },\n      headers: {\n        'Linkedin-Version': '202608',\n        'X-Restli-Protocol-Version': '2.0.0'\n      }\n    });\n    const items = res?.data?.elements || [];\n    if (items.length === 0) {\n      return {\n        data: [],\n        offset: null,\n        message: 'No organizations found.'\n      };\n    }\n    return {\n      data: items.map((item) => ({\n        label: item.organization,\n        value: item.organization,\n        sample: item.organization\n      })),\n      offset: items.length < 50 ? null : start + items.length\n    };\n  } catch (error) {\n    await errorComponent(error);\n  }\n}\n\nreturn await getOrganizations();",
+    "customPlaceholder": "urn:li:organization:123456"
+  },
+  {
+    "key": "lead_type",
+    "help": "Select the type of organic lead source.",
+    "type": "dropdown",
+    "label": "Lead Type",
+    "options": [
+      {
+        "label": "Event",
+        "value": "EVENT"
+      },
+      {
+        "label": "Company",
+        "value": "COMPANY"
+      },
+      {
+        "label": "Organization Product",
+        "value": "ORGANIZATION_PRODUCT"
+      }
+    ],
+    "required": true,
+    "customHelp": "Enter EVENT, COMPANY, or ORGANIZATION_PRODUCT.",
+    "customInputLabel": "Lead Type",
+    "customPlaceholder": "EVENT"
+  },
+  {
+    "key": "event",
+    "help": "Select a lead-gen-enabled event hosted by the organization.",
+    "type": "dropdown",
+    "label": "Event",
+    "required": false,
+    "customHelp": "Enter the Event URN from an action that lists events.",
+    "canPaginate": true,
+    "customInputLabel": "Event URN",
+    "optionsGenerator": "async function getEvents() {\r\n  try {\r\n    const organizer = context?.inputData?.organization;\r\n\r\n    if (!organizer) {\r\n      return {\r\n        message: 'Select an Organization first.'\r\n      };\r\n    }\r\n\r\n    const pageToken = context?.paginateData?.['event'];\r\n\r\n    const start =\r\n      pageToken === 'empty' ||\r\n      pageToken === null ||\r\n      pageToken === undefined\r\n        ? 0\r\n        : Number(pageToken) || 0;\r\n\r\n    const url =\r\n      'https://api.linkedin.com/rest/events' +\r\n      '?q=eventsByOrganizer' +\r\n      '&organizer=' + encodeURIComponent(organizer) +\r\n      '&start=' + start +\r\n      '&count=50' +\r\n      '&excludeCancelled=false';\r\n\r\n    const res = await axios.get(url, {\r\n      headers: {\r\n        'Linkedin-Version': '202608',\r\n        'X-Restli-Protocol-Version': '2.0.0'\r\n      }\r\n    });\r\n\r\n    const items = res?.data?.elements || [];\r\n    if (items.length === 0) {\r\n      return {\r\n        data: [],\r\n        offset: null,\r\n        message: 'No events found for this Organization.'\r\n      };\r\n    }\r\n\r\n   return {\r\n  data: items.map(item => {\r\n    const eventId = item?.vanityName?.slice(-19);\r\n    const eventUrn = `urn:li:event:${eventId}`;\r\n\r\n    return {\r\n      label:\r\n        item?.name?.localized?.en_US ||\r\n        item?.vanityName ||\r\n        eventUrn,\r\n      value: eventUrn,\r\n      sample: eventUrn\r\n    };\r\n  }),\r\n  offset: items.length < 50\r\n    ? null\r\n    : start + items.length\r\n};\r\n  } catch (error) {\r\n    throw error;\r\n  }\r\n}\r\n\r\ntry {\r\n  return await getEvents();\r\n} catch (error) {\r\n  throw error;\r\n}",
+    "customPlaceholder": "urn:li:event:987654321",
+    "visibilityCondition": "context?.inputData?.lead_type === 'EVENT'"
+  }
+]
+```
+**Subscribe Code**
+```javascript
+try {
+  const {
+    organization,
+    hookUrl,
+    lead_type: leadType,
+    event
+  } = context?.inputData || {};
+  const subscribeUrl =
+    'https://plug-service.viasocket.com/webhook/linkedin-campaign/cab55801-2529-4f2b-af10-a536895528b4';
+
+  if (!organization || organization === 'empty') {
+    throw new Error('Organization is required.');
+  }
+  if (!hookUrl) throw new Error('Webhook URL is missing.');
+  if (!leadType) throw new Error('Lead type is required.');
+
+  const normalized = String(organization).startsWith('urn:li:')
+    ? organization
+    : `urn:li:organization:${organization}`;
+  const ownerParam = `(value:(organization:${encodeURIComponent(normalized)}))`;
+  const leadTypeParam = `(leadType:${encodeURIComponent(leadType)})`;
+  const listUrl =
+    `https://api.linkedin.com/rest/leadNotifications?q=criteria&owner=${ownerParam}&leadType=${leadTypeParam}`;
+  const listHeaders = {
+    'Linkedin-Version': '202408',
+    'X-Restli-Protocol-Version': '2.0.0'
+  };
+
+  const matches = (item) =>
+    item?.owner?.organization === normalized &&
+    item?.webhook === subscribeUrl &&
+    item?.leadType === leadType;
+
+  const findExisting = async () => {
+    const response = await axios.get(listUrl, { headers: listHeaders });
+    return (response?.data?.elements || []).find(matches);
+  };
+
+  let created = await findExisting();
+
+  if (!created) {
+    await axios.post(
+      'https://api.linkedin.com/rest/leadNotifications',
+      {
+        webhook: subscribeUrl,
+        owner: { organization: normalized },
+        leadType
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Linkedin-Version': '202408',
+          'X-Restli-Protocol-Version': '2.0.0'
+        }
+      }
+    );
+
+    created = await findExisting();
+    if (!created) {
+      throw new Error('Subscription created but could not be confirmed. Please retry.');
+    }
+  }
+
+  const conditions = [
+    {
+      type: 'rule',
+      path: 'body.leadType',
+      operator: 'eq',
+      value: leadType
+    },
+    {
+      type: 'rule',
+      path: 'body.type',
+      operator: 'eq',
+      value: 'LEAD_ACTION'
+    }
+  ];
+
+  if (event) {
+    conditions.push({
+      type: 'rule',
+      path: 'body.associatedEntity.event',
+      operator: 'eq',
+      value: event
+    });
+  }
+
+  const subscribeResponse = await axios.post(
+    'https://plugservice-api.viasocket.com/api/subscribe',
+    {
+      service: 'linkedin-campaign',
+      external_id: organization,
+      webhook: hookUrl,
+      precondition_config: {
+        type: 'and',
+        conditions
+      },
+      metadata: {
+        id: created.id,
+        leadType: created.leadType,
+        versionedForm: created.versionedForm
+      }
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  return {
+    ...subscribeResponse.data,
+    id: created.id,
+    webhook: created.webhook,
+    leadType: created.leadType,
+    versionedForm: created.versionedForm
+  };
+} catch (error) {
+  await errorComponent(error);
+}
+```
+**UnSubscribe Code**
+```javascript
+async function performUnsubscribe() {
+  try {
+    const {
+      organization,
+      hookUrl,
+      lead_type: configuredLeadType,
+      performsubscribe
+    } = context?.inputData || {};
+    const subscription = performsubscribe?.subscription;
+    const webhookId = performsubscribe?.id;
+    const leadType =
+      performsubscribe?.leadType ||
+      subscription?.metadata?.leadType ||
+      configuredLeadType;
+
+    if (!organization) throw new Error('Organization is required.');
+    if (!hookUrl) throw new Error('Webhook URL is missing.');
+    if (!subscription?.id) {
+      throw new Error('No active subscription found to unsubscribe. Missing subscription ID.');
+    }
+    if (!webhookId) {
+      throw new Error('LinkedIn lead notification ID is missing.');
+    }
+    if (!leadType) throw new Error('Lead type is required.');
+
+    const finalResponses = {};
+    const unsubscribeResponse = await axios.post(
+      'https://plugservice-api.viasocket.com/api/unsubscribe',
+      {
+        service: 'linkedin-campaign',
+        external_id: organization,
+        webhook: hookUrl
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    finalResponses.unsubscribeResponse = unsubscribeResponse.data;
+
+    const random = Math.floor(Math.random() * 1000000);
+    const subscriptionListUrl =
+      `https://plugservice-api.viasocket.com/api/subscriptions/linkedin-campaign/${encodeURIComponent(organization)}?random=${random}`;
+    const subscriptionListResponse = await axios.get(subscriptionListUrl);
+    finalResponses.subscriptionListResponse = subscriptionListResponse.data;
+
+    const subscriptions =
+      subscriptionListResponse.data?.subscriptions?.subscriptions || [];
+    const getLeadType = (item) =>
+      item?.metadata?.leadType ||
+      item?.precondition_config?.conditions?.find(
+        (condition) =>
+          condition?.path === 'body.leadType' &&
+          condition?.operator === 'eq'
+      )?.value;
+    const matchingLeadTypeSubscriptions = subscriptions.filter(
+      (item) =>
+        item?.status !== 'inactive' &&
+        getLeadType(item) === leadType
+    );
+
+    finalResponses.preconditionCount = matchingLeadTypeSubscriptions.length;
+    finalResponses.leadTypeSubscriptionCount = matchingLeadTypeSubscriptions.length;
+
+    if (matchingLeadTypeSubscriptions.length === 0) {
+      const linkedinUnsubscribe = await axios.delete(
+        `https://api.linkedin.com/rest/leadNotifications/${encodeURIComponent(webhookId)}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Linkedin-Version': '202608',
+            'X-Restli-Protocol-Version': '2.0.0'
+          }
+        }
+      );
+      finalResponses.linkedin_unsubscribe = linkedinUnsubscribe.data;
+    }
+
+    return finalResponses;
+  } catch (error) {
+    await errorComponent(error);
+  }
+}
+
+return await performUnsubscribe();
+```
+**Sample Code**
+```javascript
+return {
+      "viaSocket_help": "This is only the sample data of the original. Save the trigger and publish the flow to see the actual response.",
+    "owner": {
+      "organization": "urn:li:organization:107677191"
+    },
+    "occurredAt": 1789564110201,
+    "leadAction": "CREATED",
+    "leadGenForm": "urn:li:versionedLeadGenForm:(urn:li:leadGenForm:7505968236862136320,1)",
+    "leadType": "EVENT",
+    "type": "LEAD_ACTION",
+    "leadGenFormResponse": "urn:li:leadGenFormResponse:e58d0e64-fb6d-4270-a879-1571f808cce6-6",
+    "associatedEntity": {
+      "event": "urn:li:event:7505968237071802368"
+    }
+  }
+  ```
+  
+
+
+---
 # SCHEDULED TRIGGER Examples
 
 ## Google Calendar — New Upcoming Events (Scheduled Trigger)
