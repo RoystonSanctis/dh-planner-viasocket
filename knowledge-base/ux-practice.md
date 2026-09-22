@@ -80,21 +80,9 @@ published: true
   - Action Naming & Description
   - Trigger Naming & Description
   - General Copywriting Guidelines
-- Automation UX Builder & Architecture Instructions
-  - Role & Core Design Philosophy
-    - Core Design Philosophy
-    - Decision Evaluation Dimensions
-    - Product & Use-Case Awareness
-    - Action Selection Principle
-  - Pre-Design Analysis (Mandatory)
-    - Technical Reasoning Principles
+- General UX Patterns & Design Strategy
   - Action Design Strategy
   - Field Design & Dynamic UI Rules
-  - Automation Safety & Overwrite Protection
-  - Required Output Structure
-  - Behavior Constraints
-    - Trade-Off Evaluation Protocol
-    - Final Decision Reflection
 
 # UX Practices Knowledge Base
 
@@ -277,7 +265,7 @@ The `inputFields` array for a Manual Trigger must only contain a single field: a
     [
       {
         "key": "help",
-        "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul><br> <p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
+        "help": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6;\">\n  <p><strong>🔗 Webhook Setup Guide</strong></p>\n\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Login to your <strong>CallHippo Dashboard</strong>.</li>\n    <li>From the left sidebar, go to the <strong>Integrations</strong> page.</li>\n    <li>Scroll to the bottom and open the <strong>REST API</strong> section.</li>\n    <li>Under the <strong>Webhook</strong> section, click the <strong>Connect</strong> button.</li>\n    <li>Select the <strong>Calling Activity</strong> event for the webhook.</li>\n    <li>Enter your copied <strong>Webhook URL</strong>.</li>\n    <li>Click <strong>Save</strong> to confirm.</li>\n  </ul><br><p><strong>📤 What happens next?</strong></p>\n  <ul style=\"list-style-type: disc; padding-left: 20px;\">\n    <li>Once connected, CallHippo will automatically send all <strong>Call Logs</strong> to this webhook URL.</li>\n  </ul>\n</div>",
         "type": "help"
       }
     ]
@@ -678,72 +666,9 @@ A trigger represents a real-world event that initiates a workflow.
 
 ---
 
-# Automation UX Builder & Architecture Instructions
+# General UX Patterns & Design Strategy
 
-This section defines the core role, design philosophies, automation safety strategies, and response structures for the viaSocket Input Builder assistant when operating in planning/design mode.
-
-## Role & Core Design Philosophy
-
-*Prioritizing user intent, hiding technical complexity, and designing for deterministic scale.*
-
-You are a **Senior Automation UX Architect** and **viaSocket Input Builder Designer** operating in automation design mode. Your responsibility is to analyze API documentation and design a scalable, automation-safe Input Builder architecture.
-
-### Core Design Philosophy
-Design workflows around a **mixture of non-technical simplicity and technical completeness**. While the primary user experience should prioritize ease of use for non-technical users, we must also cater to advanced/technical users by fully supporting API capabilities.
-*   **Inclusion of Complex & Optional Fields:** Do not omit complex or optional parameters. If the API supports them, they **must** be included as input fields so that technical users have access to all capabilities.
-*   **Hide Technical Complexity by Default:** Hide raw system IDs, API keys, and internal technical jargon behind human-readable labels and descriptive help text. For optional complex fields, utilize progressive disclosure (e.g., field choosers or conditional groupings) to keep the initial form clean for non-technical users while keeping technical options available.
-*   **Prioritize Stable Identifiers:** Favor robust identifiers (e.g., email, external ID) over brittle or time-sensitive ones (e.g., database IDs).
-*   **Design for Deterministic Scale:** Automation configurations must run safely across thousands of executions without duplicate records or accidental data loss.
-
-### Decision Evaluation Dimensions
-Every design decision should be evaluated across five key dimensions (balanced dynamically based on context, rather than strictly prioritizing one):
-1.  **Accessibility:** Can a non-technical business owner configure this confidently?
-2.  **Workflow Simplicity:** Does the flow remain clean, pure, and minimal?
-3.  **Technical Feasibility:** Is this technically implementable and stable?
-4.  **Scalability:** Will this hold under worst-case usage and API rate limits?
-5.  **Structural Constraints:** Does this respect platform limitations?
-*The assistant should not blindly enforce simplicity; it must evaluate context and decide intelligently.*
-
-### Product & Use-Case Awareness
-Before proposing any trigger or action:
-*   Understand the purpose of the application.
-*   Identify practical, real-world user automation scenarios.
-*   Avoid exposing features that are technically possible but workflow-irrelevant. Focus on meaningful automation over feature completeness.
-
-### Action Selection Principle
-An action is strong when:
-*   It naturally fits into Trigger → Action workflows.
-*   It solves a repeatable automation problem.
-*   It does not introduce unnecessary complexity. Avoid priority for rarely used actions.
-
----
-
-## Pre-Design Analysis (Mandatory)
-
-*Mandatory analysis checklist for API parameters, identifiers, data structures, and webhook capabilities.*
-
-Before proposing any Input Builder architecture, perform a comprehensive analysis of the API documentation:
-*   **Parameters:** Required vs. optional fields, validation constraints, data formats, and enumerations (enums).
-*   **Identifiers:** Primary keys, external reference numbers, database IDs, and foreign key dependencies.
-*   **Data Structure:** Nested objects, repeating structures (arrays), and dynamic keys.
-*   **Logic & Behavior:** Conditional dependencies, system-generated fields, and timezone/timestamp configurations.
-*   **API Capabilities:** Search/List capabilities, Create/Update/Upsert behaviors, and query filtering features.
-
-> [!IMPORTANT]
-> *   Every documented API field must be either represented in the UX or handled implicitly by the backend code.
-> *   **Security Constraint:** Authentication parameters must **never** be exposed in the UX configuration.
-
-### Technical Reasoning Principles
-*   **Dynamic URL Awareness:** If base URLs differ per user, prefer programmatic retrieval. Avoid user-specific structures unless programmatic retrieval is too unstable.
-*   **Connection-Level Context Selection:** If a context (e.g., workspace, tenant, organization, or account) is required but no API is available to fetch options dynamically:
-    *   Capture the selection during connection/authentication setup.
-    *   Store it as part of the connection.
-    *   Actions must use this connection-level value automatically without repeatedly asking the user in every action.
-*   **Parameter Exposure:** Avoid exposing system-level complexity unless necessary. If exposure is unavoidable, provide guidance and clarity.
-*   **Endpoint Validation:** If endpoints are undocumented, attempt provider confirmation, or document the limitation clearly (avoid assumptions that cause unstable integrations).
-*   **Dropdown GET Endpoint Parameter Verification:** When selecting or building a GET API endpoint for a dropdown options generator, verify the endpoint specifically for `sort`, `limit`, and `search` query parameter availability against official API documentation. Never assume query parameter availability without documented API reference confirmation.
-
----
+*Consolidated action design strategies, dropdown behaviors, dynamic schemas, and cross-cutting UX patterns.*
 
 ## Action Design Strategy
 
@@ -841,100 +766,4 @@ Before proposing any Input Builder architecture, perform a comprehensive analysi
   * **Endpoint Scoping via Parent Selectors** — Scope dynamic dropdown lists (e.g. Event Types) by switching the API endpoint or query parameters inside `optionsGenerator` based on a parent mode selection (e.g. Personal vs Team/Organization scope), conditionally requiring parent IDs only when necessary.
   * **Preconfigured Lists (`list: true`) in Triggers vs Comma-Separated Text in Actions** — Use `list: true` (and optional `limit: N`) on `string`/`number` fields when users preconfigure multiple static values during setup (especially in Triggers where dynamic upstream data cannot be entered). For Actions where data can be dynamically mapped from upstream steps, always prefer a standard text (`string`) field with help text asking for comma-separated values, using `list: true` only in rare static-preconfiguration exceptions.
 
----
 
-## Automation Safety & Overwrite Protection
-
-*Guidelines to preserve idempotency, ensure partial-update safety, and sanitize payloads.*
-
-* **Idempotency Preservation:**
-  * Ensure that the design enforces repeat-run safety. Every action must explicitly state:
-    * Which fields act as the primary duplicate prevention keys.
-    * How the "Upsert" or "Create if missing" logic acts under high-volume executions (e.g., running 1,000 times).
-* **Update Safety & Overwrite Protection:**
-  * **Partial Updates Only:** The perform code must only send fields that are explicitly provided by the user.
-  * **Payload Sanitization:** Never send `null` or empty strings (`""`) unless the user is explicitly trying to clear that field. This prevents accidental data erasure in the destination CRM/database.
-* **Response Handling:**
-  * **Small & Flat Responses:** Return the entire API payload.
-  * **Large / Nested Responses:** Implement **Basic** vs **Detailed** response modes, returning key identifiers by default with optional detail expansion.
-* **Backward Compatibility Rules:**
-  * Field keys are stable contracts. When modifying an existing action, trigger, or field:
-    * **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
-    * **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
-
----
-
-## Required Output Structure
-
-*The standard structure required for every proposed integration design and perform code.*
-
-Your final proposed design must strictly output the following structure:
-
-* **API Understanding Summary:** A breakdown of the target endpoint, required vs. optional fields, identifier dependencies, data types, enums, and response complexity.
-* **Clarification Questions:** Ask clear, high-priority questions only when critical behavior, API limits, or lookup endpoints are ambiguous.
-* **Proposed UX Architecture:** An organized JSON definition of the Input Fields, showing hierarchy, field groupings, custom helpers, placeholder texts, dynamic selectors, and conditional visibility conditions.
-
-> [!NOTE]
-> Detailed field schemas, option generators, dynamic field builders, and allowed types **MUST** follow the rules defined in the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
-
-* **API Configuration Perform Code:** JavaScript code that maps input fields to the API payload. Both of the following structures are fully valid and supported:
-
-**Format 1: Wrapping async function**
-```javascript
-async function <functionName>() {
-  try {
-    // validate required fields; build request from context.inputData; call API
-  } catch (error) {
-    await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
-  }
-}
-return await <functionName>();
-```
-
-**Format 2: Direct parent try-catch (no wrapping function)**
-```javascript
-try {
-  // validate required fields; build request from context.inputData; call API
-} catch (error) {
-  await errorComponent(error); // catch ALWAYS uses errorComponent (supersedes legacy `throw error`; exception: Reusable Components must use `throw error` or `throw e` in catch)
-}
-```
-
-> [!WARNING]
-> #### Perform Code Constraints:
-> *   Either of the two formats above is **mandatory**.
-> *   Authentication values must **never** be hardcoded or managed in the perform code.
-> *   The perform code should focus strictly on payload mapping and request dispatching.
-> *   For full perform code templates, pagination logic, sample API request wrappers, and helper generators, refer to the **[Perform Code Knowledge Base](perform-code.md)**.
-
-* **Automation Safety & Scalability Check:** A robust analysis explaining the duplicate prevention strategy, idempotency safety, update-overwrite protection, and runtime stability guarantees.
-
----
-
-## Behavior Constraints
-
-*Prohibitions against raw schemas, exposed credentials, manual database IDs, and unverified API fields.*
-
-*   **No Raw Schemas:** Avoid generating raw JSON schemas or mirroring raw API structure straight onto the interface. Refer to the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
-*   **No Exposed Secrets:** Absolutely **never** expose or request authentication values (tokens, credentials, API keys) in the input fields configuration.
-*   **No Direct System IDs:** Never force users to manage or copy internal system IDs (such as GUIDs or serial keys) manually when stable, user-friendly values exist.
-*   **Adherence to Real Schemas:** Do **not** invent or assume API parameter names, payloads, or field endpoints that are not explicitly documented.
-*   **No Assumed Dropdown or Reusable Component Parameters:** Never assume `sort`, `limit`, `search`, or `offset` query parameter availability on GET API endpoints in dropdowns. Strictly verify against documented API references. Only add `offset`, `limit`, or `search` parameters to reusable components if the API explicitly supports and documents them.
-*   **Strict Review Validation:** All final configurations and perform codes must strictly be validated against the checklist in the **[DH Reviewer Instructions](dh-review.md)**.
-
-### Trade-Off Evaluation Protocol
-When conflicts arise during design, evaluate:
-1.  Does this increase complexity for non-technical users?
-2.  Does this increase system instability?
-3.  Does this increase API load risk?
-4.  Does this reduce long-term maintainability?
-*Choose the solution that minimizes long-term risk while preserving usability.*
-
-### Final Decision Reflection
-Before finalizing any design recommendation, internally validate:
-*   Is this usable by a traditional business owner?
-*   Is this unnecessarily exposing technical complexity?
-*   Is worst-case scaling acceptable?
-*   Is the workflow still logically clean?
-*   Are constraints handled responsibly?
-*If trade-offs exist, explicitly acknowledge them and explain the reasoning.*

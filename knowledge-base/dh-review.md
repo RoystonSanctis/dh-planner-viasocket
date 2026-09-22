@@ -9,6 +9,7 @@ published: true
 
 - Objective
 - Review Checklist
+  - 🎯 Core Principles Checklist (Apply Everywhere)
   - Review Priorities (Strict Order)
     - P0 — Breaking (Fail if any triggers; approved: false)
     - P1 — Automation Safety
@@ -17,6 +18,9 @@ published: true
   - Perform API & Generators JS Code
   - Input Fields
   - Text Quality & Consistency
+  - Automation Safety & Overwrite Protection
+  - Behavior Constraints
+  - Trade-Off Evaluation Protocol
 
 # Objective
 You must strictly validate the code and JSON against these Knowledge Bases:
@@ -24,6 +28,17 @@ You must strictly validate the code and JSON against these Knowledge Bases:
 - **[Perform Code Knowledge Base](knowledge-base/perform-code.md)**
 
 # Review Checklist
+
+## 🎯 Core Principles Checklist (Apply Everywhere)
+
+Every trigger and action design and perform code must strictly be validated against these core principles:
+* [ ] **Configuration values are static; data resolution happens at runtime:** Field configuration values and structural setups are defined statically at design time; all dynamic data mapping and entity/ID resolution execute dynamically at flow runtime.
+* [ ] **Use dropdowns and selection fields instead of requiring manual ID entry:** Always resolve resource references via user-friendly dropdowns and selection fields.
+  * *Exceptions:* Direct ID entry is allowed for `Get by ID` (when manual entry from upstream steps is intended) and `DELETE` actions (which strictly use direct text ID fields of type `string` without selection logic).
+* [ ] **Implement proper visibility conditions and dependencies:** Ensure cascading dropdowns and dependent fields properly use `visibilityCondition` to depend on parent selections.
+* [ ] **Maintain consistent, predictable behaviour across all components:** Keep field ordering, naming conventions, casing, error handling, and response payloads predictable across all triggers, actions, and reusable components.
+* [ ] **Never hardcode sensitive values (credentials, secrets, API keys):** Strictly forbid exposing credentials or API tokens in input fields, default values, or perform code; all authentication must run through connection auth.
+* [ ] **Handle pagination, dates, arrays, and error cases properly:** Implement engine or client-side pagination where required, normalize human dates to ISO timestamps in perform code, handle repeating line items with input groups, and route errors through `await errorComponent(error)`.
 
 ## Review Priorities (Strict Order)
 
@@ -141,3 +156,51 @@ Each input field must strictly adhere to the structure, formats, and validation 
 - **customInputLabel**: Must be short and must NOT start with "Enter". E.g., label: "Spreadsheet", customInputLabel: "Spreadsheet ID". If not an ID field, label and customInputLabel must be the same.
 - **Length Checking Constraint**: The length checking constraint applies to the `help` KEY only; never flag `type: "help"` panels for length.
 - **Consistency**: Ensure `help`/`label`/`placeholder`/`customHelp`/`customInputLabel` are consistent across all fields. Fix casing, wording, and punctuation mismatches (e.g., "Select option." vs "select Options" → "Select Option" (Title Case)).
+
+## Automation Safety & Overwrite Protection
+
+Guidelines to preserve idempotency, ensure partial-update safety, and sanitize payloads during review:
+
+* **Idempotency Preservation:**
+  * Ensure that the design enforces repeat-run safety. Every action must explicitly state:
+    * Which fields act as the primary duplicate prevention keys.
+    * How the "Upsert" or "Create if missing" logic acts under high-volume executions (e.g., running 1,000 times).
+* **Update Safety & Overwrite Protection:**
+  * **Partial Updates Only:** The perform code must only send fields that are explicitly provided by the user.
+  * **Payload Sanitization:** Never send `null` or empty strings (`""`) unless the user is explicitly trying to clear that field. This prevents accidental data erasure in the destination CRM/database.
+* **Response Handling:**
+  * **Small & Flat Responses:** Return the entire API payload.
+  * **Large / Nested Responses:** Implement **Basic** vs **Detailed** response modes, returning key identifiers by default with optional detail expansion.
+* **Backward Compatibility Rules (Key Stability):**
+  * Field keys are stable contracts. When modifying an existing action, trigger, or field:
+    * **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
+    * **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
+
+## Behavior Constraints
+
+Prohibitions against raw schemas, exposed credentials, manual database IDs, and unverified API fields:
+
+* **No Raw Schemas:** Avoid generating raw JSON schemas or mirroring raw API structure straight onto the interface. Refer to the **[DH Input Fields Knowledge Base](dh-Input-fields-json-builder.md)**.
+* **No Exposed Secrets:** Absolutely **never** expose or request authentication values (tokens, credentials, API keys) in the input fields configuration.
+* **No Direct System IDs:** Never force users to manage or copy internal system IDs (such as GUIDs or serial keys) manually when stable, user-friendly values exist.
+* **Adherence to Real Schemas:** Do **not** invent or assume API parameter names, payloads, or field endpoints that are not explicitly documented.
+* **No Assumed Dropdown or Reusable Component Parameters:** Never assume `sort`, `limit`, `search`, or `offset` query parameter availability on GET API endpoints in dropdowns. Strictly verify against documented API references. Only add `offset`, `limit`, or `search` parameters to reusable components if the API explicitly supports and documents them.
+* **Endpoint Validation:** If endpoints are undocumented, attempt provider confirmation, or document the limitation clearly (avoid assumptions that cause unstable integrations).
+* **Strict Review Validation:** All final configurations and perform codes must strictly be validated against the checklist in this document.
+
+## Trade-Off Evaluation Protocol
+
+When conflicts arise during review or design evaluation, assess:
+1. **Accessibility:** Does this increase complexity for non-technical users?
+2. **System Stability:** Does this increase system instability or runtime fragility?
+3. **API Load Risk:** Does this increase API load risk or rate-limit hazards?
+4. **Maintainability:** Does this reduce long-term maintainability or backward compatibility?
+*Enforce the solution that minimizes long-term risk while preserving usability.*
+
+### Final Decision Reflection
+Before issuing an approval or revision recommendation:
+* Is this usable by a traditional business owner?
+* Is this unnecessarily exposing technical complexity?
+* Is worst-case scaling acceptable?
+* Is the workflow still logically clean?
+* Are constraints handled responsibly?

@@ -75,6 +75,12 @@ published: true
   - Field Design & Dynamic UI Rules
   - Connection Safety & Token Protection
   - Required Output Structure
+  - 🔒 Authentication & Connection Testing Checklist
+    - Scope & Permissions
+    - Setup Screen & UX
+    - Whitelist URL Handling
+    - Security Validation
+    - Authentication Behavior
   - Behavior Constraints
     - Trade-Off Evaluation Protocol
     - Final Decision Reflection
@@ -946,6 +952,50 @@ Your final proposed design must strictly output the following structure:
 > *   `testcode` payload values MUST ALWAYS be stringified JSON objects wrapping a `"source"` key containing the perform code (e.g. `JSON.stringify({ source: "..." })` / `"{\"source\":\"...\"}"`). Raw JS code strings MUST NOT be directly assigned to `testcode`.
 
 * **Connection Safety & Longevity Check:** A robust analysis explaining the refresh strategy, revoke strategy, duplicate-connection prevention (Unique Connection Identifier), and runtime stability guarantees across long-lived automations.
+
+---
+
+## 🔒 Authentication & Connection Testing Checklist
+
+### Scope & Permissions
+
+* [ ] **Use only the minimum required scopes at the connection level:** Request only the baseline scopes necessary for connection establishment and the Test (Me) API.
+* [ ] **Add action-specific or trigger-specific scopes in the Overview section:** Document and isolate special action or trigger scopes in overview instructions rather than over-permissioning the base connection.
+* [ ] **Do not request unnecessary or "all available" scopes:** Avoid blanket scope requests that increase vulnerability and user authorization friction.
+* [ ] **Verify that incorrect scopes would cause runtime failures:** Test and verify that missing required scopes fail gracefully with actionable error feedback.
+* [ ] **Confirm over-permissioned connections are not a security risk:** Ensure that granted permissions adhere strictly to the principle of least privilege.
+
+### Setup Screen & UX
+
+* [ ] **Use credential field labels that match the source app terminology:** Use clear labels matching the provider (e.g., "API Key," "Client ID").
+* [ ] **Avoid internal or platform-specific naming conventions:** Do not expose internal variables or viaSocket-specific storage keys.
+* [ ] **Provide mandatory help text for every credential field that includes:**
+    * [ ] Where to find the value with a clickable link
+    * [ ] Whether the field is sensitive/private
+    * [ ] Expiration timeline (if applicable)
+* [ ] **Make help text actionable, not just descriptive:** Directly instruct the user on how and where to find and configure the value.
+
+### Whitelist URL Handling
+
+* [ ] **Verify whitelist URLs are written and used correctly:** Confirm all redirect/callback URIs match the provider's exact specifications.
+* [ ] **Handle cases where multiple URLs appear (including post-login URLs):** Account for OAuth redirect variations and ensure all necessary domains/paths are handled and documented.
+* [ ] **Document the proper whitelist URL configuration:** Clearly instruct users where in the provider portal to add the callback/redirect URI.
+
+### Security Validation
+
+* [ ] **Confirm secrets are masked in the UI:** Mask sensitive input fields and connection label previews.
+* [ ] **Use password field type for API keys and sensitive credentials:** Obscure API keys, client secrets, tokens, and passwords using `type: "password"`.
+* [ ] **Verify secrets never appear in logs, responses, or previews:** Keep sensitive values out of error messages, connection label previews, and public payloads.
+* [ ] **Test that connection credentials are reused automatically:** Ensure downstream actions and triggers leverage the authenticated connection seamlessly.
+* [ ] **Verify that latest valid tokens/keys are always used in requests:** Ensure dynamic token retrieval pulls refreshed access tokens rather than stale cached values.
+
+### Authentication Behavior
+
+* [ ] **Verify correct scopes are requested:** Confirm the authorization URL or token exchange includes the exact required scopes.
+* [ ] **Confirm instructions and documentation links are provided:** Provide clean markdown links to the provider's developer/API documentation.
+* [ ] **Check that connection labels are clear and meaningful:** Ensure connection labels resolve human-readable workspace or account identifiers (e.g., email, account name).
+* [ ] **Test that authentication headers/query parameters are sent correctly:** Verify the injection format (e.g. `Bearer <token>`, `Basic <base64>`, query param) matches provider requirements.
+* [ ] **Validate that connection works in Test mode AND in real workflows:** Ensure the Test API endpoint succeeds and actions/triggers execute properly with the connection.
 
 ---
 
