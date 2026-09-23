@@ -53,6 +53,8 @@ published: true
   - RSS Feed — RSS Feed Update Tracker (Scheduled Trigger)
 - MANUAL TRIGGER Examples
   - CallHippo — Call Log Activity (Manual Trigger)
+- Dropdown Examples
+  - Botse — Fetch Templates - No Search, Only Pagination
 - Cross-Cutting UX Patterns (Extracted)
 - Perform Code Reference
 
@@ -8885,6 +8887,54 @@ try {
   await errorComponent(error);
 }
 ```
+
+---
+
+# Dropdown Examples
+
+Dynamic dropdown patterns for option selection, covering API capability variants like "No Search, Only Pagination", "Search + Pagination", "Search Only", and "Static / Non-Paginated".
+
+## 1. Botse — Fetch Templates - No Search, Only Pagination
+
+**Metadata**
+- **App:** Botse (WhatsApp CRM)
+- **Capability:** No Search, Only Pagination (`canPaginate: true`, `enableSearchApi: false`)
+- **Field Key:** `template_name`
+- **Field Type:** `dropdown`
+
+**UX Components & Field Design**
+- **`template_name` (dropdown dynamic with pagination only)** — Fetches WhatsApp message templates from the Botse Meta API (`/api/meta/{version}/{waba_id}/message_templates`).
+- **Strict Output Structure:** Because `canPaginate: true` and `enableSearchApi: false`, the `optionsGenerator` strictly outputs `{ data: [...], offset: string|number|null }`.
+- **Initial Zero Result vs End of Pagination Detection:**
+  - **Initial empty check (`!currentOffset && templates.length === 0`):** Returns `{ data: [], offset: null, message: 'No templates found.' }`.
+  - **End of pagination check (`currentOffset && templates.length === 0`):** Returns `{ data: [], offset: null, message: 'Templates Fetched Successfully' }`.
+- **Metadata Enrichment:** Each option includes `extraValue` containing `isFlowTemplate`, `templateType`, and `hasVariables` to allow downstream perform code or dependent fields to adapt dynamically.
+- **Custom Mapping Mode:** Fully provides `customInputLabel` ("Template Name"), `customHelp` ("Enter the template name manually. You can get the template name from the List Templates action or select it from the dropdown."), and `customPlaceholder` ("festival_notification").
+
+**Input Field JSON**
+```json
+{
+  "key": "template_name",
+  "help": "Select the WhatsApp message template to send.",
+  "type": "dropdown",
+  "label": "Template",
+  "required": true,
+  "customHelp": "Enter the template name manually. You can get the template name from the List Templates action or select it from the dropdown.",
+  "canPaginate": true,
+  "placeholder": "Select Template",
+  "enableSearchApi": false,
+  "customInputLabel": "Template Name",
+  "optionsGenerator": "try {\n  const baseUrl = \"https://crm.botse.in\";\n  if (!baseUrl) throw new Error('API URL is required in the connection.');\n\n  const limit = 100;\n  const currentOffset = context?.paginateData?.['send_button_message_text_header.template_name'] || null;\n  const params = { limit };\n  if (currentOffset) params.after = currentOffset;\n\n  const response = await axios.get(\n    `${baseUrl}/api/meta/${context.authData?.version}/${context.authData?.waba_id}/message_templates`,\n    { params }\n  );\n  const templates = response?.data?.data || [];\n\n  if (!currentOffset && templates.length === 0) {\n    return {\n      data: [],\n      offset: null,\n      message: 'No templates found.'\n    };\n  }else if (currentOffset && templates.length === 0) {\n    return {\n      data: [],\n      offset: null,\n      message: 'Templates Fetched Successfully'\n    };\n  }\n\n  const containsFlowButton = value => {\n    if (Array.isArray(value)) return value.some(containsFlowButton);\n    if (value && typeof value === 'object') {\n      if (value.type === 'FLOW') return true;\n      return Object.values(value).some(containsFlowButton);\n    }\n    return false;\n  };\n\n  const data = templates.map(template => {\n    const format = template.components?.[0]?.format || 'TEXT';\n    const componentsString = JSON.stringify(template.components || []);\n    const hasVariables = /\\{\\{\\s*[\\w.]+\\s*\\}\\}/.test(componentsString);\n    const isFlowTemplate = containsFlowButton(template.components || []);\n    const displayName = `${template.name} (${format}) (${template.category})${isFlowTemplate ? ' (FLOW)' : ''}`;\n\n    return {\n      label: displayName,\n      value: template.name,\n      extraValue: {\n        isFlowTemplate,\n        templateType: isFlowTemplate ? 'FLOW' : 'STANDARD',\n        hasVariables\n      }\n    };\n  });\n\n  return {\n    data,\n    offset: response?.data?.paging?.cursors?.after || null\n  };\n} catch (error) {\n  await errorComponent(error);\n}",
+  "customPlaceholder": "festival_notification"
+}
+```
+
+**UX Takeaways**
+1. **Always Return Standard Object `{ data, offset }` in Paginated Dropdowns:** When `canPaginate: true` and `enableSearchApi: false`, `optionsGenerator` must output `{ data: [...], offset: string|number|null }`.
+2. **Differentiate Initial Empty vs Subsequent Empty via Offset:** Check `currentOffset` against array length:
+   - When `!currentOffset && length === 0`: Return `{ data: [], offset: null, message: 'No <resources> found.' }`.
+   - When `currentOffset && length === 0`: Return `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`.
+   Both return an empty array with `offset: null` and the appropriate context message to cleanly notify the user and end pagination.
 
 ---
 

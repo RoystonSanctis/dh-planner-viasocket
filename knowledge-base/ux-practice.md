@@ -714,6 +714,11 @@ A trigger represents a real-world event that initiates a workflow.
     * **Reusable Component Parameters:** When creating Reusable Components for dropdowns (`optionsGenerator`), **only add `offset` (or cursor/pageToken), `limit` (or pageSize), or `search` (`searchText`) parameters if the API explicitly supports them and they are documented**. Never introduce phantom or unverified parameters.
   * **Dynamic Dropdown Strict Output Structures:**
     * **Paginated / Search Enabled:** If `canPaginate: true`, `enableSearchApi: true`, or both, the `optionsGenerator` output MUST ALWAYS follow the object structure `{ data: [{ label, value, sample }], offset: string|number|null }` (where `offset` is `null` when the end of pages is reached).
+      * **No Search, Only Pagination Pattern (`canPaginate: true, enableSearchApi: false`):**
+        - In the `optionsGenerator`, inspect the current offset (e.g. `const currentOffset = context?.paginateData?.[key] || null;`).
+        - When the fetched items array is empty (`items.length === 0`):
+          - **Initial Zero Results (`!currentOffset && items.length === 0`):** Return `{ data: [], offset: null, message: 'No <resources> found.' }`.
+          - **Pagination End / Subsequent Fetch (`currentOffset && items.length === 0`):** Return `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`.
     * **Non-Paginated / Static Fetch:** If both `canPaginate: false` and `enableSearchApi: false` (or omitted, default `false`), the `optionsGenerator` output MUST ALWAYS follow the flat array structure `[{ label, value, sample }]`.
   * **Multiselect Pagination and Search Limitation:** The properties `canPaginate` and `enableSearchApi` are **not supported** in `multiselect` fields. The output structure of `optionsGenerator` for dynamic multiselect is STRICTLY a fixed array `[{ label, value, sample }]`. If you are using reusable components designed for pagination (returning `{ data, offset }`), the `optionsGenerator` for the multiselect MUST perform client-side pagination (looping internally to fetch and aggregate all pages/results) and return the aggregated array directly.
 * **Dynamic Schema Handling:**
@@ -778,5 +783,6 @@ A trigger represents a real-world event that initiates a workflow.
 * [ ] **Maintain consistent, predictable behaviour across all components:** Follow unified naming, ordering, and UX conventions.
 * [ ] **Never hardcode sensitive values (credentials, secrets, API keys):** Keep sensitive credentials isolated to connection auth data.
 * [ ] **Handle pagination, dates, arrays, and error cases properly:** Ensure complete handling across all components and perform code.
+* [ ] **No Search, Only Pagination Dropdown Pattern:** When `canPaginate: true` and `enableSearchApi: false`, ensure the output strictly returns `{ data: [...], offset: ... }`. Differentiate empty results: initial empty (`!currentOffset && length === 0`) returns `{ data: [], offset: null, message: 'No <resources> found.' }`, while pagination end (`currentOffset && length === 0`) returns `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`.
 
 
