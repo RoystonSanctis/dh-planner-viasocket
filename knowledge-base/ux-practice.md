@@ -83,6 +83,7 @@ published: true
 - General UX Patterns & Design Strategy
   - Action Design Strategy
   - Field Design & Dynamic UI Rules
+  - UX Practice Checklist
 
 # UX Practices Knowledge Base
 
@@ -233,7 +234,7 @@ The standard field ordering for a Scheduled Trigger follows this flow:
 - **Cascade dropdowns** — Use `visibilityCondition` to show dependent dropdowns only after the parent is selected (e.g., Sheet depends on Spreadsheet).
 - **Use Reusable Components** — For `optionsGenerator` code in dynamic dropdowns and multiselects. This keeps code secure, DRY, and maintainable.
 - **Group related settings** — Use `Input Group Static` to bundle filter and sorting settings together (avoiding pagination settings).
-- **Default values matter** — Provide sensible defaults for filter types (e.g., `defaultValue: Basic`).
+- **Default values matter** — Mention sensible default values in help text and apply fallbacks in perform code (avoid `defaultValue` key in input JSON).
 - **AI Field for complex filters** — When a service supports complex query syntax (like Notion's filter API), use an AI Field with a `suggestionGenerator` that fetches the schema.
 - **Clean labels** — Use "Select Data Source" not "Select Notion Data Source".
 - **Multi-item Pagination**: If pagination is enabled and the input accepts multiple items (either as a `multiselect` field, or via `list: true` in `string` or `number` fields, e.g. selecting multiple Form IDs), and each item has separate pagination, track active items and cursors explicitly as an object in `context.paginationData` to prevent pagination bleed across items.
@@ -346,7 +347,7 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
    - **If Mode is "Advance Search"**:
      - **AI Field** *(optional)* → Advanced filter conditions.
 4. **Input Group Static (Filters)** *(optional)* → Grouped filter fields (e.g., status multiselect, date filters) visible for modes that support narrowing (e.g., "List All", "Recently Updated"). May contain an **AI Field** for natural-language date normalization.
-5. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned. Pre-select a curated set of ~10-12 essential fields as `defaultValue`.
+5. **Multiselect Dynamic** *(optional)* → Choose which fields/properties to return in the response. If not selected, default all keys/fields are returned. Mention curated default fields in `help` text and handle them in perform code (avoid `defaultValue` key in input JSON).
 
 ### LIST Common Input Fields
 - **Dropdown Dynamic** — For selecting the parent resource to list items from.
@@ -370,7 +371,7 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
 - **Combine operations** — Always combine listing ("List All"), searching (by specific identifiers), "Search by ID", and "Advance Search" (if supported) into a single LIST action using a Mode selector.
 - **Conditional pagination** — Offer pagination settings (limit, offset) only when Mode is 'List All' or when Mode is a non-unique search identifier, and "Enable Pagination" is enabled. Do not show pagination options for 'Search by ID' mode.
 - **Client-side pagination** — If Mode is 'List All' (or a non-unique search identifier) and "Enable Pagination" is disabled, the perform code must automatically iterate through all pages (internal pagination) to return all records.
-- **Optional field selection** — Provide an optional multiselect field chooser to specify which fields to return. Pre-select a curated set of essential fields as `defaultValue` so the output is useful out of the box. If left empty, default to returning all fields/keys.
+- **Optional field selection** — Provide an optional multiselect field chooser to specify which fields to return. Mention curated default fields in `help` text and apply them in perform code if left empty (avoid `defaultValue` key in input JSON). If left empty, default to returning all fields/keys.
 - **Clear conditional visibility** — Use `visibilityCondition` to display mode-specific inputs (e.g., showing ID input only for "Search by ID", or AI Field only for "Advance Search").
 - **Sub-mode selector for search** — When "Search by..." mode supports multiple search attributes (e.g., Name/Email vs Employee ID/Number), add a secondary **Static Dropdown** (`find_by`) to pick the attribute, then show the matching input field via chained `visibilityCondition`.
 - **Comma-separated multi-values** — Accept comma-separated values in a single **String** field for quick multi-lookups (e.g., "John Doe,john@company.com") and split them in perform code.
@@ -467,7 +468,7 @@ A CREATE action creates a **new record** in the external service. The user provi
 ### CREATE Best Practices
 - **Dynamic Input Groups for schema-driven fields** — Use `fieldsGenerator` to query the API schema and dynamically generate typed fields (string, number, dropdown, multiselect, boolean) based on the resource structure. Map API property types to the correct viaSocket field type instead of dumping everything as strings.
 - **Key naming (Static vs. Dynamic)** — For static input fields, the `key` must never contain a dot (`.`) or square brackets (`[` or `]`). For dynamic fields generated within dynamic input groups via `fieldsGenerator`, they CAN contain a dot (`.`) and square brackets (`[` or `]`), and dot/bracket-to-underscore normalization is not required.
-- **Field chooser pattern (Complex Actions)** — For complex actions with numerous fields or nested objects (like CRM Create), use a "Fields to Create" Multiselect chooser. List major top-level fields and distinct sections (e.g., Billing Address, Contacts, Advanced Options). The user selects only what they want to populate. This cleanly reveals dedicated Input Groups for each selected section via `visibilityCondition`, preventing UI bloat. Pre-select the fields 90% of users need as `defaultValue`.
+- **Field chooser pattern (Complex Actions)** — For complex actions with numerous fields or nested objects (like CRM Create), use a "Fields to Create" Multiselect chooser. List major top-level fields and distinct sections (e.g., Billing Address, Contacts, Advanced Options). The user selects only what they want to populate. This cleanly reveals dedicated Input Groups for each selected section via `visibilityCondition`, preventing UI bloat. Mention common default fields in `help` text and handle fallbacks in perform code (avoid `defaultValue` key in input JSON).
 - **Cascade dependencies** — Dynamic Input Groups should depend on prior dropdown selections via `visibilityCondition`.
 - **Error/empty fallback** — The `fieldsGenerator` should return `{ message: "Please select a resource first." }` when dependencies are missing.
 - **Force-include mandatory fields** — When the API requires certain identifier fields (e.g., email, phone), always include them in the generated inputs and mark them `required: true`, even if the user didn't select them in the field chooser.
@@ -537,7 +538,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 3. **Input Group Static (Search Section)** → Search criteria fields:
    - If the service supports complex search queries, use an **AI Field** to construct the search logic.
    - If the service supports simple filters, use a **Dynamic Dropdown** (for the search/lookup field the user selects) and a **String** field (for the lookup value).
-4. **Boolean** → "Create if not found?" toggle. `defaultValue: { label: "Yes", value: true }`.
+4. **Boolean** → "Create if not found?" toggle. Mention in `help` that it defaults to Yes/true, and handle default `true` in perform code (avoid `defaultValue` key in input JSON).
 5. **Dynamic Input Group** *(conditional)* → Schema-based fields for creating a new record. Visible only when the "Create if not found" toggle is `true` (Yes). Uses `visibilityCondition: "context?.inputData?.create_if_not_found"`.
 6. **Multiselect Dynamic** *(optional)* → Select columns/fields for the create operation.
 
@@ -558,7 +559,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Clear separation** — Visually separate the "Find" section and the "Create" section using Input Groups.
 - **Search field selection based on service capabilities** — Evaluate the external API's search capabilities: if it supports complex query structures, implement an AI Field; if it only supports basic filters, implement a dropdown to choose the search field and a string input for the lookup value.
 - **Conditional create fields** — Use `visibilityCondition` on the create section (Dynamic Input Group) so it only appears when the user selects "Yes" for "Create if not found?".
-- **Default to create** — Set the Boolean toggle's default to `true` (Yes) so the action creates by default.
+- **Default to create** — Mention in `help` that creation is enabled by default, and set the fallback in perform code (e.g., `const createIfNotFound = context.inputData.create_if_not_found ?? true;`) without setting `defaultValue` in input JSON.
 - **Reuse search patterns** — The search section follows the same patterns as FIND/SEARCH.
 - **Reuse create patterns** — The create section follows the same patterns as CREATE.
 - **Search-by selector** — When the API supports lookup by multiple stable identifiers (e.g., email vs phone), add a **Static Dropdown** to let the user choose the search attribute.
@@ -566,7 +567,7 @@ An UPDATE action modifies an **existing record** in the external service. The us
 - **Dynamic Field Selection for Search & Update** — For complex upserts with massive schemas, use Multiselect field choosers (e.g., "Search By Fields", "Fields to Update") paired with dynamic Input Groups to render exactly the specific fields the user wants to use for matching and updating.
 - **Conditionally Link or Create Related Modules** — Use a Boolean toggle to branch between linking an existing related record (via dropdown) or rendering an input group to generate fields for a new related record inline.
 - **"Lookup By" mode selector** — Provide a clear dropdown (e.g. email vs phone) that natively drives which identity fields become required inputs via visibility conditions.
-- **Field choosers with sensible defaults** — Pre-select the most commonly used fields in the field chooser to reduce cognitive load while maintaining flexibility.
+- **Field choosers with sensible defaults** — Mention the most commonly used default fields in `help` text and handle fallbacks in perform code to reduce cognitive load while maintaining flexibility (avoid `defaultValue` key in input JSON).
 - **Two-step nested field selection** — For custom fields, use a two-step process (first choose the fields via multiselect, then fill the values via a dynamic input group) to prevent overwhelming users with all possible schema fields.
 - **Destructive field warnings** — Add warning-style help text on destructive fields (e.g., "Note: Entering tags here will replace ALL existing tags") to prevent data loss surprises.
 
@@ -724,7 +725,7 @@ A trigger represents a real-world event that initiates a workflow.
   * **Workflow Purity:** Design flows as `Trigger → Action`. If a Javascript step is needed solely for formatting or mapping, move that logic internally inside the perform code.
   * **Coded Value Handling:** If an API expects numeric codes or enums (e.g., `1 = Male`, `2 = Female`), prefer input fields with clear help text explaining the mapping, unless the mappings are guaranteed stable, in which case a dropdown is viable.
   * **Format Abstraction Principle:** Users describe intent, not technical formatting. If a content format (e.g., HTML vs. plain text) can be safely inferred internally, detect it automatically in perform code instead of exposing format-selection fields.
-  * **Default Value Usage Rule:** Before using `defaultValue`, verify if the API has native default behavior. If the API applies a default when omitted, avoid setting `defaultValue` in the builder. Allow the API to apply its own default behavior unless there is a strong UX override benefit.
+  * **Default Value Usage Rule (Avoid `defaultValue` Key):** Although there is default value support in the JSON fields, do not use the `defaultValue` key in the input JSON. Instead, clearly mention the default value in the field's `help` text, and apply the default value fallback inside the perform code (e.g., `const limit = context.inputData.limit || 10;`). In the new UX practice, avoid the use of the `defaultValue` key across all input fields.
   * **customHelp Writing Guidelines:** Focus on business meaning and explain what the user should provide rather than how the system stores it. Avoid explaining internal IDs or instructing users to copy task IDs from browser URLs.
     * *Good:* `"Select the parent task under which the subtask should be created."`
     * *Bad:* `"Open Asana, copy the task ID from the URL, and paste it here."`
@@ -765,5 +766,17 @@ A trigger represents a real-world event that initiates a workflow.
   * **Conditional Filters Grouping** — Group optional filters into an **Input Group** containing child inputs gated by `visibilityCondition` based on a selected filter-by dimension (e.g. filtering by Video ID only when "Filter Dimension" is set to "Video").
   * **Endpoint Scoping via Parent Selectors** — Scope dynamic dropdown lists (e.g. Event Types) by switching the API endpoint or query parameters inside `optionsGenerator` based on a parent mode selection (e.g. Personal vs Team/Organization scope), conditionally requiring parent IDs only when necessary.
   * **Preconfigured Lists (`list: true`) in Triggers vs Comma-Separated Text in Actions** — Use `list: true` (and optional `limit: N`) on `string`/`number` fields when users preconfigure multiple static values during setup (especially in Triggers where dynamic upstream data cannot be entered). For Actions where data can be dynamically mapped from upstream steps, always prefer a standard text (`string`) field with help text asking for comma-separated values, using `list: true` only in rare static-preconfiguration exceptions.
+
+---
+
+## UX Practice Checklist
+
+* [ ] **Avoid `defaultValue` key in input JSON:** Never use the `defaultValue` key in input JSON fields. Clearly mention the default value in the field's `help` text, and apply the default value fallback inside the perform code (e.g., `const limit = context.inputData.limit || 10;`).
+* [ ] **Configuration values are static; data resolution happens at runtime:** Ensure fields do not attempt runtime data resolution at configuration time.
+* [ ] **Use dropdowns and selection fields instead of requiring manual ID entry:** Prefer dropdowns/multiselects across all components (exceptions: GET by ID and DELETE actions where manual ID entry or upstream ID passing is standard).
+* [ ] **Implement proper visibility conditions and dependencies:** Ensure dynamic fields reveal logically without orphan or broken dependencies.
+* [ ] **Maintain consistent, predictable behaviour across all components:** Follow unified naming, ordering, and UX conventions.
+* [ ] **Never hardcode sensitive values (credentials, secrets, API keys):** Keep sensitive credentials isolated to connection auth data.
+* [ ] **Handle pagination, dates, arrays, and error cases properly:** Ensure complete handling across all components and perform code.
 
 
