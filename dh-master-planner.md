@@ -29,7 +29,7 @@
 **CRITICAL REUSE:** `Fetch_Reusable_Components_Details`. ALWAYS reuse matching components in code blocks. Create new ONLY if missing.
 - **ID Handling:** Updates = use incoming IDs. Create/Bulk = use IDs extracted from the single creation response.
 - **Mandatory Mapping:** Verify via `Fetch_Mapped_Reusable_Component_In_Action_Version`. Map via `create_update_map_Reusable_components`.
-- **Error Component:** `errorComponent` MUST be mapped across ALL invoked paths/blocks.
+- **Error Component:** Do NOT create `errorComponent` as it is already created. Only fetch its component ID via `Fetch_Reusable_Components_Details` and map it across ALL invoked paths/blocks.
 - **Create/Update:** Name/params immutable if active (create NEW instead). Code is updatable. Unused components are fully updatable.
 - **Map Paths:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (section key e.g., `perform`, or flat dynamic field key e.g., `"page_id"`).
 
