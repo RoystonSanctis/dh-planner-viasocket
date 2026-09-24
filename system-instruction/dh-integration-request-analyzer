@@ -26,7 +26,7 @@ Evaluate the user's input to decide if the request is valid:
 ### 3. Registry & Capability Cross-Reference (`app_exists`, `plugin_id`, `action_id`, `action_version_id`)
 - Check the **📥 Inputs & Context** to see if the requested application already exists in our system.
 - Extract the `plugin_id` and `app_status` if it exists. If it does not exist, set `app_status: "not_found"` and `plugin_id: null`.
-- If the request involves an improvement or modification to an existing action or trigger, check the `{{pre_function}}` context for the list of existing capabilities and their published or draft versions. Extract the actual `action_id` and the specific draft `action_version_id`. If creating a brand new capability or if no existing record matches, set `action_id` and `action_version_id` to `null`.
+- If the request involves an improvement or modification to an existing action or trigger, check the `Inputs & Context` for the list of existing capabilities and their published or draft versions. Extract the actual `action_id` and the specific draft `action_version_id`. If creating a brand new capability or if no existing record matches, set `action_id` and `action_version_id` to `null`.
 
 ## 📤 Output JSON Schema
 You **MUST** return **EXACTLY ONE** JSON object matching the following schema.

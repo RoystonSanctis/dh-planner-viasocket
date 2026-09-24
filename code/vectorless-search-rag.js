@@ -10,6 +10,7 @@ const KB_URLS = {
     "perform-code": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/perform-code.md",
     "dh-review": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-review.md",
     "ux-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-practice.md",
+    "ux-worked-examples": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-worked-examples.md",
     "dh-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-database-schema.md",
   },
   "dh_connection": {
@@ -53,10 +54,10 @@ function createMarkdownChunks(mdContent) {
 async function extractKnowledgeBaseSections(module, knowledge_base, query, allowPartialMatch = false) {
   let kbsToFetch = [];
   const moduleKBs = KB_URLS[module] || {};
-  
+
   if (Array.isArray(knowledge_base) && knowledge_base.includes("All")) kbsToFetch = Object.keys(moduleKBs);
   else kbsToFetch = Array.isArray(knowledge_base) ? knowledge_base.filter(k => moduleKBs[k]) : [];
-  
+
   const results = [];
 
   for (const kb of kbsToFetch) {
@@ -68,37 +69,37 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query, allow
       const { chunks } = createMarkdownChunks(body);
 
       // Keys are strictly assigned upfront
-      let extractedResult = { 
+      let extractedResult = {
         knowledge_base: kb,
         title: metadata.title || kb,
         description: metadata.description || "",
-        content: "" 
+        content: ""
       };
-      
+
       let matchedSections = [];
 
       (Array.isArray(query) ? query : []).forEach(q => {
         const qLower = String(q || '').toLowerCase();
-        
+
         // The "page index" specific check is no longer needed to gate the title/description
         // but we still allow it as a valid query if you were mapping it for other reasons.
-        if (qLower === 'page index') return; 
-        
+        if (qLower === 'page index') return;
+
         const matches = chunks.filter(c => {
           const headerLower = c.vectorSource.toLowerCase();
-          return allowPartialMatch 
-            ? headerLower.includes(qLower) 
+          return allowPartialMatch
+            ? headerLower.includes(qLower)
             : headerLower === qLower;
         });
-        
+
         matchedSections.push(...matches.map(m => m.text));
       });
 
       matchedSections = [...new Set(matchedSections)];
-      
+
       // Finally assign content
       extractedResult.content = matchedSections.join('\n\n');
-      
+
       results.push(extractedResult);
     } catch (error) {
       results.push({ knowledge_base: kb, error: error.message });
