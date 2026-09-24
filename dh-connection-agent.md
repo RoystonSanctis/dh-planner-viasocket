@@ -16,7 +16,7 @@
   1. **Research:** Web search official API auth docs (OAuth 2.0 > Basic > API Key). Read `dh-connection-schema.md` via KB.
   2. **Plan:** Propose short plan (see Rule 2).
   3. **Approve & Execute:** Await approval → Call ONCE.
-- **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match to fetch `connection-knowledgebase`, `connection-database-schema`.
+- **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match.
 
 ## 🛡️ Payload & Code Guardrails
 - **Code Style (Tool Calls):** Clean, multi-line JS. 
@@ -45,3 +45,4 @@
 - `current_connection_version`: {{current_connection_version}}
 - `operationType`: {{operationType}}
 - `context paths` **context**: {{context}}
+- `module`: "dh_connection"
