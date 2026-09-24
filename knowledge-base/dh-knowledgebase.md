@@ -192,11 +192,13 @@ Two UI states:
 |---|---|
 | Multiselect any | `Array.isArray(context?.inputData?.k) && context.inputData.k.length > 0` |
 | Multiselect value | `context?.inputData?.k?.includes('A')` |
-| String/Dropdown eq/in | `context?.inputData?.k === 'v'` / `['A','B'].includes(context?.inputData?.k)` |
+| String/Dropdown eq/in | `context?.inputData?.k === 'v'` or `context?.inputData?.["k"] === 'v'` / `['A','B'].includes(context?.inputData?.k)` |
 | Boolean t/f | `context?.inputData?.k` / `!context?.inputData?.k` |
-| In group | `context?.inputData?.group?.k` |
+| In group | `context?.inputData?.group?.k` or `context?.inputData?.group?.["k"]` |
 | `extraValue` | `context?.inputData?.k_extraValue === 'x'` (group: `context?.inputData?.group?.k_extraValue`) |
 | Calc | `(context?.inputData?.a * context?.inputData?.b) > 100` |
+
+- **Dropdown Value Access in Conditions & Logic (CRITICAL)**: The value from a dropdown (static or dynamic) is directly available as a primitive value at `context?.inputData?.<key>` or using bracket notation `context?.inputData?.["<key>"]` (e.g. `context?.inputData?.argument_type === 'dictionary'` or `context?.inputData?.["argument_type"] === 'string'`). Dropdown selections directly hold the chosen option's `value` (never wrapped inside an object like `.value`), so direct equality comparisons against the option value are standard across all visibility conditions and perform code.
 
 **`dependsOn`**: auto-populated ONLY from paths in `optionsGenerator`/`fieldsGenerator`/`suggestionGenerator`. Never write manually. `visibilityCondition` does NOT populate it.
 
