@@ -4,7 +4,6 @@ title: "Database Schema for the Connection Model"
 description: "Technical specification of database and API objects required for viaSocket plug builder connections, including the Connection Response Schema, Create Connection Payload, and Update Connection Payload for all authentication types."
 published: true
 ---
-
 # Page Index
 
 - Agent Variable ↔ Schema Field Alias Reference

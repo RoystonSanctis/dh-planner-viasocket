@@ -4,7 +4,6 @@ title: "Database Schema for the Tool Call Model"
 description: "Technical specification of database and API objects required for viaSocket plug builder tool calls, including Actions, Triggers, and Reusable Components."
 published: true
 ---
-
 # Page Index
 
 - Database Schema for the Tool Call Model
