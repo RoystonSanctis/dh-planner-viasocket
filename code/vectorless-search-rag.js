@@ -3,6 +3,18 @@
   Assumes the config provides: knowledge_base (array), input_query (array), module (string), and allow_partial_match (boolean)
 */
 
+const isPartialMatchAllowed = false;
+
+const knowledge_base = [
+  "All"
+];
+
+const module = "dh_connection";
+
+const input_query = [
+  "Page Index"
+];
+
 const KB_URLS = {
   "dh_action_trigger": {
     "dh-knowledgebase": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md",
@@ -11,66 +23,165 @@ const KB_URLS = {
     "dh-review": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-review.md",
     "ux-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-practice.md",
     "ux-worked-examples": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/ux-worked-examples.md",
-    "dh-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-database-schema.md",
+    "dh-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-database-schema.md"
   },
+
   "dh_connection": {
     "connection-knowledgebase": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-kb.md",
     "connection-practice": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-practice.md",
-    "connection-database-schema": 'https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-schema.md',
+    "connection-database-schema": "https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-schema.md"
   }
 };
 
 function parseFrontmatter(mdContent) {
   const frontmatterRegex = /^---\s*[\r\n]+([\s\S]*?)[\r\n]+---/;
+
   const match = mdContent.match(frontmatterRegex);
-  let metadata = { title: "", description: "" };
+
+  let metadata = {
+    title: "",
+    description: ""
+  };
+
   let body = mdContent;
+
   if (match) {
     const yamlBlock = match[1];
-    body = mdContent.slice(match[0].length).trim();
+
+    body = mdContent
+      .slice(match[0].length)
+      .trim();
+
     const titleMatch = yamlBlock.match(/title:\s*"?([^"\n]+)"?/);
     const descMatch = yamlBlock.match(/description:\s*"?([^"\n]+)"?/);
-    if (titleMatch) metadata.title = titleMatch[1].trim();
-    if (descMatch) metadata.description = descMatch[1].trim();
+
+    if (titleMatch) {
+      metadata.title = titleMatch[1].trim();
+    }
+
+    if (descMatch) {
+      metadata.description = descMatch[1].trim();
+    }
   }
-  return { metadata, body };
+
+  return {
+    metadata,
+    body
+  };
 }
+
 
 function createMarkdownChunks(mdContent) {
-  if (!mdContent) return { chunks: [] };
-  const sections = mdContent.split(/(?=(?:^|\n)#+\s+)/m);
+  if (!mdContent) {
+    return {
+      chunks: []
+    };
+  }
+
+  /*
+    Split whenever a Markdown heading starts.
+
+    Supports both:
+
+    # Heading
+
+    and:
+
+    **# Heading**
+
+    Your KB currently uses the second format.
+  */
+  const sections = mdContent.split(
+    /(?=^(?:\*\*)?#{1,6}\s+)/m
+  );
+
   const chunks = sections
-    .map(s => s.trim())
-    .filter(s => s.length > 0)
+    .map(section => section.trim())
+    .filter(section => section.length > 0)
     .map(section => {
-      const lines = section.split('\n');
-      const firstLine = lines[0];
-      const headingMatch = firstLine.match(/^#+\s+(.*)/);
-      const vectorSource = headingMatch ? headingMatch[1].trim() : "Untitled Section";
-      return { text: section, vectorSource };
+
+      const lines = section.split("\n");
+
+      const firstLine = lines[0].trim();
+
+      /*
+        Extract heading from:
+
+        # Heading
+
+        or:
+
+        **# Heading**
+      */
+      const headingMatch = firstLine.match(
+        /^\*\*#{1,6}\s+(.*?)\*\*$/
+      ) || firstLine.match(
+        /^#{1,6}\s+(.*)$/
+      );
+
+      const vectorSource = headingMatch
+        ? headingMatch[1].trim()
+        : "Untitled Section";
+
+      return {
+        text: section,
+        vectorSource
+      };
     });
-  return { chunks };
+
+  return {
+    chunks
+  };
 }
 
-async function extractKnowledgeBaseSections(module, knowledge_base, query, allowPartialMatch = false) {
+
+async function extractKnowledgeBaseSections(
+  module,
+  knowledge_base,
+  query,
+  allowPartialMatch = false
+) {
   let kbsToFetch = [];
+
   const moduleKBs = KB_URLS[module] || {};
 
-  if (Array.isArray(knowledge_base) && knowledge_base.includes("All")) kbsToFetch = Object.keys(moduleKBs);
-  else kbsToFetch = Array.isArray(knowledge_base) ? knowledge_base.filter(k => moduleKBs[k]) : [];
+  if (
+    Array.isArray(knowledge_base) &&
+    knowledge_base.includes("All")
+  ) {
+    kbsToFetch = Object.keys(moduleKBs);
+  } else {
+    kbsToFetch = Array.isArray(knowledge_base)
+      ? knowledge_base.filter(k => moduleKBs[k])
+      : [];
+  }
 
   const results = [];
 
   for (const kb of kbsToFetch) {
-    try {
-      const response = await fetch(moduleKBs[kb]);
-      if (!response.ok) throw new Error(`Failed to fetch status: ${response.status}`);
-      const rawMd = await response.text();
-      const { metadata, body } = parseFrontmatter(rawMd);
-      const { chunks } = createMarkdownChunks(body);
 
-      // Keys are strictly assigned upfront
-      let extractedResult = {
+    try {
+
+      const response = await fetch(moduleKBs[kb]);
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch status: ${response.status}`
+        );
+      }
+
+      const rawMd = await response.text();
+
+      const {
+        metadata,
+        body
+      } = parseFrontmatter(rawMd);
+
+      const {
+        chunks
+      } = createMarkdownChunks(body);
+
+      const extractedResult = {
         knowledge_base: kb,
         title: metadata.title || kb,
         description: metadata.description || "",
@@ -79,38 +190,67 @@ async function extractKnowledgeBaseSections(module, knowledge_base, query, allow
 
       let matchedSections = [];
 
-      (Array.isArray(query) ? query : []).forEach(q => {
-        const qLower = String(q || '').toLowerCase();
+      /*
+        Every query is treated equally.
 
-        // The "page index" specific check is no longer needed to gate the title/description
-        // but we still allow it as a valid query if you were mapping it for other reasons.
-        if (qLower === 'page index') return;
+        "Page Index" is no longer skipped.
+      */
+      (Array.isArray(query) ? query : []).forEach(q => {
+
+        const qLower = String(q || "")
+          .trim()
+          .toLowerCase();
+
+        if (!qLower) {
+          return;
+        }
 
         const matches = chunks.filter(c => {
-          const headerLower = c.vectorSource.toLowerCase();
+
+          const headerLower = c.vectorSource
+            .trim()
+            .toLowerCase();
+
           return allowPartialMatch
             ? headerLower.includes(qLower)
             : headerLower === qLower;
         });
 
-        matchedSections.push(...matches.map(m => m.text));
+        matchedSections.push(
+          ...matches.map(m => m.text)
+        );
       });
 
-      matchedSections = [...new Set(matchedSections)];
+      /*
+        Remove duplicate sections while preserving order.
+      */
+      matchedSections = [
+        ...new Set(matchedSections)
+      ];
 
-      // Finally assign content
-      extractedResult.content = matchedSections.join('\n\n');
+      extractedResult.content =
+        matchedSections.join("\n\n");
 
       results.push(extractedResult);
+
     } catch (error) {
-      results.push({ knowledge_base: kb, error: error.message });
+
+      results.push({
+        knowledge_base: kb,
+        error: error.message
+      });
+
     }
   }
 
   return results;
 }
 
-const isPartialMatchAllowed = false;
 
-// Execute and return the promise so the workflow receives the output
-return await extractKnowledgeBaseSections(module, knowledge_base, input_query, isPartialMatchAllowed);
+// Execute
+return await extractKnowledgeBaseSections(
+  module,
+  knowledge_base,
+  input_query,
+  isPartialMatchAllowed
+);
