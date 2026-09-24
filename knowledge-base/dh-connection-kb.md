@@ -35,6 +35,15 @@ description: "Token-minimal knowledge base for designing and updating viaSocket 
 
 # Universal Connection Rules
 Stated once, applies everywhere:
+- **`rowid` & `pluginrecordid` in Update Payloads (CRITICAL)**: In update payloads, always pass `rowid` (mapped from `connection_version_id`) and `pluginrecordid` (mapped from `pluginId`). NEVER send `connection_version_id` inside `request_payload`; the backend identifies the version to update strictly via `request_payload.rowid`.
+- **Targeted Partial Updates**: Send only the updated keys along with `rowid` and `pluginrecordid`. Do NOT leak frontend UI state objects (e.g. `draftMark`) or internal DB copies (`authenticationpaths_copy`) into API payloads.
+- **`queryparams` Stringified JSON Rule (CRITICAL)**: The `queryparams` property MUST ALWAYS be a String (stringified JSON, e.g. `"{\"response_type\":\"code\"}"` or `"{}"`). NEVER send a raw JSON object `{}` — doing so causes a fatal database schema type rejection.
+- **`authenticationpaths` Structure & Usage vs OAuth Parameters**:
+  - `authenticationpaths` is strictly for **injecting authentication credentials into outgoing Action/Trigger API calls** (e.g. injecting `Authorization: Bearer ${context?.authData?.accesstokencode?.access_token}` in `headers`).
+  - It MUST NOT contain OAuth authorization redirect parameters (`response_type`, `client_id`, `redirect_uri`, `scope`, `state`). OAuth redirect parameters belong in `authrequrl` or `queryparams`, NOT in `authenticationpaths`.
+  - For OAuth 2.0 (Authorization Code & Client Credentials), `authenticationpaths.headers` MUST inject the Bearer token. Leaving `headers: []` will cause all subsequent action/trigger requests to fail with 401 Unauthorized.
+  - Create: Must contain all 3 keys: `headers: []`, `body: []`, `queryParams: []`.
+  - Update: If updating `authenticationpaths`, include all 3 keys (`[]` if empty); if unchanged, omit `authenticationpaths` entirely.
 - **Backend Auth Injection**: All credentials inject into API calls via `authenticationpaths` (headers, body, queryParams). Actions and triggers NEVER expose or hardcode auth credentials. Non-confidential config (subdomain, region, tenant ID) is read via `context?.authData?.<field_key>`.
 - **Single Test API Endpoint**: `testcode` MUST call **exactly ONE** lightweight authenticated endpoint (`GET /me`, `/user`, `/account`, or `/workspaces`). Secondary endpoints, quota checks, and session probes are strictly forbidden. Must return `response.data` directly without mutation.
 - **`testcode` Structure**: Stringified JSON wrapping a `"source"` key (`"{\"source\":\"...\"}"` or `"{\"source\":null}"`). Raw JS code directly on `testcode` is invalid.
@@ -42,15 +51,18 @@ Stated once, applies everywhere:
   - Prefix MUST be `context?.authData?`.
   - Must resolve to a single path from test response (e.g., `context?.authData?.testcode?.["workspace_name"]`).
   - Bracket notation required for keys (`["key"]`).
-  - **No `||` or fallback chaining**: Logical OR is strictly prohibited.
+  - Direct JS expression ONLY: **NO `return` statements**, NO function wrappers, and **NO `||` or fallback chaining**.
+  - `_connectionlabelvalue` MUST be the template string version: `"${context?.authData?.testcode?.[\"workspace_name\"]}"` (never a code copy or raw return string).
+  - `connectionlabelname`: Reserved DB field; always omit or set to `null`.
   - **Invalid**: `context?.res?.data?.*` (`res` is local to testcode function scope and undefined at resolution time).
+- **`uniquekeytostoreauth` Structure**:
+  - `uniqueKey` must be a valid JS expression evaluating to a unique identifier (e.g. `context?.authData?.testcode?.["id"]`, `context?.authData?.testcode?.["sub"]`, or `context?.authData?.clientid`).
+  - `_uniqueKey` MUST be the templated version: `"${context?.authData?.testcode?.[\"id\"]}"`.
+  - Never use raw un-templated string literals like `"refresh_token"`.
 - **Depth-Aware Newline Escaping**:
   - **Double-encoded (`\\n`)**: `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` (nested inside `"source"` string).
   - **Plain strings (`\n`)**: `authenticationpaths.*[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`, `placeholder`.
   - Rule: Escape levels must equal decode passes (2 levels for JSON-wrapped code, 1 level for direct strings).
-- **`authenticationpaths` Structure**:
-  - Create: Must contain all 3 keys: `headers: []`, `body: []`, `queryParams: []`.
-  - Update: If updating `authenticationpaths`, include all 3 keys (`[]` if empty); if unchanged, omit `authenticationpaths` entirely.
 - **`authfields.authentication.fields`**: MUST ALWAYS be an Array (`[]` if no fields; never object or null).
 - **Domain Whitelisting**: `whitelistdomains` MUST contain both the primary service domain and the API base domain (e.g. `["notion.com", "api.notion.com"]`).
 - **Internal IDs**: Never ask users for internal IDs (`pluginrecordid`, `orgid`, `connection_version_id`, `preferedauthversion`).
@@ -125,9 +137,10 @@ Evaluate in descending order when auth method is unspecified:
 - **Manual / User-Provided Setup (Special Case)**:
   - Root `clientid` and `clientsecret` on connection record MUST be `null`.
   - `authfields.authentication.fields` MUST include:
-    - `clientid`: `{"key": "clientid", "type": "string", "label": "Client Id", "placeholder": "Enter Client id", "required": true, "disableField": true}`
-    - `clientsecret`: `{"key": "clientsecret", "type": "string", "label": "Client Secret", "placeholder": "Enter Client Secret", "required": true, "disableField": true}`
-    - `redirectUrl`: `{"key": "redirectUrl", "value": "https://dev-auth.viasocket.com/redirect/auth2.0"}` (**MANDATORY**; omission disables user credential fields).
+    - `clientid`: `{"key": "clientid", "type": "string", "label": "Client Id", "placeholder": "Enter Client id", "required": true, "disableField": true}` (Strictly `"clientid"`, NOT `"client_id"`).
+    - `clientsecret`: `{"key": "clientsecret", "type": "string", "label": "Client Secret", "placeholder": "Enter Client Secret", "required": true, "disableField": true}` (Strictly `"clientsecret"`, NOT `"client_secret"`).
+    - `redirectUrl`: `{"key": "redirectUrl", "value": "https://auth.viasocket.com/redirect/auth2.0"}` (**MANDATORY**; omission disables user credential fields).
+  - In `accesstokencode` and `refreshtokencode`, read values via `context?.authData?.clientid` and `context?.authData?.clientsecret`. Authorization code is read via `context?.authData?.Authorization?.code`.
 
 # Naming & Copywriting
 
@@ -383,7 +396,9 @@ Included alongside auth-type-specific fields:
 ### Comprehensive Update Payload Shape
 ```json
 {
-  "componentToRender": "string",
+  "rowid": "string (Connection version row ID to update, e.g., 'rowg11bx64ap' — MANDATORY in update payload)",
+  "pluginrecordid": "string (Plugin record ID, e.g., 'row8enarovp8')",
+  "componentToRender": "string (Optional component discriminator)",
   "isScopeSeperatorChanged": false,
   "type": "Basic | Auth2.0 | Auth1 | NoAuth",
   "granttype": "Authorization Code | Implicit | Client Credentials | Password Credentials | null",
@@ -391,7 +406,7 @@ Included alongside auth-type-specific fields:
   "clientsecret": "string | null",
   "authrequrl": "string | null",
   "redirecturl": "string | null",
-  "queryparams": "{}",
+  "queryparams": "string (Stringified JSON, e.g. '{\"response_type\":\"code\"}' or '{}'; MUST be a string, NEVER an object)",
   "scopeseperatedby": "comma | space | null",
   "authfields": {
     "authentication": {
@@ -455,13 +470,17 @@ Key fields returned by connection endpoints:
 
 # Validation Checklist
 
+- [ ] **`rowid` in Update Payload**: Update payload uses `"rowid": "<connection_version_id>"` and `"pluginrecordid": "<pluginId>"`. Never send `"connection_version_id"` inside `request_payload`.
+- [ ] **`queryparams` String Format**: `queryparams` is strictly a stringified JSON string (e.g. `"{}"` or `"{\"response_type\":\"code\"}"`), NEVER a raw JSON object `{}`.
+- [ ] **`authenticationpaths` Injection vs OAuth Redirect**: `authenticationpaths` injects runtime credentials (e.g. Bearer header in `headers`) for actions/triggers. OAuth redirect parameters belong in `authrequrl`/`queryparams`, never in `authenticationpaths`.
 - [ ] **Minimal Scopes**: Baseline connection scopes only; action-specific scopes isolated to actions.
 - [ ] **Secret Obscurity**: `password` type used for API keys, tokens, and secrets.
 - [ ] **Single Test Endpoint**: Exactly one Me/User/Account API called; returns raw `response.data`.
-- [ ] **Label Path Integrity**: Starts with `context?.authData?`, single path, bracket notation, no `||` operators, no `context?.res`.
+- [ ] **Label Path Integrity**: Direct JS expression starting with `context?.authData?`, single path, bracket notation, NO `return` statements, NO `||` operators, no `context?.res`. `_connectionlabelvalue` formatted as template string `"${...}"`.
+- [ ] **`uniquekeytostoreauth` Formatting**: `uniqueKey` is a valid JS expression (e.g. `context?.authData?.testcode?.["sub"]`) and `_uniqueKey` is `"${...}"`, never static string literals.
 - [ ] **Domain Whitelist**: Contains both main service domain and API base domain.
 - [ ] **Depth-Aware Escaping**: `\\n` for wrapper fields (`testcode`, token codes); `\n` for direct strings (`authenticationpaths`, labels).
 - [ ] **`authenticationpaths` Completeness**: All 3 keys (`headers`, `body`, `queryParams`) present on create or update.
 - [ ] **`authfields.authentication.fields`**: Strictly an array (`[]` if empty).
-- [ ] **Manual Setup Guard**: If client credentials are user-entered, `redirectUrl` is present in `authfields`.
+- [ ] **Manual Setup Guard**: If client credentials are user-entered, field keys are strictly `clientid` and `clientsecret` (no underscores), and `redirectUrl` is present in `authfields`.
 - [ ] **Dynamic Token Usage**: Request parameters dynamically resolve latest token via `context.authData`.
