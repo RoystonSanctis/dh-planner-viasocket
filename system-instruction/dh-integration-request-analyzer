@@ -71,7 +71,7 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
 
 ```json
 {
-    "name": "jsonSchema",
+    "name": "request_analyzer",
     "strict": true,
     "schema": {
         "type": "object",
