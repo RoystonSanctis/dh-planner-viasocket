@@ -109,7 +109,7 @@ Evaluate in descending order when auth method is unspecified:
 
 ## OAuth 2.0 Authorization Code
 - **Flow (13 Steps)**: 1. Pre-auth Fields (optional: subdomain, region) → 2. Copy Redirect URL (`https://auth.viasocket.com/redirect/auth2.0`) → 3. App Credentials (`clientid`, `clientsecret`) → 4. Auth Endpoint (`response_type=code`, scopes, PKCE) → 5. Access Token API (`POST` code for token) → 6. Refresh Token API (`POST` refresh_token) → 7. Revoke Token API (`POST` revoke) → 8. Test (Me) API (`GET /me` with Bearer token) → 9. Connection Label → 10. Icon → 11. Whitelist Domains → 12. Unique Identifier (e.g. `user_id`, `account_id`) → 13. Set Request Parameters (inject Bearer header).
-- **Rules**: Request minimal scopes at connection level. Always enable PKCE (`code_challenge_method=S256`) when supported.
+- **Rules**: Request minimal scopes at connection level. Always enable PKCE (`code_challenge_method=S256`) when supported. Set `scopeseperatedby` strictly to `"space"` or `"comma"` (or `null`); NEVER use literal `" "` or `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"comma"`).
 
 ## OAuth 2.0 Client Credentials
 - **Flow (10 Steps)**: 1. Pre-auth Fields (rare) → 2. Access Token API (`POST` with `grant_type=client_credentials`) → 3. Refresh Token API (re-request token) → 4. Revoke Token API → 5. Test (Me) API (system status or account endpoint) → 6. Connection Label (workspace/tenant ID, not user name) → 7. Icon → 8. Whitelist Domains → 9. Unique Identifier → 10. Set Request Parameters.
@@ -414,7 +414,7 @@ Included alongside auth-type-specific fields:
   "authrequrl": "string | null",
   "redirecturl": "string | null",
   "queryparams": "string (Stringified JSON, e.g. '{\"response_type\":\"code\"}' or '{}'; MUST be a string, NEVER an object)",
-  "scopeseperatedby": "comma | space | null",
+  "scopeseperatedby": "\"comma\" | \"space\" | null (STRICTLY literal word strings \"comma\" or \"space\", or null; NEVER literal \" \" or \",\")",
   "authfields": {
     "authentication": {
       "type": "string",

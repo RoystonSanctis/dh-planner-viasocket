@@ -319,6 +319,7 @@ return await testcode();
 - **Verify Base64 client-credential encoding requirements** in the provider's docs before building the Access Token API step.
 - **Prefer Global/Internal Client Setup:** Always prefer setting up `clientid` and `clientsecret` globally/internally via dedicated root keys so no credentials input fields are created for end users.
 - **Manual Setup Requirements:** If manual setup is explicitly requested, root `clientid` and `clientsecret` must be null, and `clientid`, `clientsecret`, and `redirectUrl` (`https://auth.viasocket.com/redirect/auth2.0`) must be included inside `authfields.authentication.fields`. Without `redirectUrl`, user-entered client credentials will not be validated and will be disabled.
+- **Scope Separator Format (`scopeseperatedby`):** Strictly use the literal word strings `"space"` or `"comma"` (or `null`). NEVER pass a literal space character `" "` or comma character `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"scopeseperatedby": "comma"`).
 
 ---
 

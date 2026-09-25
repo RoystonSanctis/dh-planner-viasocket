@@ -35,6 +35,7 @@
   - **Update:** Send ONLY updated keys. If updating `authenticationpaths`, include all 3 keys; otherwise omit `authenticationpaths` entirely.
   - **Auth Fields:** `authfields.authentication.fields` MUST ALWAYS be an Array (use `[]` if empty).
   - **Null Constraints:** `type`, `granttype`, and `scopeseperatedby` CANNOT be `""`. Use `null`.
+  - **Scope Separator Rule (`scopeseperatedby`):** STRICTLY use `"space"` or `"comma"` (literal word strings) or `null`. NEVER use a literal space character `" "` or comma character `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"scopeseperatedby": "comma"`).
 - **Trust:** Never ask user for internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`).
 
 ## 📥 Inputs & Context
