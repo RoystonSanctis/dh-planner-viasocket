@@ -59,6 +59,10 @@ Stated once, applies everywhere:
   - `uniqueKey` must be a valid JS expression evaluating to a unique identifier (e.g. `context?.authData?.testcode?.["id"]`, `context?.authData?.testcode?.["sub"]`, or `context?.authData?.clientid`).
   - `_uniqueKey` MUST be the templated version: `"${context?.authData?.testcode?.[\"id\"]}"`.
   - Never use raw un-templated string literals like `"refresh_token"`.
+- **OAuth 2.0 Client Credentials & Dedicated Keys**:
+  - In OAuth 2.0 (Authorization Code), `clientid` and `clientsecret` exist as dedicated root-level keys on the connection object.
+  - In Global / Internal Setup (default), this uses the existing dedicated keys present on the connection record which the user enters manually later. Do NOT create fields for `clientid` and `clientsecret` in `authfields.authentication.fields`. Neither `clientid`, `clientsecret`, nor `redirectUrl` are present in `authfields`.
+  - Only if the user explicitly specifies a Manual / User-Provided Setup (as fields inside authfields) are `clientid`, `clientsecret`, and `redirectUrl` placed in `authfields.authentication.fields`.
 - **Depth-Aware Newline Escaping**:
   - **Double-encoded (`\\n`)**: `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` (nested inside `"source"` string).
   - **Plain strings (`\n`)**: `authenticationpaths.*[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`, `placeholder`.
@@ -129,9 +133,12 @@ Evaluate in descending order when auth method is unspecified:
 
 # Client Credentials Setup Modes
 
+- **OAuth 2.0 Authorization Code Dedicated Keys**:
+  - In OAuth 2.0 (Authorization Code), `clientid` and `clientsecret` exist as dedicated root-level keys on the connection object.
+  - You do NOT need to create input fields for Client ID and Client Secret in `authfields` when using the default/global setup.
 - **Global / Internal Setup (Default & Recommended)**:
-  - Developer configures `clientid` and `clientsecret` globally on connection record.
-  - End-users see NO client credentials input fields.
+  - This simply uses the existing dedicated keys present on the connection record (`clientid` and `clientsecret`); the user will enter them manually later in viaSocket.
+  - Because existing dedicated keys are used, you do NOT need to create input fields for `clientid` and `clientsecret` inside `authfields.authentication.fields`.
   - Root properties `clientid` and `clientsecret` hold values.
   - `authfields.authentication.fields` does NOT contain `clientid`, `clientsecret`, or `redirectUrl`.
 - **Manual / User-Provided Setup (Special Case)**:
@@ -482,5 +489,5 @@ Key fields returned by connection endpoints:
 - [ ] **Depth-Aware Escaping**: `\\n` for wrapper fields (`testcode`, token codes); `\n` for direct strings (`authenticationpaths`, labels).
 - [ ] **`authenticationpaths` Completeness**: All 3 keys (`headers`, `body`, `queryParams`) present on create or update.
 - [ ] **`authfields.authentication.fields`**: Strictly an array (`[]` if empty).
-- [ ] **Manual Setup Guard**: If client credentials are user-entered, field keys are strictly `clientid` and `clientsecret` (no underscores), and `redirectUrl` is present in `authfields`.
+- [ ] **Client Credentials Setup Modes**: For standard/global setup, use dedicated root keys `clientid` and `clientsecret` and do not create them in `authfields`. If manual/user-provided setup is used, root keys are null, field keys in `authfields` are strictly `clientid` and `clientsecret` (no underscores), and `redirectUrl` is mandatory in `authfields`.
 - [ ] **Dynamic Token Usage**: Request parameters dynamically resolve latest token via `context.authData`.
