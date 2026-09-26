@@ -41,7 +41,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - **NO STRINGIFIED OBJECTS**: `steps` and `blocks` must be empty objects `{}`, not strings `"{}"`.
 4. **Error Handling**:
    - Perform & inline code: `catch (error) { await errorComponent(error); }`.
-   - Reusable components: `catch (error) { throw error; }`.
+   - Reusable components: `catch (error) { throw error; }`. Validation checks inside reusable components must always `throw` structured fallback objects (e.g. `throw { data: [], offset: null, message: 'Select a <parent> first.' }`).
    - `optionsGenerator`: Always wrap in `try...catch` calling `await errorComponent(error)`.
    - Throw inside `try` for missing required inputs and 200-responses with error bodies.
 5. **Runtime**: Node.js environment. No `console.log`. No `import`/`require`. HTTP via `axios` or `fetch` only.
@@ -320,6 +320,21 @@ return await executeAction();
 
 # Reusable Components
 Reusable JS logic stored once. Three parts: **Name**, **Parameters**, **Code** (`try...catch` with `throw error`, params as globals).
+- **Caller Pattern (`optionsGenerator`)**:
+  ```javascript
+  try {
+    return await listTallyForms(context.inputData.workspaceId, context?.paginateData?.['formid']);
+  } catch (error) {
+    await errorComponent(error);
+  }
+  ```
+- **Validation Checks in Components (Always Throw)**: Inside the reusable component code, validate required parameters and parent dependencies. Validation checks MUST ALWAYS `throw` a structured fallback object:
+  ```javascript
+  if (!workspaceId) {
+    throw { data: [], offset: null, message: 'Select a workspace first.' };
+  }
+  ```
+  *(For non-paginated components: `throw { message: 'Select a <parent> first.' };` or `throw { data: [], offset: null, message: 'Select a <parent> first.' };`)*
 - **Output Formats**:
   - Non-paginated: `[{ label, value, sample }]`
   - Paginated: `{ data: [{ label, value, sample }], offset: string|number|null }`

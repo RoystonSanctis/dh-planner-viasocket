@@ -32,6 +32,7 @@
 - **Error Component:** Do NOT create `errorComponent` reusable component. Fetch its component ID via `Fetch_Reusable_Components_Details` and map it across ALL invoked paths/blocks if found; if missing, just ignore.
 - **Create/Update:** Name/params immutable if active (create NEW instead). Code is updatable. Unused components are fully updatable.
 - **Map Paths:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (section key e.g., `perform`, or flat dynamic field key e.g., `"page_id"`).
+- **Validation Checks in Components (Always Throw):** Inside reusable component code, validate required parameters and parent dependencies. Validation checks MUST ALWAYS `throw` a structured fallback object (e.g., `if (!workspaceId) { throw { data: [], offset: null, message: 'Select a workspace first.' }; }`), never a generic Error. The calling `optionsGenerator` wraps the invocation in `try { return await fetchComponent(...); } catch (error) { await errorComponent(error); }`.
 
 ## 🛡️ Guardrails
 - **Category & Sub Category:** When building the payload, `category` MUST always be `"AI"`. For `sub_category`, choose from the existing sub-categories or create a new one (in UPPERCASE) representing the domain entity.
