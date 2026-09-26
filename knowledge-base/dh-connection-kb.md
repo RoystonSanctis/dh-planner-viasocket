@@ -31,6 +31,7 @@ description: "Token-minimal knowledge base for designing and updating viaSocket 
   - Common Fields
   - Update Payloads & Discriminators
   - Connection Response Reference
+- Developer Hub (DH) Connection URLs
 - Validation Checklist
 
 # Universal Connection Rules
@@ -487,6 +488,18 @@ Key fields returned by connection endpoints:
 - `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`: Stored perform scripts.
 - `connectionlabelvalue`: Path for display label.
 - `authversion`: Internal engine (`"V1"` or `"V2"`).
+
+# Developer Hub (DH) Connection URLs
+Dynamic URL to view and configure the connection authentication in the Developer Hub.
+
+- **Base URLs by Environment**:
+  - Production (`prod`): `https://flow.viasocket.com/`
+  - Testing (`testing`): `https://dev-flow.viasocket.com/`
+  - Local (`local`): `http://localhost:3000/`
+
+- **Connection URL Pattern**:
+  `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`
+  - *Production Example*: `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`
 
 # Validation Checklist
 

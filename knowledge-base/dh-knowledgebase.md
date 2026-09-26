@@ -25,6 +25,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
   - Action Perform Template
 - Reusable Components
 - API Database Payload Schemas
+- Developer Hub (DH) URLs
 - Review & Priorities
 
 ---
@@ -353,6 +354,24 @@ Reusable JS logic stored once. Three parts: **Name**, **Parameters**, **Code** (
   - *Manual*: `performlist`, `modifytriggerdata`.
 - **Reusable Component**: `function_name`, `description`, `params: [{name, sample}]`, `code`, `pluginrecordid`, `function_code`.
 - **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (`perform`, block name, or field key for dropdown/multiselect/group).
+
+---
+
+# Developer Hub (DH) URLs
+Dynamic URLs to access plugs, triggers, and actions in viaSocket Developer Hub.
+
+- **Base URLs by Environment**:
+  - Production (`prod`): `https://flow.viasocket.com/`
+  - Testing (`testing`): `https://dev-flow.viasocket.com/`
+  - Local (`local`): `http://localhost:3000/`
+
+- **URL Patterns**:
+  - **Plug / App (Analytics / Details)**:
+    `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
+  - **Action / Trigger (Create / Edit / Improvement)**:
+    `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
+    - `<actionType>`: `'action'` or `'trigger'`
+    - **Fallback**: Never hallucinate IDs. If `actionId` or `actionVersionRowId` is missing, fall back to the Plug analytics URL.
 
 ---
 
