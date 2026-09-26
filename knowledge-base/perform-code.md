@@ -1715,6 +1715,9 @@ Actions perform request/response operations on external services. Unlike schedul
 
 **🧹 Clean Code Style (applies to ALL perform code patterns below):**
 All generated code MUST be short, to-the-point, and well-structured. When code is passed as a string (e.g., `perform`, `testcode`), use raw `\n` for newlines — NEVER double-escaped `\\n`. Follow these principles:
+
+**High-Quality, Human-Readable & Optimized Code Style:** Write lean, purposeful, and highly readable JavaScript inspired by minimalist engineering principles: eliminate bloat, avoid redundant intermediate variables or wrapper gymnastics, and use native language features. Structure all code with clean, consistent multi-line spacing and logical breathing room—clearly separating input validation, payload construction, API dispatch, and response formatting into distinct, easily scannable visual blocks. Never cram operations onto single dense lines or output minified, convoluted logic; prioritize clean formatting, clear naming, and robust simplicity that any human engineer can instantly inspect, maintain, and trust.
+
 1. **Destructure inputs upfront:** Prefer a single destructuring assignment from `context?.inputData || {}` at the top of the function. Reading via `context?.inputData?.<key>` is also supported.
 2. **Build payloads via spread:** Construct a raw payload object using the spread operator (`...`) and shorthand property names, NOT by assigning each field one-by-one with `payload.x = x`.
 3. **Centralized cleanup:** Strip `undefined`, `null`, and `''` values from the payload using a single `Object.fromEntries(Object.entries(raw).filter(...))` call instead of repeating `if (x !== undefined && x !== null && x !== '') payload.x = x` for every optional field.
