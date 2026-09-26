@@ -45,18 +45,25 @@ Stated once, applies everywhere:
   - Create: Must contain all 3 keys: `headers: []`, `body: []`, `queryParams: []`.
   - Update: If updating `authenticationpaths`, include all 3 keys (`[]` if empty); if unchanged, omit `authenticationpaths` entirely.
 - **Backend Auth Injection**: All credentials inject into API calls via `authenticationpaths` (headers, body, queryParams). Actions and triggers NEVER expose or hardcode auth credentials. Non-confidential config (subdomain, region, tenant ID) is read via `context?.authData?.<field_key>`.
-- **Single Test API Endpoint**: `testcode` MUST call **exactly ONE** lightweight authenticated endpoint (`GET /me`, `/user`, `/account`, or `/workspaces`). Secondary endpoints, quota checks, and session probes are strictly forbidden. Must return `response.data` directly without mutation.
+- **Single Test API Endpoint & Direct Response Return (CRITICAL)**:
+  - `testcode` MUST call **exactly ONE** lightweight authenticated endpoint (`GET /me`, `/user`, `/account`, or `/workspaces`). Secondary endpoints, quota checks, and session probes are strictly forbidden.
+  - **Direct Return**: `testcode` MUST return `response.data` directly without mutation (`return response.data;` or `return response?.data;`). Never wrap in synthetic objects or mutate keys.
+  - **Test Response Storage**: The direct return value of `testcode` is automatically stored at `context?.authData?.testcode`.
+  - **Deriving Connection Label and Value Paths**: In this test response, you get the identifier keys used for:
+    - *Connection Label Path* (`connectionlabelvalue` & `_connectionlabelvalue`): Human-readable display identifier (e.g. `context?.authData?.testcode?.["email"]` or `context?.authData?.testcode?.["workspace_name"]`).
+    - *Connection Value Path / Auth Store* (`uniqueKey` & `_uniqueKey` in `uniquekeytostoreauth`): Unique machine identifier to deduplicate and store auth (e.g. `context?.authData?.testcode?.["id"]`, `context?.authData?.testcode?.["sub"]`).
+  - **Know the Test Response Structure (CRITICAL)**: To configure the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Never guess or assume property names; verify the official API documentation or response structure to navigate to the exact identifier keys (including nested paths like `context?.authData?.testcode?.["user"]?.["email"]`).
 - **`testcode` Structure**: Stringified JSON wrapping a `"source"` key (`"{\"source\":\"...\"}"` or `"{\"source\":null}"`). Raw JS code directly on `testcode` is invalid.
 - **Connection Label Constraints**:
   - Prefix MUST be `context?.authData?`.
-  - Must resolve to a single path from test response (e.g., `context?.authData?.testcode?.["workspace_name"]`).
+  - Must resolve to a single path from the known test response (e.g., `context?.authData?.testcode?.["workspace_name"]` or `context?.authData?.testcode?.["user"]?.["email"]`).
   - Bracket notation required for keys (`["key"]`).
   - Direct JS expression ONLY: **NO `return` statements**, NO function wrappers, and **NO `||` or fallback chaining**.
   - `_connectionlabelvalue` MUST be the template string version: `"${context?.authData?.testcode?.[\"workspace_name\"]}"` (never a code copy or raw return string).
   - `connectionlabelname`: Reserved DB field; always omit or set to `null`.
   - **Invalid**: `context?.res?.data?.*` (`res` is local to testcode function scope and undefined at resolution time).
-- **`uniquekeytostoreauth` Structure**:
-  - `uniqueKey` must be a valid JS expression evaluating to a unique identifier (e.g. `context?.authData?.testcode?.["id"]`, `context?.authData?.testcode?.["sub"]`, or `context?.authData?.clientid`).
+- **`uniquekeytostoreauth` Structure (Connection Value Path)**:
+  - `uniqueKey` must be a valid JS expression evaluating to a unique identifier mapped from the known test response or authData (e.g. `context?.authData?.testcode?.["id"]`, `context?.authData?.testcode?.["sub"]`, or `context?.authData?.clientid`).
   - `_uniqueKey` MUST be the templated version: `"${context?.authData?.testcode?.[\"id\"]}"`.
   - Never use raw un-templated string literals like `"refresh_token"`.
 - **OAuth 2.0 Client Credentials & Dedicated Keys**:
@@ -267,6 +274,11 @@ return await revokeToken();
 ```
 
 ## Test (Me) Code (`testcode`)
+The `testcode` function executes against a single authenticated endpoint to verify credentials.
+- **Direct Return**: Always return `response.data` directly (`return response.data;` or `return response?.data;`) without mutation or synthetic wrappers.
+- **Identifier Extraction for Label & Value**: The returned payload is stored in `context?.authData?.testcode`. You must know the test response structure to extract:
+  - `connectionlabelvalue` & `_connectionlabelvalue`: Human-readable identifier (e.g. `context?.authData?.testcode?.["email"]` or `context?.authData?.testcode?.["workspace_name"]`).
+  - `uniquekeytostoreauth.uniqueKey` & `_uniqueKey`: Unique machine identifier (e.g. `context?.authData?.testcode?.["id"]` or `context?.authData?.testcode?.["sub"]`).
 
 ### Basic Auth Test
 ```javascript
@@ -483,7 +495,7 @@ Key fields returned by connection endpoints:
 - [ ] **`authenticationpaths` Injection vs OAuth Redirect**: `authenticationpaths` injects runtime credentials (e.g. Bearer header in `headers`) for actions/triggers. OAuth redirect parameters belong in `authrequrl`/`queryparams`, never in `authenticationpaths`.
 - [ ] **Minimal Scopes**: Baseline connection scopes only; action-specific scopes isolated to actions.
 - [ ] **Secret Obscurity**: `password` type used for API keys, tokens, and secrets.
-- [ ] **Single Test Endpoint**: Exactly one Me/User/Account API called; returns raw `response.data`.
+- [ ] **Test Response & Direct Return**: Exactly one Me/User/Account API called; directly returns `response.data` (`return response.data;`) without mutation. Connection label and value paths are derived from the verified test response schema stored at `context?.authData?.testcode`.
 - [ ] **Label Path Integrity**: Direct JS expression starting with `context?.authData?`, single path, bracket notation, NO `return` statements, NO `||` operators, no `context?.res`. `_connectionlabelvalue` formatted as template string `"${...}"`.
 - [ ] **`uniquekeytostoreauth` Formatting**: `uniqueKey` is a valid JS expression (e.g. `context?.authData?.testcode?.["sub"]`) and `_uniqueKey` is `"${...}"`, never static string literals.
 - [ ] **Domain Whitelist**: Contains both main service domain and API base domain.

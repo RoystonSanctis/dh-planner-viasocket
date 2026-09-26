@@ -27,9 +27,11 @@
 - **Newline Escaping (CRITICAL):**
   - **Double-encoded (2 levels → `\\n`):** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. (Because they are wrapped in `{"source":"..."}`).
   - **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`/`placeholder`. (Raw JS injected directly).
-- **Test Code Strictness:**
+- **Test Code & Label/Value Derivation Strictness:**
   - Structure: `"testcode": "{\"source\":\"...\"}"` (use `{"source":null}` if empty).
   - MUST contain **EXACTLY ONE** API request (prefer `GET /me` or lightweight auth check). No secondary/quota endpoints.
+  - **Direct Return**: MUST return `response.data` directly (`return response.data;`) without mutation or synthetic wrappers.
+  - **Test Response Knowledge**: You MUST verify and know the Test API response structure (`context?.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`) and `uniquekeytostoreauth.uniqueKey` (and `_uniqueKey`). Never guess property paths.
 - **Schema & Payload Strictness:**
   - **Create:** Send ALL keys. `authenticationpaths` MUST contain `headers`, `body`, and `queryParams` arrays (use `[]` if empty).
   - **Update:** Send ONLY updated keys. If updating `authenticationpaths`, include all 3 keys; otherwise omit `authenticationpaths` entirely.

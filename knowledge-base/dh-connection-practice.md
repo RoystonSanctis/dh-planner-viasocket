@@ -732,7 +732,8 @@ A Connection Label uniquely identifies a saved connection so users can distingui
 * **Bracket Notation for Keys:** Access each property with bracket notation and double quotes, e.g. `context?.authData?.testcode?.["workspace_name"]`, not `context?.authData?.testcode?.workspace_name`.
 * **Single Value Path Only:** The field MUST contain **exactly one single path** (e.g., `context?.authData?.testcode?.["workspace_name"]` or `context?.authData?.testcode?.["bot"]?.["workspace_name"]`).
 * **Direct Return in Test API Code:** The `testcode` perform code MUST return the API response payload (e.g., `return response.data;`) directly without any mutation. DO NOT construct composite or fallback keys inside the test code.
-* **Fallback logic:** Since `testcode` cannot mutate the data and `||` logic is not allowed, select the single most reliable primary identifier field from the raw `response.data`.
+* **Deriving Label and Value Paths from Test Response:** The direct return of `testcode` is stored under `context?.authData?.testcode`. You must know and inspect the test response structure to map the identifier keys for both the Connection Label (`connectionlabelvalue` and `_connectionlabelvalue`) and the Connection Value Path (`uniqueKey` and `_uniqueKey` in `uniquekeytostoreauth`). Never guess keys; verify the API docs or live response.
+* **Fallback logic:** Since `testcode` cannot mutate the data and `||` logic is not allowed, select the single most reliable primary identifier field from the known `response.data`.
 * **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` is **STRICTLY PROHIBITED**.
   * *Bad (PROHIBITED):* `"context?.authData?.testcode?.[\"workspace_name\"] || context?.authData?.testcode?.[\"email\"]"`
   * *Good:* `"context?.authData?.testcode?.[\"workspace_name\"]"`
@@ -841,11 +842,12 @@ Collect and request only what is strictly necessary:
 
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
-1. Resolve the Connection Label and Unique Connection Identifier from the Test (Me) API response wherever possible.
+1. Resolve the Connection Label (`connectionlabelvalue`) and Unique Connection Identifier / Value Path (`uniqueKey`) from the Test (Me) API response wherever possible.
 2. Ensure `connectionlabelvalue` maps to **exactly one path**, beginning with `context?.authData?` and using bracket notation (e.g., `context?.authData?.testcode?.["bot"]?.["workspace_name"]`). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
 3. The `testcode` perform code MUST return the response data directly (i.e. `return response.data;`). Do not mutate the response object to create composite or fallback keys.
-4. If no user-identifiable field exists in the response, map directly to a stable non-sensitive value (e.g. account/workspace ID) from the original payload, noting this fallback explicitly in the design output.
-5. Never ask the user to manually paste internal system IDs when the Test API can supply them.
+4. **Mandatory Knowledge of Test Response Structure**: To set the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Extract identifier keys (e.g., `id`, `email`, `name`, `workspace_name`) directly from `context?.authData?.testcode`. Never guess property keys.
+5. If no user-identifiable field exists in the response, map directly to a stable non-sensitive value (e.g. account/workspace ID) from the original payload, noting this fallback explicitly in the design output.
+6. Never ask the user to manually paste internal system IDs when the Test API can supply them.
 
 ### Grant Type Evaluation
 * **Single viable method:** If the service documents only one Auth Type/Grant Type, do not present a selector — implement it directly.
@@ -890,7 +892,7 @@ Use **response-derived resolution** rather than asking users to manually supply 
     * The `testcode` field value in payloads MUST ALWAYS be a stringified JSON string wrapping an object with a `"source"` key (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`).
     * The actual JavaScript perform code must NEVER be placed directly on the `testcode` key as a raw code string.
     * If no test code is present or required, set `testcode` to `"{\"source\":null}"`.
-  * **Direct Response Rule** — The `testcode` perform code MUST return the response data directly without any mutation. Do not construct composite keys or fallback values inside the test code. Select a single, reliable primary identifier path instead.
+  * **Direct Response & Test Response Knowledge Rule** — The `testcode` perform code MUST return the response data directly without any mutation (e.g. `return response.data;`). The returned data is stored under `context.authData.testcode`. You must know and verify the exact test response structure to extract the identifier keys used for `connectionlabelvalue` (and `_connectionlabelvalue`) and `uniqueKey` (and `_uniqueKey`). Do not construct composite keys or fallback values inside the test code; select a single reliable primary identifier path from the known response.
   * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 
 ---
