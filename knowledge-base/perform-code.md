@@ -1731,7 +1731,7 @@ First identify what the action is trying to do: read data, create data, update d
 - **Input Reading:** Prefer destructuring all user inputs from `context?.inputData || {}` at the top of the function. Reading via `context?.inputData?.<key>` is also supported.
 - **HTTP Request:** Use `axios()` for all HTTP requests.
 - **Authentication:** Do not manually add auth unless the API needs an extra non-standard value. viaSocket handles configured authentication through header, query parameter, or body.
-- **Response Return:** Return the meaningful API response data, not the raw axios response wrapper.
+- **Response Return (Base `.data` Extraction Rule):** The actual raw response from any API called from viaSocket is ALWAYS accessible from the `response.data` key (never read fields directly from the outer Axios wrapper object). The base return MUST always fetch from the `"data"` key—even when aggregating multiple API calls, each call must extract from its own `.data` key (e.g., `userRes.data`, `ordersRes.data`). From this base `"data"` key, navigate to destination path keys as needed (e.g. unnesting, flattening, injecting metadata, or selecting specific fields).
 - **Error Handling & Structure:** Wrap all perform code in a `try-catch` block. Both of the following structures are fully valid and supported:
 
   **Format 1: Wrapping async function**
@@ -2123,8 +2123,12 @@ return await deleteRecord();
 
 ## Special Note - Success Code Handling
 
-- By default, return `response.data` (the actual response payload returned by the API).
-- The response return can modify the response based on the actual data present in another key or make the output response more structured or organised for the user or downstream flow.
+- **Base Extraction from `data` key (MANDATORY)**: The actual raw response payload from any API called from viaSocket is ALWAYS accessible from `response.data`. The base return MUST always fetch from the `"data"` key—even if responses are collected or aggregated from multiple API calls, each API response must fetch from its own `"data"` key (e.g., `userRes.data`, `projectsRes.data`).
+- From this base `"data"` key, navigate to destination path keys based on the API response structure:
+  - Return `response.data` directly for clean, compact API payloads.
+  - Unnest actual data wrapped inside deep keys (e.g., `response.data.data` or `response.data.result.items`).
+  - Inject metadata (`success: true/false`, `id`, `has_more`) to empower downstream workflow steps.
+  - Extract selective keys for huge, bloated responses or flatten deeply nested objects to keep user pill-mapping clean.
 
 ## Special Note - Final Code Review
 - Don't use any console.log() in the perform code.

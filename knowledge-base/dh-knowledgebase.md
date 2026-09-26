@@ -51,12 +51,12 @@ These apply everywhere — stated once, never repeated.
 - **Error handling**: catch must `await errorComponent(error)`. Exception: Reusable Components must use `throw error` or `throw e`.
 - **`optionsGenerator` invocation**: any code (inline or component call) must be wrapped in a parent `try...catch`; catch calls `await errorComponent(error)`.
 - **No `console.log`**. No imports/require. HTTP via `axios`/`fetch` only.
-- **Response Return & Formatting**: By default, return `response.data`. However, intelligently format the output response when it benefits downstream workflow mapping:
+- **Response Return & Formatting (Base `.data` Extraction Rule)**: The actual raw response from any API called from viaSocket is ALWAYS accessible from the `response.data` key. The base return MUST always fetch from the `"data"` key—even if responses are collected or aggregated from multiple API calls, each API response must fetch from its own `"data"` key (e.g., `userRes.data`, `projectsRes.data`). Never access payload properties directly on the outer response object. From this base `"data"` key, you can then navigate to destination path keys as needed:
   - **Metadata Injection:** Include helpful top-level metadata when useful for subsequent steps (e.g. `success: true/false`, `has_more: true/false`, record IDs, or action messages). E.g. `{ success: true, id: response.data?.id, ...response.data }`.
-  - **Unnesting Nested Paths:** If the API response wraps actual data inside deep nested paths (e.g. `response.data.data`, `response.data.result.items`, `response.data.body.record`), extract and bubble up the actual payload to the root level instead of returning the cumbersome wrapper.
-  - **Simplifying Huge / Bloated Responses:** When an API returns a massive payload filled with internal system attributes, raw binary buffers, or noisy metadata, simplify the output by returning selective essential keys (e.g. `id`, `name`, `status`, `created_at`, core values) to keep downstream pill-mapping clean.
-  - **Flattening Complex Responses:** If deeply nested sub-objects create difficult mapping UX in viaSocket's variable pill picker, flatten key properties into a clean single-level or structured object.
-  - **Decision Rule (What Best Matches):** Decide based on payload complexity: (1) Clean & direct → return `response.data`; (2) Nested actual data → unnest to root; (3) Huge/bloated → pick selective keys; (4) Complex nested hierarchy → flatten for intuitive mapping; (5) Multi-item array → return array `[{...}]` for engine iteration.
+  - **Unnesting Nested Paths:** If the API response wraps actual data inside deep nested paths (e.g. `response.data.data`, `response.data.result.items`, `response.data.body.record`), extract and bubble up the actual payload from the base `response.data` to the root level instead of returning the cumbersome wrapper.
+  - **Simplifying Huge / Bloated Responses:** When an API returns a massive payload filled with internal system attributes, raw binary buffers, or noisy metadata, simplify the output by returning selective essential keys from `response.data` (e.g. `id`, `name`, `status`, `created_at`, core values) to keep downstream pill-mapping clean.
+  - **Flattening Complex Responses:** If deeply nested sub-objects create difficult mapping UX in viaSocket's variable pill picker, flatten key properties from `response.data` into a clean single-level or structured object.
+  - **Decision Rule (What Best Matches):** Base on payload complexity: (1) Clean & direct → return `response.data`; (2) Nested actual data → unnest destination path from `response.data` to root; (3) Huge/bloated → pick selective keys from `response.data`; (4) Complex nested hierarchy → flatten destination keys for intuitive mapping; (5) Multi-item array → return array `[{...}]` for engine iteration. Always anchor on `.data` first.
 - **Required-field guards**: validate every `required:true` field at top of perform — `throw` before API call if missing/empty/null.
 - **`throw` inside `try`** for validation and for 200-responses carrying error body (viaSocket reads final response code).
 - **No hard-coded input values** (except documented default fallbacks).
@@ -245,6 +245,28 @@ try {
 
 ## Response Formatting & Return Strategy
 Perform code output feeds directly into downstream steps in viaSocket workflows. Evaluate the API payload complexity and choose the return structure that provides the cleanest, most intuitive mapping experience:
+
+### 🔑 The Base `.data` Extraction Rule (CRITICAL)
+- **Always anchor on `.data`**: In viaSocket, the raw response returned by `axios` is an Axios response object. The actual API payload is ALWAYS located inside the `"data"` key (`response.data` or `{ data } = response`).
+- **Never access payload keys directly on the response wrapper**: Writing `response.id`, `response.records`, or `response.status_code` to read API payload fields is WRONG (`response` contains HTTP metadata like `status`, `headers`, `config`).
+- **Multiple API Calls**: When collecting or aggregating responses from multiple API calls (e.g. fetching a user, then their projects, or combining paginated chunks), **every single API call MUST fetch its payload from its own `"data"` key**:
+  ```javascript
+  const userRes = await axios.get('<url>/user');
+  const projectsRes = await axios.get('<url>/projects');
+
+  // Both base responses MUST be extracted from the .data key:
+  const userData = userRes.data;
+  const projectsData = projectsRes.data;
+
+  // Navigate to destination paths from each:
+  return {
+    success: true,
+    user_id: userData?.id,
+    user_name: userData?.profile?.full_name,
+    projects: projectsData?.items || projectsData || []
+  };
+  ```
+- **Navigate to Destination Path Keys**: Once the base response is extracted from the `"data"` key, you can continue navigating deeper into any destination path keys (e.g., `response.data.data.items`, `response.data.result.records`) to unnest, flatten, or select specific keys.
 
 ### 1. Default (Raw Response Data)
 Use when the API response is already clean, direct, and compact.
@@ -500,8 +522,7 @@ Caller: `try { return await fetchResources(__searchText, context?.paginateData?.
 - **P2 (UX)**: Required fields first · optional fields managed via single multiselect chooser (organize into Input Groups with `visibilityCondition`; fallback to individual fields with `visibilityCondition` if grouping not possible; always recommend input groups) · mention default values in `help` & apply fallbacks in perform code (avoid `defaultValue` key in input JSON) · hide complexity (auto-detect format).
 - **P3 (Text)**: Help: short, plain, non-technical · `label` = Title Case · `help`/`placeholder`/errors = sentence case · whereClause labels: sentence case (first capitalized, rest lowercase unless proper noun) · `customHelp`/`customInputLabel`/`customPlaceholder` valid only on dropdown/multiselect/boolean · scan for typos, trailing spaces, sibling inconsistencies.
 
-## Validation Checklist
-- Perform: wrapper correct · `axios`/`fetch` only · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards · rate-limit handled · response return matches payload complexity (raw `response.data`, metadata injection with `success`/`id`/`has_more`, unnested actual data, selective keys for bloated responses, or flattened complex objects).
+- Perform: wrapper correct · `axios`/`fetch` only · `context.inputData.<key>` mapped · endpoint matches docs · required-field guards · rate-limit handled · base return always fetches from the `.data` key of each API response (including across multiple API calls), then navigates to destination paths (raw `response.data`, metadata injection with `success`/`id`/`has_more`, unnested actual data, selective keys for bloated responses, or flattened complex objects).
 - Generator output & parameter verification: Verify GET API endpoint for `sort`, `limit`, and `search` query parameters against documented API reference (do not assume). Reusable components must only define `offset`, `limit`, or `search` params if the API explicitly supports and documents them. Dynamic dropdown returns `{data, offset}` if `canPaginate` or `enableSearchApi` is true, or `[{label, value, sample}]` if both are false/omitted. For **No Search, Only Pagination (`canPaginate: true, enableSearchApi: false`)**, output MUST be `{ data, offset }`; verify empty/zero result checks: if `!currentOffset && length === 0`, return `{ data: [], offset: null, message: 'No <resources> found.' }`; if `currentOffset && length === 0`, return `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`. Multiselect strictly returns `[{label, value, sample}]` (with client-side pagination if needed). Zero results return appropriate shape per config.
 - `help` required on input fields unless `label`+`key` are completely self-explanatory. Starts with "Enter" for string/ID fields (e.g. `"Enter a parent task ID..."`; never `"Select from the list"`). No "E.g." in `placeholder`/`customPlaceholder` — direct sample values only.
 - Standalone `help` field (`type: "help"`): Include ONLY if strictly necessary for high-impact notices (DELETE warnings, behavior-changing fields, prerequisites, manual webhook HTML, or polling math). Never add unnecessary help banner fields.
