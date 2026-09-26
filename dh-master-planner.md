@@ -39,7 +39,7 @@
   - *Note: the authorisation can be set in the `authenticationpaths` in the connection.*
 - You can access user-provided auth data in code via `context?.authData?.<field_key>` (where `<field_key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details from the Knowledge Base).
 - **Name & Description:** If a "name" (or `actionName`) is provided for the trigger or action, strictly retain the exact same name during creation. The description must always be short (≤120 characters) and accurately based on the current action's functionality.
-- **Response Return:** By default, perform code returns `response.data`. However, the response return can modify the response based on the actual data present in another key or make the output response more structured or organised.
+- **Response Return & Formatting:** By default, perform code returns `response.data`. However, intelligently format the output when appropriate: include metadata (`success: true/false`, `id`, `has_more`), unnest actual data from wrapper keys (e.g. `response.data.data`), simplify huge/bloated payloads with selective keys, or flatten complex nested responses to provide clean, intuitive mapping pills for downstream steps.
 
 ## 💬 Final Response Formatting
 After creating/improving any action or trigger, your final output MUST explicitly list:
