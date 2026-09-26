@@ -2154,6 +2154,7 @@ Generate a JSON object strictly following the rules below for an AI field.
 
 **When to Use**
 - Use an AI Field when you need an AI assistant to generate complex schemas or structured data from user inputs during configuration, which will subsequently be used in the perform code.
+- **Actions Only (Strictly Forbidden in Triggers):** Never use `aifield` in triggers (scheduled, instant, or manual). Triggers must NOT contain AI fields. If an API supports filtering for a scheduled trigger, predefined filters must be fetched from an input field (Dropdown, Multiselect, Boolean, Input Group) or added directly in the perform code.
 
 **1. Core Rules**
 - Create one input field with `type: "aifield"`.

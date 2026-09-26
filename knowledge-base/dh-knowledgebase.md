@@ -82,6 +82,10 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
   - *Sample*: Returns single object (latest real record else fallback `{ viasocket_help, ...schema }`).
   - *Perform/Modify*: Reshapes payload or fetches details from ID. Return `[]` to filter/stop execution. Can be empty (auto-returns `context?.req?.body`). Manual triggers can only reshape payload (no auth).
   - *Transfer*: Bulk-pull history ($\le$200/batch) for new-event triggers only.
+- **No AI Field in Triggers**: `aifield` is strictly forbidden in triggers (Actions only).
+- **Scheduled Trigger Filtering**: If the target API supports filtering, predefined filters must either be:
+  1. Exposed as standard input fields (`dropdown`, `multiselect`, `boolean`, or `input groups`) for user configuration, OR
+  2. Added / hardcoded directly in the `perform` code (via query parameters or client-side filtering).
 
 ## Actions
 Single `perform` execution block using `context.inputData`.
@@ -131,7 +135,7 @@ Single `perform` execution block using `context.inputData`.
 | **DELETE** | String(ID) $\rightarrow$ HelpStatic(irreversibility warning) |
 
 **Category Deltas**
-- **Scheduled**: Never expose pagination fields (`limit`, `page_size`, `cursor`) or `scheduledTime` in UI. Perform returns single-page fetch capped at $\le$1000 items (no internal while loops).
+- **Scheduled**: No `aifield` (triggers strictly forbid AI fields). Never expose pagination fields (`limit`, `page_size`, `cursor`) or `scheduledTime` in UI. If API supports filtering, predefined filters must either be fetched from input fields (Dropdown, Multiselect, Boolean, Input Group) or added directly in `perform` code (query params or client-side filtering). Perform returns single-page fetch capped at $\le$1000 items (no internal while loops).
 - **Manual**: Single static `help` field only. Must use strict 2-part format: `🔗 Webhook Setup Guide` $\rightarrow$ setup list + `📤 What happens next?` $\rightarrow$ explanation list. No intermediate text.
 - **GET**: Include custom manual-ID triplet (`customHelp`, `customInputLabel`, `customPlaceholder`).
 - **LIST**: Combines modes via `mode` dropdown. Search by ID performs direct GET (no pagination). Multiselect return fields: omit `defaultValue`; mention defaults in `help` and fallback in perform code.
@@ -152,7 +156,7 @@ Every field requires: `key` (pattern `^[^.\[\]]*$`), `type`, `label`, `help`, `r
 | `dropdown` (dynamic) | `optionsGenerator`, `customPlaceholder`, `customInputLabel`, `customHelp` | Output structure depends on verified flags:<br>• `canPaginate: true` or `enableSearchApi: true` $\rightarrow$ `{ data: [{label, value, sample}], offset }`.<br>• Both false/omitted $\rightarrow$ `[{ label, value, sample }]`.<br>• Zero results (pagination only): `!offset && length===0` $\rightarrow$ `{ data: [], offset: null, message: "No <resources> found." }`; `offset && length===0` $\rightarrow$ `{ data: [], offset: null, message: "<Resources> Fetched Successfully" }`.<br>• Zero results (search+pagination): preserve offset `{ data: [], offset: currentOffset, message }`. |
 | `multiselect` (static) | `options`, `customInputLabel`, `customPlaceholder`, `customHelp` | Options array. `customPlaceholder` is array string (e.g., `"[\"opt1\"]"`). |
 | `multiselect` (dynamic) | `optionsGenerator`, `customPlaceholder`, `customInputLabel`, `customHelp` | **Strictly returns flat array `[{ label, value, sample }]`**. No `canPaginate`/`enableSearchApi`. If calling paginated source, loop internally to aggregate all pages. |
-| `aifield` | `prompt`, `suggestionGenerator` | AI builds JSON at config time. Output raw JSON object. Quote string templates (`"${...}"`). |
+| `aifield` | `prompt`, `suggestionGenerator` | **Actions only — strictly forbidden in triggers**. AI builds JSON at config time. Output raw JSON object. Quote string templates (`"${...}"`). |
 | `help` (static) | `help` only | Standalone UI notice. No `label`/`required`/`placeholder`. |
 | `help` (dynamic) | `source` | `source` JS returns `{ message }`. |
 | `input groups` (static) | `fields` | Nestable child fields. `whereClause: true` renders sentence UI. |
@@ -298,6 +302,7 @@ return {
 - Single-page fetch ($\le$1000 items); no internal loops.
 - **Lookback Math**: `const t = new Date(new Date(__executionStartTime__).getTime() - (context?.inputData?.scheduledTime || 15) * 60000);`
 - **Upcoming Event Math**: Snap execution time to polling window, parse offset, widen API bounds by $\pm$1m (60,000ms), and filter strictly in JS client: `eventStartMs >= windowStartMs && eventStartMs < windowEndMs`.
+- **Filtering**: If API supports filtering, apply predefined filters in request query params (using values from input fields or hardcoded defaults) or filter client-side in perform code.
 - **Advance Cursor**: Update `context.paginationData = res.data.next_cursor` ONLY if filtered items are non-empty and cursor exists.
 
 ## Action Perform Template
@@ -390,6 +395,7 @@ Dynamic URLs to access plugs, triggers, and actions in viaSocket Developer Hub.
 - Verified API query parameters: `sort`, `limit`, `search` verified against official docs before configuring flags.
 - Reusable components declare only documented params.
 - Scheduled perform returns single-page array ($\le$1000 items); pagination cursor never cleared in `else`.
+- No AI field in triggers (`aifield` strictly forbidden in triggers; actions only). In scheduled triggers, predefined API filters must be fetched from input fields or handled directly in perform code.
 
 **P2 (UX Architecture)**
 - Required fields first; optional fields grouped in Input Groups governed by a single multiselect chooser.
