@@ -34,14 +34,15 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
 # Universal Rules
 *Invariants across all plugs. Stated once—never repeated.*
 
-1. **API Docs = Ground Truth**: Overrides user cURL. Every documented parameter (path, query, body, headers, filters) → UI input or code. Never invent or omit parameters, and never assume `sort`/`limit`/`search`/pagination support—verify in official docs first.
+1. **API Docs = Ground Truth**: Overrides user cURL. Every documented parameter (path, query, body, headers, filters) → UI input or code; payload shape and endpoint match the API exactly. Never invent or omit parameters, and never assume `sort`/`limit`/`search`/pagination support—verify in official docs first. Undocumented endpoint → confirm with provider or state the limitation.
 2. **Authentication**: The viaSocket connection (`authenticationpaths`) injects auth into header/query/body. Never add, hardcode, or expose auth or secrets in code or payloads; flag direct auth usage. Add only extra non-standard headers/params the API needs. Non-secret auth metadata (domain, account ID): `context?.authData?.<key>`. Never ask for `pluginrecordid` or `authid`.
 3. **JSON Schema (`inputjson`)**: `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
    - Author only `inputFields`. `steps`/`blocks` are engine-generated: pass real empty objects `{}`, never strings `"{}"`.
    - **NO `"item"` WRAPPERS** on any array (`inputFields`, `options`, …): ❌ `{"inputFields": {"item": [...]}}` | ✅ `{"inputFields": [...]}`
-   - Valid JSON only; no comments or undocumented keys.
+   - Valid JSON only (no duplicate keys, broken escaping, missing commas); no comments or undocumented keys.
+   - No hardcoded input values or secrets in fields (documented default fallbacks in code excepted).
 4. **Error Handling**:
-   - Perform, trigger blocks, `optionsGenerator`: `catch (error) { await errorComponent(error); }`. Never modify, throw, or return the error—the engine detects failure via `errorComponent`.
+   - Perform, trigger blocks, `optionsGenerator`: `catch (error) { await errorComponent(error); }`. Never modify, throw, or return the error (no `return` needed after it)—the engine detects failure via `errorComponent`.
    - Reusable components: `catch (error) { throw error; }`; validations throw structured fallbacks.
    - Dynamic help `source`: catch returns `{ message }`.
    - Inside `try`, `throw new Error('<clear message>')` for missing required inputs and for 200 responses carrying error bodies (prevents false success).
@@ -53,6 +54,9 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - Validate every `required: true` field at the top of the code; throw before the API call if missing/empty.
    - **Dependent Required**: an optional parent revealing a child needed for that choice → child `required: true` AND code throws when the parent is set but the child is missing.
    - **No `defaultValue` Key**: state the default in `help`; apply the fallback in code (`context.inputData?.limit || 10`; booleans `?? true`).
+   - **Derived Values** (e.g. mimetype from URL): always a safe fallback if derivation fails.
+   - **Rate Limits**: API calls in loops respect limits (sequential + delay, retry, rate-limit headers); never `Promise.all` over paginated calls to rate-limited APIs.
+   - **Internal Pagination** (looping pages in one run): only for "list all" or when a user flag (Enable Pagination off) asks for it.
 8. **Dropdown Priority**: Dynamic dropdown/multiselect over text for every ID/resource reference—UPDATE included. Build required parent dropdowns; never bypass them. Exceptions only:
    - Category `DELETE` (string ID only).
    - IDs passed from upstream steps with no list API.
@@ -106,13 +110,16 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 - **Optional Fields & Input Groups (Mandatory)**: Multiple optional fields → one multiselect chooser ("Select Additional Fields") revealing Input Groups, with `visibilityCondition` on the group (e.g. `Array.isArray(context?.inputData?.additional_fields) && context.inputData.additional_fields.includes('address_details')`). If grouping is impossible, condition each field.
 - **Structural Respect**: enums → dropdowns; arrays → repeating input groups; nested objects → input groups. Never fabricate unsupported UI.
 - **Dynamic Schema**: select module/resource → fetch its schema → render only relevant fields (`fieldsGenerator`), mapping API types to matching field types (not all strings).
-- **Partial Updates**: Send only user-filled fields; strip `undefined`, `null`, `''`.
-- **Stable Identifiers**: Prefer email/external ID/slug over volatile DB IDs.
+- **Partial Updates**: Send only user-filled fields; strip `undefined`, `null`, `''` (send them only when the user explicitly clears a field)—prevents data erasure.
+- **Stable Identifiers**: Prefer email/external ID/slug over volatile DB IDs; never make users copy internal system IDs (GUIDs) when a stable value exists.
+- **Response Size**: Small/flat → full payload. Large/nested → Basic vs Detailed mode (key identifiers by default).
+- **No Raw Schemas**: Never mirror raw API structure onto the UI; design per field types.
 - **Units & Formats**: Accept human units (days, relative dates); convert to machine units (epoch, ISO) in code—never make users compute timestamps. Infer content format (HTML vs text) internally instead of exposing a selector.
 - **Coded Values**: API codes (`1 = Male`) → dropdown if mapping is stable, else explain the mapping in `help`.
 - **Workflow Purity**: Flows are `Trigger → Action`; formatting/mapping lives in perform code, not a JS step. Config values are static; data resolves at runtime.
 - **List Inputs**: `list: true` (+ `limit: N`) only for static preconfiguration—mainly Triggers, which receive no upstream data. In Actions, use `string` accepting comma-separated values (or an array); split in code.
-- **Idempotency**: Prevent duplicate executions; safe across 1000+ runs.
+- **Idempotency**: Safe across 1000+ runs; each action defines its duplicate-prevention keys and how upsert/create-if-missing behaves at volume. Flag designs that duplicate or overwrite on repeat runs.
+- **Trade-Offs**: When rules conflict, choose the lowest long-term risk across user complexity, runtime stability, API load/rate limits, and maintainability/backward compatibility. Final check: usable by a non-technical business owner, no needless technical exposure, acceptable worst-case scaling, clean workflow.
 
 **Cross-Cutting Patterns**
 - *Existing-vs-Inline Fork*: boolean/static dropdown branches "existing record (ID)" vs "inline details" (or link-existing vs create-related); gate each branch; never show both.
@@ -194,7 +201,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 **Common Keys**
 - `key`: unique, stable identifier (`message_type`). Static keys match `^[^.\[\]]*$`; `fieldsGenerator` children may contain `.`/`[]` (no normalization).
 - `label`: clean, human-readable name.
-- `help`: omit only when label + key are self-explanatory (`first_name`). Starts with `"Enter"` (text inputs, dictionary, aifield, groups) or `"Select"` (dropdown, multiselect, boolean). Crisp; markdown links allowed (`[Learn More](https://...)`).
+- `help`: omit only when label + key are self-explanatory (`first_name`). Starts with `"Enter"` (text inputs incl. string ID fields—never "Select from the list", dictionary, aifield, groups) or `"Select"` (dropdown, multiselect, boolean). Short, plain, non-technical; markdown links allowed (`[Learn More](https://...)`). Length limits apply to `help` keys, not `type: "help"` panels.
 - `required`: an empty required field blocks the run with a UI error.
 - `placeholder`: always a string (`"100"`, `"true"`), concrete, no `"E.g."`. Required for text inputs; optional for `aifield` and for dropdown/multiselect/boolean (defaults to `"Choose <label>"`).
 - `visibilityCondition`: only when dependent; else omit.
@@ -235,7 +242,7 @@ Set flags from verified API capability; an existing component that already pagin
 - Search text: `__searchText`. Cursor: `context?.paginateData?.['<key>']`; inside groups `['<group>.<key>']` (nested group keys in order).
 - Prefer a reusable component. Inline code defines the function and invokes it at the end, inside `try/catch → errorComponent`.
 
-**Custom Mapping Mode** (dropdown, multiselect, boolean—static and dynamic; triplet mandatory)
+**Custom Mapping Mode** (dropdown, multiselect, boolean—static and dynamic; triplet mandatory there, invalid on other types)
 - **Standard Mode**: shows `label` (`"Page"`), `help` (`"Select..."`), `placeholder`.
 - **Custom Mapping Mode**: the field becomes a string input showing:
   - `customInputLabel`: short; never starts with "Enter". ID fields → `"<Entity> ID"` (`"Page"` → `"Page ID"`); otherwise equals `label`.
@@ -480,9 +487,9 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
   ```
   *(Non-paginated: `throw { message: 'Select a <parent> first.' };`)*
 - **Output Formats**: Non-paginated `[{ label, value, sample }]`; paginated `{ data: [{ label, value, sample }], offset: string|number|null }`; zero results and search-cursor handling per **Dynamic Dropdown**.
-- **Parameter Strictness**: `offset`/`limit`/`search` params ONLY if documented. Never read `context.inputData`, `__searchText`, or `context.paginateData` inside the component—pass every input path as a param.
+- **Parameter Strictness**: `offset`/`limit`/`search` params ONLY if documented; these and parent paths are optional params—validate only required ones. Never read `context.inputData`, `__searchText`, or `context.paginateData` inside the component—pass every input path as a param.
 - **Client-Side Pagination**: Paginated component (`{ data, offset }`) inside a non-paginated dropdown (`canPaginate: false`) or dynamic multiselect → `optionsGenerator` loops all pages and returns a flat array.
-- **Reuse & Update**: Search existing components first; reuse if suitable. Mapped/active: never change `function_name`/`params`—code-only changes update in place (tell the user); new params needed → propose a new component (tell the user one exists). Unused: fully editable.
+- **Reuse & Update**: Search existing components first; reuse if suitable. Mapped/active: never change `function_name`/`params`—code-only changes update in place; new params needed → new component. Unused: fully editable.
 - **Mapping Requirement**: Every component called in generators or code blocks must be mapped (see Mapping payload).
 
 ---
@@ -532,6 +539,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Zero results return an informative `{ message }` or valid empty payload per flag combination.
 - No auth in code; Manual triggers send no `authid` and make no API calls.
 - Required inputs (dependent required included) validated before API calls.
+- Payload shape/endpoint match the API; all documented params supported; derived values have fallbacks.
 
 **P1 (Functional & Automation)**
 - Dynamic dropdowns for IDs (except DELETE or unlisted upstream IDs); parent dropdowns never bypassed.
@@ -539,6 +547,8 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Scheduled perform: single page ≤1000; cursor advanced only on results + token, never reset; `canpaginate: true` when used; no pagination or `scheduledTime` fields.
 - Sample returns one object with `viasocket_help`; Transfer only on new-event triggers, ≤200 per batch.
 - No `aifield` in triggers; trigger filters via input fields or perform code. Every `aifield` has `suggestionGenerator`.
+- Repeat-safe (no duplicates/overwrites on reruns); rate limits respected in loops; internal pagination only when justified.
+- Don't flag: either code format, structured/selective returns, omitted default-false booleans, omitted self-explanatory `help`.
 
 **P2 (UX Architecture)**
 - Required fields first; optional fields grouped in Input Groups governed by a single multiselect chooser.
@@ -549,5 +559,6 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 **P3 (Copy & Formatting)**
 - Names and descriptions follow Naming Conventions.
 - Field `help` starts with `"Enter"` for inputs/IDs and `"Select"` for dropdowns/booleans; custom triplet present; `customInputLabel` never starts with "Enter".
-- Casing: Labels in Title Case (sentence case inside whereClause); help and placeholders in sentence case; no `"(optional)"`.
+- Casing: Labels in Title Case (sentence case inside whereClause); help, placeholders, and error messages in sentence case; no `"(optional)"`.
+- Consistency: no typos or trailing spaces; wording, casing, and punctuation match sibling fields and actions.
 - Placeholders are concrete examples, typed as strings, with no `"E.g."`.
