@@ -72,7 +72,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
 - **Selection Priority** (type unspecified): Instant → Scheduled → Manual → ask user for type + API docs/cURL. May also ask the type upfront.
 - **Block Execution**:
   - *Subscribe*: flow publish, status → active, trigger config change (new config). Registers webhook; returns subscription data for Unsubscribe.
-  - *Unsubscribe*: flow trashed, status → inactive, trigger config change (old config). Uses `context?.inputData?.performsubscribe`.
+  - *Unsubscribe*: flow trashed, status → inactive, trigger config change (old config). Uses `context?.inputData?.performsubscribe` + user inputs.
   - *Sample*: `Test` click; output feeds Modify if present, else next steps.
   - *Modify*: on Test (input = Sample output) and live runs (input = webhook body; Sample skipped). Optional.
   - *Perform* (Scheduled): every poll interval.
@@ -161,7 +161,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 | **Manual** | Standalone static `help` field only |
 | **GET** | DynDropdown(parent) → DynDropdown/String(ID) → DynMultiselect(fields)? → Group(options)? |
 | **LIST** | DynDropdown(parent) → DropdownStatic(Mode: List All, Search by…, Search by ID, Advance Search) → DropdownStatic(`find_by`)? → Boolean(Enable Pagination)? → Group(limit, offset)? → String(search/ID input)? → AIField? → Group(filters)? → DynMultiselect(return fields)? |
-| **FIND/SEARCH** | DynDropdown(parent) → DynDropdown(child)? → Boolean(Basic/Advanced) → Group(search: Boolean(config)?, DynDropdown(column), DropdownStatic(operator)?, String(value) or AIField, HelpStatic?) → Boolean(bulk)? → Group(sort field, direction, limit)? → DropdownStatic(response mode)? → DynMultiselect(return)? |
+| **FIND/SEARCH** | DynDropdown(parent) → DynDropdown(child)? → Boolean(Basic/Advanced) → Group(search: Boolean(config)?, DynDropdown(column), DropdownStatic(operator)?, String(value) or AIField, HelpStatic?) → Boolean(bulk)? → Group(sort field, direction, limit)? → DropdownStatic(response mode)? → DynMultiselect(return columns) |
 | **CREATE** | DynDropdown(parent) → DynDropdown(child)? → Boolean? → DynMultiselect(field chooser)? → DynGroup(`fieldsGenerator`) → AIField? → Dictionary? |
 | **UPDATE** | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(ID) → Multiselect(chooser)? → Group(known fields, each gated) or DynGroup(schema fields) |
 | **FIND OR CREATE** | DynDropdown(parent) → DynDropdown(child)? → Group(search: AIField, or DynDropdown(field) + String(value)) → Boolean(`create_if_not_found`) → DynGroup(create fields) → DynMultiselect(create fields)? |
@@ -177,7 +177,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 - **GET**: Custom triplet guides ID mapping from prior steps. Single record (many → LIST). Handle 404. Reports/analytics: `date_mode` + hardcoded metric set.
 - **LIST**:
   - *List All*: Enable Pagination true → one request with `limit`/`offset`; false → loop all pages internally.
-  - *Search by…*: `find_by` when several attributes (Name/Email vs Employee ID); input visibility chained on `mode` + `find_by`; pagination UI only if the identifier is non-unique.
+  - *Search by…*: `find_by` when several attributes (Name/Email vs Employee ID); input visibility chained on `mode` + `find_by`; non-unique identifier → pagination UI required (same on/off behavior as List All); unique → none.
   - *Search by ID*: direct GET; no pagination.
   - *Advance Search*: only if the API supports advanced filtering; AIField.
   - Filters group only for narrowing modes (may hold an AIField for date normalization). Return-field multiselect empty → all fields (curated defaults stated in `help`). Comma-separated multi-lookups.
@@ -255,7 +255,7 @@ Set flags from verified API capability; an existing component that already pagin
 Dynamic help serves these via live checks: auth/permissions, resource existence, eligibility, unsupported settings, previews.
 
 **whereClause** (static input groups only)
-Children render inline as a sentence (end users see it without edit mode), e.g. *"When commented on [specific media] Media [choose media]"*. Group `label`/`help` optional. Prefer `dropdown`/`multiselect` children (others may not render inline). Labels in sentence case: first child capitalized (`"When commented on"`), later ones lowercase (`"posted after date"`) except proper nouns (`"Media"`).
+Children render inline as a sentence (end users see it without edit mode), e.g. *"When commented on [specific media] Media [choose media]"*. Group `label`/`help` optional. Children: `dropdown`/`multiselect` only (other types don't render inline). Labels in sentence case: first child capitalized (`"When commented on"`), later ones lowercase (`"posted after date"`) except proper nouns (`"Media"`).
 
 ---
 
@@ -433,7 +433,7 @@ return {
 
   const timeMin = new Date(windowStartMs - 60000).toISOString(); // ±1m API buffer
   const timeMax = new Date(windowEndMs + 60000).toISOString();
-  // Post-fetch strict filter: eventStartMs >= windowStartMs && eventStartMs < windowEndMs
+  // Post-fetch strict filter (one tick per item): eventStartMs >= windowStartMs && eventStartMs < windowEndMs (or > start && <= end)
   ```
   Fetch each selected resource once (`singleEvents: true`); tag items with `resourceId`. Google Meet: match `/meet\.google\.com/i` across `conferenceData.entryPoints`, `location`, `description`.
 
@@ -455,6 +455,7 @@ return await executeAction();
 ```
 - **FIND OR CREATE**: search → return existing if found → else create when `create_if_not_found ?? true`.
 - **GET / DELETE**: treat 404 as not found / already deleted.
+- **FIND / SEARCH**: no match → empty success result (`{ success: true, items: [] }`), not an error.
 
 ---
 
@@ -489,7 +490,7 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
 - **Category**: operation (`GET`, `CREATE`, `UPDATE`, `DELETE`, `FIND`, `FIND OR CREATE`, `CREATE OR UPDATE`). **Sub Category**: UPPERCASE business entity tag (`PAGE`, `DATA SOURCE`), consistent across related plugs. Both `""` for triggers.
 - Updates send only changed keys. `sampledata`?: sample output object aiding flow mapping.
 - **Action**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` (bool), `type: 'action'`, `category`, `sub_category`, `rtllayer` (bool), `isAIActionTrigger` (bool), `isUserOnDh` (bool), `functionId` (version row ID; required on update), `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `perform`, `authid`?, `metadata: {chatbotthreadid}`?, `sampledata`?.
-- **Trigger**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` (bool), `ignoreuniversalsampledata` (bool), `preferred_step_name` (usually `''`), `type: 'trigger'`, `triggertype`, `category: ''`, `sub_category: ''`, `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `authid`? (never for Manual), `sampledata`?, plus:
+- **Trigger**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` (bool), `ignoreuniversalsampledata` (bool), `preferred_step_name` (usually `''`), `type: 'trigger'`, `triggertype`, `category: ''`, `sub_category: ''`, `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `authid`? (never for Manual), `sampledata`?, plus its type's block keys—all required on create (`""` for an empty optional block):
   - *Instant*: `performsubscribe`, `performunsubscribe`, `performlist`, `modifytriggerdata`, `transferoption`.
   - *Scheduled*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (allowed minutes; `[]` = all; restrict e.g. `[5, 15, 60, 720, 1440]` for rate limits), `canpaginate` (`true` when perform uses `context.paginationData`).
   - *Manual*: `performlist`, `modifytriggerdata`.
