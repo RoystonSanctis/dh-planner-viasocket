@@ -203,7 +203,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 | Type | Additional Keys | Constraints & Behavior |
 |---|---|---|
 | `string`, `number`, `html`, `markdown` | `placeholder`, `list`?, `limit`? | By purpose: amount/price/count/quantity → `number`; rich HTML → `html`; Markdown → `markdown`; else `string`. `list` only on string/number; `limit` only with `list: true`. |
-| `date` | `placeholder`, `dateFormat` | `dateFormat`: `YYYY-MM-DDTHH:mm:ssZ`, `YYYY-MM-DD HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss`. Code receives the value in that format (`string` passes raw). Placeholder in the exact format. Other formats → `string` + format in `help`. |
+| `date` | `placeholder`, `dateFormat` | `dateFormat`: `YYYY-MM-DDTHH:mm:ssZ`, `YYYY-MM-DD HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss Z`, `MM-DD-YYYY HH:mm:ss`. Code receives the value in that format (`string` passes raw). `help` states the format; placeholder uses it exactly. Other formats → `string` (same `help` rule). |
 | `dictionary` | `template` | Variable key-value pairs (headers, metadata, buttons). Fixed template, never altered: `{key: {type: "string", placeholder: "Enter key"}, value: {type: "string", placeholder: "Enter value"}}`. |
 | `boolean` | `options`, custom triplet | Exactly 2 `{label, value}`, true first. Labels may vary (Yes/No, Basic/Advanced); label may be a question. |
 | `dropdown` (static) | `options`, custom triplet | Single select. Fixed `options: [{label, value, sample?, extraValue?}]`; `value` string/number. |
@@ -217,7 +217,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 | `input groups` (dynamic) | `fieldsGenerator` | Returns an array of complete fields (any type, nested groups included) or `{ message }` (UI warning box). Reads `context?.inputData?.['<key>']`. |
 
 **Options** (dropdown & multiselect)
-- `sample` must equal `value` (UI shows it in brackets); required when `value` is an ID; omit when identical to `label`.
+- `sample`: string equal to `value` (`value: 100` → `sample: "100"`; UI shows it in brackets); required when `value` is an ID; omit when identical to `label`.
 - `extraValue` (dropdown only; any JSON type): hidden metadata for visibility, generators, and code at `context?.inputData?.<key>_extraValue`.
 
 **Dynamic Dropdown**
@@ -228,9 +228,10 @@ Set flags from verified API capability; an existing component that already pagin
 | Neither | false | false | `[{ label, value, sample }]` | `{ message: "No <resources> found." }` |
 | Search only | false | true | `{ data: [...], offset }` | `{ message: "No <resources> found." }` |
 | Pagination only | true | false | `{ data: [...], offset }` | First page (`!offset`): `{ data: [], offset: null, message: "No <resources> found." }`<br>Later page: `{ data: [], offset: null, message: "<Resources> Fetched Successfully" }` |
-| Both | true | true | `{ data: [...], offset }` | `{ data: [], offset: <current offset>, message }`—ignore the search API's offset so exiting search resumes paging |
+| Both | true | true | `{ data: [...], offset }` | `{ data: [], offset: <current offset>, message }` |
 
 - `offset` = next cursor; `null` at the end.
+- Both flags, while `__searchText` is set: don't send the stored cursor; return the current cursor as `offset` (ignore the search API's) so exiting search resumes paging.
 - Search text: `__searchText`. Cursor: `context?.paginateData?.['<key>']`; inside groups `['<group>.<key>']` (nested group keys in order).
 - Prefer a reusable component. Inline code defines the function and invokes it at the end, inside `try/catch → errorComponent`.
 
@@ -242,6 +243,7 @@ Set flags from verified API capability; an existing component that already pagin
     - Dynamic: `"Enter the Spreadsheet ID manually. You can get it from actions like List Spreadsheets or Find Spreadsheet."`
     - Static, few options: list values + effect (`"Enter 'text', 'image', or 'audio' to set message type."`); many: `"Enter <label> to <benefit>."`
     - Boolean: `"Enter true to <outcome>, or false to <outcome>."`
+    - Multiselect: also say values go in array format.
   - `customPlaceholder`: concrete value (`"true"`, `"page_123"`); multiselect → serialized array (`"[\"title\",\"status\"]"`).
 
 **Standalone Help Field (`type: "help"`) — Strict Rule**
@@ -255,7 +257,7 @@ Set flags from verified API capability; an existing component that already pagin
 Dynamic help serves these via live checks: auth/permissions, resource existence, eligibility, unsupported settings, previews.
 
 **whereClause** (static input groups only)
-Children render inline as a sentence (end users see it without edit mode), e.g. *"When commented on [specific media] Media [choose media]"*. Group `label`/`help` optional. Children: `dropdown`/`multiselect` only (other types don't render inline). Labels in sentence case: first child capitalized (`"When commented on"`), later ones lowercase (`"posted after date"`) except proper nouns (`"Media"`).
+Children render inline as a sentence (end users see it without edit mode), e.g. *"When commented on [specific media] Media [choose media]"*. Group `label`/`help` optional. Prefer `dropdown`/`multiselect` children (other types may not render inline). Labels in sentence case: first child capitalized (`"When commented on"`), later ones lowercase (`"posted after date"`) except proper nouns (`"Media"`).
 
 ---
 
@@ -477,7 +479,7 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
   }
   ```
   *(Non-paginated: `throw { message: 'Select a <parent> first.' };`)*
-- **Output Formats**: Non-paginated `[{ label, value, sample }]`; paginated `{ data: [{ label, value, sample }], offset: string|number|null }`; zero results per **Dynamic Dropdown** table. Search + pagination with empty search results → return the current cursor as `offset`.
+- **Output Formats**: Non-paginated `[{ label, value, sample }]`; paginated `{ data: [{ label, value, sample }], offset: string|number|null }`; zero results and search-cursor handling per **Dynamic Dropdown**.
 - **Parameter Strictness**: `offset`/`limit`/`search` params ONLY if documented. Never read `context.inputData`, `__searchText`, or `context.paginateData` inside the component—pass every input path as a param.
 - **Client-Side Pagination**: Paginated component (`{ data, offset }`) inside a non-paginated dropdown (`canPaginate: false`) or dynamic multiselect → `optionsGenerator` loops all pages and returns a flat array.
 - **Reuse & Update**: Search existing components first; reuse if suitable. Mapped/active: never change `function_name`/`params`—code-only changes update in place (tell the user); new params needed → propose a new component (tell the user one exists). Unused: fully editable.
