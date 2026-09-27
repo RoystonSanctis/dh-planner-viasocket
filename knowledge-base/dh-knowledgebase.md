@@ -16,6 +16,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
 - Perform Code & Response Formatting
   - Code Structure
   - Clean Code Principles
+  - Response Return Patterns
   - Libraries & Globals
 - Code Skeletons
   - Instant Subscribe & Unsubscribe
@@ -319,7 +320,8 @@ Lean, readable, native JS; no bloat or wrapper gymnastics.
 - **URL IDs**: `encodeURIComponent(id)`.
 - **String Newlines**: In stringified code (`perform`, `testcode`), use raw `\n`, never double-escaped `\\n`.
 
-**Response Return Patterns (Always Anchor on `.data`)**
+## Response Return Patterns
+*Always anchor on `.data`.*
 ```javascript
 // 1. Direct Return (Clean API responses)
 return response.data;
