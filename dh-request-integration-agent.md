@@ -62,7 +62,7 @@ Determine the starting point based on plug status and auth context:
 - **When to provide URL:** 
   1. If the plug already exists and is available in search for status `publish`, `unpublish`, and `integration_only`.
   2. When a new plug is created.
-- **Empty URL (`url: ""`):** If the request is invalid, or the API doc is not available and no app is available in search, or `pluginId` is missing.
+- **Empty URL (`url: ""`):** In case no app exists and none was created (or the request is invalid, API doc is unavailable and no app is found in search, or `pluginId` is missing).
 - **New App URL:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
 - **Action / Trigger URL (Create or Improve):** `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
   - *Fallback:* If IDs are missing, NEVER hallucinate. Fall back to the App Analytics URL.
@@ -94,18 +94,59 @@ Determine the starting point based on plug status and auth context:
                 "type": "boolean",
                 "description": "Indicates if any tool call encountered a failure or error during the required step process."
             },
+            "app_exists": {
+                "type": "boolean",
+                "description": "Whether this app already has a plug in the registry, confirmed against the provided context."
+            },
+            "app_created": {
+                "type": "boolean",
+                "description": "Whether a new plug was created (true if newly created, false if it already existed or could not be created)."
+            },
+            "pluginId": {
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "description": "The existing plug's ID if app_exists is true or newly created plug's ID; null otherwise."
+            },
+            "doc_url": {
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "description": "The public API documentation URL verified via web search; null if none could be confirmed."
+            },
+            "app_domain_url": {
+                "type": "string",
+                "description": "The resolved root domain of the app's main website (e.g., 'commercelayer.io'). Strictly strip 'https://', 'http://', 'www.', URL paths, and all subdomains (such as 'api.', 'docs.', 'yourdomain.'). Note that doc_url may be hosted on a different platform/subdomain, but this field must strictly be the clean parent domain."
+            },
+            "doc_confidence": {
+                "type": "string",
+                "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                ],
+                "description": "Confidence that doc_url is complete, current, and authoritative."
+            },
             "ai_review_notes": {
                 "type": "string",
                 "description": "Short, to-the-point, and well-formatted summary of the final verdict and reasoning. If has_error is true, concisely specify which tool steps succeeded and which specific step(s) failed or caused a halt."
             },
             "url": {
                 "type": "string",
-                "description": "The final generated URL based on the operation performed. Determine the base URL dynamically based on environment ('prod' -> https://flow.viasocket.com/, 'testing' -> https://dev-flow.viasocket.com/, 'local' -> http://localhost:3000/). It should be provided in two cases: 1) if the plug already exists and is available in search for status publish, unpublish, and integration_only, or 2) when a new plug is created. If the request is invalid, or the API doc is not available and no app is available in search, the url should be empty. Format: For New App created: <baseUrl>developer/<orgId>/plugin/<pluginId>/analytics. For New Action / New Trigger / Improvement: <baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; fall back to analytics URL if missing)."
+                "description": "The final generated URL based on the operation performed. Determine the base URL dynamically based on environment ('prod' -> https://flow.viasocket.com/, 'testing' -> https://dev-flow.viasocket.com/, 'local' -> http://localhost:3000/). Complete URL must be provided in both cases: 1) if the plug already exists, or 2) when a new plug was created. In case no app exists and none was created (or the request is invalid / docs unavailable), url must strictly be an empty string (\"\"). Format: For App: <baseUrl>developer/<orgId>/plugin/<pluginId>/analytics. For Action / Trigger: <baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId> (NEVER hallucinate IDs; fall back to analytics URL if missing)."
             }
         },
         "required": [
             "request_approved",
             "has_error",
+            "app_exists",
+            "app_created",
+            "pluginId",
+            "doc_url",
+            "app_domain_url",
+            "doc_confidence",
             "ai_review_notes",
             "url"
         ],

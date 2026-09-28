@@ -23,16 +23,25 @@ Evaluate the user's input to decide if the request is valid:
 - **Domain Extraction Rule:** When extracting the `app_domain_url`, it **MUST** be the clean root parent domain only. Strip `http://`, `https://`, `www.`, URL paths, and **ALL** subdomains (e.g., `api.`, `docs.`, `yourdomain.`).
   - *Example:* If docs are at `https://docs.commercelayer.io/core`, the `app_domain_url` must strictly be `"commercelayer.io"`.
 
-### 3. Registry & Capability Cross-Reference (`app_exists`, `plugin_id`, `action_id`, `action_version_id`)
+### 3. Registry & Capability Cross-Reference (`app_exists`, `pluginId`, `action_id`, `action_version_id`)
 - Check the **📥 Inputs & Context** to see if the requested application already exists in our system.
-- Extract the `plugin_id` and `app_status` if it exists. If it does not exist, set `app_status: "not_found"` and `plugin_id: null`.
+- Extract the `pluginId` and `app_status` if it exists. If it does not exist, set `app_status: "not_found"` and `pluginId: null`.
 - If the request involves an improvement or modification to an existing action or trigger, check the `Inputs & Context` for the list of existing capabilities and their published or draft versions. Extract the actual `action_id` and the specific draft `action_version_id`. If creating a brand new capability or if no existing record matches, set `action_id` and `action_version_id` to `null`.
+
+### 4. URL Resolution (`url`)
+- **`url`**: Determine the base URL dynamically based on `environment` from Inputs & Context (`"prod"` -> `https://flow.viasocket.com/`, `"testing"` -> `https://dev-flow.viasocket.com/`, `"local"` -> `http://localhost:3000/`).
+  - **Complete URL provided in both cases:**
+    1. If the plug already exists (`app_exists: true`)
+    2. When a new plug is created
+    - *Format for App:* `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
+    - *Format for Action / Trigger:* `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>` (NEVER hallucinate IDs; fall back to the analytics URL if IDs are missing).
+  - **Empty URL (`url: ""`):** In case no app exists and none was created (`app_exists: false`, such as when the request is invalid, API docs are unavailable, or `pluginId` is missing).
 
 ## 📤 Output JSON Schema
 You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
 
 ## 📥 Inputs & Context
-*(Use this data to cross-reference `app_exists`, `plugin_id`, `app_status`, `action_id`, and `action_version_id`)*
+*(Use this data to cross-reference `app_exists`, `pluginId`, `app_status`, `action_id`, and `action_version_id`)*
 
 {{pre_function}}
 
@@ -42,6 +51,7 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
 - `actionId`: {{actionId}}
 - `actionType`: {{actionType}}
 - `service`: {{service}}
+- `environment`: {{environment}}
 
 ### Example Output Payload
 
@@ -51,7 +61,7 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
   "invalid_reason": "",
   "app_name": "Commerce Layer",
   "app_exists": true,
-  "plugin_id": "plugin_xxx",
+  "pluginId": "plugin_xxx",
   "app_status": "Published (Public)",
   "action_id": "action_xxx",
   "action_version_id": "action_version_xxx",
@@ -63,7 +73,8 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
   "capability_type": "action",
   "requested_change": "create",
   "ambiguities": [],
-  "use_case": "Create customer in Commerce Layer when a new user signs up"
+  "use_case": "Create customer in Commerce Layer when a new user signs up",
+  "url": "https://flow.viasocket.com/developer/org_xxx/plugin/plugin_xxx/analytics"
 }
 ```
 
@@ -92,7 +103,7 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
                 "type": "boolean",
                 "description": "Whether this app already has a plug in the registry, confirmed against the provided context."
             },
-            "plugin_id": {
+            "pluginId": {
                 "type": [
                     "string",
                     "null"
@@ -179,6 +190,10 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
             "use_case": {
                 "type": "string",
                 "description": "The user's original plain-language description of what they want to accomplish, echoed back."
+            },
+            "url": {
+                "type": "string",
+                "description": "The complete generated URL based on the operation performed. Provided in both cases: 1) if the plug already exists, or 2) when a new plug was created. In case no app exists and none was created (or the request is invalid / docs unavailable), url must strictly be an empty string (\"\"). Format: For App: <baseUrl>developer/<orgId>/plugin/<pluginId>/analytics. For Action / Trigger: <baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>."
             }
         },
         "required": [
@@ -186,7 +201,7 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
             "invalid_reason",
             "app_name",
             "app_exists",
-            "plugin_id",
+            "pluginId",
             "app_status",
             "action_id",
             "action_version_id",
@@ -198,7 +213,8 @@ You **MUST** return **EXACTLY ONE** JSON object matching the following schema.
             "capability_type",
             "requested_change",
             "ambiguities",
-            "use_case"
+            "use_case",
+            "url"
         ],
         "additionalProperties": false
     }

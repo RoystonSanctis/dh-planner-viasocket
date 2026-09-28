@@ -301,6 +301,12 @@ Final structured verdict returned for an integration request.
 | --- | --- | --- |
 | `request_approved` | boolean | `true` if the request contains valid, actionable requirements; `false` for invalid/dummy/test/spam requests. On `false`, halt tool calls. |
 | `has_error` | boolean | `true` if any tool call failed during the required step process. |
+| `app_exists` | boolean | Whether this app already has a plug in the registry, confirmed against context. |
+| `app_created` | boolean | Whether a new plug was created in this process (`true` if newly created, `false` otherwise). |
+| `pluginId` | string \| null | The existing or newly created plug's ID; `null` if no plug exists or was created. |
+| `doc_url` | string \| null | Verified public API documentation URL; `null` if none confirmed. |
+| `app_domain_url` | string | Clean root domain of the app's website (e.g. `commercelayer.io`). |
+| `doc_confidence` | string | Confidence in doc completeness (`high` \| `medium` \| `low`). |
 | `ai_review_notes` | string | Short, well-formatted summary of the verdict and reasoning. If `has_error` is `true`, name which steps succeeded and which failed or caused the halt. |
 | `url` | string | Final generated URL (see URL rules below), or empty. |
 
@@ -311,7 +317,7 @@ Provide a `url` in exactly two cases:
 1. The plug already exists and is available in search with status `publish`, `unpublish`, or `integration_only`.
 2. A new plug was created.
 
-Leave `url` empty if the request is invalid, or if the API doc is unavailable and no app is found in search.
+Leave `url` empty (`""`) in case no app exists and none was created (or the request is invalid, API doc is unavailable, or `pluginId` is missing).
 
 | Case | Format |
 | --- | --- |
