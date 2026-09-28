@@ -35,7 +35,7 @@ Fixed stages; checkpoint to `.dh-run/state.json` (stage, KB sha, ids).
 
 | #   | Stage                                                                                                                                                                                              | Gate                                                               |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | **Bootstrap** — tools (§1), `node kb.mjs sync`, memory: `plugins.metadata.aiContext` + `.dh-run/lessons.md` (hints; re-verify)                                                                     | —                                                                  |
+| 1   | **Bootstrap** — tools (§1), prefetch `dh-knowledgebase.md` + `node kb.mjs sync` (§K), memory: `plugins.metadata.aiContext` + `.dh-run/lessons.md` (hints; re-verify)                                                                     | —                                                                  |
 | 2   | **Contract** — name, key, description, category/sub_category (KB), required inputs, expected outputs, success condition, `create`/`modify`, trigger type                                          | Empty, other entity type or other app → stop, ask                  |
 | 3   | **Resolve** — plug (`getPluginDetails`), connection (`getAuthDetails`: type + `authfields` keys = non-secret `context.authData.<key>`), `getAllActions`, components; update: target + versions + mappings | Branch (below)                                                     |
 | 4   | **Evidence** — official docs for every endpoint: method, path, params, body, response example, pagination, errors, doc URL → `.dh-run/evidence.json`                                             | Undocumented → stop, ask; never invent                             |
@@ -55,25 +55,29 @@ Fixed stages; checkpoint to `.dh-run/state.json` (stage, KB sha, ids).
 | `create`, no non-deleted `{{ENTITY_TYPE}}` with same name, key or capability | Create                                                                              |
 | `create`, match found                                                     | Ask once: "<name> exists. Modify it (new version, current untouched) or create a separate {{ENTITY_TYPE}}?" — recommend modify when the capability is the same |
 
-## K. Knowledge base — live vectorless RAG
+## K. Knowledge base
 
-Rules live in `RoystonSanctis/dh-planner-viasocket` (`dev`), synced fresh each run. `node kb.mjs index
-dh_action_trigger` → exact headings → `node kb.mjs get <kb|dh_action_trigger> "H1" "H2"` → cite `kb § heading`.
-No shell → fetch `https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/<path>`,
-Page Index first.
+This skill holds process, instructions and tool calls; knowledge lives in `knowledge-base/` of
+`RoystonSanctis/dh-planner-viasocket` (`dev`), fetched at run time.
 
-| Need            | `node kb.mjs get …`                                                                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Always          | `dh-knowledgebase "Universal Rules" "Plug Anatomy"`                                                                                      |
-| Name, category  | `dh-knowledgebase "Naming Conventions"` · `dh-database-schema "Category & Sub Category Guidelines"`                                     |
-| UX              | `dh-knowledgebase "Design Strategy & UX" "UX Field Ordering"` · `ux-practice "<category or trigger type>"` (e.g. `"UPDATE"`, `"Instant Trigger"`) |
-| Example         | `index ux-worked-examples` → `get ux-worked-examples "<example>"`                                                                        |
-| Fields          | `dh-knowledgebase "Field Types & Custom Mapping" "Visibility & dependsOn"` · `dh-Input-fields-json-builder "<Type> JSON Schema"`       |
-| Code            | `dh-knowledgebase "Perform Code & Response Formatting" "Code Skeletons"` · `perform-code "<block> Rules"`                               |
-| Components      | `dh-knowledgebase "Reusable Components"` · `reusable-component`                                                                          |
-| Payload         | `dh-database-schema "<Action · Instant Trigger · Schedule Trigger · Manual Trigger> JSON Schema"`                                        |
-| One webhook/app | `backed-plug-service`                                                                                                                    |
-| Review · link   | `dh-knowledgebase "Review & Priorities" "Developer Hub (DH) URLs"` · `dh-review "Review Priorities (Strict Order)"`                    |
+1. **Prefetch — in full** (stage 1, `curl -sfL` or web fetch; keep in context): `https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md`.
+2. **RAG — detailed docs, on demand.** `node kb.mjs sync` discovers every `knowledge-base/*.md` at one pinned
+   commit (new files join automatically; module by name: `*connection*` → `dh_connection`, rest →
+   `dh_action_trigger`, all → `dh_plug`; consolidated docs excluded) → `node kb.mjs index <module|kb>` → exact
+   headings → `node kb.mjs get <module|kb> "H1" "H2"`. Use it when a consolidated rule needs the exact schema, full
+   pattern or a worked example. No shell → list `https://github.com/RoystonSanctis/dh-planner-viasocket/tree/dev/knowledge-base`, fetch raw files, Page Index first.
+3. Cite `kb § heading` + KB sha in the report.
+
+| Need (detailed)        | RAG                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| Per-category UX        | `get ux-practice "<category or trigger type>"` (e.g. `"UPDATE"`, `"Instant Trigger"`)        |
+| Similar implementation | `index ux-worked-examples` → `get ux-worked-examples "<example>"`                            |
+| Exact field JSON       | `get dh-Input-fields-json-builder "<Type> JSON Schema"`                                      |
+| Block code rules       | `get perform-code "<block> Rules"`                                                           |
+| Payload fields         | `get dh-database-schema "<Action · Instant Trigger · Schedule Trigger · Manual Trigger> JSON Schema"` |
+| Review checklist       | `get dh-review "Review Priorities (Strict Order)"`                                          |
+| One webhook per app    | `get backed-plug-service`                                                                    |
+| Anything else / new    | `index dh_action_trigger` → pick headings                                                    |
 
 **Precedence:** this skill wins on runtime/REST facts (§1–§5); the KB wins on design (UX, fields, naming, category,
 code conventions, review). KB tool names (`create_update_ai_actions`, `Fetch_…`, mapping `path` toggles) → the REST
@@ -117,65 +121,77 @@ if (!ok) process.exit(1)
 ```
 
 ```js
-// kb.mjs — vectorless RAG over the dh-planner KB (CLI port of code/vectorless-search-rag.js)
+// kb.mjs — vectorless RAG over knowledge-base/*.md, files discovered at run time (port of code/vectorless-search-rag.js)
 // node kb.mjs sync | index [kb|module] | get <kb|module> ["Heading" ...] [--partial] [--flat] [--max=N]
-import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync, rmSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 
 const REPO = 'RoystonSanctis/dh-planner-viasocket'
 const DIR = '.dh-kb'
-const FILES = {
-  'dh-knowledgebase': 'knowledge-base/dh-knowledgebase.md',
-  'dh-Input-fields-json-builder': 'knowledge-base/dh-Input-fields-json-builder.md',
-  'perform-code': 'knowledge-base/perform-code.md',
-  'dh-review': 'knowledge-base/dh-review.md',
-  'ux-practice': 'knowledge-base/ux-practice.md',
-  'ux-worked-examples': 'knowledge-base/ux-worked-examples.md',
-  'dh-database-schema': 'knowledge-base/dh-database-schema.md',
-  'connection-knowledgebase': 'knowledge-base/dh-connection-kb.md',
-  'connection-practice': 'knowledge-base/dh-connection-practice.md',
-  'connection-database-schema': 'knowledge-base/dh-connection-schema.md',
-  'action-trigger-list': 'dh-action-trigger-list-agent.md',
-  'name-description': 'sub-agents/dh-plug-name-description.md',
-  'reusable-component': 'sub-agents/dh-reusable-component.md',
-  'backed-plug-service': 'knowledge-base/backed-plug-service.md',
-  'flow-execution-script': 'knowledge-base/viasocket-flow-execution-script.md'
-}
-const names = Object.keys(FILES)
-const MODULES = { dh_action_trigger: names.slice(0, 7), dh_connection: names.slice(7, 10), dh_plug: names }
+const MANIFEST = `${DIR}/manifest.json`
+const CORE = ['dh-knowledgebase', 'dh-connection-kb'] // prefetched in full; excluded from module RAG
+const { KB_SRC, KB_REF = 'dev' } = process.env
 const [cmd, target, ...rest] = process.argv.slice(2)
 const flags = Object.fromEntries(rest.filter((a) => a.startsWith('--')).map((a) => a.slice(2).split('=')))
 const queries = rest.filter((a) => !a.startsWith('--'))
-const MANIFEST = `${DIR}/manifest.json`
-const { KB_SRC, KB_REF = 'dev' } = process.env
+const sh = (c) => execSync(c, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+const mdIn = (dir) => readdirSync(dir).filter((f) => f.endsWith('.md'))
 
 async function sync() {
+  rmSync(DIR, { recursive: true, force: true })
   mkdirSync(DIR, { recursive: true })
-  let sha = KB_SRC ? `local:${KB_SRC}` : null
-  try { sha ||= execSync(`git ls-remote https://github.com/${REPO} refs/heads/${KB_REF}`).toString().split(/\s/)[0] } catch {}
-  try { sha ||= (await (await fetch(`https://api.github.com/repos/${REPO}/commits/${KB_REF}`)).json()).sha } catch {}
-  const base = `https://raw.githubusercontent.com/${REPO}/${sha || `refs/heads/${KB_REF}`}`
-  const files = {}
-  for (const [name, path] of Object.entries(FILES)) {
+  let sha = null
+  let files = []
+  if (KB_SRC) {
+    sha = `local:${KB_SRC}`
+    files = mdIn(`${KB_SRC}/knowledge-base`)
+    files.forEach((f) => copyFileSync(`${KB_SRC}/knowledge-base/${f}`, `${DIR}/${f}`))
+  } else {
     try {
-      if (KB_SRC) copyFileSync(`${KB_SRC}/${path}`, `${DIR}/${name}.md`)
-      else {
-        const res = await fetch(`${base}/${path}`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        writeFileSync(`${DIR}/${name}.md`, await res.text())
+      sh(`git clone -q --depth 1 --branch ${KB_REF} https://github.com/${REPO} ${DIR}/.repo`)
+      sha = sh(`git -C ${DIR}/.repo rev-parse HEAD`)
+      files = mdIn(`${DIR}/.repo/knowledge-base`)
+      files.forEach((f) => copyFileSync(`${DIR}/.repo/knowledge-base/${f}`, `${DIR}/${f}`))
+      rmSync(`${DIR}/.repo`, { recursive: true, force: true })
+    } catch {
+      const list = await (await fetch(`https://api.github.com/repos/${REPO}/contents/knowledge-base?ref=${KB_REF}`)).json().catch(() => null)
+      files = Array.isArray(list) ? list.map((f) => f.name) : [] // API rate-limited → read the folder page
+      if (!files.length) {
+        const page = await (await fetch(`https://github.com/${REPO}/tree/${KB_REF}/knowledge-base`)).text()
+        files = [...page.matchAll(/knowledge-base\/([\w.-]+\.md)/g)].map((m) => m[1])
       }
-      files[name] = path
-    } catch (error) {
-      files[name] = `ERROR ${error.message}`
+      files = [...new Set(files.filter((f) => f.endsWith('.md')))]
+      if (!files.length) throw new Error('cannot list knowledge-base (no git, API and folder page failed)')
+      for (const f of files) {
+        const res = await fetch(`https://raw.githubusercontent.com/${REPO}/refs/heads/${KB_REF}/knowledge-base/${f}`)
+        if (res.ok) writeFileSync(`${DIR}/${f}`, await res.text())
+      }
     }
   }
-  writeFileSync(MANIFEST, JSON.stringify({ repo: REPO, ref: KB_REF, sha, fetchedAt: new Date().toISOString(), files }, null, 2))
-  console.log(`KB ${sha || KB_REF}\n${Object.entries(files).map(([n, s]) => `  ${n}: ${s}`).join('\n')}`)
+  const kbs = files.map((f) => f.replace(/\.md$/, ''))
+  writeFileSync(MANIFEST, JSON.stringify({ repo: REPO, ref: KB_REF, sha, fetchedAt: new Date().toISOString(), kbs }, null, 2))
+  console.log(`KB ${sha || KB_REF}: ${kbs.length} files\n${modules().map(([m, k]) => `  ${m}: ${k.join(', ')}`).join('\n')}`)
 }
 
-function sections(name) {
-  if (!existsSync(`${DIR}/${name}.md`)) throw new Error(`${name} missing — run: node kb.mjs sync`)
-  const lines = readFileSync(`${DIR}/${name}.md`, 'utf8').replace(/^---\s*[\r\n]+[\s\S]*?[\r\n]+---/, '').trim().split('\n')
+function manifest() {
+  if (!existsSync(MANIFEST)) throw new Error('KB not synced — run: node kb.mjs sync')
+  return JSON.parse(readFileSync(MANIFEST, 'utf8'))
+}
+
+function modules() {
+  const detailed = manifest().kbs.filter((k) => !CORE.includes(k))
+  const connection = detailed.filter((k) => /connection/i.test(k))
+  return [
+    ['dh_action_trigger', detailed.filter((k) => !connection.includes(k))],
+    ['dh_connection', connection],
+    ['dh_plug', detailed]
+  ]
+}
+
+const kbsOf = (t) => Object.fromEntries(modules())[t] || String(t || 'dh_plug').split(',').filter((k) => manifest().kbs.includes(k))
+
+function sections(kb) {
+  const lines = readFileSync(`${DIR}/${kb}.md`, 'utf8').replace(/^---\s*[\r\n]+[\s\S]*?[\r\n]+---/, '').trim().split('\n')
   const heads = []
   let fence = false
   lines.forEach((line, start) => {
@@ -192,11 +208,10 @@ function sections(name) {
 }
 
 const norm = (s) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/^(\d+ )+/, '')
-const kbs = () => (MODULES[target] || String(target || 'dh_plug').split(',')).filter((k) => FILES[k])
-const sha = () => String((existsSync(MANIFEST) && JSON.parse(readFileSync(MANIFEST, 'utf8')).sha) || '').slice(0, 7)
+const sha = () => String(manifest().sha || '').slice(0, 7)
 
 function index() {
-  for (const kb of kbs()) {
+  for (const kb of kbsOf(target)) {
     const heads = sections(kb)
     const pageIndex = heads.find((h) => norm(h.head) === 'page index')
     const tree = heads.map((h) => `${'  '.repeat(h.level - 1)}- ${h.head}`).join('\n')
@@ -206,7 +221,8 @@ function index() {
 
 function get() {
   const max = Number(flags.max || 24000)
-  for (const kb of kbs()) {
+  const isModule = modules().some(([m]) => m === target)
+  for (const kb of kbsOf(target)) {
     const heads = sections(kb)
     if (!queries.length) {
       console.log(`<!-- kb:${kb} (full) @${sha()} -->\n${heads.map((h) => h.flat).join('\n\n')}\n`)
@@ -224,7 +240,7 @@ function get() {
         console.log(`<!-- kb:${kb} § ${h.head} @${sha()} -->\n${text}\n`)
       }
     }
-    if (!seen.size && !MODULES[target]) console.log(`<!-- kb:${kb}: no match — run: node kb.mjs index ${kb} -->`)
+    if (!seen.size && !isModule) console.log(`<!-- kb:${kb}: no match — run: node kb.mjs index ${kb} -->`)
   }
 }
 
@@ -307,7 +323,7 @@ console.log(JSON.stringify({ calls, result }, null, 2))
 
 Stored per plug, mapped per version; every mapped component's `function_code` is prepended at run time. Call by name
 with `await`; a component can call another only if both are mapped to the version. **Not versioned** — editing one
-changes every mapped version, published included. Rules: KB "Reusable Components" + `reusable-component`.
+changes every mapped version, published included. Rules: KB "Reusable Components".
 
 - Reuse first (`dhGetReusableComponentDetails`; `aiContext.components`). The plug's `<app>Request(method, path,
   options)` is the base for every call. `errorComponent` is built in — never create it.
