@@ -22,6 +22,7 @@ description: "Token-minimal knowledge base for designing and updating viaSocket 
   - Credential Fields
 - Code Runtime & Skeletons
   - Environment & Globals
+  - Code Style
   - Standard Function Template
   - Newline Escaping
   - Token Handlers (Access, Refresh, Revoke)
@@ -46,15 +47,19 @@ description: "Token-minimal knowledge base for designing and updating viaSocket 
 3. **Backend Auth Injection**: Credentials reach every Action/Trigger call only via `authenticationpaths` (headers, body, queryParams). Actions/Triggers never add or hardcode auth; they read only non-secret config (subdomain, region, tenant ID) via `context?.authData?.<field_key>`.
 4. **Secrets**: API keys, client/consumer/token secrets, and passwords → `password` fields; never hardcoded, logged, defaulted, or shown in labels/previews/errors (mask labels that expose sensitive data).
 5. **Minimal Trust**: Connection-level scopes cover only the Test API and core use cases (action-specific scopes stay with actions). Add only the fields and sections the chosen flow requires.
-6. **Payload Types (CRITICAL)**:
+6. **Payload Types & Schema Strictness (CRITICAL)**:
+   - **Create:** Send ALL keys. `authenticationpaths` MUST contain `headers`, `body`, and `queryParams` arrays (use `[]` if empty).
+   - **Update:** Send ONLY updated keys + `rowid` (from `connection_version_id`) + `pluginrecordid` (from `pluginId`). If updating `authenticationpaths`, include all 3 keys; otherwise omit `authenticationpaths` entirely.
    - `queryparams`: always a stringified JSON string (`"{}"`, `"{\"response_type\":\"code\"}"`), never an object; static params only.
    - Code fields (`testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`): stringified JSON `{"source": ...}` (`"{\"source\":null}"` when unused); never raw JS.
-   - `authfields.authentication.fields`: always an array (`[]` if none).
+   - `authfields.authentication.fields`: MUST ALWAYS be an array (`[]` if empty).
    - `authenticationpaths`: all 3 keys (`headers`, `body`, `queryParams`; `[]` if empty) on create, and on update whenever it is sent; omit entirely if unchanged.
+   - **Null Constraints:** `type`, `granttype`, and `scopeseperatedby` CANNOT be `""`. Use `null`.
+   - **Scope Separator Rule (`scopeseperatedby`):** STRICTLY use `"space"` or `"comma"` (literal word strings) or `null`. NEVER use a literal space character `" "` or comma character `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"scopeseperatedby": "comma"`).
 7. **Updates**: Send only changed keys + `rowid` (from `connection_version_id`) + `pluginrecordid` (from `pluginId`). Never send `connection_version_id` inside `request_payload`; never leak UI state (`draftMark`) or DB copies (`authenticationpaths_copy`).
-8. **Test API**: Exactly one lightweight authenticated endpoint; returns `response.data` unmodified (see Test (Me) Code).
+8. **Test API**: Exactly one lightweight authenticated endpoint (`"testcode": "{\"source\":\"...\"}"`, use `{"source":null}` if empty); returns `response.data` unmodified without mutation or synthetic wrappers (see Test (Me) Code).
 9. **Whitelist**: `whitelistdomains` includes both the service domain and the API base domain (`["notion.com", "api.notion.com"]`), even for No Auth.
-10. **Internal IDs**: Never ask users for `pluginrecordid`, `orgid`, `connection_version_id`, `preferedauthversion`, or other internal system IDs the Test API can supply.
+10. **Internal IDs & Trust**: Never ask users for internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`) or other internal system IDs the Test API or context can supply.
 11. **Execution Limit**: Exactly 1 connection operation per execution.
 
 ---
@@ -149,7 +154,7 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
 
 ## Connection Labels
 Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, masked `"XXX-XXX-23433"`); never a static generic string (`"My App Connection"`).
-- **Source**: the Test (Me) response stored at `context?.authData?.testcode` (or an auth field). Know its exact shape from docs—never guess keys.
+- **Source**: the Test (Me) response stored at `context?.authData?.testcode` (or an auth field). You MUST verify and know the Test API response structure (`context?.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`) and `uniquekeytostoreauth.uniqueKey` (and `_uniqueKey`). Never guess property paths.
   - User-scoped flows: name, email, workspace.
   - App-scoped (Client Credentials): app, workspace, or tenant ID.
   - No user-identifiable field → stable non-sensitive ID (account/workspace).
@@ -182,7 +187,14 @@ Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, maske
   - Client credentials: `context?.authData?.clientid`, `context?.authData?.clientsecret`
   - Test response: `context?.authData?.testcode`
   - User inputs: `context?.authData?.<field_key>`
-- **Scope**: code handles only tokens, signatures, and dispatch; business logic belongs to Actions/Triggers. Lean, readable, multi-line code: credential extraction, request, call, and return as distinct blocks; no dense one-liners.
+- **Scope**: code handles only tokens, signatures, and dispatch; business logic belongs to Actions/Triggers.
+
+## Code Style
+- **Clean, Multi-line JS**: All tool-call code payloads must be formatted as readable, multi-line JS.
+- **Destructure Upfront**: E.g., `const { api_key } = context?.authData || {};`.
+- **Payload Construction**: Build payloads via spread operators.
+- **Central Cleanup**: `Object.fromEntries(Object.entries(raw).filter(...))`.
+- **Minimize Intermediate Variables**: Credential extraction, request, call, and return as distinct blocks; avoid dense one-liners.
 
 ## Standard Function Template
 Mandatory for every connection code block:
@@ -200,9 +212,9 @@ return await <fnName>();
 
 ## Newline Escaping
 Escape levels = decode passes.
-- **`\\n`** (decoded twice, inside `"source"`): `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`.
+- **Double-encoded (2 levels → `\\n`):** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` (because they are wrapped in `{"source":"..."}`).
   - ✅ `"{\"source\":\"async function testcode() {\\n  ...\\n}\\n\\nreturn await testcode();\"}"`
-- **`\n`** (decoded once): `authenticationpaths.*[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`, `placeholder`.
+- **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`, `placeholder` (raw JS injected directly).
   - ✅ `"value": "function returnHeaders() {\n  return \`Bearer ${context?.authData?.accesstokencode?.access_token}\`;\n}\n\nreturn returnHeaders();"`
 - **Self-check**: `JSON.parse(testcode).source` parses and spans multiple lines; no `authenticationpaths` value contains `\\n`. Build with `JSON.stringify(...)` instead of counting backslashes.
 
@@ -259,8 +271,10 @@ return await revokeToken();
 ```
 
 ## Test (Me) Code
-- **Exactly ONE request**; no secondary endpoints, quota checks, or session probes. Prefer `GET /me`, `/user`, `/users/me`, `/account`, `/profile`, `/oauth2/v2/userinfo`; else `/workspaces`, `/teams`, `/status`, `/ping`. A successful authenticated response passes the test.
-- **Direct Return**: `return response.data;` unmodified—no wrappers, composite, or fallback keys. Stored at `context?.authData?.testcode` for label and unique-key paths.
+- **Structure**: `"testcode": "{\"source\":\"...\"}"` (use `{"source":null}` if empty).
+- **Single Request**: MUST contain **EXACTLY ONE** API request (prefer `GET /me`, `/user`, `/users/me`, `/account`, `/profile`, `/oauth2/v2/userinfo`; else `/workspaces`, `/teams`, `/status`, `/ping`). No secondary/quota endpoints. A successful authenticated response passes the test.
+- **Direct Return**: MUST return `response.data` directly (`return response.data;`) without mutation or synthetic wrappers. Stored at `context?.authData?.testcode` for label and unique-key paths.
+- **Test Response Knowledge**: You MUST verify and know the Test API response structure (`context?.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`) and `uniquekeytostoreauth.uniqueKey` (and `_uniqueKey`). Never guess property paths.
 - Validates token exchange, header injection, and scope sufficiency together.
 
 **Basic / OAuth 2.0** (Basic: `${context?.authData?.api_key}`)
@@ -331,6 +345,10 @@ return context?.authData?.api_key;
 
 ## Create Payload
 DB-managed (`rowid`, timestamps, `createdby`, `metadata`) and plugin-display fields (`pluginname`, `pluginiconurl`, `domain`, `whitelistdomains`) are excluded—set whitelist and the rest via update.
+- **Create Strictness**: Send ALL keys. `authenticationpaths` MUST contain `headers`, `body`, and `queryParams` arrays (use `[]` if empty).
+- **Auth Fields**: `authfields.authentication.fields` MUST ALWAYS be an Array (use `[]` if empty).
+- **Null Constraints**: `type`, `granttype`, and `scopeseperatedby` CANNOT be `""`. Use `null`.
+- **Scope Separator Rule (`scopeseperatedby`)**: STRICTLY use `"space"` or `"comma"` (literal word strings) or `null`. NEVER use a literal space character `" "` or comma character `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"scopeseperatedby": "comma"`).
 ```json
 {
   "type": "Basic | Auth2.0 | Auth1 | NoAuth",
@@ -365,6 +383,8 @@ Plugin-level; allowed in create or update:
 
 ## Update Payloads & Discriminators
 Shape branches on `type` + `granttype`. Always `rowid` + `pluginrecordid` + changed keys only.
+- **Update Strictness**: Send ONLY updated keys. If updating `authenticationpaths`, include all 3 keys (`headers`, `body`, `queryParams`); otherwise omit `authenticationpaths` entirely.
+- **Null Constraints**: `type`, `granttype`, and `scopeseperatedby` CANNOT be `""`. Use `null`.
 
 | Variant | `componentToRender` Options | Variant Keys |
 |---|---|---|
@@ -478,17 +498,22 @@ Dynamic URL to view and configure the connection in the Developer Hub.
 # Validation Checklist
 
 - [ ] Strongest documented method selected; no invented endpoints, scopes, or `context.authData` keys.
-- [ ] Update payload: `rowid` + `pluginrecordid` + changed keys only; no `connection_version_id` in `request_payload`.
-- [ ] `queryparams` is a stringified JSON string; code fields are `{"source": ...}` strings; `authfields.authentication.fields` is an array.
-- [ ] `authenticationpaths` has all 3 keys when sent; injects credentials (Bearer for OAuth 2.0) dynamically; no OAuth redirect params.
+- [ ] Code style: clean multi-line JS, destructure upfront (`context?.authData`), spread operators, `Object.fromEntries` cleanup, minimal intermediate variables.
+- [ ] Create payload sends ALL keys; `authenticationpaths` includes `headers`, `body`, and `queryParams` (`[]` if empty); `authfields.authentication.fields` is an array.
+- [ ] Update payload: `rowid` + `pluginrecordid` + changed keys only; no `connection_version_id` in `request_payload`; if updating `authenticationpaths`, all 3 keys included, else omitted entirely.
+- [ ] Null Constraints: `type`, `granttype`, and `scopeseperatedby` CANNOT be `""` (use `null`).
+- [ ] `queryparams` is a stringified JSON string; code fields are `{"source": ...}` strings (`"{\"source\":null}"` when empty).
+- [ ] `authenticationpaths` injects credentials (Bearer for OAuth 2.0) dynamically; no OAuth redirect params.
 - [ ] Client Credentials Setup Mode correct: global → root keys, nothing in `authfields`; manual → root `null`, `clientid`/`clientsecret`/`redirectUrl` in `authfields`.
-- [ ] `scopeseperatedby` is `"space"`, `"comma"`, or `null`; scopes minimal; PKCE enabled when supported.
-- [ ] Test code: one lightweight endpoint; returns `response.data` unmodified.
+- [ ] `scopeseperatedby` is strictly `"space"`, `"comma"`, or `null` (never `" "` or `","`); scopes minimal; PKCE enabled when supported.
+- [ ] Test code: structure is `{"source": "..."}`; exactly one lightweight endpoint; returns `response.data` unmodified without synthetic wrappers.
+- [ ] Test API response structure verified and known (`context?.authData?.testcode`) before mapping label and uniqueKey paths; never guess property paths.
 - [ ] Label: single `context?.authData?` bracket path from the verified test response; no `return`, `||`, or `context?.res`; `_connectionlabelvalue` is `"${...}"`; masked if sensitive.
 - [ ] `uniqueKey` is a stable-ID expression; `_uniqueKey` is `"${...}"`; no raw literals.
 - [ ] Secrets use `password` fields and never appear in code, logs, labels, or defaults.
 - [ ] Credential fields: exact API keys, Title Case source-app labels, actionable help with link.
 - [ ] `whitelistdomains` has the service and API base domains.
-- [ ] Newline escaping: `\\n` inside `source` fields, `\n` in plain strings.
+- [ ] Newline escaping: `\\n` inside double-encoded `source` fields, `\n` in plain strings (headers, values, labels, help, placeholders).
 - [ ] OAuth 1.0: no custom `accesstokencode`; every request signed with fresh nonce/timestamp.
 - [ ] Refresh and revoke defined where supported; works in Test mode and real workflows.
+- [ ] Trust: never ask users for internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`).

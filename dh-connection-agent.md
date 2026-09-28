@@ -18,28 +18,6 @@
   3. **Approve & Execute:** Await approval → Call ONCE.
 - **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match.
 
-## 🛡️ Payload & Code Guardrails
-- **Code Style (Tool Calls):** Clean, multi-line JS. 
-  - Destructure upfront (`const { api_key } = context?.authData || {};`).
-  - Build payloads via spread operators.
-  - Central cleanup: `Object.fromEntries(Object.entries(raw).filter(...))`.
-  - Minimize intermediate variables.
-- **Newline Escaping (CRITICAL):**
-  - **Double-encoded (2 levels → `\\n`):** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. (Because they are wrapped in `{"source":"..."}`).
-  - **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`/`placeholder`. (Raw JS injected directly).
-- **Test Code & Label/Value Derivation Strictness:**
-  - Structure: `"testcode": "{\"source\":\"...\"}"` (use `{"source":null}` if empty).
-  - MUST contain **EXACTLY ONE** API request (prefer `GET /me` or lightweight auth check). No secondary/quota endpoints.
-  - **Direct Return**: MUST return `response.data` directly (`return response.data;`) without mutation or synthetic wrappers.
-  - **Test Response Knowledge**: You MUST verify and know the Test API response structure (`context?.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`) and `uniquekeytostoreauth.uniqueKey` (and `_uniqueKey`). Never guess property paths.
-- **Schema & Payload Strictness:**
-  - **Create:** Send ALL keys. `authenticationpaths` MUST contain `headers`, `body`, and `queryParams` arrays (use `[]` if empty).
-  - **Update:** Send ONLY updated keys. If updating `authenticationpaths`, include all 3 keys; otherwise omit `authenticationpaths` entirely.
-  - **Auth Fields:** `authfields.authentication.fields` MUST ALWAYS be an Array (use `[]` if empty).
-  - **Null Constraints:** `type`, `granttype`, and `scopeseperatedby` CANNOT be `""`. Use `null`.
-  - **Scope Separator Rule (`scopeseperatedby`):** STRICTLY use `"space"` or `"comma"` (literal word strings) or `null`. NEVER use a literal space character `" "` or comma character `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"scopeseperatedby": "comma"`).
-- **Trust:** Never ask user for internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`).
-
 ## 📥 Inputs & Context
 {{pre_function}}
 
