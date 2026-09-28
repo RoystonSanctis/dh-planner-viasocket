@@ -27,21 +27,11 @@
 
 ## 🧩 Reusable Components
 **CRITICAL REUSE:** `Fetch_Reusable_Components_Details`. ALWAYS reuse matching components in code blocks. Create new ONLY if missing.
-- **ID Handling:** Updates = use incoming IDs. Create/Bulk = use IDs extracted from the single creation response.
+- **Component Identifier (`component_id` / `rowid`):** When creating a component, the identifier MUST be empty. While updating or mapping the component, the identifier is strictly required (updates use incoming IDs; create/bulk uses IDs extracted from the component creation response; never pass dummy strings like `"new"` or placeholders).
 - **Mandatory Mapping:** Verify via `Fetch_Mapped_Reusable_Component_In_Action_Version`. Map via `create_update_map_Reusable_components`.
 - **Error Component:** Do NOT create `errorComponent` reusable component. Fetch its component ID via `Fetch_Reusable_Components_Details` and map it across ALL invoked paths/blocks if found; if missing, just ignore.
 - **Create/Update:** Name/params immutable if active (create NEW instead). Code is updatable. Unused components are fully updatable.
 - **Map Paths:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (section key e.g., `perform`, or flat dynamic field key e.g., `"page_id"`).
-- **Validation Checks in Components (Always Throw):** Inside reusable component code, validate required parameters and parent dependencies. Validation checks MUST ALWAYS `throw` a structured fallback object (e.g., `if (!workspaceId) { throw { data: [], offset: null, message: 'Select a workspace first.' }; }`), never a generic Error. The calling `optionsGenerator` wraps the invocation in `try { return await fetchComponent(...); } catch (error) { await errorComponent(error); }`.
-
-## 🛡️ Guardrails
-- **Category & Sub Category:** When building the payload, `category` MUST always be `"AI"`. For `sub_category`, choose from the existing sub-categories or create a new one (in UPPERCASE) representing the domain entity.
-- **Authentication:** All authentication is passed from the backend in the connections (`authenticationpaths`). Strictly do not include the authentication path in the code, as it is passed from the backend. Do not pass auth keys in the API payload. Only use `context?.authData` for non-auth keys like domains or IDs. If the auth path is directly used in the code, it should be flagged.
-  - *Note: the authorisation can be set in the `authenticationpaths` in the connection.*
-- You can access user-provided auth data in code via `context?.authData?.<field_key>` (where `<field_key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details from the Knowledge Base).
-- **Name & Description:** If a "name" (or `actionName`) is provided for the trigger or action, strictly retain the exact same name during creation. The description must always be short (≤120 characters) and accurately based on the current action's functionality.
-- **Response Return & Formatting (Base `.data` Extraction Rule):** The actual raw response from any API called from viaSocket is ALWAYS accessible from the `response.data` key. The base return MUST always fetch from the `"data"` key—even when aggregating multiple API calls, each call must extract from its own `.data` key (e.g. `userRes.data`, `ordersRes.data`). Never access payload fields directly on the outer response object. From this base `"data"` key, navigate to destination path keys as needed: inject metadata (`success: true/false`, `id`, `has_more`), unnest actual data from wrapper keys (e.g. `response.data.data`), simplify huge/bloated payloads with selective keys, or flatten complex nested responses to provide clean, intuitive mapping pills for downstream steps.
-- **No AI Field in Triggers & Scheduled Filters:** Triggers strictly forbid `type: "aifield"` (`aifield` is permitted in Actions only). For scheduled triggers (`polling`), if the API supports filtering, predefined filters must either be fetched from user input fields (Dropdown, Multiselect, Boolean, Input Group) or hardcoded/applied directly in the `perform` code (via query parameters or client-side filtering).
 
 ## 💬 Final Response Formatting
 After creating/improving any action or trigger, your final output MUST explicitly list:

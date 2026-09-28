@@ -36,7 +36,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
 *Invariants across all plugs. Stated once—never repeated.*
 
 1. **API Docs = Ground Truth**: Overrides user cURL. Every documented parameter (path, query, body, headers, filters) → UI input or code; payload shape and endpoint match the API exactly. Never invent or omit parameters, and never assume `sort`/`limit`/`search`/pagination support—verify in official docs first. Undocumented endpoint → confirm with provider or state the limitation.
-2. **Authentication**: The viaSocket connection (`authenticationpaths`) injects auth into header/query/body. Never add, hardcode, or expose auth or secrets in code or payloads; flag direct auth usage. Add only extra non-standard headers/params the API needs. Non-secret auth metadata (domain, account ID): `context?.authData?.<key>`. Never ask for `pluginrecordid` or `authid`.
+2. **Authentication**: The viaSocket connection (`authenticationpaths`) injects auth into header/query/body. Never add, hardcode, or expose auth or secrets in code or payloads; flag direct auth usage. Add only extra non-standard headers/params the API needs. Non-secret auth metadata (domain, account ID): `context?.authData?.<key>` (where `<key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details). Never ask for `pluginrecordid` or `authid`.
 3. **JSON Schema (`inputjson`)**: `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
    - Author only `inputFields`. `steps`/`blocks` are engine-generated: pass real empty objects `{}`, never strings `"{}"`.
    - **NO `"item"` WRAPPERS** on any array (`inputFields`, `options`, …): ❌ `{"inputFields": {"item": [...]}}` | ✅ `{"inputFields": [...]}`
@@ -154,6 +154,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 | **Trigger Desc** | `Runs when <event>` + configurable hint; ≤120 chars; ends with `.` | `"Runs when new email arrives in a chosen folder."` |
 
 - **Copy**: Outcomes over mechanics; plain, non-technical language; never raw event/endpoint IDs (`page.created`). Omit app name (e.g. `{{pluginName}}`) unless ambiguous without it.
+- **Exact Name Retention**: If a target name (or `actionName`) is provided in user input/context, strictly retain the exact same name during creation. Descriptions must be short (≤120 characters) and accurately based on the action/trigger functionality.
 - **Update Safety**: Keep compliant `old_title`/`old_description` unchanged; review `type`/`category` instead.
 - **Labels & Placeholders**: Labels are direct field names in Title Case describing the choice, generic (`"Page"`, not `"Facebook Page"`). Placeholders instruct (`"Select Page"`). Help and placeholders in sentence case. Never append `"(optional)"` (custom keys included).
 
@@ -498,7 +499,7 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
 
 # API Database Payload Schemas
 - **Key**: `name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')` (`"New Lead"` → `"New_Lead"`).
-- **Category**: operation (`GET`, `CREATE`, `UPDATE`, `DELETE`, `FIND`, `FIND OR CREATE`, `CREATE OR UPDATE`). **Sub Category**: UPPERCASE business entity tag (`PAGE`, `DATA SOURCE`), consistent across related plugs. Both `""` for triggers.
+- **Category**: operation (`GET`, `CREATE`, `UPDATE`, `DELETE`, `FIND`, `FIND OR CREATE`, `CREATE OR UPDATE`). **Sub Category**: UPPERCASE business entity tag (`PAGE`, `DATA SOURCE`), chosen from existing sub-categories or newly created representing the domain entity; consistent across related plugs. Both `""` for triggers.
 - Updates send only changed keys. `sampledata`?: sample output object aiding flow mapping.
 - **Action**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` (bool), `type: 'action'`, `category`, `sub_category`, `rtllayer` (bool), `isAIActionTrigger` (bool), `isUserOnDh` (bool), `functionId` (version row ID; required on update), `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `perform`, `authid`?, `metadata: {chatbotthreadid}`?, `sampledata`?.
 - **Trigger**: `name`, `key`, `description`, `pluginrecordid`, `isvisible` (bool), `ignoreuniversalsampledata` (bool), `preferred_step_name` (usually `''`), `type: 'trigger'`, `triggertype`, `category: ''`, `sub_category: ''`, `inputjson: {steps:{}, blocks:{}, inputFields:[...]}`, `authid`? (never for Manual), `sampledata`?, plus its type's block keys—all required on create (`""` for an empty optional block):
