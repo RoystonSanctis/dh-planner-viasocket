@@ -2,8 +2,8 @@
 name: viasocket-developer-hub-action
 description: >-
   Create or update a {{ENTITY_TYPE}} on the {{APP_NAME}} plug ({{PLUGIN_ID}}) in viaSocket Developer Hub. Gated
-  process on the live dh-planner KB (vectorless RAG): resolves duplicates, then creates new or ships changes on a new
-  drafted action_version with its components mapped. Never publishes; never edits a version it did not create.
+  process on the live dh-planner KB (vectorless RAG): resolves duplicates, then creates new or ships changes by
+  confirming which draft version to update or creating a new draft version with its components mapped. Never publishes.
 ---
 
 # {{APP_NAME}} {{ENTITY_TYPE}} — viaSocket Developer Hub
@@ -37,9 +37,9 @@ Fixed stages; checkpoint to `.dh-run/state.json` (stage, KB sha, ids).
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | 1   | **Bootstrap** — tools (§1), prefetch `dh-knowledgebase.md` + `node kb.mjs sync` (§K), memory: `plugins.metadata.aiContext` + `.dh-run/lessons.md` (hints; re-verify)                                                                     | —                                                                  |
 | 2   | **Contract** — name, key, description, category/sub_category (KB), required inputs, expected outputs, success condition, `create`/`modify`, trigger type                                          | Empty, other entity type or other app → stop, ask                  |
-| 3   | **Resolve** — plug (`getPluginDetails`), connection (`getAuthDetails`: type + `authfields` keys = non-secret `context?.authData?.<key>`), `getAllActions`, components; update: target + versions + mappings | Branch (below)                                                     |
+| 3   | **Resolve** — plug (`getPluginDetails`), connection (`getAuthDetails`: type + `authfields` keys = non-secret `context?.authData?.<key>`), `getAllActions`, components; update: query `getActionVersions`, confirm which draft version to update or create new draft + mappings | Branch (below)                                                     |
 | 4   | **Evidence** — official docs for every endpoint: method, path, params, body, response example, pagination, errors, doc URL → `.dh-run/evidence.json`                                             | Undocumented → stop, ask; never invent                             |
-| 5   | **Plan** — create: contract + UX outline (`- Label* (type) — hint`, groups indented); update: every field/code/mapping change (keys, labels, types, sources, logic)                              | Approval (skip if unattended or the request says proceed)          |
+| 5   | **Plan** — create: contract + UX outline (`- Label* (type) — hint`, groups indented); update: confirmed target version + every field/code/mapping change (keys, labels, types, sources, logic)  | Approval: confirmed version & changes (skip if unattended/proceed) |
 | 6   | **Build** — components (reuse first), `inputFields`, code blocks, `sampledata`                                                                                                                     | —                                                                  |
 | 7   | **Validate** — G1–G5 (§6)                                                                                                                                                                          | all pass                                                           |
 | 8   | **Write** — §4                                                                                                                                                                                     | —                                                                  |
@@ -51,9 +51,9 @@ Fixed stages; checkpoint to `.dh-run/state.json` (stage, KB sha, ids).
 
 | Situation                                                                 | Do                                                                                     |
 | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `update` mode                                                             | Modify `{{ACTION_ID}}` (confirm it exists, `getActionDetails`); explicit "separate new" → create |
+| `update` mode                                                             | Confirm `{{ACTION_ID}}` exists (`getActionDetails`), call `getActionVersions`, list existing versions (drafted vs published), and **always confirm with the developer**: which draft version to update in place, or create a new draft version (`V(n+1)`); explicit "separate new" → create |
 | `create`, no non-deleted `{{ENTITY_TYPE}}` with same name, key or capability | Create                                                                              |
-| `create`, match found                                                     | Ask once: "<name> exists. Modify it (new version, current untouched) or create a separate {{ENTITY_TYPE}}?" — recommend modify when the capability is the same |
+| `create`, match found                                                     | Ask once: "<name> exists. Modify it (confirm which draft version to update or create new draft) or create a separate {{ENTITY_TYPE}}?" — recommend modify when the capability is the same |
 
 ## K. Knowledge base
 
@@ -352,15 +352,22 @@ changes every mapped version, published included. Rules: KB "Reusable Components
 2. Provenance PUT on the action (§5).
 3. Fill V1 (step C), map components (§3).
 
-**B. Modify** — ship changes on a version you own:
+**B. Modify** — ship changes on a confirmed version:
+
+> **Version Confirmation Gate**: When updating an action or trigger, **always confirm with the developer** before modifying or writing:
+> 1. Call `getActionVersions` (`{{ACTION_ID}}`) to list all versions (version number, rowid, and status: `drafted` vs `published`).
+> 2. Ask the developer to confirm whether to:
+>    - **Update an existing draft version in place** (developer specifies which draft version to modify, e.g. V2). *Note: published versions must never be edited in place.*
+>    - **Create a new draft version** (`V(n+1)` cloned from an existing base version).
+> 3. Never assume, silently select a draft version, or auto-clone into a new version without developer confirmation.
 
 | Target version                                       | Do                                                                                                                                                                                                                                                  |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Created in this run (incl. repairs)                  | PUT in place — repairs never add versions                                                                                                                                                                                                           |
-| Developer explicitly asks to edit a draft in place   | PUT in place                                                                                                                                                                                                                                        |
-| Otherwise (published or drafted)                     | Clone: `getActionVersions`; source = `{{VERSION_ID}}` if non-deleted, else latest non-deleted; `POST create/action_version` with the source's fields minus server-managed ones (`rowid`, `autonumber`, timestamps, version number, `status`, `isdeleted`, `actionversionrecordid`, `publishdescription`, `metadata`) + `actionid`, `status: "drafted"`, `metadata: { duplicatedfrom: { rowid, version }, aiLogs }` → V(n+1) |
+| Confirmed existing draft version                     | PUT in place: `PUT update/action_version?identifier=VERSION_ID&filter=updateActionVersionDetails`. Never PUT a `published` version directly.                                                                                                       |
+| Confirmed create new draft version                   | Clone: source = confirmed base version (or latest non-deleted); `POST create/action_version` with the source's fields minus server-managed ones (`rowid`, `autonumber`, timestamps, version number, `status`, `isdeleted`, `actionversionrecordid`, `publishdescription`, `metadata`) + `actionid`, `status: "drafted"`, `metadata: { duplicatedfrom: { rowid, version }, aiLogs }` → V(n+1) |
 
-Then fill the new version (step C) incl. full `inputjson.inputFields` (clone builds no `steps`/`blocks`), re-map the
+Then fill the target version (step C) incl. full `inputjson.inputFields` (clone builds no `steps`/`blocks`), re-map the
 source's mappings + new ones (mappings aren't copied), and PUT the action row only for name/description changes +
 provenance (§5). Never PUT a version you don't own; never rename/remove field keys or the action `key`.
 
@@ -406,21 +413,15 @@ dependent dropdown empty → parent destructured · "already published" → clon
 
 End every run with clickable links so the developer can open what was built.
 
-- **Base URL by environment** (infer from `{{API_BASE}}` host: `localhost` → local, contains `dev`/`test` →
-  testing, else prod; unsure → ask):
-  - Production (`prod`): `https://flow.viasocket.com/`
-  - Testing (`testing`): `https://dev-flow.viasocket.com/`
-  - Local (`local`): `http://localhost:3000/`
-- **Plug / App (analytics / details):** `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
+- **Plug / App (analytics / details):** `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/analytics`
 - **Action / Trigger (create / edit / improvement):**
-  `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
-  - `<actionType>`: `action` or `trigger`.
-  - Never hallucinate IDs: `actionId` or `actionVersionRowId` missing → fall back to the plug analytics URL.
+  `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/{{ENTITY_TYPE}}/{{ACTION_ID}}?versionId={{VERSION_ID}}`
+  - Never hallucinate IDs: `{{ACTION_ID}}` or `{{VERSION_ID}}` missing → fall back to the plug analytics URL.
 
 ## 8. Report + learn
 
 - **Report:** `PLUGIN_ID`, `ACTION_ID`, `VERSION_ID` + version, type, action/trigger DH URL (§7), branch
-  taken (created / new version, source untouched), itemised changes (fields, code, mappings), gate results, what to
+  taken (created / new draft version / updated existing draft in place), itemised changes (fields, code, mappings), gate results, what to
   test in DH, KB sha + sections used. Then blank the token in `dh.mjs`.
 - **Learn:** merge new app facts (endpoints, pagination, rate limits, quirks, new components; source URLs; no
   secrets; ≤4 KB) into `plugins.metadata.aiContext` via a GET-merged plug PUT; append process lessons to

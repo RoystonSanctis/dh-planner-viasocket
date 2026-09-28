@@ -287,13 +287,8 @@ strings; plug metadata intact. You hold no user credentials — tell the develop
 
 End every run with clickable links so the developer can open what was built.
 
-- **Base URL by environment** (infer from `{{API_BASE}}` host: `localhost` → local, contains `dev`/`test` →
-  testing, else prod; unsure → ask):
-  - Production (`prod`): `https://flow.viasocket.com/`
-  - Testing (`testing`): `https://dev-flow.viasocket.com/`
-  - Local (`local`): `http://localhost:3000/`
-- **Connection:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>` (`connectionId` = `AUTH_ID`),
-  e.g. `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`.
+- **Connection:** `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/auth/{{AUTH_ID}}`
+  - `{{AUTH_ID}}`: when a new connection is created, place the new connection ID; if an existing connection is present, use the existing one.
 
 ## 7. Report + learn
 

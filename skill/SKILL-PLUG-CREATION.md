@@ -590,11 +590,13 @@ author them), `sampledata` (real doc example, shaped like the code's return), `d
 
 ### 9.3 Versioning
 
-| Target version                                  | Do                                                                                                                                                                                                                                                                                                        |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Created in this run (incl. repairs)             | PUT in place — repairs never add versions                                                                                                                                                                                                                                                                 |
-| Developer explicitly asks to edit a draft in place | PUT in place                                                                                                                                                                                                                                                                                           |
-| Otherwise (published or drafted)                | Clone: GET versions; source = requested or latest non-deleted; `POST create/action_version` with the source's fields minus server-managed ones (`rowid`, `autonumber`, timestamps, version number, `status`, `isdeleted`, `actionversionrecordid`, `publishdescription`, `metadata`) + `status: "drafted"`, `metadata: { duplicatedfrom: { rowid, version }, aiLogs }` → V(n+1) → PUT the changes incl. full `inputjson.inputFields` (clone builds no `steps`/`blocks`) → re-map the source's mappings + new ones (not copied) |
+When updating an action or trigger, **always confirm with the developer** before modifying or writing: call `getActionVersions`, list all existing versions (drafted vs published), and confirm whether to update a specific existing draft version in place or create a new draft version (`V(n+1)`). Never assume or silently auto-clone.
+
+| Target version                                     | Do                                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Created in this run (incl. repairs)                | PUT in place — repairs never add versions                                                                                                                                                                                                                                                                 |
+| Confirmed existing draft version                   | PUT in place (`PUT update/action_version?identifier=VERSION_ID&filter=updateActionVersionDetails`). Never PUT a `published` version directly.                                                                                                                                                             |
+| Confirmed create new draft version                 | Clone: GET versions; source = confirmed base version or latest non-deleted; `POST create/action_version` with the source's fields minus server-managed ones (`rowid`, `autonumber`, timestamps, version number, `status`, `isdeleted`, `actionversionrecordid`, `publishdescription`, `metadata`) + `status: "drafted"`, `metadata: { duplicatedfrom: { rowid, version }, aiLogs }` → V(n+1) → PUT the changes incl. full `inputjson.inputFields` (clone builds no `steps`/`blocks`) → re-map the source's mappings + new ones (not copied) |
 
 Never rename or remove field keys or the action `key` (breaks live flows).
 
@@ -653,18 +655,13 @@ Read back (stage 9): `getPluginDetails`, `getAuthDetails`, `getAllActions`, `get
 
 End every run with clickable links so the developer can open what was built.
 
-- **Base URL by environment** (infer from `{{API_BASE}}` host: `localhost` → local, contains `dev`/`test` →
-  testing, else prod; unsure → ask):
-  - Production (`prod`): `https://flow.viasocket.com/`
-  - Testing (`testing`): `https://dev-flow.viasocket.com/`
-  - Local (`local`): `http://localhost:3000/`
-- **Plug / App (analytics / details):** `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
+- **Plug / App (analytics / details):** `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/analytics`
 - **Action / Trigger (create / edit / improvement):**
-  `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
+  `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/<actionType>/<actionId>?versionId=<actionVersionRowId>`
   - `<actionType>`: `action` or `trigger`.
   - Never hallucinate IDs: `actionId` or `actionVersionRowId` missing → fall back to the plug analytics URL.
-- **Connection:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>` (`connectionId` = `AUTH_ID`),
-  e.g. `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`.
+- **Connection:** `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/auth/{{AUTH_ID}}`
+  - `{{AUTH_ID}}`: when a new connection is created, place the new connection ID; if an existing connection is present, use the existing one.
 
 ## 13. Report
 
