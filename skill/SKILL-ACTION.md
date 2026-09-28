@@ -45,7 +45,7 @@ Fixed stages; checkpoint to `.dh-run/state.json` (stage, KB sha, ids).
 | 8   | **Write** — §4                                                                                                                                                                                     | —                                                                  |
 | 9   | **Verify** — read back (§6)                                                                                                                                                                        | matches build                                                      |
 | 10  | **Repair** — defect `{component, path, expected, actual, evidence}` → fix only it, on the same version; ≤3 attempts; identical repeat or missing docs → stop, ask                                  | —                                                                  |
-| 11  | **Report + learn** (§7)                                                                                                                                                                            | —                                                                  |
+| 11  | **Report + learn** (§8)                                                                                                                                                                            | —                                                                  |
 
 **Branch** (stage 3):
 
@@ -82,7 +82,7 @@ This skill holds process, instructions and tool calls; knowledge lives in `knowl
 **Precedence:** this skill wins on runtime/REST facts (§1–§5); the KB wins on design (UX, fields, naming, category,
 code conventions, review). KB tool names (`create_update_ai_actions`, `Fetch_…`, mapping `path` toggles) → the REST
 calls here. Never send `rtllayer` (auto-publishes), `isAIActionTrigger`, `functionId`, `isUserOnDh`. Uncovered
-conflict → safer option + KB proposal (§7).
+conflict → safer option + KB proposal (§8).
 
 ---
 
@@ -402,9 +402,26 @@ dynamic fields have `source`, dependents `dependsOn`; `sampledata` present; trig
 every called component mapped. Symptoms: `X is not defined` → map it · 401 → auth in code or host not whitelisted ·
 dependent dropdown empty → parent destructured · "already published" → clone (§4B).
 
-## 7. Report + learn
+## 7. Developer Hub (DH) URLs
 
-- **Report:** `PLUGIN_ID`, `ACTION_ID`, `VERSION_ID` + version, type, DH link (KB "Developer Hub (DH) URLs"), branch
+End every run with clickable links so the developer can open what was built.
+
+- **Base URL by environment** (infer from `{{API_BASE}}` host: `localhost` → local, contains `dev`/`test` →
+  testing, else prod; unsure → ask):
+  - Production (`prod`): `https://flow.viasocket.com/`
+  - Testing (`testing`): `https://dev-flow.viasocket.com/`
+  - Local (`local`): `http://localhost:3000/`
+- **Plug / App (analytics / details):** `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
+- **Action / Trigger (create / edit / improvement):**
+  `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
+  - `<actionType>`: `action` or `trigger`.
+  - Never hallucinate IDs: `actionId` or `actionVersionRowId` missing → fall back to the plug analytics URL.
+- **Connection:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>` (`connectionId` = `AUTH_ID`),
+  e.g. `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`.
+
+## 8. Report + learn
+
+- **Report:** `PLUGIN_ID`, `ACTION_ID`, `VERSION_ID` + version, type, action/trigger DH URL (§7), branch
   taken (created / new version, source untouched), itemised changes (fields, code, mappings), gate results, what to
   test in DH, KB sha + sections used. Then blank the token in `dh.mjs`.
 - **Learn:** merge new app facts (endpoints, pagination, rate limits, quirks, new components; source URLs; no

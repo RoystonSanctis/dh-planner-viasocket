@@ -42,7 +42,7 @@ created); a rerun resumes after re-verifying those ids via GET.
 | 8   | **Write** — in dependency order: plug → connection → components → actions/triggers → mappings                                                   | ids checkpointed                                                                 |
 | 9   | **Verify** — read everything back (§11)                                                                                                        | matches build                                                                    |
 | 10  | **Repair** — per failure: defect `{component, path, expected, actual, evidence}` → fix only that artifact → rerun its gates                    | ≤3 attempts per defect; identical repeat, missing docs or auth/security doubt → stop, ask |
-| 11  | **Report + learn** (§12, §L)                                                                                                                   | —                                                                                |
+| 11  | **Report + learn** (§13, §L)                                                                                                                   | —                                                                                |
 
 - **Approval gate:** interactive → show the plan once and wait; unattended or the request says proceed → continue
   and put the plan in the report. Changes to existing rows list every field/code/mapping change (keys, labels,
@@ -648,9 +648,26 @@ Read back (stage 9): `getPluginDetails`, `getAuthDetails`, `getAllActions`, `get
 - Versions drafted with the right `authid`; `inputjson.blocks` holds every field; dynamic fields have `source`,
   dependents `dependsOn`; `sampledata` present; code formatted; triggers have `triggertype` + its blocks.
 
-## 12. Report
+## 12. Developer Hub (DH) URLs
 
-IDs (plug; connection + `authversion`; components; each action/trigger + version + type) with DH links (KB URLs) ·
+End every run with clickable links so the developer can open what was built.
+
+- **Base URL by environment** (infer from `{{API_BASE}}` host: `localhost` → local, contains `dev`/`test` →
+  testing, else prod; unsure → ask):
+  - Production (`prod`): `https://flow.viasocket.com/`
+  - Testing (`testing`): `https://dev-flow.viasocket.com/`
+  - Local (`local`): `http://localhost:3000/`
+- **Plug / App (analytics / details):** `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
+- **Action / Trigger (create / edit / improvement):**
+  `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
+  - `<actionType>`: `action` or `trigger`.
+  - Never hallucinate IDs: `actionId` or `actionVersionRowId` missing → fall back to the plug analytics URL.
+- **Connection:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>` (`connectionId` = `AUTH_ID`),
+  e.g. `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`.
+
+## 13. Report
+
+IDs (plug; connection + `authversion`; components; each action/trigger + version + type) with DH URLs (§12) ·
 what was built or changed (updates itemised) · gate results · what is unverified (no app credentials) and what to test
 in DH · KB sha + sections used · lessons · KB proposals. Then blank the token in `dh.mjs`.
 
