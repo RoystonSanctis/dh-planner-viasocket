@@ -292,18 +292,13 @@ End every run with clickable links so the developer can open what was built.
   - Production (`prod`): `https://flow.viasocket.com/`
   - Testing (`testing`): `https://dev-flow.viasocket.com/`
   - Local (`local`): `http://localhost:3000/`
-- **Plug / App (analytics / details):** `<baseUrl>developer/<orgId>/plugin/<pluginId>/analytics`
-- **Action / Trigger (create / edit / improvement):**
-  `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
-  - `<actionType>`: `action` or `trigger`.
-  - Never hallucinate IDs: `actionId` or `actionVersionRowId` missing → fall back to the plug analytics URL.
 - **Connection:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>` (`connectionId` = `AUTH_ID`),
   e.g. `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`.
 
 ## 7. Report + learn
 
 - **Report:** `AUTH_ID` + `authversion`, branch taken, keys changed, source version untouched (clone), gate results,
-  what to test, plug + connection DH URLs (§6), KB sha + sections used. Then blank the
+  what to test, DH connection URL (§6), KB sha + sections used. Then blank the
   token in `dh.mjs`.
 - **Learn:** merge app auth facts (docs URL, auth type, header format, test endpoint, scopes, quirks; no secrets) into
   `plugins.metadata.aiContext.auth` with the plug PUT; append process lessons to `.dh-run/lessons.md`; list KB gaps or

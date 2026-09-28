@@ -416,8 +416,6 @@ End every run with clickable links so the developer can open what was built.
   `<baseUrl>developer/<orgId>/plugin/<pluginId>/<actionType>/<actionId>?versionId=<actionVersionRowId>`
   - `<actionType>`: `action` or `trigger`.
   - Never hallucinate IDs: `actionId` or `actionVersionRowId` missing → fall back to the plug analytics URL.
-- **Connection:** `<baseUrl>developer/<orgId>/plugin/<pluginId>/auth/<connectionId>` (`connectionId` = `AUTH_ID`),
-  e.g. `https://flow.viasocket.com/developer/<orgId>/plugin/<pluginId>/auth/<connectionId>`.
 
 ## 8. Report + learn
 
