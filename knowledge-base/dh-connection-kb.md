@@ -61,6 +61,7 @@ description: "Token-minimal knowledge base for designing and updating viaSocket 
 9. **Whitelist**: `whitelistdomains` includes both the service domain and the API base domain (`["notion.com", "api.notion.com"]`), even for No Auth.
 10. **Internal IDs & Trust**: Never ask users for internal IDs (`pluginRecordId`, `connectionId`, `pluginId`, `connection_version_id`, `preferedauthversion`, `orgId`) or other internal system IDs the Test API or context can supply.
 11. **Execution Limit**: Exactly 1 connection operation per execution.
+12. **Mandatory Optional Chaining (`?.`) in Code Paths**: Optional chaining (`?.`) is strictly required in EVERY property access path inside connection code blocks, templates, and label expressions (e.g., `context?.authData?.<key>`, `response?.data`, `context?.authData?.testcode?.['key']`). Without optional chaining, if an intermediate key is not present while running the code, accessing properties directly will throw an unexpected runtime error (`TypeError: Cannot read properties of undefined`). Reviewers MUST flag if optional chaining is missing (e.g., `const formResponseData = body.form_response; formResponseData.definition?.fields`).
 
 ---
 

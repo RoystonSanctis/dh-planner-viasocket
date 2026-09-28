@@ -46,7 +46,8 @@ published: true
     - Manual Trigger Sample Code Pattern
 - Actions
   - Action Perform Code Rules
-      - Action Perform Code Patterns
+    - Mandatory Optional Chaining (?.) Rule in Code Blocks
+    - Action Perform Code Patterns
         - Read Data from an API (GET Family)
         - Create Data in an API
         - Update Data in an API
@@ -63,6 +64,7 @@ This document contains knowledge, snippets, and best practices for writing robus
 # Trigger
 
 ## Trigger Code Generation Rules
+- **Mandatory Optional Chaining (`?.`)**: Optional chaining (`?.`) is required in EVERY path in all trigger code blocks (`subscribe`, `sample`, `modifytriggerdata`, `unsubscribe`, `transfer`, `perform`). If an intermediate key is not present, direct access throws an unexpected runtime error (`TypeError: Cannot read properties of undefined`). Reviewers and planners MUST flag if optional chaining is missing (e.g., `const formResponseData = body.form_response; formResponseData.definition?.fields`).
 
 ## Instant Trigger
 
@@ -1722,6 +1724,51 @@ All generated code MUST be short, to-the-point, and well-structured. When code i
 2. **Build payloads via spread:** Construct a raw payload object using the spread operator (`...`) and shorthand property names, NOT by assigning each field one-by-one with `payload.x = x`.
 3. **Centralized cleanup:** Strip `undefined`, `null`, and `''` values from the payload using a single `Object.fromEntries(Object.entries(raw).filter(...))` call instead of repeating `if (x !== undefined && x !== null && x !== '') payload.x = x` for every optional field.
 4. **No redundant variables:** Avoid unnecessary intermediate variables. Keep the code minimal and readable.
+5. **Mandatory Optional Chaining (`?.`) on Paths:** Optional chaining (`?.`) is strictly required in EVERY property access path inside all code blocks (e.g., `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`, `context?.authData?.<key>`).
+   - **Why mandatory:** While running the code in production, if any intermediate key is not present, direct property access throws an unexpected runtime error (`TypeError: Cannot read properties of undefined`).
+   - **Reviewers & Planners:** Flag if optional chaining is missing.
+   - ✅ **CORRECT**:
+     ```javascript
+     const formResponseData = body?.form_response;
+     formResponseData?.definition?.fields
+     ```
+   - ❌ **WRONG** (FLAG IT):
+     ```javascript
+     const formResponseData = body.form_response;
+     formResponseData.definition?.fields
+     ```
+
+### Mandatory Optional Chaining (`?.`) Rule in Code Blocks
+
+Optional chaining (`?.`) is required in EVERY path in the code block. Reviewers and planners MUST flag if optional chaining is missing.
+
+#### Why Optional Chaining is Mandatory
+While running the code in production, if any intermediate key in an object, payload, or API response is not present (or null/undefined), direct dot-notation property access causes Node.js / JavaScript to throw an unexpected runtime error:
+`TypeError: Cannot read properties of undefined (reading '...')`
+This breaks execution and causes unexpected workflow failures for end-users.
+
+With optional chaining (`?.`), JavaScript safely evaluates to `undefined` instead of throwing an unhandled exception, allowing fallbacks (e.g. `|| {}`, `|| []`, `|| null`) or subsequent logic to handle missing keys gracefully.
+
+#### Examples:
+
+- ✅ **CORRECT (Always use `?.` on nested paths):**
+  ```javascript
+  const formResponseData = body?.form_response;
+  const fields = formResponseData?.definition?.fields;
+  ```
+
+- ❌ **WRONG (Missing `?.` — MUST BE FLAGGED):**
+  ```javascript
+  const formResponseData = body.form_response; // WRONG: throws if body is undefined
+  formResponseData.definition?.fields // WRONG: missing ?. on formResponseData; throws if formResponseData is undefined
+  ```
+
+#### Applying Optional Chaining Across Common Patterns:
+- **Webhook Payloads:** `context?.req?.body?.form_response`, `body?.form_response?.definition?.fields`
+- **Axios Response Payloads:** `response?.data?.results`, `response?.data?.items || []`, `response?.data?.next_cursor`
+- **User Inputs:** `context?.inputData?.<key>`, `context?.inputData?.nested_group?.field`
+- **Connection Metadata:** `context?.authData?.<key>`, `context?.authData?.testcode?.id`
+- **Pagination Cursors:** `context?.paginateData?.['field_key']`, `context?.paginationData`
 
 **Best Practice Algorithm:**
 First identify what the action is trying to do: read data, create data, update data, find-or-create data, or delete/archive data. Then choose the closest pseudo-code pattern below and adapt the endpoint, method, query params, body, and response path according to the service API.
@@ -2136,3 +2183,4 @@ return await deleteRecord();
 - No need to use the authentication configuration in the perform code. It will be handled by viaSocket. The authentication can be passed through header, query parameter or body, these are aleady configured in backend while the API call is made. Can include the additional header/query parameter/body if needed for the API call.
 - **Required Field Validation**: Always throw an error before the API call if a required input field is missing. Do not silently pass `undefined` or `null` to the API for required fields.
 - **Clean Code Style**: Verify the code uses destructuring from `context?.inputData || {}`, builds payloads via spread/shorthand, and cleans optional fields with a single `Object.fromEntries` filter. Flag and refactor any verbose per-field `if`-check patterns.
+- **Mandatory Optional Chaining (`?.`) in Paths**: Optional chaining (`?.`) is required in EVERY path in the code block (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Reviewers MUST flag if optional chaining is missing (e.g., `const formResponseData = body.form_response; formResponseData.definition?.fields`). Why: while running the code, if any intermediate key is not present, missing `?.` will cause an unhandled runtime throw error (`TypeError: Cannot read properties of undefined`).

@@ -43,6 +43,7 @@ Every trigger and action design and perform code must strictly be validated agai
 * [ ] **Avoid `defaultValue` key in input JSON:** Never use the `defaultValue` key in input JSON fields. Mention default values in `help` text and handle default fallbacks in perform code.
 * [ ] **No Search, Only Pagination Dropdown Pattern:** When `canPaginate: true` and `enableSearchApi: false`, output strictly returns `{ data, offset }`. Empty results must distinguish initial load (`!currentOffset && length === 0` → `{ data: [], offset: null, message: 'No <resources> found.' }`) from pagination end (`currentOffset && length === 0` → `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`).
 * [ ] **No AI Field in Triggers & Scheduled Filter Handling:** Triggers strictly forbid `aifield` (Actions only). If the API supports filtering in a scheduled trigger, predefined filters must be fetched from an input field (Dropdown, Multiselect, Boolean, Input Group) or added directly in the perform code.
+* [ ] **Mandatory Optional Chaining (`?.`) in Code Paths:** Optional chaining (`?.`) is strictly required on every property access path in code blocks (e.g., `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Flag if optional chaining is missing (e.g. `body.form_response` or `formResponseData.definition?.fields`). Without optional chaining, if a key is not present while running the code, accessing properties directly will throw an unexpected runtime error (`TypeError: Cannot read properties of undefined`).
 
 ## Review Priorities (Strict Order)
 
@@ -57,6 +58,7 @@ Every trigger and action design and perform code must strictly be validated agai
 - **JSON Validity**: Reject malformed JSON (duplicate keys, broken escaping, missing commas).
 - **Required Fields**: Code must throw error at top (before API call) if a required input field is missing/empty/null (e.g. `if (!context.inputData.date) { throw new Error('Date is required.'); }`).
 - **Reusable Component Mapping**: Ensure the `"id"` key is correctly mapped to the reusable component's `"id"` key, and verify that `path` is set to either a dedicated section key path (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key (e.g., `"page_id"`; for fields inside an input group, use only the field key `"page_id"`, no nested input group path). Confirm mapped components using `Fetch_Mapped_Reusable_Component_In_Action_Version`. Flag as a P0 issue during review if any reusable component called in `inputFields` or `performCode` is not mapped.
+- **Mandatory Optional Chaining (`?.`) in Paths**: Optional chaining (`?.`) is strictly required in EVERY property access path in code blocks (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Reviewers MUST flag as a P0 breaking defect if optional chaining is missing (e.g., `const formResponseData = body.form_response; formResponseData.definition?.fields`). If a key is missing or undefined at runtime, direct access throws an unhandled runtime error (`TypeError: Cannot read properties of undefined`).
 
 ### P1 — Automation Safety
 - **No Raw IDs & Dropdown Priority (CRITICAL & MANDATORY)**: In UX, always prefer dynamic dropdowns/multiselects over plain text fields for resource references/IDs. Resolve IDs via dropdown/multiselect by readable name. Do not bypass parent dropdowns even if they are required to fetch options. Special exceptions: (1) Category `DELETE` actions are a strict exception and must always use a direct text ID field of type `string` without any dropdown or selection logic; (2) Special apps/workflows where IDs are specifically passed from an upstream/previous step in the flow or where no options-fetching API endpoint exists.
@@ -111,6 +113,18 @@ Every trigger and action design and perform code must strictly be validated agai
 - **API Rate Limiting**: If the code calls an API inside a loop, it must handle the API rate limit of the service (e.g., add delays, retry logic, or respect rate limit headers).
 - **Required Field Validation**: For every input field marked `required: true` in the input fields JSON, the perform code **must** throw an error at the top of the function (before the API call) if that field's value is missing, empty, or `null`. Example: `if (!context.inputData.date) { throw new Error('Date is required.'); }`
 - **Response Return & Formatting (Base `.data` Extraction Rule)**: The actual raw API response is always accessible from the `response.data` key. The base return must always extract from the `"data"` key (including across multiple API calls, e.g. `userRes.data`, `ordersRes.data`), and then navigate to destination path keys as needed. Perform code can inject metadata (`success`, `id`, `has_more`), unnest actual data, filter bloated responses with selective keys, or flatten complex objects to make the output response more structured or organised for downstream workflow. Do NOT flag structured, selective, or modified response returns as an issue.
+- **Mandatory Optional Chaining (`?.`) in Paths**: Optional chaining (`?.`) is required in EVERY path in the code block. Reviewers MUST flag if optional chaining is missing.
+  - **Why mandatory**: While running code in production, if any intermediate key is not present, missing optional chaining will throw an unexpected runtime error (`TypeError: Cannot read properties of undefined`).
+  - ✅ **CORRECT**:
+    ```javascript
+    const formResponseData = body?.form_response;
+    formResponseData?.definition?.fields
+    ```
+  - ❌ **WRONG** (MUST FLAG):
+    ```javascript
+    const formResponseData = body.form_response;
+    formResponseData.definition?.fields
+    ```
 
 **Required Structure:**
 The code block can use either of the two formats below. The reviewer must not flag either as an issue. The `context` object is available globally.

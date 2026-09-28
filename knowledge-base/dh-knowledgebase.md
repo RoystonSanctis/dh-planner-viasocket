@@ -62,6 +62,10 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - Category `DELETE` (string ID only).
    - IDs passed from upstream steps with no list API.
 9. **Backward Compatibility**: Never rename/remove keys (breaks active flows); only update labels, help, visibility, or add optional fields.
+10. **Mandatory Optional Chaining (`?.`) in Code Paths**:
+    - Optional chaining (`?.`) is strictly required in EVERY property access path inside all code blocks (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`, `context?.authData?.<key>`).
+    - **Why mandatory**: While running code in production, if any intermediate key is not present, direct dot-notation access throws an unexpected runtime error (`TypeError: Cannot read properties of undefined`).
+    - **Flag Missing Optional Chaining**: Reviewers and planners MUST flag as a defect whenever optional chaining is missing on property access in any code block (e.g., `const formResponseData = body.form_response; formResponseData.definition?.fields`).
 
 ---
 
@@ -311,6 +315,17 @@ Identify intent (read, create, update, find-or-create, delete) → pick the matc
 Lean, readable, native JS; no bloat or wrapper gymnastics.
 - **Readable Spacing**: Distinct blocks for validation, payload assembly, API call, and response return. No dense one-liners or minified logic.
 - **Upfront Destructuring**: From `context?.inputData || {}` (`context?.inputData?.<key>` also valid).
+- **Mandatory Optional Chaining (`?.`) on Paths**: Optional chaining (`?.`) is required in EVERY path in the code block (e.g., `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`). Direct property access like `body.form_response` or `formResponseData.definition?.fields` throws an unexpected runtime error if the key is not present. Flag if optional chaining is missing.
+  - ✅ **CORRECT**:
+    ```javascript
+    const formResponseData = body?.form_response;
+    formResponseData?.definition?.fields
+    ```
+  - ❌ **WRONG** (FLAG IT):
+    ```javascript
+    const formResponseData = body.form_response;
+    formResponseData.definition?.fields
+    ```
 - **Payload Construction**: Spread with shorthand keys; one central cleanup (no per-field `if` checks):
   ```javascript
   const raw = { name, email, status, metadata };
@@ -322,33 +337,33 @@ Lean, readable, native JS; no bloat or wrapper gymnastics.
 - **String Newlines**: In stringified code (`perform`, `testcode`), use raw `\n`, never double-escaped `\\n`.
 
 ## Response Return Patterns
-*Always anchor on `.data`.*
+*Always anchor on `.data` with optional chaining.*
 ```javascript
 // 1. Direct Return (Clean API responses)
-return response.data;
+return response?.data;
 
 // 2. Metadata Injection (Mutations, status updates, minimal 200s)
-return { success: true, id: response.data?.id || id, ...response.data };
+return { success: true, id: response?.data?.id || id, ...response?.data };
 
 // 3. Unnesting (Bubble nested payload to root)
-const item = response.data?.data || response.data?.result || response.data;
+const item = response?.data?.data || response?.data?.result || response?.data;
 return { success: true, ...item };
 
 // 4. Selective Keys (Bloated/noisy APIs)
-const raw = response.data;
-return { success: true, id: raw.id, name: raw.name, status: raw.status, created_at: raw.created_at };
+const raw = response?.data;
+return { success: true, id: raw?.id, name: raw?.name, status: raw?.status, created_at: raw?.created_at };
 
 // 5. Flattening (Deep hierarchies for variable pill picker)
-const o = response.data;
-return { order_id: o.id, total: o.pricing?.total, customer_email: o.customer?.email };
+const o = response?.data;
+return { order_id: o?.id, total: o?.pricing?.total, customer_email: o?.customer?.email };
 
 // 6. Multi-API Calls (Every response must extract from .data)
-const uData = (await axios.get('/user')).data;
-const pData = (await axios.get('/projects')).data;
+const uData = (await axios.get('/user'))?.data;
+const pData = (await axios.get('/projects'))?.data;
 return { success: true, user: uData, projects: pData?.items || [] };
 
 // 7. Confirmation (Empty DELETE bodies)
-return response.data || { id, deleted: true };
+return response?.data || { id, deleted: true };
 ```
 
 ## Libraries & Globals
@@ -406,7 +421,7 @@ try {
   if (!id) throw new Error('No ID found in the webhook payload.');
 
   const response = await axios.get(`<url>/records/${encodeURIComponent(id)}`);
-  return response.data;
+  return response?.data;
 } catch (error) {
   await errorComponent(error);
 }
@@ -419,8 +434,8 @@ const offset = context?.inputData?.transferOption?.offset || null;
 const params = { limit: 100, ...(offset ? { cursor: offset } : {}) }; // max 200
 const res = await axios.get('<url>/<endpoint>', { params });
 return {
-  data: res.data?.items || res.data || [],
-  offset: res.data?.next_cursor || null,
+  data: res?.data?.items || res?.data || [],
+  offset: res?.data?.next_cursor || null,
   uniqueIdentifier: 'id'
 };
 ```
@@ -458,7 +473,7 @@ async function executeAction() {
 
     const payload = Object.fromEntries(Object.entries(rest).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
     const response = await axios.post(`<url>/resources/${record_id}`, payload);
-    return { success: true, id: record_id, ...response.data };
+    return { success: true, id: record_id, ...response?.data };
   } catch (error) {
     await errorComponent(error);
   }
@@ -535,6 +550,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 
 **P0 (Breaking)**
 - Error handling matches rules (`await errorComponent(error)` in code blocks; `throw error` in reusable components).
+- Mandatory Optional Chaining (`?.`) in paths: Optional chaining (`?.`) is strictly required in EVERY property access path in code blocks (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Flag as a defect if optional chaining is missing (e.g., `body.form_response` or `formResponseData.definition?.fields`). Rationale: If a key is missing or undefined at runtime, direct access throws an unhandled runtime error (`TypeError: Cannot read properties of undefined`).
 - Every input referenced in code exists in `inputFields`; no orphan fields; valid `visibilityCondition` paths.
 - Base `.data` extraction on every API call (including multi-API calls).
 - JSON schema: `{"steps": {}, "blocks": {}, "inputFields": [...]}` with NO `"item"` array wrappers and NO stringified objects.
