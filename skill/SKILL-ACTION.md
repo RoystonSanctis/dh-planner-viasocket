@@ -37,7 +37,7 @@ Fixed stages; checkpoint to `.dh-run/state.json` (stage, KB sha, ids).
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | 1   | **Bootstrap** — tools (§1), prefetch `dh-knowledgebase.md` + `node kb.mjs sync` (§K), memory: `plugins.metadata.aiContext` + `.dh-run/lessons.md` (hints; re-verify)                                                                     | —                                                                  |
 | 2   | **Contract** — name, key, description, category/sub_category (KB), required inputs, expected outputs, success condition, `create`/`modify`, trigger type                                          | Empty, other entity type or other app → stop, ask                  |
-| 3   | **Resolve** — plug (`getPluginDetails`), connection (`getAuthDetails`: type + `authfields` keys = non-secret `context.authData.<key>`), `getAllActions`, components; update: target + versions + mappings | Branch (below)                                                     |
+| 3   | **Resolve** — plug (`getPluginDetails`), connection (`getAuthDetails`: type + `authfields` keys = non-secret `context?.authData?.<key>`), `getAllActions`, components; update: target + versions + mappings | Branch (below)                                                     |
 | 4   | **Evidence** — official docs for every endpoint: method, path, params, body, response example, pagination, errors, doc URL → `.dh-run/evidence.json`                                             | Undocumented → stop, ask; never invent                             |
 | 5   | **Plan** — create: contract + UX outline (`- Label* (type) — hint`, groups indented); update: every field/code/mapping change (keys, labels, types, sources, logic)                              | Approval (skip if unattended or the request says proceed)          |
 | 6   | **Build** — components (reuse first), `inputFields`, code blocks, `sampledata`                                                                                                                     | —                                                                  |
@@ -286,7 +286,7 @@ console.log(JSON.stringify({ calls, result }, null, 2))
 
 - **Auth:** the connection's `authenticationpaths` injects credentials into calls to whitelisted hosts; code sees
   secrets as literal placeholders. Never build auth in code (→ 401); every host called must be in the plug/connection
-  whitelist. Non-secret connection fields: `context.authData.<key>`.
+  whitelist. Non-secret connection fields: `context?.authData?.<key>`.
 - Each code field is a function body inside `async function step(context) {…}` with mapped components prepended;
   top-level `await`; must `return`. Never redeclare `context`, `axios`, `fetch`, `console`, `authData`,
   `fieldsChanges`, `__stepId`, component names.
@@ -315,8 +315,8 @@ console.log(JSON.stringify({ calls, result }, null, 2))
   polling `perform` runs the flow per item (≤1000); `[]` runs nothing.
 - Polling has no platform dedup — return only the current window (one page, oldest first).
 - One webhook per app (not per user) → viaSocket multi-service receiver (`backed-plug-service`).
-- **Style:** format with `fmt.mjs`; destructure inputs upfront, except dropdown sources reference parents literally
-  (`context.inputData.parentKey`) so `dependsOn` is detected; one central empty-strip; `encodeURIComponent` path
+- **Style:** format with `fmt.mjs`; optional chaining (`?.`) on every property path (KB rule); destructure inputs
+  upfront, except dropdown sources reference parents literally (`context?.inputData?.parentKey`) so `dependsOn` is detected; one central empty-strip; `encodeURIComponent` path
   params; no `console.log`; base URL/headers/pagination in components.
 
 ## 3. Reusable components
@@ -390,7 +390,7 @@ Entry: `{ "by": "CREATED_BY_CLAUDE" | "UPDATED_BY_CLAUDE", "time": "<ISO>", "ski
 
 | Gate                  | Check                                                                                                                                                                                         |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| G1 Schema             | Valid JSON; payload per KB schema; `inputFields` per KB field rules; every `context.inputData.<key>` read ↔ a field; no orphan fields                                                       |
+| G1 Schema             | Valid JSON; payload per KB schema; `inputFields` per KB field rules; every `context?.inputData?.<key>` read ↔ a field; `?.` on every path; no orphan fields                                                       |
 | G2 Evidence           | Every endpoint, param and response path ↔ `evidence.json`                                                                                                                                     |
 | G3 Execution          | `mock.mjs` each snippet with its components: sample inputs, empty optionals, missing required, zero results, parent unselected → expected method/URL/query/body/return (mock only; say so)   |
 | G4 Runtime & security | §2 holds: no auth/secrets in code, no reserved/absent names, hosts whitelisted                                                                                                               |

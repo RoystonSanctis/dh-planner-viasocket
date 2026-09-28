@@ -237,7 +237,7 @@ else console.log('usage: node kb.mjs sync | index [kb|module] | get <kb|module> 
 - `scopeseperatedby`: `"space"` | `"comma"` | `null`. Redirect: `https://auth.viasocket.com/redirect/auth2.0`
   (OAuth 2) · `…/redirect/auth1` (OAuth 1, Basic).
 - Label (`connectionlabelkey`, `connectionlabelvalue`, `_connectionlabelvalue`) is mandatory — create fails with
-  `connection label can't be empty`; its path reads `context.authData.testcode` = testcode's stored return.
+  `connection label can't be empty`; its path reads `context?.authData?.testcode` = testcode's stored return.
 - `whitelistdomains` (connection and plug) match by registrable domain; `skipwhitelistvalidation: true` only for
   customer-specific domains.
 - The VM caches `authenticationpaths`/whitelist per connection (≤30 days); any `PUT update/plugins` clears it.

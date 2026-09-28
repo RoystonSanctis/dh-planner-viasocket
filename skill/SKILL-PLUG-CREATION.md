@@ -417,7 +417,7 @@ host/path (per-account subdomains). Hence:
 - `scopeseperatedby`: `"space"` | `"comma"` | `null`. Redirect URL: `https://auth.viasocket.com/redirect/auth2.0`
   (OAuth 2) · `…/redirect/auth1` (OAuth 1, Basic).
 - `connectionlabelkey` + `connectionlabelvalue` (+ `_connectionlabelvalue`) are mandatory — create fails with
-  `connection label can't be empty`. The path reads `context.authData.testcode` = testcode's stored return.
+  `connection label can't be empty`. The path reads `context?.authData?.testcode` = testcode's stored return.
 - `whitelistdomains` (connection and plug) match by registrable domain; `skipwhitelistvalidation: true` only for
   customer-specific domains.
 - The VM caches `authenticationpaths`/whitelist per connection (≤30 days); any `PUT update/plugins` clears it → after
@@ -492,7 +492,8 @@ KB conventions plus:
 
 - Format every snippet with `fmt.mjs` (failure = syntax error). Real newlines; no minified code, `console.log`,
   tutorial or commented-out code; comment only non-obvious reasons.
-- Destructure inputs upfront — except dropdown sources: reference parents literally (`context.inputData.parentKey`)
+- Optional chaining (`?.`) on every property path (KB rule), e.g. `response?.data?.items`, `context?.inputData?.key`.
+- Destructure inputs upfront — except dropdown sources: reference parents literally (`context?.inputData?.parentKey`)
   so `dependsOn` is detected.
 - Perform = guard → payload (shorthand + one central empty-strip) → request component → shaped return (3–15 lines).
 - `encodeURIComponent` path params; queries via `params`/`URLSearchParams`.
@@ -508,7 +509,7 @@ one is mapped to the same version. **Not versioned** — editing one changes eve
 **Rules** (KB "Reusable Components" applies):
 
 - Always `<app>Request(method, path, options)` (base URL, API-version headers, drops empty params, returns
-  `response.data`) + dropdown/list/pagination helpers used ≥2×. `errorComponent` is built in (auto-created,
+  `response?.data`) + dropdown/list/pagination helpers used ≥2×. `errorComponent` is built in (auto-created,
   auto-mapped to new actions) — never create it.
 - Reuse first. Before editing, `dhGetUsedActionVersionForComponent`: used elsewhere → keep `function_name`/`params`
   and stay backward compatible, or create a new component.
@@ -531,7 +532,7 @@ try {
     headers: { 'Content-Type': 'application/json', ...headers }
   })
 
-  return response.data
+  return response?.data
 } catch (error) {
   throw error
 }
@@ -599,8 +600,8 @@ Never rename or remove field keys or the action `key` (breaks live flows).
 
 ### 9.4 Trigger runtime
 
-- Subscribe registers `context.inputData.hookUrl`; its return is stored → unsubscribe reads
-  `context.inputData.performsubscribe.<id>` (missing → `return { success: true }`).
+- Subscribe registers `context?.inputData?.hookUrl`; its return is stored → unsubscribe reads
+  `context?.inputData?.performsubscribe?.<id>` (missing → `return { success: true }`).
 - `modifytriggerdata` runs per webhook: `[]` drops the event, an array runs per item; skip foreign events; verify
   signatures when the secret is available. `performlist` returns the same shape (KB "Sample").
 - One webhook per app (not per user) → viaSocket multi-service receiver (`backed-plug-service`).
