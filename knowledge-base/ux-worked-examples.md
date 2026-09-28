@@ -47,6 +47,8 @@ published: true
   - Slack — Send Message
   - MSG91 — Send WhatsApp Template Message
   - Gmail — Send Email
+- INSTANT TRIGGER Examples
+  - LinkedIn Campaign Manager- New Organic Lead Form Response (Instant Trigger-Backend Service):
 - SCHEDULED TRIGGER Examples
   - Google Calendar — New Upcoming Events (Scheduled Trigger)
   - Google Meet — New Upcoming Meeting (Scheduled Trigger)
@@ -57,6 +59,13 @@ published: true
   - Botse — Fetch Templates - No Search, Only Pagination
 - Cross-Cutting UX Patterns (Extracted)
 - Perform Code Reference
+  - Slack — Send Message Perform Code
+  - Google Sheet — Add New Row Perform Code
+  - MSG91 — Send WhatsApp Template Perform Code
+  - Leadconnector — Create Or Update Contact Perform Code
+  - Gmail — Send Email Perform Code
+  - viaSocket Table — Add Records To Table Perform Code
+  - viaSocket Table — Get Table Rows Perform Code
 
 # UX Worked Examples Knowledge Base
 

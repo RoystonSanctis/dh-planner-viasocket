@@ -8,6 +8,7 @@ published: true
 
 - Connection Practices Knowledge Base
   - Authentication Context & Perform Code usage
+  - Code Style & Newline Escaping
 - Connections
   - Connection Selection & Priority Guidelines
   - Basic Auth

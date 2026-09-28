@@ -21,6 +21,7 @@ published: true
   - Automation Safety & Overwrite Protection
   - Behavior Constraints
   - Trade-Off Evaluation Protocol
+    - Final Decision Reflection
 
 # Objective
 You must strictly validate the code and JSON against these Knowledge Bases:
