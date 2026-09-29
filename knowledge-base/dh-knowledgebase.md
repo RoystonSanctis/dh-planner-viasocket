@@ -36,7 +36,11 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
 *Invariants across all plugs. Stated once—never repeated.*
 
 1. **API Docs = Ground Truth**: Overrides user cURL. Every documented parameter (path, query, body, headers, filters) → UI input or code; payload shape and endpoint match the API exactly. Never invent or omit parameters, and never assume `sort`/`limit`/`search`/pagination support—verify in official docs first. Undocumented endpoint → confirm with provider or state the limitation.
-2. **Authentication**: The viaSocket connection (`authenticationpaths`) injects auth into header/query/body. Never add, hardcode, or expose auth or secrets in code or payloads; flag direct auth usage. Add only extra non-standard headers/params the API needs. Non-secret auth metadata (domain, account ID): `context?.authData?.<key>` (where `<key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details). Never ask for `pluginrecordid` or `authid`.
+2. **Authentication & Backend Auth Injection (`authenticationpaths`)**:
+   - **No Authentication / API Key in Code**: Never add, pass, hardcode, or reference authentication credentials (API key, Bearer token, access token, basic auth, client secret, etc.) in any action, trigger, or reusable component code. No auth headers (e.g., `Authorization`, `x-api-key`, `api-key`), auth query params (e.g., `?api_key=...`), or auth body properties should ever be authored in code.
+   - **Automatic Backend Injection via `authenticationpaths`**: All authentication is passed and injected automatically from the viaSocket backend into request `headers`, `body`, or `queryParams` as configured in the connection's `authenticationpaths` section (`authenticationpaths.headers`, `authenticationpaths.body`, `authenticationpaths.queryParams`).
+   - **Direct Code Calls**: All `axios` / `fetch` calls in code must omit authentication headers/params entirely—the backend HTTP interceptor injects credentials automatically when making requests to whitelisted hosts. Adding auth in code is strictly prohibited, causes errors or leaks, and sends masked literal placeholders resulting in 401s. Add only extra non-auth application headers (e.g., `Content-Type: application/json`, custom API version headers) or request-specific parameters.
+   - **Non-secret Metadata Only**: Only non-secret connection metadata (e.g., domain, subdomain, tenant ID, account ID, region) can be accessed in code via `context?.authData?.<key>` (where `<key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details). Never read or use secret credential keys (e.g., `api_key`, `token`) from `context.authData`. Never ask the user for `pluginrecordid` or `authid`.
 3. **JSON Schema (`inputjson`)**: `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
    - Author only `inputFields`. `steps`/`blocks` are engine-generated: pass real empty objects `{}`, never strings `"{}"`.
    - **NO `"item"` WRAPPERS** on any array (`inputFields`, `options`, …): ❌ `{"inputFields": {"item": [...]}}` | ✅ `{"inputFields": [...]}`
@@ -370,7 +374,7 @@ return response?.data || { id, deleted: true };
 - **Global Libraries** (never imported): `axios`, `fetch` (node-fetch), `FormData` (form-data), `jwt` (jsonwebtoken), `_` (lodash), `https`, `crypto`, `setTimeout`, `Buffer`, `atob`, `cheerio`, `moment`, `URLSearchParams`, `XMLParser`, `XMLBuilder`, `XMLValidator`.
 - **System Globals**:
   - `context.inputData.<key>`: User inputs.
-  - `context.authData.<key>`: Non-secret connection metadata.
+  - `context.authData.<key>`: Non-secret connection metadata only (e.g., domain, subdomain, account ID, region). Secret keys (API key, token, secret) are masked by the backend and must never be referenced in code (auth is automatically injected via `authenticationpaths`).
   - `__executionStartTime__`: Scheduled run ISO timestamp (`"2026-07-28T09:26:51.074Z"`); compute via `new Date(__executionStartTime__).getTime()`.
   - `context.inputData.scheduledTime`: Polling interval in minutes.
   - `context.paginationData`: Scheduled cursor across runs. **Never reset to null/0 in `else`**.
@@ -560,7 +564,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - JSON schema: `{"steps": {}, "blocks": {}, "inputFields": [...]}` with NO `"item"` array wrappers and NO stringified objects.
 - All reusable components called in code are mapped with a valid `path`. No component-in-component calls: every reusable component must be a single standalone component and never call another component.
 - Zero results return an informative `{ message }` or valid empty payload per flag combination.
-- No auth in code; Manual triggers send no `authid` and make no API calls.
+- **No authentication / API key in code**: Code must NEVER pass API keys, tokens, or credentials in headers (`Authorization`, `x-api-key`, etc.), query parameters, or body payloads. All authentication is injected automatically by the backend via the connection's `authenticationpaths` (`headers`, `body`, or `queryParams`). Flag any direct auth or API key in code as a critical defect. Manual triggers send no `authid` and make no API calls.
 - Required inputs (dependent required included) validated before API calls.
 - Payload shape/endpoint match the API; all documented params supported; derived values have fallbacks.
 
