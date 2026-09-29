@@ -134,8 +134,8 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 ```
 
 ```js
-// apply.mjs — node apply.mjs [--check] [--concurrency=4]   (reads .dh-run/plan.json, resumes via .dh-run/state.json)
-// format + check → components (bulk) → actions/triggers (parallel) → versions → mappings (derived, bulk) → read-back → URLs
+// apply.mjs — node apply.mjs [--check] [--concurrency=4] [--no-bulk]   (reads .dh-run/plan.json, resumes via .dh-run/state.json)
+// format + check → components (bulk) → actions/triggers (bulk, parallel fallback) → versions → mappings (derived, bulk) → read-back → URLs
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { dh } from './dh.mjs'
@@ -265,21 +265,50 @@ if (missing.length) {
 const compId = Object.fromEntries(comps.map((c) => [c.function_name, c.rowid]))
 const codeOf = Object.fromEntries(comps.map((c) => [c.function_name, c.code || '']))
 
-// 2. actions/triggers — create, flag as AI (metadata merged), fill version; parallel, resumable
-const existing = rows(await dh('GET', `get/actions?identifier=${pluginId}&filter=getAllActions`)).filter((a) => a.status !== 'deleted')
+// 2. actions/triggers — bulk create (ids adopted by key), parallel fallback; then flag as AI (metadata merged), fill version
+const listActions = async () => rows(await dh('GET', `get/actions?identifier=${pluginId}&filter=getAllActions`)).filter((a) => a.status !== 'deleted')
+const existing = await listActions()
+const clashOf = (it) => existing.find((a) => a.key === it.key || a.name?.toLowerCase() === it.name.toLowerCase())
+const authOf = (it) => (it.version.triggertype === 'manual_webhook' ? undefined : it.authid ?? authId)
+const createBody = (it) => ({
+  name: it.name, description: it.description, key: it.key, pluginrecordid: pluginId, type: it.type, authid: authOf(it),
+  isvisible: it.isvisible ?? true, category: it.category ?? '', sub_category: it.sub_category ?? '',
+  preferred_step_name: it.preferred_step_name ?? (it.type === 'trigger' ? '' : it.name), ignoreuniversalsampledata: false,
+  metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
+})
+const fresh = plan.items.filter((it) => !state.items[it.key]?.actionId && !clashOf(it))
+let createNote = ''
+if (fresh.length > 1 && !args.includes('--no-bulk')) {
+  try {
+    await dh('POST', 'create/actions', { bulkEntry: true, pluginrecordid: pluginId, dataToSend: fresh.map(createBody) })
+    createNote = `bulk-created ${fresh.length}`
+  } catch (e) {
+    createNote = `bulk create unavailable (${e.message.slice(0, 120)}) — parallel fallback`
+  }
+  // adopt rows that appeared in this run (also after a partial bulk failure) — never re-create them
+  const after = await listActions()
+  await pool(fresh, concurrency, async (it) => {
+    const row = after.find((a) => a.key === it.key && !existing.some((e) => e.rowid === a.rowid))
+    if (!row) return
+    const st = (state.items[it.key] ||= {})
+    st.actionId = row.rowid
+    const versions = rows(await dh('GET', `get/action_version?identifier=${row.rowid}&filter=getActionVersions`))
+    st.versionId = versions.find((v) => !v.isdeleted)?.rowid
+    if (!st.versionId) {
+      const v = await dh('POST', 'create/action_version', { actionid: row.rowid, authid: authOf(it), type: it.type, status: 'drafted', metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] } })
+      st.versionId = v?.data?.actionData?.[0]?.rowid
+    }
+    save()
+  })
+}
 const results = await pool(plan.items, concurrency, async (it) => {
   const st = (state.items[it.key] ||= {})
-  const authid = it.version.triggertype === 'manual_webhook' ? undefined : it.authid ?? authId
+  const authid = authOf(it)
   try {
     if (!st.actionId) {
-      const clash = existing.find((a) => a.key === it.key || a.name?.toLowerCase() === it.name.toLowerCase())
+      const clash = clashOf(it)
       if (clash) return { it, st, status: `SKIPPED: exists as ${clash.rowid} — use the update flow` }
-      const r = await dh('POST', 'create/actions', {
-        name: it.name, description: it.description, key: it.key, pluginrecordid: pluginId, type: it.type, authid,
-        isvisible: it.isvisible ?? true, category: it.category ?? '', sub_category: it.sub_category ?? '',
-        preferred_step_name: it.preferred_step_name ?? (it.type === 'trigger' ? '' : it.name), ignoreuniversalsampledata: false,
-        metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
-      })
+      const r = await dh('POST', 'create/actions', createBody(it))
       st.actionId = r?.data?.actionData?.[0]?.rowid
       st.versionId = r?.data?.actionVersionData?.data?.[0]?.rowid
       if (!st.actionId || !st.versionId) throw new Error(`create returned no ids: ${JSON.stringify(r).slice(0, 300)}`)
@@ -331,7 +360,7 @@ await pool(results.filter((r) => r.status === 'ok'), concurrency, async (r) => {
 const url = (r) => `${dhBaseUrl}developer/${orgId}/plugin/${pluginId}/${r.it.type}/${r.st.actionId}?versionId=${r.st.versionId}`
 for (const w of warnings) console.log(`WARN ${w}`)
 for (const r of results) console.log(`${r.status.padEnd(4)} · ${r.it.type} · ${r.it.name}${r.st?.actionId ? ` · ${url(r)}` : ''}`)
-console.log(`mapped ${newRows.length} new component rows · state: ${STATE}`)
+console.log(`${createNote ? `${createNote} · ` : ''}mapped ${newRows.length} new component rows · state: ${STATE}`)
 if (results.some((r) => !r.status.startsWith('ok'))) process.exit(1)
 ```
 
