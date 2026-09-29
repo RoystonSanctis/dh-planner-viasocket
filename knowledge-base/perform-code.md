@@ -52,6 +52,10 @@ published: true
         - Create Data in an API
         - Update Data in an API
         - Delete or Archive Data in an API
+- Reusable Components
+  - Reusable Component Rules & Standalone Isolation
+  - Default errorComponent Implementation
+  - Reusable Component Code Patterns
 - Special Note
   - Special Note - API Request Error Handling
   - Special Note - Success Code Handling
@@ -2178,6 +2182,149 @@ async function deleteRecord() {
 }
 return await deleteRecord();
 ```
+
+# Reusable Components
+
+Reusable components are modular JavaScript functions stored once per plug and mapped to action/trigger versions. They can be invoked across perform code, trigger blocks, and dropdown `optionsGenerator`s to encapsulate shared logic, prevent code duplication, and isolate complex API handling.
+
+## Reusable Component Rules & Standalone Isolation
+
+1. **No Component-in-Component Calls (Single Component Rule)**:
+   - **Avoid calling components inside components.** Each reusable component must be a single, standalone component created and mapped for its specific operation.
+   - For example, when building Google Sheets:
+     - Dropdown for `spreadsheet`: create a standalone reusable component `fetchSpreadsheet`.
+     - Dropdown for `subsheet`: create a separate standalone reusable component `fetchSubsheet` that takes `spreadsheetId` as a parameter and calls the API directly using `axios`.
+     - `fetchSubsheet` must **NEVER** call `fetchSpreadsheet` or any other reusable component. Every component must be independent and self-contained.
+2. **Error Handling in Reusable Components**:
+   - In code blocks (perform, trigger blocks, optionsGenerator), errors are caught and passed to `await errorComponent(error)`.
+   - In **reusable components**, catch blocks must **NEVER** call `errorComponent`. Instead, they must `throw error;` so the caller's try/catch block can intercept it.
+   - For validation failures (e.g. missing parent dependencies), reusable components must `throw` structured fallbacks:
+     ```javascript
+     if (!workspaceId) {
+       throw { data: [], offset: null, message: 'Select a workspace first.' };
+     }
+     ```
+3. **No Hardcoded Auth / Secrets**:
+   - Authentication is injected automatically from the backend via the connection's `authenticationpaths`. Reusable components making HTTP requests using `axios` must not pass API keys, tokens, or auth headers in code.
+4. **Mandatory Optional Chaining (`?.`)**:
+   - Optional chaining is strictly required on every property access path (`response?.data?.items`, `options?.headers`).
+
+---
+
+## Default errorComponent Implementation
+
+The `errorComponent` is the foundational error-handling reusable component mapped to every action and trigger version. In code blocks, all errors caught in `catch (error)` are passed to `await errorComponent(error);`.
+
+### Component Details
+- **Function Name**: `errorComponent`
+- **Parameters**: `error` (`{}`)
+- **Component Code**:
+```javascript
+const STATUS_MESSAGES = {
+  400: 'The request is invalid or contains missing or incorrect parameters.',
+  401: 'Authentication failed or credentials are missing.',
+  403: 'You do not have permission to access this resource.',
+  404: 'The requested resource could not be found.',
+  408: 'The request took too long to complete.',
+  409: 'The request conflicts with the current state of the resource.',
+  422: 'One or more input values are invalid.',
+  429: 'Rate limit exceeded. Please try again later.',
+  500: 'An unexpected error occurred on the server.',
+  502: 'Received an invalid response from an upstream service.',
+  503: 'The service is temporarily unavailable.',
+  504: 'The upstream service did not respond in time.',
+};
+
+if (!error?.isAxiosError) {
+  throw {
+    status: error?.status ?? 400,
+    message:
+      error?.message || JSON.stringify(error || {}) || 'Request Failed',
+    originalError: {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack,
+    },
+  };
+}
+
+const status = error.response?.status ?? 500;
+const data = error.response?.data;
+
+const message =
+  data?.message ||
+  error.message ||
+  STATUS_MESSAGES[status] ||
+  'Request Failed';
+
+throw {
+  message,
+  status,
+  code: error.code,
+  originalError: data,
+};
+```
+
+---
+
+## Reusable Component Code Patterns
+
+### Pattern A: Standalone API Request Component
+```javascript
+// Function Name: executeApiRequest
+// Parameters: method, path, options
+try {
+  if (!method || !path) {
+    throw new Error('Method and path are required.');
+  }
+
+  const { params, data, headers } = options || {};
+  const query = Object.fromEntries(
+    Object.entries(params || {}).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+  );
+
+  const response = await axios({
+    method,
+    url: `https://api.service.com${path}`,
+    params: query,
+    data,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers
+    }
+  });
+
+  return response?.data;
+} catch (error) {
+  throw error; // Reusable components always rethrow
+}
+```
+
+### Pattern B: Standalone Dropdown Options Fetcher
+```javascript
+// Function Name: fetchParentResources
+// Parameters: parentId, pageLimit
+try {
+  if (!parentId) {
+    throw { data: [], offset: null, message: 'Please select a parent resource first.' };
+  }
+
+  const response = await axios.get(`https://api.service.com/parents/${encodeURIComponent(parentId)}/items`, {
+    params: { limit: pageLimit || 50 }
+  });
+
+  const items = response?.data?.items || response?.data || [];
+  return items.map((item) => ({
+    label: item?.name || item?.title || item?.id,
+    value: item?.id,
+    sample: item
+  }));
+} catch (error) {
+  throw error; // Rethrows to be handled by caller's errorComponent
+}
+```
+
+---
 
 # Special Note
 
