@@ -305,7 +305,7 @@ const results = await pool(plan.items, concurrency, async (it) => {
   }
 })
 
-// 3. mappings — derived from code (incl. transitive component calls); one call per new row, parallel
+// 3. mappings — derived from code; one call per new row, parallel
 const ok = results.filter((r) => r.status === 'ok')
 const newRows = []
 await pool(ok, concurrency, async (r) => {
@@ -538,11 +538,11 @@ console.log(JSON.stringify({ calls, result }, null, 2))
 ## 3. Reusable components
 
 Stored per plug, mapped per version; every mapped component's `function_code` is prepended at run time. Call by name
-with `await`; a component can call another only if both are mapped to the version. **Not versioned** — editing one
+with `await`. **Avoid calling components inside components:** each reusable component must be a single, standalone component
+that executes its specific fetch directly (e.g. `fetchSpreadsheet` for a spreadsheet dropdown, `fetchSubsheet` for a subsheet dropdown). Do not nest or call components inside components. **Not versioned** — editing one
 changes every mapped version, published included. Rules: KB "Reusable Components".
 
-- Reuse first (`dhGetReusableComponentDetails`; `aiContext.components`). The plug's `<app>Request(method, path,
-  options)` is the base for every call. `errorComponent` is built in — never create it.
+- Reuse first (`dhGetReusableComponentDetails`; `aiContext.components`). Each reusable component implements its own fetch directly. `errorComponent` is built in — never create it.
 - Before editing one, `dhGetUsedActionVersionForComponent`: used by other versions → keep `function_name`/`params`
   and stay backward compatible, or create a new component.
 - Row: `function_name`, `params: [{ name, sample }]` (positional; `sample` = JS literal), `code` (formatted body),
@@ -550,7 +550,7 @@ changes every mapped version, published included. Rules: KB "Reusable Components
   `description`, `componentgenerationsource: "userGenerated"`, `pluginrecordid`, `orgid`, `metadata` (§5).
 - Create `POST create/reusable_components`; update `PUT …?identifier=COMPONENT_ID&filter=dhUpdateReusableComponentDetails`
   (`code` + `function_code` together).
-- **Map** every component the version's code or dropdown sources call (+ transitive dependencies + `errorComponent`),
+- **Map** every component the version's code or dropdown sources call (+ `errorComponent`),
   before the first test, one call per component: `POST create/action_version_component_table { action_version_id,
   component_id, action_id, pluginrecordid, orgid, metadata: { componentdependson: { perform: true, formId: true } } }`. Keys = the KB's mapping `path` values (block keys or the dynamic field key, never a
   group path); send them directly — the dashboard's `path` toggles. Check existing first

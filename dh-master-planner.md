@@ -31,6 +31,7 @@
 - **Mandatory Mapping:** Verify via `Fetch_Mapped_Reusable_Component_In_Action_Version`. Map via `create_update_map_Reusable_components`.
 - **Error Component:** Do NOT create `errorComponent` reusable component. Fetch its component ID via `Fetch_Reusable_Components_Details` and map it across ALL invoked paths/blocks if found; if missing, just ignore.
 - **Create/Update:** Name/params immutable if active (create NEW instead). Code is updatable. Unused components are fully updatable.
+- **Avoid Calling Components Inside Components:** Each reusable component must be a single, standalone component that performs its specific API fetch directly (e.g. `fetchSpreadsheet` for spreadsheet dropdown, `fetchSubsheet` for subsheet dropdown). Never call or nest components inside other components; pass dependent parent values as arguments to the component.
 - **Map Paths:** Send `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path` (section key e.g., `perform`, or flat dynamic field key e.g., `"page_id"`).
 
 ## 💬 Final Response Formatting

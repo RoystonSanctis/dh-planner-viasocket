@@ -465,7 +465,7 @@ const results = await pool(plan.items, concurrency, async (it) => {
   }
 })
 
-// 3. mappings — derived from code (incl. transitive component calls); one call per new row, parallel
+// 3. mappings — derived from code; one call per new row, parallel
 const ok = results.filter((r) => r.status === 'ok')
 const newRows = []
 await pool(ok, concurrency, async (r) => {
@@ -724,14 +724,12 @@ KB conventions plus:
 
 **Semantics:** stored once per plug, **mapped** per version; at run time every mapped component's `function_code`
 is prepended in the same scope. A component is called by name (always `await`), sees `context`, the auth-injecting
-`axios` and all globals, runs in every code field incl. dropdown sources, and can call another component only if that
-one is mapped to the same version. **Not versioned** — editing one changes every mapped version, published included.
+`axios` and all globals, runs in every code field incl. dropdown sources. **Avoid calling components inside components:**
+each reusable component must be a single, standalone component that performs its specific fetch directly (e.g. `fetchSpreadsheet` for a spreadsheet dropdown, `fetchSubsheet` for a subsheet dropdown). Do not nest or call components inside components. **Not versioned** — editing one changes every mapped version, published included.
 
 **Rules** (KB "Reusable Components" applies):
 
-- Always `<app>Request(method, path, options)` (base URL, API-version headers, drops empty params, returns
-  `response?.data`) + dropdown/list/pagination helpers used ≥2×. `errorComponent` is built in (auto-created,
-  auto-mapped to new actions) — never create it.
+- Create a single, standalone reusable component for each dynamic dropdown or operation. Do NOT call components inside other components. `errorComponent` is built in (auto-created, auto-mapped to new actions) — never create it.
 - Reuse first. Before editing, `dhGetUsedActionVersionForComponent`: used elsewhere → keep `function_name`/`params`
   and stay backward compatible, or create a new component.
 
@@ -781,7 +779,7 @@ const functionCode = `async function ${name}(${params.map((p) => p.name).join(',
 - Map (before the first test): `POST create/action_version_component_table { action_version_id, component_id,
   action_id, pluginrecordid, orgid, metadata: { componentdependson: { perform: true, formId: true } } }` — one call per
   component the version's code
-  or dropdown sources call, plus transitive dependencies, plus `errorComponent`.
+  or dropdown sources call, plus `errorComponent`.
   - `componentdependson` keys = the KB's mapping `path` values (block keys, or the dynamic field's key — never a
     group path). Send it directly: the dashboard's `path` **toggles** (a second call unmaps).
   - Existing: `GET …?identifier=VERSION_ID&filter=dhGetUsedComponentInActionVersionDetails`; add a usage by PUT on the

@@ -488,6 +488,10 @@ return await executeAction();
 
 # Reusable Components
 JS logic stored once; usable in any code block (generators, perform, trigger blocks), never in static fields. Hides sensitive logic and removes duplication; prefer them in `optionsGenerator`.
+- **No Component-in-Component Calls (Single Component Rule)**: **Avoid calling components inside components.** Each reusable component must be a single, standalone component created and added/mapped for its specific operation or dynamic dropdown/field. For example, in Google Sheets:
+  - For the `spreadsheet` dropdown: create a single reusable component `fetchSpreadsheet` (fetches and returns spreadsheets directly).
+  - For the `subsheet` dropdown: create a separate single reusable component `fetchSubsheet` (takes `spreadsheetId` as a parameter and fetches subsheets directly using `axios`).
+  - `fetchSubsheet` must **NEVER** call `fetchSpreadsheet` or any other reusable component. Each component is completely self-contained.
 - **Parts**: **Name** (unique camelCase; immutable once used), **Parameters**, **Code** (raw `try...catch` body, no function wrapper, params as globals, `catch (error) { throw error; }`).
 - **Caller Pattern (`optionsGenerator`)**: reads inputs/globals and passes them as params:
   ```javascript
@@ -554,7 +558,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Every input referenced in code exists in `inputFields`; no orphan fields; valid `visibilityCondition` paths.
 - Base `.data` extraction on every API call (including multi-API calls).
 - JSON schema: `{"steps": {}, "blocks": {}, "inputFields": [...]}` with NO `"item"` array wrappers and NO stringified objects.
-- All reusable components called in code are mapped with a valid `path`.
+- All reusable components called in code are mapped with a valid `path`. No component-in-component calls: every reusable component must be a single standalone component and never call another component.
 - Zero results return an informative `{ message }` or valid empty payload per flag combination.
 - No auth in code; Manual triggers send no `authid` and make no API calls.
 - Required inputs (dependent required included) validated before API calls.

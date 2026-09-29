@@ -46,3 +46,11 @@ A valid JSON object representing the Reusable Component, containing:
   * **Dedicated Section Key Path:** For code blocks, `path` MUST be one of the dedicated section keys: `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, or `modifytriggerdata`.
   * **Field Key Path:** When mapping in an `optionsGenerator` for a dynamic `dropdown`, `multiselect`, or dynamic input group, `path` MUST be the field key (e.g., `"page_id"`).
   * **No Nested Input Group Path:** For fields present inside an input group, `path` is STILL strictly the field key itself (e.g., `"page_id"`), never a nested input group path.
+
+## 5. Component Isolation (No Component-in-Component Calls)
+* **Avoid Calling Components Inside Components:** Strictly do **NOT** call or nest other reusable components inside a reusable component.
+* **Single Standalone Component Rule:** Each reusable component must be created as a single, self-contained component that directly executes its own API fetching and data transformation.
+* **Dependent Fields Pattern:** When a dropdown depends on a parent field, handle the dependency by passing the parent's value as a parameter, NOT by calling the parent's component:
+  - Example: In Google Sheets, create a single reusable component `fetchSpreadsheet` for the `spreadsheet` dropdown.
+  - For the dependent `subsheet` dropdown, create a separate, single reusable component `fetchSubsheet` that takes `spreadsheetId` as a parameter and fetches subsheets directly using `axios`.
+  - `fetchSubsheet` must **NEVER** call `fetchSpreadsheet` or any other reusable component.
