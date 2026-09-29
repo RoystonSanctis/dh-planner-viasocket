@@ -30,8 +30,8 @@ Checkpoints: `.dh-run/state.json`; reruns resume.
 | #   | Phase                     | What                                                                                                                                  | Gate                        |
 | --- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
 | 1   | **Bootstrap**             | Write tools (§1.1), then ONE parallel command: `npm i -s prettier@3`, `node kb.mjs sync`, `curl` both KBs (§K), `getAllPlugins`, load memory (§L) | —                           |
-| 2   | **Research**              | Parallel: resolve existing plug/connections/actions/components (batched GETs) + collect evidence (§2) → `.dh-run/evidence.json`       | Missing/contradictory → ask |
-| 3   | **Plan**                  | Whole plug in one message: auth, items (name · type · category · endpoint · inputs → outputs), components, compact UX outline         | **One** approval            |
+| 2   | **Research**              | Parallel: resolve existing plug/connections/actions/components (batched GETs) + crawl API to discover ALL possible triggers & actions + collect evidence (§2) → `.dh-run/evidence.json` | Missing/contradictory → ask |
+| 3   | **Plan**                  | Whole plug in one message: auth, ALL possible items (name · type · category · endpoint · inputs → outputs), components, compact UX outline | **One** approval            |
 | 4   | **Plug + connection**     | Levels 0–1 (§3, §4)                                                                                                                  | —                           |
 | 5   | **Build**                 | Group by category; RAG once per category; generate `plan.json` (§9) → `node apply.mjs --check` → fix all errors → repeat until clean | check ok                    |
 | 6   | **Review**                | G2 + G5 (§11) in one pass; `mock.mjs` complex snippets only                                                                          | P0/P1 zero                  |
@@ -542,7 +542,8 @@ Crawl `https://{{APP_DOMAIN}}` + docs (`/docs`, `/developers`, `/api`, `/referen
 | Webhook events, subscribe/unsubscribe, signatures, one-per-app?                  | triggers                     |
 | Rate limits                                                                      | loops, polling               |
 
-Never invent endpoints/params/scopes/secrets; ambiguous → ask. One item per lookup mode, target or event; exclude auth/admin/deprecated/response-less; consolidate per KB "Design Strategy & UX"; trigger type priority per KB.
+**All possible triggers & actions**: Discover and build ALL possible triggers and actions supported by the API across all entities/resources (all CRUD, list, search, and webhook/polling events). Never arbitrarily limit the plug to a subset. Consolidate per KB "Design Strategy & UX" (e.g. List + Search + Get → unified LIST; Create + Update → upsert), but ensure complete API coverage.
+Never invent endpoints/params/scopes/secrets; ambiguous → ask. One item per lookup mode, target or event; exclude auth/admin/deprecated/response-less; trigger type priority per KB.
 
 ---
 
@@ -682,7 +683,7 @@ const functionCode = `async function ${name}(${params.map((p) => p.name).join(',
 
 ## 9. Actions & triggers
 
-Fields, UX, code, naming, category/sub_category, block keys per trigger type → KB (§K).
+Fields, UX, code, naming, category/sub_category, block keys per trigger type → KB (§K). Include **all possible triggers and actions** supported by the API for complete coverage.
 
 **New items → `apply.mjs`** (handles 9.1, 9.2, provenance, mappings, read-back). `.dh-run/plan.json`:
 
