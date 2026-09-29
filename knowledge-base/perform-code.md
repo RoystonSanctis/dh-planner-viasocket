@@ -1817,6 +1817,18 @@ if (!context?.inputData?.record_id) {
 
 Use this category when the action only reads data from the service. `GET`, `LIST`, and `FIND/SEARCH` all belong to this read category. The action can still use `POST` if the service's search/query endpoint requires a request body, but behavior-wise it is still a read action.
 
+> **List / Get Actions — Zero Length Return Rule (MANDATORY)**:
+> In `LIST` and `GET` actions, if the length of data is 0 (or no data found), a `message` key MUST be returned along with `data` and other important response keys (`pagination`, `has_more`, `success`, etc.):
+> ```javascript
+> return {
+>   message: response?.data?.length ? null : "No data found.",
+>   data: response?.data,
+>   pagination: response?.data?.pagination, // or pagination metadata if returned by API
+>   has_more: response?.data?.has_more,     // or boolean if returned by API
+>   success: true                           // additional important keys
+> };
+> ```
+
 **Pattern A: Get Single Record by ID**
 ```javascript
 async function getRecordById() {
@@ -1837,8 +1849,12 @@ async function getRecordById() {
       }
     });
 
-    // Step 3: Return the record
-    return response?.data;
+    // Step 3: Return the record with message and important keys
+    return {
+      message: response?.data?.length ? null : "No data found.",
+      data: response?.data,
+      success: true
+    };
 
   } catch (error) {
     await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
@@ -1863,8 +1879,14 @@ async function listRecords() {
       }
     });
 
-    // Step 3: Return records array
-    return response.data;
+    // Step 3: Return records array with message and important keys
+    return {
+      message: response?.data?.length ? null : "No data found.",
+      data: response?.data,
+      pagination: response?.data?.pagination,
+      has_more: response?.data?.has_more,
+      success: true
+    };
 
   } catch (error) {
     await errorComponent(error); // await errorComponent(error) is used by default in code blocks. It is required instead of "throw error".
@@ -2176,6 +2198,16 @@ return await deleteRecord();
   - Unnest actual data wrapped inside deep keys (e.g., `response.data.data` or `response.data.result.items`).
   - Inject metadata (`success: true/false`, `id`, `has_more`) to empower downstream workflow steps.
   - Extract selective keys for huge, bloated responses or flatten deeply nested objects to keep user pill-mapping clean.
+- **List / Get Actions (Zero Length Return Rule)**: In `LIST` and `GET` actions, if the length of data is 0 (or no data found), always return a `message` key (`response?.data?.length ? null : "No data found."`) along with `data` and other important response keys (`pagination`, `has_more`, `success`, etc.):
+  ```javascript
+  return {
+    message: response?.data?.length ? null : "No data found.",
+    data: response?.data,
+    pagination: response?.data?.pagination, // or pagination metadata if returned by API
+    has_more: response?.data?.has_more,     // or boolean if returned by API
+    success: true                           // additional important keys
+  };
+  ```
 
 ## Special Note - Final Code Review
 - Don't use any console.log() in the perform code.
@@ -2184,3 +2216,4 @@ return await deleteRecord();
 - **Required Field Validation**: Always throw an error before the API call if a required input field is missing. Do not silently pass `undefined` or `null` to the API for required fields.
 - **Clean Code Style**: Verify the code uses destructuring from `context?.inputData || {}`, builds payloads via spread/shorthand, and cleans optional fields with a single `Object.fromEntries` filter. Flag and refactor any verbose per-field `if`-check patterns.
 - **Mandatory Optional Chaining (`?.`) in Paths**: Optional chaining (`?.`) is required in EVERY path in the code block (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Reviewers MUST flag if optional chaining is missing (e.g., `const formResponseData = body.form_response; formResponseData.definition?.fields`). Why: while running the code, if any intermediate key is not present, missing `?.` will cause an unhandled runtime throw error (`TypeError: Cannot read properties of undefined`).
+- **List / Get Zero-Length Response**: For `LIST` and `GET` actions, verify that if length is 0, a `message` key (`response?.data?.length ? null : "No data found."`) is returned along with `data` and additional keys (`pagination`, `has_more`, `success`).

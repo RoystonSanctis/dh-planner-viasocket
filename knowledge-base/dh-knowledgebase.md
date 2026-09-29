@@ -54,6 +54,16 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
 5. **Runtime**: Node.js. No `console.log`, `import`, or `require` (libraries are globals). HTTP via `axios` (preferred) or `fetch`.
 6. **Base `.data` Extraction & Response Formatting**:
    - **Base Extraction Rule**: API payloads ALWAYS reside in `response.data`. Every call (including aggregated `userRes.data`, `projectsRes.data`) extracts from its own `.data` before navigating to destination keys. Never read payload keys off the response wrapper.
+   - **List/Get Zero-Length Return Rule**: In `LIST` and `GET` actions, if data length is 0 (or no data found), always return a `message` key along with `data` and other important response keys (`pagination`, `has_more`, `success`, etc.):
+     ```javascript
+     return {
+       message: response?.data?.length ? null : "No data found.",
+       data: response?.data,
+       pagination: response?.data?.pagination,
+       has_more: response?.data?.has_more,
+       success: true
+     };
+     ```
    - **Return Strategies (Match to Complexity)**: Direct · Metadata Injection (CREATE, UPDATE, DELETE, minimal 200s) · Unnesting (`.data.data`, `.result`, `.items` → root) · Selective Keys (noisy responses) · Flattening (≥3 levels) · Batch (flat array `[{...}]` for engine iteration). Code: Response Return Patterns.
 7. **Guards & Defaults**:
    - Validate every `required: true` field at the top of the code; throw before the API call if missing/empty.
@@ -346,6 +356,15 @@ Lean, readable, native JS; no bloat or wrapper gymnastics.
 // 1. Direct Return (Clean API responses)
 return response?.data;
 
+// 1b. List / Get Actions (Zero-length message with data & important keys)
+return {
+  message: response?.data?.length ? null : "No data found.",
+  data: response?.data,
+  pagination: response?.data?.pagination,
+  has_more: response?.data?.has_more,
+  success: true
+};
+
 // 2. Metadata Injection (Mutations, status updates, minimal 200s)
 return { success: true, id: response?.data?.id || id, ...response?.data };
 
@@ -563,7 +582,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Base `.data` extraction on every API call (including multi-API calls).
 - JSON schema: `{"steps": {}, "blocks": {}, "inputFields": [...]}` with NO `"item"` array wrappers and NO stringified objects.
 - All reusable components called in code are mapped with a valid `path`. No component-in-component calls: every reusable component must be a single standalone component and never call another component.
-- Zero results return an informative `{ message }` or valid empty payload per flag combination.
+- Zero results return an informative `{ message }` or valid empty payload per flag combination. In `LIST`/`GET` actions, if data length is 0, return `message: response?.data?.length ? null : "No data found."` along with `data` and important keys (`pagination`, `has_more`, `success`).
 - **No authentication / API key in code**: Code must NEVER pass API keys, tokens, or credentials in headers (`Authorization`, `x-api-key`, etc.), query parameters, or body payloads. All authentication is injected automatically by the backend via the connection's `authenticationpaths` (`headers`, `body`, or `queryParams`). Flag any direct auth or API key in code as a critical defect. Manual triggers send no `authid` and make no API calls.
 - Required inputs (dependent required included) validated before API calls.
 - Payload shape/endpoint match the API; all documented params supported; derived values have fallbacks.

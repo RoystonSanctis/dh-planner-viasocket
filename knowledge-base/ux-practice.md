@@ -307,6 +307,16 @@ A GET action retrieves a **single specific record** by its unique identifier (ID
 
 ### GET Perform Code Reference
 - GET actions use a simple `GET` HTTP request with the record ID in the URL path or query params.
+- **Zero-Length / No-Data Return Rule**: In `GET` and `LIST` actions, if the length of data is 0 (or no data found), always return a `message` key along with `data` and other important response keys (`pagination`, `has_more`, `success`):
+  ```javascript
+  return {
+    message: response?.data?.length ? null : "No data found.",
+    data: response?.data,
+    pagination: response?.data?.pagination,
+    has_more: response?.data?.has_more,
+    success: true
+  };
+  ```
 - See [Perform Code Knowledge Base → Actions → GET](perform-code.md) for code patterns.
 
 ### GET Best Practices
@@ -365,6 +375,16 @@ A LIST action retrieves **multiple records** from a resource, typically with pag
   - **Search by ID**: Call the get-by-ID API endpoint using the provided record ID.
   - **Advance Search**: Execute search API with AI-constructed query conditions.
 - If the optional field-selection multiselect is populated, filter the returned response payload to only include selected keys/fields. Otherwise, return all keys.
+- **Zero-Length Return Rule**: When returning results from `LIST` or `GET` actions, if the length of data is 0 (or no data found), always return a `message` key along with `data` and other important response keys (`pagination`, `has_more`, `success`):
+  ```javascript
+  return {
+    message: response?.data?.length ? null : "No data found.",
+    data: response?.data,
+    pagination: response?.data?.pagination,
+    has_more: response?.data?.has_more,
+    success: true
+  };
+  ```
 - See [Perform Code Knowledge Base → Actions → LIST](perform-code.md) for code patterns.
 
 ### LIST Best Practices
@@ -789,5 +809,6 @@ A trigger represents a real-world event that initiates a workflow.
 * [ ] **Handle pagination, dates, arrays, and error cases properly:** Ensure complete handling across all components and perform code.
 * [ ] **No Search, Only Pagination Dropdown Pattern:** When `canPaginate: true` and `enableSearchApi: false`, ensure the output strictly returns `{ data: [...], offset: ... }`. Differentiate empty results: initial empty (`!currentOffset && length === 0`) returns `{ data: [], offset: null, message: 'No <resources> found.' }`, while pagination end (`currentOffset && length === 0`) returns `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`.
 * [ ] **Optional Fields & Field Chooser UX Practice:** When multiple optional fields exist, gate them behind a single Multiselect. Always prioritize organizing fields into Input Groups with `visibilityCondition` applied (or attach `visibilityCondition` to individual fields if grouping is not possible).
+* [ ] **List/Get Zero-Length Return Rule:** In `LIST` and `GET` actions, if the data length is 0 (or no data found), return `message: response?.data?.length ? null : "No data found."` along with `data` and important response keys (`pagination`, `has_more`, `success`).
 
 
