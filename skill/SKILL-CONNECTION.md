@@ -276,7 +276,7 @@ wants the new version as default. This also clears the VM auth cache.
 
 ## 4. Provenance
 
-Entry: `{ "by": "CREATED_BY_CLAUDE" | "UPDATED_BY_CLAUDE", "time": "<ISO>", "skill":
+Entry: `{ "by": "CREATED_BY_AI" | "UPDATED_BY_AI", "time": "<ISO>", "skill":
 "viasocket-developer-hub-connection", "kb": "<sha7>", "note": "<≤80 chars, optional>" }`.
 
 - `create/oauth_details`: `metadata: { aiLogs: [CREATED entry] }` (+ `duplicatedfrom` when cloning).

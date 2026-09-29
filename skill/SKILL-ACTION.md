@@ -143,7 +143,7 @@ import { dh } from './dh.mjs'
 const args = process.argv.slice(2)
 const concurrency = Number(args.find((a) => a.startsWith('--concurrency='))?.split('=')[1] || 4)
 const plan = JSON.parse(readFileSync('.dh-run/plan.json', 'utf8'))
-const { orgId, pluginId, authId, kb = '', dhBaseUrl = 'https://flow.viasocket.com/', skill = 'viasocket-developer-hub-plug' } = plan
+const { orgId, pluginId, authId, kb = '', dhBaseUrl = 'https://flow.viasocket.com/', skill = 'viasocket-developer-hub-action' } = plan
 plan.components ||= []
 const STATE = '.dh-run/state.json'
 const state = existsSync(STATE) ? JSON.parse(readFileSync(STATE, 'utf8')) : {}
@@ -256,7 +256,7 @@ plan.components.filter((c) => comps.some((e) => e.function_name === c.function_n
 await pool(missing, concurrency, (c) => dh('POST', 'create/reusable_components', {
   pluginrecordid: pluginId, orgid: orgId, function_name: c.function_name, params: c.params, code: c.code, description: c.description,
   function_code: `async function ${c.function_name}(${c.params.map((p) => p.name).join(', ')}) {\n${c.code.split('\n').map((l) => (l ? `  ${l}` : l)).join('\n')}\n}`,
-  componentgenerationsource: 'userGenerated', metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
+  componentgenerationsource: 'userGenerated', metadata: { aiLogs: [entry('CREATED_BY_AI')] }
 }))
 if (missing.length) comps = await listComponents()
 const compId = Object.fromEntries(comps.map((c) => [c.function_name, c.rowid]))
@@ -271,7 +271,7 @@ const createBody = (it) => ({
   name: it.name, description: it.description, key: it.key, pluginrecordid: pluginId, type: it.type, authid: authOf(it),
   isvisible: it.isvisible ?? true, category: it.category ?? '', sub_category: it.sub_category ?? '',
   preferred_step_name: it.preferred_step_name ?? (it.type === 'trigger' ? '' : it.name), ignoreuniversalsampledata: false,
-  metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
+  metadata: { aiLogs: [entry('CREATED_BY_AI')] }
 })
 const results = await pool(plan.items, concurrency, async (it) => {
   const st = (state.items[it.key] ||= {})
@@ -288,7 +288,7 @@ const results = await pool(plan.items, concurrency, async (it) => {
     }
     if (!st.flagged) {
       const current = obj(rows(await dh('GET', `get/actions?identifier=${st.actionId}&filter=getActionDetails`))[0]?.metadata)
-      const aiLogs = [...(Array.isArray(current.aiLogs) ? current.aiLogs : []), entry('CREATED_BY_CLAUDE', 'isaiaction set')]
+      const aiLogs = [...(Array.isArray(current.aiLogs) ? current.aiLogs : []), entry('CREATED_BY_AI', 'isaiaction set')]
       await dh('PUT', `update/actions?identifier=${st.actionId}&filter=updateActionDetails`, { isaiaction: true, aiorgid: orgId, metadata: { ...current, aiLogs } })
       st.flagged = true
       save()
@@ -607,7 +607,7 @@ Never publish, never send `status: "published"`, soft-delete only (`{"status":"d
 
 ## 5. Provenance
 
-Entry: `{ "by": "CREATED_BY_CLAUDE" | "UPDATED_BY_CLAUDE", "time": "<ISO>", "skill":
+Entry: `{ "by": "CREATED_BY_AI" | "UPDATED_BY_AI", "time": "<ISO>", "skill":
 "viasocket-developer-hub-action", "kb": "<sha7>", "note": "<≤80 chars, optional>" }`.
 
 - Create bodies (`actions`, `action_version`, `reusable_components`): `metadata: { aiLogs: [CREATED entry] }`

@@ -27,7 +27,7 @@ or unfilled (double braces) is unknown → resolve it via the API or ask.
 
 ## 0. Process (fast path)
 
-Fixed phases — never skip or invent. Speed comes from batching: one command per phase, never one tool call per item.
+Fixed phases — never skip or invent. Speed comes from batching: one shell invocation per phase (combine with `&&` or parallel), never one tool call per item.
 Checkpoints: `.dh-run/state.json` (ids, per-item progress); a rerun resumes.
 
 | #   | Phase                                                                                                                                                                                                  | Gate                                                               |
@@ -47,9 +47,9 @@ Checkpoints: `.dh-run/state.json` (ids, per-item progress); a rerun resumes.
 | ----- | ----------------------------------------------------------------------- | ---------------------------- | ---------------------------- |
 | 0     | Plug (create or find) → `PLUGIN_ID`                                     | —                            | direct call (§3)             |
 | 1     | Connection → `AUTH_ID` · plug details PUT                               | `PLUGIN_ID`                  | direct calls, in parallel    |
-| 2     | Reusable components → `COMPONENT_ID`s                                   | `PLUGIN_ID`                  | `apply.mjs`: parallel single calls call   |
+| 2     | Reusable components → `COMPONENT_ID`s                                   | `PLUGIN_ID`                  | `apply.mjs`: parallel single calls   |
 | 3     | Actions + triggers → `ACTION_ID`, `VERSION_ID`; provenance; fill version | `PLUGIN_ID`, `AUTH_ID`       | `apply.mjs`: parallel single calls |
-| 4     | Component mappings                                                      | `VERSION_ID`s, `COMPONENT_ID`s | `apply.mjs`: parallel single calls call |
+| 4     | Component mappings                                                      | `VERSION_ID`s, `COMPONENT_ID`s | `apply.mjs`: parallel single calls |
 | 5     | `preferedauthversion`, `aiContext` merge on the plug                    | `AUTH_ID`                    | one plug PUT                 |
 
 **Speed rules**
@@ -367,7 +367,7 @@ function check() {
     if (it.type === 'trigger') {
       if (!BLOCKS[v.triggertype]) errs.push(`${at}: triggertype must be hook | polling | manual_webhook`)
       else BLOCKS[v.triggertype].forEach((k) => (v[k] ??= ''))
-      if (it.category || it.sub_category) errs.push(`${at}: triggers need category and sub_category ""`)
+      if (it.category || it.sub_category) errs.push(`${at}: triggers must have empty category and sub_category ("")`)
     }
     const keys = new Set()
     for (const f of fieldsOf(v.inputjson?.inputFields)) {
@@ -394,6 +394,8 @@ function uses(it, codeOf) {
   const add = (name, dep) => Object.assign((deps[name] ||= {}), dep)
   const calls = (code) => Object.keys(codeOf).filter((n) => new RegExp(`\\b${n}\\s*\\(`).test(code))
   for (const [where, code] of snippets(it)) for (const n of calls(code)) add(n, { [where]: true })
+  // Safety net: resolves transitive deps if a component calls another (legacy compat).
+  // New components MUST be standalone (§8) — do NOT rely on this.
   for (let grew = true; grew; ) {
     grew = false
     for (const [n, dep] of Object.entries(deps)) for (const m of calls(codeOf[n] || '')) if (!deps[m] || Object.keys(dep).some((k) => !deps[m][k])) (add(m, dep), (grew = true))
@@ -416,7 +418,7 @@ plan.components.filter((c) => comps.some((e) => e.function_name === c.function_n
 await pool(missing, concurrency, (c) => dh('POST', 'create/reusable_components', {
   pluginrecordid: pluginId, orgid: orgId, function_name: c.function_name, params: c.params, code: c.code, description: c.description,
   function_code: `async function ${c.function_name}(${c.params.map((p) => p.name).join(', ')}) {\n${c.code.split('\n').map((l) => (l ? `  ${l}` : l)).join('\n')}\n}`,
-  componentgenerationsource: 'userGenerated', metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
+  componentgenerationsource: 'userGenerated', metadata: { aiLogs: [entry('CREATED_BY_AI')] }
 }))
 if (missing.length) comps = await listComponents()
 const compId = Object.fromEntries(comps.map((c) => [c.function_name, c.rowid]))
@@ -431,7 +433,7 @@ const createBody = (it) => ({
   name: it.name, description: it.description, key: it.key, pluginrecordid: pluginId, type: it.type, authid: authOf(it),
   isvisible: it.isvisible ?? true, category: it.category ?? '', sub_category: it.sub_category ?? '',
   preferred_step_name: it.preferred_step_name ?? (it.type === 'trigger' ? '' : it.name), ignoreuniversalsampledata: false,
-  metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
+  metadata: { aiLogs: [entry('CREATED_BY_AI')] }
 })
 const results = await pool(plan.items, concurrency, async (it) => {
   const st = (state.items[it.key] ||= {})
@@ -448,7 +450,7 @@ const results = await pool(plan.items, concurrency, async (it) => {
     }
     if (!st.flagged) {
       const current = obj(rows(await dh('GET', `get/actions?identifier=${st.actionId}&filter=getActionDetails`))[0]?.metadata)
-      const aiLogs = [...(Array.isArray(current.aiLogs) ? current.aiLogs : []), entry('CREATED_BY_CLAUDE', 'isaiaction set')]
+      const aiLogs = [...(Array.isArray(current.aiLogs) ? current.aiLogs : []), entry('CREATED_BY_AI', 'isaiaction set')]
       await dh('PUT', `update/actions?identifier=${st.actionId}&filter=updateActionDetails`, { isaiaction: true, aiorgid: orgId, metadata: { ...current, aiLogs } })
       st.flagged = true
       save()
@@ -555,7 +557,7 @@ Unknown filter → `Invalid filter`. Ids are `row…`.
 
 ### 1.5 Provenance
 
-Entry (shape of the platform's `metadata.aiLogs`): `{ "by": "CREATED_BY_CLAUDE" | "UPDATED_BY_CLAUDE", "time":
+Entry (shape of the platform's `metadata.aiLogs`): `{ "by": "CREATED_BY_AI" | "UPDATED_BY_AI", "time":
 "<ISO>", "skill": "viasocket-developer-hub-plug", "kb": "<sha7>", "note": "<≤80 chars, only if not obvious>" }`.
 Never remove or rewrite existing entries (the platform reads e.g. `UPDATE_SAMPLE_DATA_BY_USD`).
 
@@ -564,7 +566,7 @@ Never remove or rewrite existing entries (the platform reads e.g. `UPDATE_SAMPLE
 | `plugins`, `actions`, `reusable_components` | body `metadata` stored | body `metadata` **replaces the column** → GET, send `{ ...current, aiLogs: [...current.aiLogs, entry] }` |
 | `action_version`, `oauth_details`           | body `metadata` stored | body `metadata` ignored (server appends `save`) → omit it; list the edit in the report         |
 
-- Plug create: `metadata.createdBy = { type: "AI", agent: "claude", skill, orgId, time }` + CREATED entry; never alter
+- Plug create: `metadata.createdBy = { type: "AI", agent: "ai", skill, orgId, time }` + CREATED entry; never alter
   an existing `createdBy`.
 - `create/actions`, `create/action_version`, `create/oauth_details`, `create/reusable_components`:
   `metadata: { aiLogs: [CREATED entry] }` (`create/actions` stores it on V1).
@@ -601,9 +603,10 @@ lookup mode, target or event state; exclude auth, admin, deprecated and response
    `{{APP_DOMAIN}}` → update it, never duplicate.
 2. Else `POST create/plugins { name, orgid, domain, whitelistdomains: [domain], metadata }` → PLUGIN_ID.
 3. Optional `POST {{API_BASE}}/openai/dh/getBrandDetails { pluginDomain, pluginName, pluginId }` fills logo, colour,
-   description, tags, category — but **writes the plug directly** and may overwrite `name`, `domain`, `audience`,
-   `whitelistdomains` → run it before step 4, then re-apply those. Never call
-   `/openai/dh/getActionTriggersSuggestions` (creates action rows).
+   description, tags, category.
+   > ⚠️ `getBrandDetails` **writes the plug directly** and MAY overwrite `name`, `domain`, `audience`,
+   > `whitelistdomains`. Always run it BEFORE step 4, then re-apply those fields.
+   Never call `/openai/dh/getActionTriggersSuggestions` (creates action rows).
 4. `PUT update/plugins?identifier=PLUGIN_ID&filter=updatePluginDetails`: `description` (1–2 sentences from the
    app's site), `domain`, `whitelistdomains` (every host the code calls), `audience: "Private"`,
    `category: ["<dashboard category>"]`, `tags`, `iconurl` (real logo), `brandcolor`, `havestaticip: false`, merged
@@ -808,7 +811,7 @@ Fields, UX, code, naming, category/sub_category and block keys per trigger type 
 
 - Triggers: `category`/`sub_category` `""`, `version.triggertype` + its blocks (missing ones default to `""`).
 - `key` defaults from `name`; `authId` omitted automatically for `manual_webhook`.
-- Mappings are derived from which code/field calls which component (incl. component → component) — never list them.
+- Mappings are derived from which code/field calls which component — never list them.
 - Existing name/key → skipped (use §9.3); existing component with different code → left unchanged, warned.
 - DH endpoints take one row per call: `apply.mjs` runs each level's calls in parallel (`--concurrency=N`, default 4)
   and waits for ids before the next level.
@@ -912,8 +915,18 @@ End every run with clickable links so the developer can open what was built.
 
 ## 13. Report
 
-IDs (plug; connection + `authversion`; components; each action/trigger + version + type) with DH URLs (§12) ·
-what was built or changed (updates itemised) · gate results · what is unverified (no app credentials) and what to test
-in DH · KB sha + sections used · lessons · KB proposals. Then blank the token in `dh.mjs`.
+End every run with a structured report:
+
+- **Plug:** `PLUGIN_ID`, status, `preferedauthversion`, whitelist, DH URL (§12).
+- **Connection:** `AUTH_ID` + `authversion`, type, branch taken (created / modified / cloned), keys changed,
+  source version untouched (clone), DH connection URL.
+- **Components:** each `function_name` + `COMPONENT_ID`, created / reused / warned.
+- **Actions / Triggers:** each `ACTION_ID` + `VERSION_ID` + type, DH URL, status (`ok` / skipped / failed).
+- **Gates:** G1–G5 results; P0/P1 count; what is unverified (no app credentials) and what to test in DH.
+- **KB:** sha + sections used.
+- **Lessons:** process lessons → `.dh-run/lessons.md`.
+- **KB proposals:** `file § heading · current → proposed · evidence` — maintainers merge them to `dev`.
+- **Learn:** merge app facts into `plugins.metadata.aiContext` via GET-merged plug PUT.
+- Then blank the token in `dh.mjs`.
 
 Out of scope unless asked: publishing, verification, analytics, force-updating flows, AI orchestration endpoints.
