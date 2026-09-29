@@ -30,7 +30,7 @@ Fixed stages; checkpoint to `.dh-run/state.json`.
 
 | #   | Stage                                                                                                                  | Gate                                                                   |
 | --- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 1   | **Bootstrap** — tools (§1), prefetch `dh-connection-kb.md` + `node kb.mjs sync` (§K), memory: `plugins.metadata.aiContext` + `.dh-run/lessons.md` (hints; re-verify) | —                                                                      |
+| 1   | **Bootstrap** — write tools (§1), then ONE parallel shell command: `curl` `dh-connection-kb.md`, `node kb.mjs sync`, and the phase-3 GETs. Memory: `plugins.metadata.aiContext` + `.dh-run/lessons.md` (hints; re-verify) | — |
 | 2   | **Validate request** — connection/auth work for this plug (type, fields, scopes, test API, label, whitelist, `authenticationpaths`) | Wrong app/entity → stop. Ambiguous auth type → ask                     |
 | 3   | **Resolve** — `GET get/plugins?identifier={{PLUGIN_ID}}&filter=getPluginDetails`, `GET get/oauth_details?identifier={{PLUGIN_ID}}&filter=getAuthDetails`, `GET GetUsedInCountForAuth?pluginId={{PLUGIN_ID}}` | Branch per §3                                                          |
 | 4   | **Evidence** — official auth docs: methods, grant, authorize/token/refresh/revoke URLs, scopes, lifetimes, "me" endpoint + response shape, hosts | Undocumented → stop (never fall back to No Auth)                       |
