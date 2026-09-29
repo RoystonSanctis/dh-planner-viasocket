@@ -35,11 +35,22 @@ Checkpoints: `.dh-run/state.json` (ids, per-item progress); a rerun resumes.
 | 1   | **Bootstrap** — write tools (§1.1), then ONE shell command in parallel: `npm i -s prettier@3`, `node kb.mjs sync`, `curl` both consolidated KBs (§K), `getAllPlugins`. Load memory (§L)               | —                                                                  |
 | 2   | **Research** — in parallel: resolve existing plug/connections/actions/components (batched GETs) and collect evidence (§2) → `.dh-run/evidence.json`                                                    | Missing/contradictory docs → stop, ask                             |
 | 3   | **Plan** — whole plug in one message: auth, items (one-line contract each: name · type · category · endpoint · inputs → outputs), components, compact UX outline per item                             | **One** approval for everything                                    |
-| 4   | **Plug + connection** — direct calls (§3, §4)                                                                                                                                                          | —                                                                  |
+| 4   | **Plug + connection** — levels 0–1 below (§3, §4)                                                                                                                                                          | —                                                                  |
 | 5   | **Build** — group items by category; RAG once per category; generate `.dh-run/plan.json` (§9) with one script → `node apply.mjs --check` → fix every reported error at once → repeat until clean      | check ok                                                           |
 | 6   | **Review once** — G2 + G5 (§11) over the whole plan in one pass; `mock.mjs` only complex snippets (triggers, pagination, multi-call)                                                                  | P0/P1 zero                                                         |
 | 7   | **Write + verify** — `node apply.mjs` (components → items → versions → mappings → read-back → URLs). Failures: fix `plan.json`, rerun — only changed/failed items are resent; ≤3 reruns per item      | all `ok`                                                           |
 | 8   | **Report + learn** (§13, §L)                                                                                                                                                                           | —                                                                  |
+
+**Dependency order** — parallel inside a level, wait for ids between levels, never guess an id:
+
+| Level | Writes                                                                  | Needs                        | How                          |
+| ----- | ----------------------------------------------------------------------- | ---------------------------- | ---------------------------- |
+| 0     | Plug (create or find) → `PLUGIN_ID`                                     | —                            | direct call (§3)             |
+| 1     | Connection → `AUTH_ID` · plug details PUT                               | `PLUGIN_ID`                  | direct calls, in parallel    |
+| 2     | Reusable components → `COMPONENT_ID`s                                   | `PLUGIN_ID`                  | `apply.mjs`: one bulk call   |
+| 3     | Actions + triggers → `ACTION_ID`, `VERSION_ID`; provenance; fill version | `PLUGIN_ID`, `AUTH_ID`       | `apply.mjs`: parallel        |
+| 4     | Component mappings                                                      | `VERSION_ID`s, `COMPONENT_ID`s | `apply.mjs`: one bulk call |
+| 5     | `preferedauthversion`, `aiContext` merge on the plug                    | `AUTH_ID`                    | one plug PUT                 |
 
 **Speed rules**
 - Parallel tool calls for every independent read/fetch; pipe large outputs to files and `grep`/`jq` them.
