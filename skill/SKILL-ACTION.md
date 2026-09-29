@@ -134,8 +134,8 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 ```
 
 ```js
-// apply.mjs — node apply.mjs [--check] [--concurrency=4] [--no-bulk]   (reads .dh-run/plan.json, resumes via .dh-run/state.json)
-// format + check → components (bulk) → actions/triggers (bulk, parallel fallback) → versions → mappings (derived, bulk) → read-back → URLs
+// apply.mjs — node apply.mjs [--check] [--concurrency=4]   (reads .dh-run/plan.json, resumes via .dh-run/state.json)
+// format + check → components → actions/triggers → versions → mappings (derived) → read-back → URLs; single DH calls, parallel per level
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { dh } from './dh.mjs'
@@ -247,25 +247,22 @@ if (errs.length) (console.log(`CHECK FAILED (${errs.length})\n${errs.join('\n')}
 console.log(`check ok: ${plan.items.length} items, ${plan.components.length} components, ${note}`)
 if (args.includes('--check')) process.exit(0)
 
-// 1. components — create missing in one bulk call; never silently change existing ones (not versioned)
+// 1. components — create missing (parallel single calls); never silently change existing ones (not versioned)
 const listComponents = async () => rows(await dh('GET', `get/reusable_components?identifier=${pluginId}&filter=dhGetReusableComponentDetails`))
 let comps = await listComponents()
 const warnings = []
 const missing = plan.components.filter((c) => !comps.some((e) => e.function_name === c.function_name))
 plan.components.filter((c) => comps.some((e) => e.function_name === c.function_name && e.code !== c.code)).forEach((c) => warnings.push(`component ${c.function_name} exists with different code — left unchanged`))
-if (missing.length) {
-  const dataToSend = missing.map((c) => ({
-    pluginrecordid: pluginId, orgid: orgId, function_name: c.function_name, params: c.params, code: c.code, description: c.description,
-    function_code: `async function ${c.function_name}(${c.params.map((p) => p.name).join(', ')}) {\n${c.code.split('\n').map((l) => (l ? `  ${l}` : l)).join('\n')}\n}`,
-    componentgenerationsource: 'userGenerated', metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
-  }))
-  await dh('POST', 'create/reusable_components', { bulkEntry: true, pluginrecordid: pluginId, dataToSend })
-  comps = await listComponents()
-}
+await pool(missing, concurrency, (c) => dh('POST', 'create/reusable_components', {
+  pluginrecordid: pluginId, orgid: orgId, function_name: c.function_name, params: c.params, code: c.code, description: c.description,
+  function_code: `async function ${c.function_name}(${c.params.map((p) => p.name).join(', ')}) {\n${c.code.split('\n').map((l) => (l ? `  ${l}` : l)).join('\n')}\n}`,
+  componentgenerationsource: 'userGenerated', metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
+}))
+if (missing.length) comps = await listComponents()
 const compId = Object.fromEntries(comps.map((c) => [c.function_name, c.rowid]))
 const codeOf = Object.fromEntries(comps.map((c) => [c.function_name, c.code || '']))
 
-// 2. actions/triggers — bulk create (ids adopted by key), parallel fallback; then flag as AI (metadata merged), fill version
+// 2. actions/triggers — create, flag as AI (metadata merged), fill version; parallel single calls, resumable
 const listActions = async () => rows(await dh('GET', `get/actions?identifier=${pluginId}&filter=getAllActions`)).filter((a) => a.status !== 'deleted')
 const existing = await listActions()
 const clashOf = (it) => existing.find((a) => a.key === it.key || a.name?.toLowerCase() === it.name.toLowerCase())
@@ -276,31 +273,6 @@ const createBody = (it) => ({
   preferred_step_name: it.preferred_step_name ?? (it.type === 'trigger' ? '' : it.name), ignoreuniversalsampledata: false,
   metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] }
 })
-const fresh = plan.items.filter((it) => !state.items[it.key]?.actionId && !clashOf(it))
-let createNote = ''
-if (fresh.length > 1 && !args.includes('--no-bulk')) {
-  try {
-    await dh('POST', 'create/actions', { bulkEntry: true, pluginrecordid: pluginId, dataToSend: fresh.map(createBody) })
-    createNote = `bulk-created ${fresh.length}`
-  } catch (e) {
-    createNote = `bulk create unavailable (${e.message.slice(0, 120)}) — parallel fallback`
-  }
-  // adopt rows that appeared in this run (also after a partial bulk failure) — never re-create them
-  const after = await listActions()
-  await pool(fresh, concurrency, async (it) => {
-    const row = after.find((a) => a.key === it.key && !existing.some((e) => e.rowid === a.rowid))
-    if (!row) return
-    const st = (state.items[it.key] ||= {})
-    st.actionId = row.rowid
-    const versions = rows(await dh('GET', `get/action_version?identifier=${row.rowid}&filter=getActionVersions`))
-    st.versionId = versions.find((v) => !v.isdeleted)?.rowid
-    if (!st.versionId) {
-      const v = await dh('POST', 'create/action_version', { actionid: row.rowid, authid: authOf(it), type: it.type, status: 'drafted', metadata: { aiLogs: [entry('CREATED_BY_CLAUDE')] } })
-      st.versionId = v?.data?.actionData?.[0]?.rowid
-    }
-    save()
-  })
-}
 const results = await pool(plan.items, concurrency, async (it) => {
   const st = (state.items[it.key] ||= {})
   const authid = authOf(it)
@@ -333,7 +305,7 @@ const results = await pool(plan.items, concurrency, async (it) => {
   }
 })
 
-// 3. mappings — derived from code (incl. transitive component calls); new rows in one bulk call
+// 3. mappings — derived from code (incl. transitive component calls); one call per new row, parallel
 const ok = results.filter((r) => r.status === 'ok')
 const newRows = []
 await pool(ok, concurrency, async (r) => {
@@ -346,7 +318,7 @@ await pool(ok, concurrency, async (r) => {
     else if (Object.keys(dep).some((k) => !had[k])) await dh('PUT', `update/action_version_component_table?identifier=${row.rowid}&filter=dhUpdateReusableComponentDetails`, { metadata: { ...obj(row.metadata), componentdependson: { ...had, ...dep } } })
   }
 })
-if (newRows.length) await dh('POST', 'create/action_version_component_table', { bulkEntry: true, pluginrecordid: pluginId, dataToSend: newRows })
+await pool(newRows, concurrency, (row) => dh('POST', 'create/action_version_component_table', row))
 
 // 4. read-back — version drafted, every top-level field in blocks
 await pool(results.filter((r) => r.status === 'ok'), concurrency, async (r) => {
@@ -360,7 +332,7 @@ await pool(results.filter((r) => r.status === 'ok'), concurrency, async (r) => {
 const url = (r) => `${dhBaseUrl}developer/${orgId}/plugin/${pluginId}/${r.it.type}/${r.st.actionId}?versionId=${r.st.versionId}`
 for (const w of warnings) console.log(`WARN ${w}`)
 for (const r of results) console.log(`${r.status.padEnd(4)} · ${r.it.type} · ${r.it.name}${r.st?.actionId ? ` · ${url(r)}` : ''}`)
-console.log(`${createNote ? `${createNote} · ` : ''}mapped ${newRows.length} new component rows · state: ${STATE}`)
+console.log(`mapped ${newRows.length} new component rows · state: ${STATE}`)
 if (results.some((r) => !r.status.startsWith('ok'))) process.exit(1)
 ```
 
@@ -579,9 +551,8 @@ changes every mapped version, published included. Rules: KB "Reusable Components
 - Create `POST create/reusable_components`; update `PUT …?identifier=COMPONENT_ID&filter=dhUpdateReusableComponentDetails`
   (`code` + `function_code` together).
 - **Map** every component the version's code or dropdown sources call (+ transitive dependencies + `errorComponent`),
-  before the first test: `POST create/action_version_component_table { bulkEntry: true, pluginrecordid, dataToSend:
-  [{ action_version_id, component_id, action_id, pluginrecordid, orgid, metadata: { componentdependson: { perform:
-  true, formId: true } } }] }`. Keys = the KB's mapping `path` values (block keys or the dynamic field key, never a
+  before the first test, one call per component: `POST create/action_version_component_table { action_version_id,
+  component_id, action_id, pluginrecordid, orgid, metadata: { componentdependson: { perform: true, formId: true } } }`. Keys = the KB's mapping `path` values (block keys or the dynamic field key, never a
   group path); send them directly — the dashboard's `path` toggles. Check existing first
   (`dhGetUsedComponentInActionVersionDetails`); add a usage by PUT on the mapping rowid with the full `metadata`.
   Unmap: `PATCH delete/action_version_component_table { action_version_id, component_id, status: "drafted" }`.
