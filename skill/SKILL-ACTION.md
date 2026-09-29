@@ -103,21 +103,34 @@ Filters: `plugins` `getPluginDetails`/`updatePluginDetails` · `oauth_details` `
 Build bodies in files (`@body.json`) with a script. `fmt.mjs` needs `npm i prettier@3`.
 
 ```js
-// dh.mjs — node dh.mjs METHOD 'path?query' ['{json}' | @body.json]   (audit → .dh-run/log.jsonl)
+// dh.mjs — CLI: node dh.mjs METHOD 'path?query' ['{json}' | @body.json] · module: import { dh } from './dh.mjs'
 import { readFileSync, appendFileSync, mkdirSync } from 'node:fs'
+import { pathToFileURL } from 'node:url'
 const BASE = '{{API_BASE}}/developers/{{ORG_ID}}'
 const TOKEN = '{{PROXY_AUTH_TOKEN}}'
-const [method, path, raw] = process.argv.slice(2)
-const body = raw?.startsWith('@') ? readFileSync(raw.slice(1), 'utf8') : raw
 const headers = { proxy_auth_token: TOKEN, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' }
-const res = await fetch(`${BASE}/${path}`, { method, headers, body })
-const text = await res.text()
-mkdirSync('.dh-run', { recursive: true })
-appendFileSync('.dh-run/log.jsonl', `${JSON.stringify({ time: new Date().toISOString(), method, path, status: res.status })}\n`)
-console.log(res.status, text)
-let ok = res.ok
-try { ok &&= JSON.parse(text).success !== false } catch {}
-if (!ok) process.exit(1)
+
+export async function dh(method, path, body) {
+  const payload = body === undefined || typeof body === 'string' ? body : JSON.stringify(body)
+  const res = await fetch(`${BASE}/${path}`, { method, headers, body: payload })
+  const text = await res.text()
+  mkdirSync('.dh-run', { recursive: true })
+  appendFileSync('.dh-run/log.jsonl', `${JSON.stringify({ time: new Date().toISOString(), method, path, status: res.status })}\n`)
+  let json
+  try { json = JSON.parse(text) } catch {}
+  if (!res.ok || json?.success === false) throw new Error(`${method} ${path} → ${res.status} ${text.slice(0, 800)}`)
+  return json ?? text
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const [method, path, raw] = process.argv.slice(2)
+  try {
+    console.log(JSON.stringify(await dh(method, path, raw?.startsWith('@') ? readFileSync(raw.slice(1), 'utf8') : raw)))
+  } catch (error) {
+    console.log(error.message)
+    process.exit(1)
+  }
+}
 ```
 
 ```js
