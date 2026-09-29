@@ -413,9 +413,13 @@ dependent dropdown empty → parent destructured · "already published" → clon
 
 End every run with clickable links so the developer can open what was built.
 
-- **Plug / App (analytics / details):** `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/analytics`
+- **Base URLs by Environment** (select `<baseUrl>` based on environment; infer from `{{API_BASE}}` host if not specified: `localhost` → local, contains `dev`/`test` → testing, else prod; unsure → ask):
+  - Production (`prod`): `https://flow.viasocket.com/`
+  - Testing (`testing`): `https://dev-flow.viasocket.com/`
+  - Local (`local`): `http://localhost:3000/`
+- **Plug / App (analytics / details):** `<baseUrl>developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/analytics`
 - **Action / Trigger (create / edit / improvement):**
-  `{{API_BASE}}/developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/{{ENTITY_TYPE}}/{{ACTION_ID}}?versionId={{VERSION_ID}}`
+  `<baseUrl>developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/{{ENTITY_TYPE}}/{{ACTION_ID}}?versionId={{VERSION_ID}}`
   - Never hallucinate IDs: `{{ACTION_ID}}` or `{{VERSION_ID}}` missing → fall back to the plug analytics URL.
 
 ## 8. Report + learn
