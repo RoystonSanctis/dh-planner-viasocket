@@ -202,16 +202,20 @@ Level 5: Final Plug Finalization
 1. **Token Security:**
    * Never output, log, or commit the `PROXY_AUTH_TOKEN`.
    * Write it once to `.dh-run/config.json`, which is deleted at the end of the run (`rm .dh-run/config.json`).
-2. **Never Edit Published Versions:**
+2. **Credential Handling (Client ID, Client Secret, Passwords, API Keys):**
+   * Never ask the user for Client ID, Client Secret, Passwords, or API Keys in the chat.
+   * The user/developer manually enters their credentials directly in the viaSocket platform UI (Developer Hub / Flow).
+   * The AI only configures the connection schema, endpoints, scopes, authenticationpaths, and testcode, leaving root client credentials null/empty or as placeholders.
+3. **Never Edit Published Versions:**
    * In viaSocket Developer Hub, `published` versions are immutable to protect live user workflows.
    * Updates to an existing entity must target an unreleased `drafted` version or use `cloneFrom` to create a new draft.
-3. **Cross-Platform Compatibility:**
+4. **Cross-Platform Compatibility:**
    * In the tool extractor regex:
      ```javascript
      s.matchAll(/^\x60{4}js file=(\S+)\r?\n([\s\S]*?)\r?\n\x60{4}$/gm)
      ```
      Always support `\r?\n` to guarantee extraction works across Linux, macOS, and Windows checkouts.
-4. **Branch Configuration:**
+5. **Branch Configuration:**
    * By default, bootstrap scripts point to the `dev` branch:
      `R=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev`
    * If working from a feature branch or fork, update the `R` variable in the bootstrap command.
