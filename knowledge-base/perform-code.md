@@ -34,10 +34,10 @@ published: true
         - Example 5: Fetching items with multi-item pagination (Avoiding bleed across items)
         - Example 6: Fetching Upcoming Events for Relative Future Time Windows (Google Calendar)
         - Example 7: Fetching Upcoming Meetings with Google Meet Filter for Relative Future Time Windows (Google Meet)
-    - Schedule Trigger Sample Code
-      - Schedule Trigger Sample Code Rules
-      - Schedule Trigger Sample Code Pattern
-      - Schedule Trigger Sample Example Code
+    - Scheduled Trigger Sample Code
+      - Scheduled Trigger Sample Code Rules
+      - Scheduled Trigger Sample Code Pattern
+      - Scheduled Trigger Sample Example Code
     - Scheduled Trigger Transfer Code Rules
     - Scheduled Trigger Transfer Code Patterns
   - Manual Trigger
@@ -1335,9 +1335,9 @@ async function fetchUpcomingMeetings() {
 return await fetchUpcomingMeetings();
 ```
 
-### Schedule Trigger Sample Code
+### Scheduled Trigger Sample Code
 
-#### Schedule Trigger Sample Code Rules
+#### Scheduled Trigger Sample Code Rules
 
 Always follow these rules while creating a sample code for the Schedule Trigger:
 1. The Sample Code must return a single object `{ ... }` representing just one of those items. This ensures the user is mapping the schema of a single event in their workflow steps, rather than mapping an entire array. This single item can be retrieved through the GET code pattern.
@@ -1347,7 +1347,7 @@ Always follow these rules while creating a sample code for the Schedule Trigger:
 5. Map the exact schema properties to empty/default values
 6. Return the dynamic fallback item with an exact matching structure
 
-#### Schedule Trigger Sample Code Pattern
+#### Scheduled Trigger Sample Code Pattern
 
 **Fetch the latest 1 item or any item or fallback structure**
 ```javascript
@@ -1420,7 +1420,7 @@ try {
 }
 ```
 
-#### Schedule Trigger Sample Example Code
+#### Scheduled Trigger Sample Example Code
 
 **Example 1: Fetching only the latest item from the data source or fallback with schema**
 - **Service:** Notion

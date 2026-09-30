@@ -311,7 +311,7 @@ Children render inline as a sentence (end users see it without edit mode), e.g. 
 | `extraValue` access | `context?.inputData?.k_extraValue === 'x'` / `context?.inputData?.group?.k_extraValue` |
 | Computed | `(context?.inputData?.price * context?.inputData?.quantity) > 100` |
 
-- **`dependsOn`**: Engine-generated from input paths read in `optionsGenerator`, `fieldsGenerator`, or `suggestionGenerator`; never declare manually. Visibility paths don't count; static fields get `[]`. Pass every input path (plus search/limit) into components as params so dependencies are detected.
+- **`dependsOn`**: Engine-generated from input paths read in `optionsGenerator`, `fieldsGenerator`, or `suggestionGenerator` (write them literally as `context?.inputData?.<key>`, never destructured); never declare manually. Visibility paths don't count; static fields get `[]`. Pass every input path (plus search/limit) into components as params so dependencies are detected.
 - **`steps` / `blocks`** (engine output, never authored): `steps = { root: [top-level keys], <group>: ["<group>.<key>"] }`; `blocks` = flat map of every field with its `dependsOn`.
 
 ---

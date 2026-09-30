@@ -1,6 +1,6 @@
 # viaSocket Developer Hub — Skill Architecture
 
-How the three skills in `skills/` work and how to run them.
+How the three skills in `skills/` and their shared tool `skills/dh.mjs` work, and how to run them.
 
 ## 1. Prompt templates
 
@@ -82,7 +82,7 @@ UPDATE_CONTEXT: <CHANGES_REQUESTED_IF_UPDATING>
 ```mermaid
 flowchart TD
     Host["Host pre-context\nconsolidated KB + GET results"] --> LLM["Model reads the skill"]
-    LLM --> Setup["Setup (one command)\nconfig + extract dh.mjs"]
+    LLM --> Setup["Setup (two lines)\ndownload dh.mjs + write config"]
     Setup --> Research["Research official API docs\n(+ KB detail via dh.mjs kb)"]
     Research --> Plan["Plan + KB self-review\n(posted to the user, no approval wait)"]
     Plan --> Exec["Execute\ndh.mjs batch / COPY / MERGE"]
@@ -104,8 +104,8 @@ flowchart TD
    `node dh.mjs kb <file> "Heading"`.
 3. **Research → plan → execute.** Ask only at the start if a required input is missing; post the plan in plain
    language, then execute without an approval pause.
-4. **One link, one tool.** `dh.mjs` is embedded at the end of each skill in a four-backtick `js file=dh.mjs` fence;
-   the setup command extracts it (`\r?\n`-tolerant regex, so Windows checkouts work). The model is told not to re-type it.
+4. **One shared tool.** All three skills use `skills/dh.mjs`, downloaded by the setup (`curl -sfLO …/skills/dh.mjs`).
+   The model never reads the tool code — the skill documents only its commands — and there is one file to maintain.
 5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; `batch` runs 4 at a time per level.
 
 ## 3. Skill comparison
@@ -115,16 +115,15 @@ flowchart TD
 | **Scope** | whole plug (create or extend) | one connection | one action or trigger |
 | **Branching** | domain match → extend, else create | create · edit in place (non-breaking, unused) · `COPY` to a new version (breaking or in use) | create · edit draft · `COPY` latest version to a new draft |
 | **Execution** | L0 plug · L1 connection ∥ components ∥ brand details · L2 actions/triggers ∥ plug MERGE · L3 versions ∥ mappings | write → plug MERGE | components → action → version ∥ mappings → action MERGE |
-| **Embedded tool** | full | no `batch`, no action/component checks | no connection encoding |
 
 ## 4. `dh.mjs`
 
 ```text
 node dh.mjs GET   '<path>' [key,key]                  read; only those keys of each row; retried once on network error / 5xx
 node dh.mjs POST|PUT|PATCH '<path>' '{json}'|@file    write
-node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'
+node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'   keep metadata, deep-merge aiContext
 node dh.mjs COPY  'get/<oauth_details|action_version>?identifier=<parentId>&filter=<f>' '{"rowid":"<id>",…changes}'
-node dh.mjs batch @ops.json                           [{ label, method, path, body?, keys? }] → [{ label, ok, result | error }]
+node dh.mjs batch @ops.json                           [{ label, method, path, body?, keys? }], 4 in parallel → [{ label, ok, result | error }]
 node dh.mjs kb [file] ["Heading"… | '*']              KB files · headings · sections · whole file
 ```
 
@@ -134,18 +133,20 @@ Paths are relative to `<API_BASE>/developers/<ORG_ID>/`; a leading `/` is relati
 
 Automatic behaviour:
 
+* **Guards** — only `GET`, `POST`, `PUT`, `PATCH`, `MERGE`, `COPY` (also inside `batch`; no `DELETE`); `GET` keys are
+  a comma list (spaces trimmed); `GET` is retried once on a network error or 5xx.
 * **Syntax check before a write** — code blocks (`perform`, `performlist`, `performsubscribe`, `performunsubscribe`,
   `modifytriggerdata`, `transferoption`, component `code`), connection code, every field generator (recursively) and
   every `authenticationpaths` value (must be a function body that `return`s).
 * **Provenance** — `create/*` gets a `metadata.aiLogs` `CREATED_BY_AI` entry (+ `metadata.createdBy` on plugs);
   `create/actions` then sets `isaiaction` + `aiorgid` and returns `{ actionId, versionId }` (a failed follow-up
   returns the ids with a `warning`, so nothing is created twice).
-* **MERGE** — reads the row, keeps every metadata key, deep-merges `metadata.aiContext` (+ `updatedAt`) and appends an
+* **MERGE** — reads the row, keeps every metadata key, deep-merges `metadata.aiContext` (nested objects merged, arrays replaced; + `updatedAt`) and appends an
   `UPDATED_BY_AI` entry (optional `note`).
 * **COPY** — reads the parent's rows, copies the one with `rowid` minus DB-managed keys (`rowid`, `autonumber`,
   timestamps, creator keys, `metadata`; connections also `pluginname`, `pluginiconurl`, `domain`, `isencrypted`,
   `clientsecret`; versions also `version`, `versionid`, `status`, `isdeleted`, `actionversionrecordid`,
-  `publishdescription`), applies the changes, adds `metadata.duplicatedfrom` and creates it. Versions become
+  `publishdescription`), applies the changes, adds `metadata.duplicatedfrom` and creates it (returns `{ id }`). Versions become
   `drafted` under the parent action; connections keep `authversion` (the server numbers it).
 * **Connection encoding** — `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` accept raw JS and are
   stored as `{"source": …}` strings; a `queryparams` object is stringified.
@@ -160,7 +161,8 @@ Automatic behaviour:
    Developer Hub; the skill leaves them empty.
 3. **Never publish, never hard-delete, never edit a `published` version** — changes go to a `drafted` version or a
    new copy.
-4. **Branch / fork** — setup commands point to `dev`. For another branch or fork, use that skill URL and set
-   `kbRepo`/`kbRef` in `.dh-run/config.json` (defaults `RoystonSanctis/dh-planner-viasocket` / `dev`).
-5. **Editing the tool** — the three embedded copies are variants of one tool (plug = full). Change all three together
-   and keep the fence exactly: four backticks + `js file=dh.mjs` to open, four backticks to close.
+4. **Branch / fork** — skills and tool point to `dev`. For another branch or fork, use its skill and `skills/dh.mjs`
+   URLs and set `"kbRepo":"<owner>/<repo>","kbRef":"<branch>"` in `.dh-run/config.json` (defaults
+   `RoystonSanctis/dh-planner-viasocket` / `dev`).
+5. **Editing the tool** — change `skills/dh.mjs` only; keep the command list in its header and in the skills' §2 in
+   sync. Skill and tool are fetched from the same branch, so push them together.
