@@ -43,6 +43,8 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - **Non-secret Metadata Only**: Only non-secret connection metadata (e.g., domain, subdomain, tenant ID, account ID, region) can be accessed in code via `context?.authData?.<key>` (where `<key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details). Never read or use secret credential keys (e.g., `api_key`, `token`) from `context.authData`. Never ask the user for `pluginrecordid` or `authid`.
    - **Minimal Connection Scopes vs Action/Trigger Specific Scopes**: Connection-level scopes must ONLY include the minimal scopes required for connection establishment and the Test (Me) API. Never request all app scopes or action-specific scopes at the connection level. Individual actions and triggers (Instant and Scheduled) specify their own endpoint-specific scopes via the `scopes` key (formatted as a string separated by space or comma matching connection's `scopeseperatedby`, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Manual triggers (`manual_webhook`) do NOT support `scopes`.
 3. **JSON Schema (`inputjson`)**: `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
+   - **Exhaustive Field Coverage (Zero Missing Fields)**: When analyzing any action or trigger from the API documentation, strictly include ALL documented fields (path, query, body, filters, optional, and advanced parameters) in `inputFields`. No documented fields may be omitted or skipped.
+   - **KB-Driven Order & UX**: Structure and order fields per KB guidelines: (1) Parent/dependency selector dropdowns first; (2) Required fields next; (3) Grouped optional/advanced fields via `inputGroup` or `visibilityCondition` (Field Chooser pattern).
    - Author only `inputFields`. `steps`/`blocks` are engine-generated: pass real empty objects `{}`, never strings `"{}"`.
    - **NO `"item"` WRAPPERS** on any array (`inputFields`, `options`, …): ❌ `{"inputFields": {"item": [...]}}` | ✅ `{"inputFields": [...]}`
    - Valid JSON only (no duplicate keys, broken escaping, missing commas); no comments or undocumented keys.
@@ -126,6 +128,8 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 ---
 
 # Design Strategy & UX
+- **Exhaustive Field Coverage (Zero Missing Fields)**: The integration design MUST support and strictly include ALL documented parameters and fields from the API documentation across path, query, body, and filters. Never omit or skip documented API parameters.
+- **KB Order & Progressive Disclosure**: While including all documented fields, preserve a clean, uncluttered UX: place parent context selectors first, required fields next, and group optional/secondary fields into `inputGroup` structures or gate them behind a multiselect chooser ("Select Additional Fields") with `visibilityCondition`.
 - **Unified Actions**: List + Search + Get → one LIST via `mode` dropdown; Create + Update → Intelligent Upsert (prefer native upsert endpoints). Users never choose Create vs Update; identifier resolution decides.
 - **Search-First Resolution**: search by stable identifier (email, external_id, sku) → found: update/return → not found and creation allowed: create → else fail safely. Never assume referenced records exist.
 - **Search Modes**: one method → no selector. Several → mode dropdown (Structured by stable attributes = default; Advanced query = optional). Multi-match → deterministic pick (first/newest) or fail safely.
@@ -589,6 +593,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Zero results return an informative `{ message }` or valid empty payload per flag combination. In `LIST`/`GET` actions, if data length is 0, return `message: response?.data?.length ? null : "No data found."` along with `data` and important keys (`pagination`, `has_more`, `success`).
 - **No authentication / API key in code**: Code must NEVER pass API keys, tokens, or credentials in headers (`Authorization`, `x-api-key`, etc.), query parameters, or body payloads. All authentication is injected automatically by the backend via the connection's `authenticationpaths` (`headers`, `body`, or `queryParams`). Flag any direct auth or API key in code as a critical defect. Manual triggers send no `authid` and make no API calls.
 - Required inputs (dependent required included) validated before API calls.
+- **Exhaustive Field Coverage**: All documented API fields (path, query, body, filters, optional/advanced) are strictly included in `inputFields` with zero omissions; ordered parent-first, required-first, with optional fields grouped cleanly.
 - Payload shape/endpoint match the API; all documented params supported; derived values have fallbacks.
 
 **P1 (Functional & Automation)**

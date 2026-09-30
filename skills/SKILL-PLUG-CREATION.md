@@ -132,6 +132,13 @@ response shape, hosts, webhooks (one-per-app?), rate limits. Cover ALL entities 
 consolidate per KB "Design Strategy & UX"; exclude auth/admin/deprecated/response-less. Never invent endpoints,
 params, scopes or secrets. Never ask the user for credentials (client ID, client secret, API keys, passwords);
 user adds them directly in the platform.
+- **Strict Exhaustive Field Coverage (Zero Missing Fields):** When analyzing any action or trigger endpoint from the API
+  documentation, strictly include ALL documented fields (path params, query params, request body attributes, filters,
+  and optional/advanced parameters) in `inputFields`. No documented fields may be omitted or missing.
+- **KB-Driven Order and UX:** Build UX and field ordering strictly based on KB guidelines: (1) Parent/dependency
+  selector dropdowns first; (2) Required fields before optional fields; (3) Dynamic dropdowns/multiselects for entity IDs;
+  (4) Group optional/advanced fields into `inputGroup` or gate them with `visibilityCondition` (Field Chooser pattern)
+  to keep UX uncluttered while achieving 100% field completeness.
 
 ### 4.2 Runtime (viaSocket VM)
 - Auth: `authenticationpaths` injects credentials only into calls to whitelisted hosts; code sees secrets as

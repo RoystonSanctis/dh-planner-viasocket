@@ -719,7 +719,12 @@ A trigger represents a real-world event that initiates a workflow.
 *Principles for field ordering, dropdown rules, and custom module-specific schema handling.*
 
 * **General Principles:**
-  * **API Parameter Completeness:** The integration design MUST support all possible parameters available in the API documentation (required and optional parameters across query, body, headers, and filters). Never omit documented API parameters.
+  * **API Parameter Completeness (Strict Zero Missing Fields):** The integration design MUST support and strictly include ALL fields and parameters available in the API documentation (required, optional, path, query, request body properties, and filters). **Zero missing fields**: under no circumstances should a documented API parameter be omitted.
+  * **KB-Driven Field Ordering & UX Architecture:** While capturing 100% of documented fields, organize them strictly according to KB hierarchy:
+    1. **Parent/Dependency Selector Fields First:** Parent context (e.g. Workspace, Team, Project, Database) must always appear at the very top.
+    2. **Required Fields Immediately Follow:** Place all required fields right after parent selectors before any optional fields.
+    3. **Grouped Optional & Advanced Fields:** Group related optional fields into logical `inputGroup` blocks or gate them behind a Multiselect Field Chooser ("Select Additional Fields") with `visibilityCondition`. This guarantees 100% parameter completeness without cluttering the initial form experience.
+    4. **Positioning of Help Text:** Always use the field's own `help` property. Standalone help blocks (`type: "help"`) are restricted to critical warnings only.
   * **`placeholder` String Value Rule:** The value of the `placeholder` key (and `customPlaceholder`) MUST ALWAYS be a string. For string, number, boolean, or any other field types, if the sample placeholder value is of another data type (e.g. number `100`, boolean `true`, array `["item"]`), it MUST be wrapped with quotes as a string (e.g. `"100"`, `"true"` instead of raw `100` or `true`).
   * **Field Ordering:** Always position **Required** fields first. Group **Optional** fields together. When using static or dynamic help fields, they must always be positioned below the field they are referring to.
   * **Standalone Help Field (`type: "help"`) Strict Rule:** Use a standalone `type: "help"` block ONLY when strictly necessary for critical notices (e.g. DELETE irreversible warnings, major behavioral shifts from field selections, mandatory prerequisites, manual webhook HTML setup, or lookahead polling math). ❌ Never add standalone help banner fields for ordinary descriptions; use the field's own `help` property instead.
@@ -809,6 +814,7 @@ A trigger represents a real-world event that initiates a workflow.
 * [ ] **Handle pagination, dates, arrays, and error cases properly:** Ensure complete handling across all components and perform code.
 * [ ] **No Search, Only Pagination Dropdown Pattern:** When `canPaginate: true` and `enableSearchApi: false`, ensure the output strictly returns `{ data: [...], offset: ... }`. Differentiate empty results: initial empty (`!currentOffset && length === 0`) returns `{ data: [], offset: null, message: 'No <resources> found.' }`, while pagination end (`currentOffset && length === 0`) returns `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`.
 * [ ] **Optional Fields & Field Chooser UX Practice:** When multiple optional fields exist, gate them behind a single Multiselect. Always prioritize organizing fields into Input Groups with `visibilityCondition` applied (or attach `visibilityCondition` to individual fields if grouping is not possible).
+* [ ] **Strict Zero Missing Fields from API Documentation:** Strictly include ALL documented fields from the API reference (path, query, body, filters, optional/advanced). No documented field may be skipped or omitted, while strictly applying KB ordering (parent selectors first → required fields → grouped optional fields).
 * [ ] **List/Get Zero-Length Return Rule:** In `LIST` and `GET` actions, if the data length is 0 (or no data found), return `message: response?.data?.length ? null : "No data found."` along with `data` and important response keys (`pagination`, `has_more`, `success`).
 
 
