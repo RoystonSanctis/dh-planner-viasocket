@@ -78,7 +78,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "pluginrecordid": "String (Foreign key referencing the parent plugin record, e.g., \"rowgt678e7la\")",
   "pluginname": "String (Human-readable name of the plugin/service, e.g., \"Notion\")",
   "pluginiconurl": "String | null (URL to the plugin icon hosted on CDN, e.g., \"https://stuff.thingsofbrand.com/notion.com/images/imgf_notion.png\")",
-  "iconurlpath": "String | null (Custom override path for the icon; null means use pluginiconurl, e.g., \"ASDFGH\")",
+  "iconurlpath": "String | null (Path to extract verified connection icon from Test API response, e.g., \"context?.authData?.testcode?.avatar_url\" or \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise empty \"\" or null which defaults to pluginiconurl)",
   "domain": "String (Primary domain of the service, e.g., \"notion.com\")",
   "whitelistdomains": "Array (List of allowed domains for outgoing API requests. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"notion.com\", \"api.notion.com\"])",
   "skipwhitelistvalidation": "Boolean | null (When true, bypasses domain whitelist checks; null means default validation applies)",
@@ -189,7 +189,7 @@ updated_by: String | null ('userId_Name' format)
 pluginrecordid: String (plugin ID)
 pluginname: String
 pluginiconurl: String | null
-iconurlpath: String | null (override; null = use pluginiconurl)
+iconurlpath: String | null (path to verified connection icon from Test API; NOT service icon; empty/null if Test API does not provide one)
 domain: String
 whitelistdomains: Array of Strings
 skipwhitelistvalidation: Boolean | null
@@ -433,7 +433,7 @@ The Update Connection Payload is sent by the client to modify an existing Connec
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
-  "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
 
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
@@ -489,7 +489,7 @@ connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
 isconnectionlabelmasked: Boolean
-iconurlpath: String
+iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
 authenticationpaths: Object
@@ -574,7 +574,7 @@ skipwhitelistvalidation: null (null if not set)
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
-  "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
 
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
@@ -643,7 +643,7 @@ connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
 isconnectionlabelmasked: Boolean
-iconurlpath: String
+iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
 uniquekeytostoreauth: Object
@@ -708,7 +708,7 @@ skipwhitelistvalidation: null (null if not set)
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
-  "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
 
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
@@ -772,7 +772,7 @@ connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
 isconnectionlabelmasked: Boolean
-iconurlpath: String
+iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
 uniquekeytostoreauth: Object
@@ -840,7 +840,7 @@ skipwhitelistvalidation: null (null if not set)
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode.email}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
-  "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
@@ -906,7 +906,7 @@ connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
 isconnectionlabelmasked: Boolean
-iconurlpath: String
+iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
 uniquekeytostoreauth: Object
@@ -975,7 +975,7 @@ skipwhitelistvalidation: null (null if not set)
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.username}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
-  "iconurlpath": "String (URL path for the service icon, e.g., \"ASDFGH\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
 
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
@@ -1042,7 +1042,7 @@ connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
 isconnectionlabelmasked: Boolean
-iconurlpath: String
+iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
 uniquekeytostoreauth: Object
@@ -1099,7 +1099,7 @@ skipwhitelistvalidation: null (null if not set)
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
-  "iconurlpath": "String (URL path for the service icon, e.g., \"\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
@@ -1157,7 +1157,7 @@ connectionlabelkey: String
 connectionlabelvalue: String (JS expression)
 _connectionlabelvalue: String (templated version)
 isconnectionlabelmasked: Boolean [see note: field first declared above as null]
-iconurlpath: String
+iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
 uniquekeytostoreauth: Object

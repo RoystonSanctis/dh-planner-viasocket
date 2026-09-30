@@ -469,7 +469,7 @@ Key fields returned by connection endpoints (others are DB-managed or always `nu
 - `authfields`, `authenticationpaths`, `whitelistdomains`, `skipwhitelistvalidation` (true bypasses whitelist checks).
 - `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`: stored scripts (`accesstokencode` source `null` for Basic, Auth1, Implicit; refresh/revoke `null` for Basic, Auth1).
 - `connectionlabelkey`, `connectionlabelvalue`, `_connectionlabelvalue`, `isconnectionlabelmasked`, `uniquekeytostoreauth`.
-- `iconurlpath` (`null` = use `pluginiconurl`), `metadata.save[]` (who, changed fields, time, `CREATE`/`UPDATE`).
+- `iconurlpath` (path to extract verified connection icon from Test API; `""` or `null` = fallback to `pluginiconurl`; NOT service icon; only fill if Test API provides a verified connection icon), `metadata.save[]` (who, changed fields, time, `CREATE`/`UPDATE`).
 
 ---
 
@@ -478,6 +478,7 @@ Key fields returned by connection endpoints (others are DB-managed or always `nu
 - **Revoke**: define whenever supported for a clean disconnect.
 - **Token Storage**: keep only what's needed (`access_token`, `refresh_token`, `expires_in`); never surface raw tokens or full test responses to users.
 - **Duplicates**: set a Unique Identifier whenever a stable field exists.
+- **Connection Icon (`iconurlpath`)**: Path expression to extract the verified connection icon (e.g. user photo/avatar or workspace icon) from the Test API response. This is NOT the service icon (`pluginiconurl`). Only fill `iconurlpath` if the Test API returns a verified connection icon; otherwise leave it empty `""` (or `null`).
 - **Scopes**: least privilege. Connection-level OAuth scopes are passed inside the `queryparams` object under the `scope` key (e.g. `queryparams: "{\"response_type\":\"code\",\"scope\":\"user.read\"}"`). Connection-level scopes MUST ONLY include the minimal scopes required for the Test (Me) API / connection establishment. Never add all available scopes or action-specific scopes to the connection. Specific scopes for actions and triggers belong strictly in the action/trigger payload in `dh-database-schema.md` via their own `scopes` key.
 - **Redirect/Whitelist**: redirect/callback URIs match the provider exactly; account for multiple URLs (including post-login); tell users where in the provider portal to add the callback URL.
 - **Backward Compatibility**: never rename/remove field keys or `context.authData` keys (breaks every Action/Trigger using them). Allowed: new optional fields, better labels/help, adding a Unique Identifier, tightening the whitelist.

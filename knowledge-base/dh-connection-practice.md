@@ -149,7 +149,7 @@ The standard field ordering/section flow for a Basic Auth Connection follows thi
 1. **Configure your Fields** → Credential Auth fields the user fills to authenticate (e.g. `api_key`, `username`, `password`). Values become available as `context.authData.<field_key>`.
 2. **Configure Test (Me) API** *(Required)* → A lightweight authenticated `GET` request (e.g. `/me`, `/user`, `/profile`, or if unavailable, any suitable lightweight authenticated endpoint like `/workspaces` or `/teams`) that validates the entered credentials.
 3. **Add Connection Label** → A dynamic, human-readable identifier for the saved connection, built from auth fields or the Test API response.
-4. **Add Icon** → Visual icon for the connection.
+4. **Add Icon** → Visual icon for the connection (path expression to extract the verified connection icon, e.g. user photo/avatar or workspace icon, from the Test API response; this is NOT the service icon. Only fill if the Test API provides a verified connection icon, otherwise leave empty).
 5. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 6. **Set Request Parameters** *(Final, Required)* → Dynamic functions that inject the credential into every request's Header, Query Param, or Body — so it never needs to be re-specified inside individual Actions/Triggers.
 
@@ -230,7 +230,7 @@ The standard 13-step section flow:
 7. **Configure Revoke Token API** → Calls the provider's revoke endpoint with the active token, pulled from `context.authData`, to cleanly disconnect.
 8. **Configure Test (Me) API** *(Required)* → Authenticated `GET /me` (or equivalent User/Profile endpoint; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`) using `Authorization: Bearer <access_token>`. Validates token exchange, header injection, and scope sufficiency together.
 9. **Add Connection Label** → Human-friendly identifier mapped from the Test API response (e.g. `authData.testcode.profile.real_name`); maskable.
-10. **Add Icon** → Visual icon for the connection.
+10. **Add Icon** → Visual icon for the connection (path expression to extract the verified connection icon, e.g. user photo/avatar or workspace icon, from the Test API response; this is NOT the service icon. Only fill if the Test API provides a verified connection icon, otherwise leave empty).
 11. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 12. **Add Unique Connection Identifier** *(optional)* → Stable field from the Test/Token response (e.g. `user_id`, `workspace_id`) used to prevent duplicate connections for the same account; enables update-instead-of-duplicate behavior. Leave blank if no reliable stable field exists.
 13. **Set Request Parameters** *(Final, Required)* → Dynamic JS functions building Headers (e.g. `Authorization: Bearer ${context.authData?.accesstokencode?.access_token}`), Query Params, and Body defaults for every request.
@@ -345,7 +345,7 @@ Identical to Authorization Code's 13-step flow **minus the "Configure Access Tok
 6. Configure Revoke Token API
 7. Configure Test (Me) API *(Required)* → Authenticated `GET /me` (or equivalent User/Profile endpoint; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`).
 8. Add Connection Label
-9. Add Icon
+9. **Add Icon** → Visual icon for the connection (path expression to extract verified connection icon from Test API response; NOT service icon; only fill if Test API provides one, otherwise leave empty).
 10. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 11. Add Unique Connection Identifier *(optional)*
 12. Set Request Parameters *(Final, Required)*
@@ -413,7 +413,7 @@ A reduced 10-step flow — no redirect, consent screen, or per-user credentials 
 4. **Configure Revoke Token API** → `POST` to the revoke endpoint with the current token, `client_id`, `client_secret`.
 5. **Configure Test (Me) API** *(Required)* → Authenticated `GET` request (preferring `GET /me` or `/account`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces`, `GET /status`, `GET /teams`, or `GET /ping`) confirming the token works.
 6. **Add Connection Label** → Since no user is involved, label from a stable app/workspace identifier (e.g. `api_app_id`) rather than a person's name.
-7. **Add Icon** → Visual icon for the connection.
+7. **Add Icon** → Visual icon for the connection (path expression to extract verified connection icon from Test API response; NOT service icon; only fill if Test API provides one, otherwise leave empty).
 8. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 9. **Add Unique Connection Identifier** *(optional)* → Stable app/workspace-level identifier to prevent duplicate connections.
 10. **Set Request Parameters** *(Final, Required)* → Dynamic functions injecting the Bearer token into every request.
@@ -512,7 +512,7 @@ Structurally identical to Client Credentials (10 steps), since neither flow invo
 4. **Configure Revoke Token API** → `POST` to the revoke endpoint with the active token.
 5. **Configure Test (Me) API** *(Required)* → Authenticated `GET` (preferring `GET /me` or `/user/profile`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`) confirming the token is valid.
 6. **Add Connection Label** → Human-friendly identifier from the Test API response.
-7. **Add Icon** → Visual icon for the connection.
+7. **Add Icon** → Visual icon for the connection (path expression to extract verified connection icon from Test API response; NOT service icon; only fill if Test API provides one, otherwise leave empty).
 8. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 9. **Add Unique Connection Identifier** *(optional)* → Stable user identifier to prevent duplicates.
 10. **Set Request Parameters** *(Final, Required)* → Dynamic functions injecting the Bearer token into every request.
@@ -614,7 +614,7 @@ The standard 9-step section flow:
 3. **Configure OAuth1 Endpoint** *(Required)* → `Request Token URL`, `Authorize URL`, `Access Token URL`, and `signatureMethod` (`HMAC-SHA1` | `RSA-SHA1` | `PLAINTEXT`). Clicking **Authorize** runs viaSocket's built-in three-legged OAuth 1.0 exchange (request token → user authorization → access token) automatically using these URLs and the selected signature method — **no custom perform code is written for this step.** The resulting token is stored under `context.authData.accesstokencode`.
 4. **Configure Test (Me) API** *(Required)* → A signed authenticated request (preferring `GET /me` or `/user`; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`, per the selected `signatureMethod`, using the Consumer/Access Token secrets, a timestamp, and a nonce) confirming the credentials are valid.
 5. **Add Connection Label** → Human-friendly identifier from the Test API response.
-6. **Add Icon** → Visual icon for the connection.
+6. **Add Icon** → Visual icon for the connection (path expression to extract verified connection icon from Test API response; NOT service icon; only fill if Test API provides one, otherwise leave empty).
 7. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 8. **Add Unique Connection Identifier** *(optional)* → Stable identifier to prevent duplicate connections.
 9. **Set Request Parameters** *(Final, Required)* → Signing logic applied to every request's Header/Query/Body so every Action/Trigger is automatically signed and authenticated.
