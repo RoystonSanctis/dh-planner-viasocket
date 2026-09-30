@@ -115,11 +115,11 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
 - **Payload**: no `granttype`, token codes, or `uniquekeytostoreauth`.
 
 ## OAuth 2.0 Authorization Code
-- **Flow (13)**: Pre-auth Fields? (subdomain, region, tenant) → Copy Redirect URL (`https://auth.viasocket.com/redirect/auth2.0`) → App Credentials (see Client Credentials Setup Modes) → Authorization Endpoint (`authrequrl`, scopes, `response_type=code`, PKCE, provider params like `access_type=offline`, `prompt=consent`, `audience`) → Access Token API → Refresh Token API → Revoke Token API → Test (Me) API (Bearer) → Connection Label → Icon → Whitelist Domains → Unique Identifier? → Set Request Parameters (Bearer header).
+- **Flow (13)**: Pre-auth Fields? (subdomain, region, tenant) → Copy Redirect URL (`https://auth.viasocket.com/redirect/auth2.0`) → App Credentials (see Client Credentials Setup Modes) → Authorization Endpoint (`authrequrl`, scopes, `response_type=code`, PKCE, provider params like `access_type=offline`, `prompt=consent`, `audience`) → Access Token API → Refresh Token API → Revoke Token API → Test (Me) API (Bearer) → Connection Label → Icon → Whitelist Domains → Unique Identifier? (Optional; only if refresh token revoked on each refresh) → Set Request Parameters (Bearer header).
 - **Rules**: Minimal scopes in `queryparams.scope` (strictly those required for the Test/Me API or baseline connection); action/trigger-specific scopes belong on individual actions/triggers in `dh-database-schema.md` via the `scopes` key; `scopeseperatedby` strictly `"space"`, `"comma"`, or `null` (never `" "` / `","`); verify Base64/content-type needs for the token call. `authenticationpaths.headers` must inject the Bearer token (empty `headers` → every request 401s).
 
 ## OAuth 2.0 Client Credentials
-- **Flow (10)**: Fields? → Access Token API (`grant_type=client_credentials`, `scope`; usually no refresh token) → Refresh Token API (re-request with same credentials) → Revoke Token API (token + client credentials) → Test (Me) API (`/me`, `/account`, else `/status`, `/ping`) → Connection Label → Icon → Whitelist Domains → Unique Identifier? → Set Request Parameters (Bearer).
+- **Flow (10)**: Fields? → Access Token API (`grant_type=client_credentials`, `scope`; usually no refresh token) → Refresh Token API (re-request with same credentials) → Revoke Token API (token + client credentials) → Test (Me) API (`/me`, `/account`, else `/status`, `/ping`) → Connection Label → Icon → Whitelist Domains → Unique Identifier? (Optional; only if refresh token revoked on each refresh) → Set Request Parameters (Bearer).
 - **Rules**: Client ID/Secret collected as `authfields` (keys `clientid`, `clientsecret`); no root `clientid`/`clientsecret` in its payload. Label/unique key from app, workspace, or tenant ID—never user identity. Secret stays in perform code only. Bearer injection required.
 
 ## OAuth 2.0 Implicit
@@ -127,11 +127,11 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
 - **Rules**: Flag as legacy. Token captured from redirect at `context?.authData?.access_token`; `accesstokencode`/`refreshtokencode` source `null`. Root `clientid` set, `clientsecret` `null`. Flag insecure browser-storage risk.
 
 ## OAuth 2.0 Password Credentials
-- **Flow (10)**: Fields (`username` string, `password` password; both required) → Access Token API (`grant_type=password`, client ID/secret, username, password) → Refresh Token API (`grant_type=refresh_token`) → Revoke → Test (Me) API → Label → Icon → Whitelist → Unique Identifier? → Set Request Parameters.
+- **Flow (10)**: Fields (`username` string, `password` password; both required) → Access Token API (`grant_type=password`, client ID/secret, username, password) → Refresh Token API (`grant_type=refresh_token`) → Revoke → Test (Me) API → Label → Icon → Whitelist → Unique Identifier? (Optional; only if refresh token revoked on each refresh) → Set Request Parameters.
 - **Rules**: Flag deprecation. Never log or persist the raw password beyond the token call. Root `clientid` + `clientsecret`. Only engine using `authversion: "V2"`.
 
 ## OAuth 1.0
-- **Flow (9)**: App Credentials (Consumer Key/Secret → root `clientid`/`clientsecret`) → Copy Redirect URL (`https://auth.viasocket.com/redirect/auth1`) → OAuth1 Endpoint (`auth1parameters`: `requestTokenUrl`, `authorizeUrl`, `accessTokenUrl`, `signatureMethod`) → Test (Me) API (signed) → Label → Icon → Whitelist → Unique Identifier? (e.g. `context?.authData?.consumerkey`) → Set Request Parameters (signing).
+- **Flow (9)**: App Credentials (Consumer Key/Secret → root `clientid`/`clientsecret`) → Copy Redirect URL (`https://auth.viasocket.com/redirect/auth1`) → OAuth1 Endpoint (`auth1parameters`: `requestTokenUrl`, `authorizeUrl`, `accessTokenUrl`, `signatureMethod`) → Test (Me) API (signed) → Label → Icon → Whitelist → Unique Identifier? (Optional; only if refresh token revoked on each refresh) → Set Request Parameters (signing).
 - **Rules**: Built-in Authorize runs the 3-legged exchange and stores tokens at `context.authData.accesstokencode` (`oauth_token`, `oauth_token_secret`)—**never write `accesstokencode`**. Revoke usually omitted (no standard). Sign every request: method + URL + params + consumer secret + token secret → hash per `signatureMethod` → `oauth_signature`, with fresh nonce and timestamp. `HMAC-SHA1` most common; `HMAC-SHA256` supported; `RSA-SHA1` needs a private key; `PLAINTEXT` only over HTTPS when required. Define the signer once as a reusable component (`generateOAuth1Signature`); document provider signing quirks.
 
 ## No Auth
@@ -164,7 +164,7 @@ Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, maske
 - **`_connectionlabelvalue`**: template version `"${context?.authData?.testcode?.[\"workspace_name\"]}"`.
 - **`connectionlabelkey`**: identifier type (`"workspace"`). `connectionlabelname`: reserved—omit or `null`.
 - **`isconnectionlabelmasked: true`** when the label is sensitive.
-- **`uniquekeytostoreauth`** (Unique Identifier): prevents duplicate connections (updates instead of duplicating). `uniqueKey` = stable ID path (`context?.authData?.testcode?.["id"]`, `["sub"]`, `context?.authData?.clientid`); `_uniqueKey` = `"${...}"`. Never a raw literal (`"refresh_token"`); `""` lets viaSocket auto-assign when no stable field exists.
+- **`uniquekeytostoreauth`** (Unique Identifier): **Always optional**. Only use in the case where the refresh token is revoked on each refresh. Unique Identifier is the feature where the connection is made unique, and a new connection will override the existing connection. In case the Unique Identifier is missing, viaSocket will create a new connection individually and will not merge it. When used: `uniqueKey` = stable ID path (`context?.authData?.testcode?.["id"]`, `["sub"]`, `context?.authData?.clientid`); `_uniqueKey` = `"${...}"`. Never a raw literal (`"refresh_token"`).
 
 ## Credential Fields
 - **`key`**: exact API parameter name (`api_key`, `subdomain`). Stable contract—never rename.
@@ -478,7 +478,7 @@ Key fields returned by connection endpoints (others are DB-managed or always `nu
 - **Refresh**: define whenever supported—true refresh-token exchange (Authorization Code, Password Credentials) or re-request (Client Credentials). Expired tokens must never silently fail Actions/Triggers.
 - **Revoke**: define whenever supported for a clean disconnect.
 - **Token Storage**: keep only what's needed (`access_token`, `refresh_token`, `expires_in`); never surface raw tokens or full test responses to users.
-- **Duplicates**: set a Unique Identifier whenever a stable field exists.
+- **Unique Identifier (`uniquekeytostoreauth`)**: Always optional. Use ONLY in the case of refresh token revoke on each refresh so that a new connection overrides the existing connection. In case the Unique Identifier is missing, viaSocket will create a new connection individually and will not merge it.
 - **Connection Icon (`iconurlpath`)**: Path expression to extract the verified connection icon (e.g. user photo/avatar or workspace icon) from the Test API response. This is NOT the service icon (`pluginiconurl`). Only fill `iconurlpath` if the Test API returns a verified connection icon; otherwise leave it empty `""` (or `null`).
 - **Scopes**: least privilege. Connection-level OAuth scopes are passed inside the `queryparams` object under the `scope` key (e.g. `queryparams: "{\"response_type\":\"code\",\"scope\":\"user.read\"}"`). Connection-level scopes MUST ONLY include the minimal scopes required for the Test (Me) API / connection establishment. Never add all available scopes or action-specific scopes to the connection. Specific scopes for actions and triggers belong strictly in the action/trigger payload in `dh-database-schema.md` via their own `scopes` key.
 - **Redirect/Whitelist**: redirect/callback URIs match the provider exactly; account for multiple URLs (including post-login); tell users where in the provider portal to add the callback URL.

@@ -148,8 +148,8 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     ]
   },
   "uniquekeytostoreauth": {
-    "uniqueKey": "String (JS expression evaluating to unique identifier for stored auth; empty string means ViaSocket auto-assigns, e.g., \"context?.authData?.clientid\")",
-    "_uniqueKey": "String (Template string version of uniqueKey, e.g., \"${context?.authData?.clientid}\")"
+    "uniqueKey": "String (Optional. JS expression evaluating to unique identifier for stored auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use this feature in the case where refresh token is revoked on each refresh. This feature makes the connection unique so a new connection will override the existing connection. In case the Unique Identifier is missing, viaSocket will create a new connection individually and will not merge it)",
+    "_uniqueKey": "String (Optional. Template string version of uniqueKey, e.g., \"${context?.authData?.clientid}\")"
   },
   "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace\")",
   "connectionlabelvalue": "String | null (JS expression extracting display value for connected account. MUST begin with context?.authData? and be exactly ONE path with no '||' operators. Use bracket notation for the final key, e.g., context?.authData?.testcode?[\"workspace_name\"] or context?.authData?.testcode?[\"bot\"]?[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is a local variable inside perform-code function scope and is NOT in scope at label resolution; the testcode return value is stored at context.authData.testcode. Never use || fallback chains. Testcode must return response.data directly without mutation, so you must know the test response structure and pick a single reliable identifier path from it.)",
@@ -242,9 +242,9 @@ authenticationpaths: Object
   - queryParams: Array of PathObjects
     - name: String (query param name)
     - value: String (JS expression/function)
-uniquekeytostoreauth: Object
-  - uniqueKey: String (JS expression; empty = auto-assign)
-  - _uniqueKey: String (templated version of uniqueKey)
+uniquekeytostoreauth: Object (Always optional)
+  - uniqueKey: String (Optional. JS expression. Only used when refresh token is revoked on each refresh; new connection overrides existing. If missing, viaSocket creates a new connection individually without merging)
+  - _uniqueKey: String (Optional. Templated version of uniqueKey)
 connectionlabelkey: String | null
 connectionlabelvalue: String | null (JS expression)
 _connectionlabelvalue: String | null (templated version)
@@ -580,7 +580,7 @@ skipwhitelistvalidation: null (null if not set)
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
-    "uniqueKey": "String (JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\")"
+    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)"
   },
 
   "authenticationpaths": {
@@ -646,7 +646,7 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object
+uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
   - uniqueKey: String (JS expression)
 authenticationpaths: Object
   - headers: Array of PathObjects
@@ -714,7 +714,7 @@ skipwhitelistvalidation: null (null if not set)
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
-    "uniqueKey": "String (JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\")"
+    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)"
   },
 
   "authenticationpaths": {
@@ -775,7 +775,7 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object
+uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
   - uniqueKey: String (JS expression)
 authenticationpaths: Object
   - headers: Array of PathObjects
@@ -845,8 +845,8 @@ skipwhitelistvalidation: null (null if not set)
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
-    "uniqueKey": "String (JS expression used as unique key to store auth, e.g., \"context?.authData?.instanceUrl\")",
-    "_uniqueKey": "String (Template string version of unique key, e.g., \"${context?.authData?.instanceUrl}\")"
+    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.instanceUrl\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)",
+    "_uniqueKey": "String (Optional. Template string version of unique key, e.g., \"${context?.authData?.instanceUrl}\")"
   },
 
   "authenticationpaths": {
@@ -909,7 +909,7 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object
+uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
   - uniqueKey: String (JS expression)
   - _uniqueKey: String (templated version of uniqueKey)
 authenticationpaths: Object
@@ -981,8 +981,8 @@ skipwhitelistvalidation: null (null if not set)
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
-    "uniqueKey": "String (JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\")",
-    "_uniqueKey": "String (Template string version of unique key, e.g., \"${context?.authData?.clientid}\")"
+    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)",
+    "_uniqueKey": "String (Optional. Template string version of unique key, e.g., \"${context?.authData?.clientid}\")"
   },
 
   "authenticationpaths": {
@@ -1045,7 +1045,7 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object
+uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
   - uniqueKey: String (JS expression)
   - _uniqueKey: String (templated version of uniqueKey)
 authenticationpaths: Object
@@ -1104,8 +1104,8 @@ skipwhitelistvalidation: null (null if not set)
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
   "uniquekeytostoreauth": {
-    "uniqueKey": "String (JS expression used as unique key to store auth, e.g., \"context?.authData?.consumerkey\")",
-    "_uniqueKey": "String (Template string version of unique key, e.g., \"${context?.authData?.consumerkey}\")"
+    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.consumerkey\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)",
+    "_uniqueKey": "String (Optional. Template string version of unique key, e.g., \"${context?.authData?.consumerkey}\")"
   },
 
   "authenticationpaths": {
@@ -1160,7 +1160,7 @@ isconnectionlabelmasked: Boolean [see note: field first declared above as null]
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object
+uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
   - uniqueKey: String (JS expression)
   - _uniqueKey: String (templated version of uniqueKey)
 authenticationpaths: Object
