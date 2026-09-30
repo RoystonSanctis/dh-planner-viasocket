@@ -315,7 +315,7 @@ return await testcode();
 
 #### Authorization Code Best Practices
 - **Always enable PKCE** (`code_challenge_method=S256`) when the provider supports it.
-- **Request ONLY minimal scopes at the Connection level** — include only the minimal scopes required for the Test (Me) API or connection establishment. Do NOT bundle all scopes into the connection. Put action- and trigger-specific scopes directly on the individual Action/Trigger level via the `scopes` key (string separated by space or comma, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Note that manual triggers (`manual_webhook`) do not support `scopes`.
+- **Request ONLY minimal scopes at the Connection level** — connection-level OAuth scopes are configured via the `scope` key inside the `queryparams` object (e.g., `queryparams: "{\"response_type\":\"code\",\"scope\":\"user.read\"}"`). Include strictly the minimal scopes required for the Test (Me) API or initial connection establishment. Do NOT bundle all app scopes into the connection. Action- and trigger-specific scopes belong strictly in `dh-database-schema.md` via the `scopes` key on individual actions and triggers. Note that manual triggers (`manual_webhook`) do not support `scopes`.
 - **Never hardcode tokens in Request Parameters** — always resolve dynamically via `context.authData.<key>` so token refresh is respected transparently.
 - **Use a stable Unique Connection Identifier when available** — prevents duplicate connections and keeps token management clean.
 - **Verify Base64 client-credential encoding requirements** in the provider's docs before building the Access Token API step.
@@ -965,8 +965,8 @@ Your final proposed design must strictly output the following structure:
 
 ### Scope & Permissions
 
-* [ ] **Use ONLY minimal scopes at the connection level:** Request only the baseline scopes necessary for connection establishment and the Test (Me) API. Do NOT request all scopes or action-specific scopes here.
-* [ ] **Define action-specific and trigger-specific scopes directly on each entity:** Set the `scopes` key on the individual Action or Trigger definition as a string (separated by space or comma matching connection's `scopeseperatedby`, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Note: manual triggers (`manual_webhook`) do not support `scopes`.
+* [ ] **Use ONLY minimal scopes at the connection level:** In the connection `queryparams`, the `scope` key must request only the baseline scopes necessary for connection establishment and the Test (Me) API. Do NOT request all scopes or action-specific scopes here.
+* [ ] **Define action-specific and trigger-specific scopes directly on each entity:** Set the `scopes` key on the individual Action or Trigger payload in `dh-database-schema.md` as a string (separated by space or comma matching connection's `scopeseperatedby`). Note: manual triggers (`manual_webhook`) do not support `scopes`.
 * [ ] **Do not request unnecessary or "all available" scopes:** Avoid blanket scope requests that increase vulnerability and user authorization friction.
 * [ ] **Verify that incorrect scopes would cause runtime failures:** Test and verify that missing required scopes fail gracefully with actionable error feedback.
 * [ ] **Confirm over-permissioned connections are not a security risk:** Ensure that granted permissions adhere strictly to the principle of least privilege.
