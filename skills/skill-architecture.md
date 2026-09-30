@@ -98,21 +98,25 @@ The skills follow a self-contained paradigm: **one single URL provides the compl
 ```mermaid
 flowchart TD
     User["User provides 1 Markdown URL + Inputs"] --> LLM["LLM parses instructions & workflow"]
-    LLM --> Step1["Step 1: Bootstrap Execution"]
+    LLM --> Step1["Step 1: Bootstrap & Initial Clarification\n(Ask questions ONLY if inputs missing)"]
     Step1 --> Extract["Self-Extraction via node -e\n(dh.mjs, kb.mjs, apply.mjs, mock.mjs)"]
     Extract --> Step2["Step 2: Research & Vectorless RAG\n(kb.mjs sync / get / index)"]
-    Step2 --> Step3["Step 3: Approval Gate & Plan Generation\n(.dh-run/plan.json)"]
+    Step2 --> Step3["Step 3: Autonomous Plan & Immediate Build\n(Writes .dh-run/plan.json & runs apply.mjs)"]
     Step3 --> Step4Check["Step 4a: Offline Validation\n(node apply.mjs --check)"]
     Step4Check --> Step4Apply["Step 4b: Level-Based Execution\n(node apply.mjs)"]
-    Step4Apply --> Step5["Step 5: Report & Learn\n(.dh-run/report.json & lessons.md)"]
+    Step4Apply --> Step5["Step 5: Completion Report\n(Simple language & direct test links)"]
 ```
 
 ### Architectural Pillars
 
-1. **Separation of Reasoning vs Deterministic Execution:**
-   * **The LLM** is responsible for: Domain research, API evidence gathering, user approval gating, and producing a strictly structured `.dh-run/plan.json`.
+1. **Autonomous Execution & User Tone:**
+   * **Clarification early:** The LLM clarifies questions ONLY at the very start if required inputs or goals are missing.
+   * **Immediate build:** Once research concludes, the LLM states the plan and immediately initiates building without interrupting the user for mid-process approvals.
+   * **No technical jargon:** The user is insulated from internal phase terminology, VM levels, or system jargon; communication stays simple and product-focused.
+2. **Separation of Reasoning vs Deterministic Execution:**
+   * **The LLM** is responsible for: Domain research, API evidence gathering, schema formulation, and producing a strictly structured `.dh-run/plan.json`.
    * **The JavaScript Engine (`apply.mjs`)** is responsible for: Network requests, payload generation, dependency ordering, component mapping, stringification, and schema validation. The LLM never writes direct API mutation scripts.
-2. **Self-Extracting Tool Fencing:**
+3. **Self-Extracting Tool Fencing:**
    The tools are embedded at the end of each `.md` file using quad-backtick code fences:
    ````markdown
    ````js file=dh.mjs
@@ -120,9 +124,9 @@ flowchart TD
    ````
    ````
    The bootstrap command extracts these files locally using a lightweight Node.js stream one-liner. The LLM is explicitly instructed: `"do not read or re-type"`, saving tokens and preventing hallucinations.
-3. **Idempotent & Resumable Execution:**
+4. **Idempotent & Resumable Execution:**
    All execution state is tracked in `.dh-run/state.json`. If a network error or validation failure occurs, re-running `node apply.mjs` resumes from the exact failed step without re-creating already registered entities.
-4. **Offline AST & Rule Linting (`--check`):**
+5. **Offline AST & Rule Linting (`--check`):**
    Before any HTTP write occurs, `node apply.mjs --check` executes offline checks:
    * JS syntax compilation via `new AsyncFunction()`.
    * Detection of prohibited VM globals (`URL`, `btoa`, `require`, `process`, `console.log`).
