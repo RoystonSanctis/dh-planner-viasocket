@@ -1,6 +1,6 @@
 # viaSocket Developer Hub — Skill Architecture & Operational Guide
 
-This document provides a comprehensive architectural breakdown and operational guide for the self-contained skills in the viaSocket Developer Hub (`dh-planner-viasocket`).
+This document describes how the self-contained skills in `dh-planner-viasocket` work and how to run them.
 
 ---
 
@@ -30,7 +30,7 @@ USECASE: <DESCRIPTION_OF_INTEGRATION_GOALS>
 * `APP_DOMAIN`: Primary domain of the service (e.g., `slack.com`, `shopify.com`).
 * `API_BASE`: Developer Hub API base URL (e.g., `https://flow.viasocket.com` or local dev instance).
 * `PROXY_AUTH_TOKEN`: Temporary authentication token for viaSocket DH API calls (stored only in `.dh-run/config.json`).
-* `USECASE`: Summary of what needs to be created or extended (e.g., "Build CRUD actions for Contacts and Webhook triggers for new deals").
+* `USECASE`: Optional summary of what needs to be created or extended (e.g., "Build CRUD actions for Contacts and Webhook triggers for new deals"). Empty → every trigger and action.
 
 ---
 
@@ -54,7 +54,7 @@ REQUEST: <WHAT_AUTH_TO_CONFIGURE>
 
 #### Field Descriptions:
 * `PLUGIN_ID`: Target plug record ID in Developer Hub.
-* `PREFERRED_AUTH_ID`: ID of current preferred connection (if updating or cloning).
+* `PREFERRED_AUTH_ID`: Optional ID of the connection to update or copy. Empty → the plug's preferred connection.
 * `REQUEST`: Concrete instructions regarding auth setup (e.g., "Set up OAuth 2.0 with authorization code grant and scopes: read, write" or "Add api_key header to existing API Key auth").
 
 ---
@@ -86,118 +86,70 @@ UPDATE_CONTEXT: <CHANGES_REQUESTED_IF_UPDATING>
 #### Field Descriptions:
 * `ENTITY_TYPE`: Either `action` or `trigger`.
 * `SKILL_MODE`: `create` for a new action/trigger; `update` to modify an existing action/trigger draft.
-* `ACTION_ID` & `VERSION_ID`: Required for updates. `VERSION_ID` must point to a confirmed `drafted` version (never `published`).
+* `ACTION_ID`, `ACTION_NAME`, `VERSION_ID`, `PREFERRED_AUTH_ID`, `UPDATE_CONTEXT`: Optional. Empty → resolved from the API (action by name/key; latest non-deleted draft, or a new draft cloned from the latest version — never a `published` one).
 * `UPDATE_CONTEXT`: Specific diff details when updating (e.g., "Add optional 'tag' input field and pass it in the query params").
 
 ---
 
-## 2. Core Architecture: The Single-File Self-Contained Pattern
+## 2. Core Architecture: One Link, One Tool
 
-The skills follow a self-contained paradigm: **one single URL provides the complete operating manual, workflow constraints, schema contracts, and runtime executable tools.**
+One URL gives the LLM everything: the process, the Developer Hub API contract, the runtime rules and one small embedded tool (`dh.mjs`). Knowledge (UX, field JSON, code rules, review priorities) stays in `knowledge-base/` and is fetched live.
 
 ```mermaid
 flowchart TD
-    User["User provides 1 Markdown URL + Inputs"] --> LLM["LLM parses instructions & workflow"]
-    LLM --> Step1["Step 1: Bootstrap & Initial Clarification\n(Ask questions ONLY if inputs missing)"]
-    Step1 --> Extract["Self-Extraction via node -e\n(dh.mjs, kb.mjs, apply.mjs, mock.mjs)"]
-    Extract --> Step2["Step 2: Research & Vectorless RAG\n(kb.mjs sync / get / index)"]
-    Step2 --> Step3["Step 3: Autonomous Plan & Immediate Build\n(Writes .dh-run/plan.json & runs apply.mjs)"]
-    Step3 --> Step4Check["Step 4a: Offline Validation\n(node apply.mjs --check)"]
-    Step4Check --> Step4Apply["Step 4b: Level-Based Execution\n(node apply.mjs)"]
-    Step4Apply --> Step5["Step 5: Completion Report\n(Simple language & direct test links)"]
+    User["User provides 1 Markdown URL + Inputs"] --> LLM["LLM reads the skill"]
+    LLM --> Boot["Bootstrap (one command)\nconfig → extract dh.mjs → fetch consolidated KB → read existing rows"]
+    Boot --> Research["Research official API docs\n+ KB detail via node dh.mjs kb"]
+    Research --> Design["Design + one review pass\n(tell the user the plan, no approval pause)"]
+    Design --> Build["Build level by level\nnode dh.mjs batch — parallel single-row calls"]
+    Build --> Report["Verify read-back + plain-language report with DH links"]
 ```
 
 ### Architectural Pillars
 
-1. **Autonomous Execution & User Tone:**
-   * **Clarification early:** The LLM clarifies questions ONLY at the very start if required inputs or goals are missing.
-   * **Immediate build:** Once research concludes, the LLM states the plan and immediately initiates building without interrupting the user for mid-process approvals.
-   * **No technical jargon:** The user is insulated from internal phase terminology, VM levels, or system jargon; communication stays simple and product-focused.
-2. **Separation of Reasoning vs Deterministic Execution:**
-   * **The LLM** is responsible for: Domain research, API evidence gathering, schema formulation, and producing a strictly structured `.dh-run/plan.json`.
-   * **The JavaScript Engine (`apply.mjs`)** is responsible for: Network requests, payload generation, dependency ordering, component mapping, stringification, and schema validation. The LLM never writes direct API mutation scripts.
-3. **Self-Extracting Tool Fencing:**
-   The tools are embedded at the end of each `.md` file using quad-backtick code fences:
-   ````markdown
-   ````js file=dh.mjs
-   ...
-   ````
-   ````
-   The bootstrap command extracts these files locally using a lightweight Node.js stream one-liner. The LLM is explicitly instructed: `"do not read or re-type"`, saving tokens and preventing hallucinations.
-4. **Idempotent & Resumable Execution:**
-   All execution state is tracked in `.dh-run/state.json`. If a network error or validation failure occurs, re-running `node apply.mjs` resumes from the exact failed step without re-creating already registered entities.
-5. **Offline AST & Rule Linting (`--check`):**
-   Before any HTTP write occurs, `node apply.mjs --check` executes offline checks:
-   * JS syntax compilation via `new AsyncFunction()`.
-   * Detection of prohibited VM globals (`URL`, `btoa`, `require`, `process`, `console.log`).
-   * Enforcement of optional chaining (`context?.authData?.xyz`).
-   * Verification that all variables referenced in code exist in `inputData` schema.
+1. **Autonomous execution, plain language:** clarify only at the start when a required input or the goal is missing; then research → build → report without mid-process approvals and without technical jargon.
+2. **Skill = process, KB = knowledge:** the skill holds the steps, API endpoints/payload shapes and runtime facts; the knowledge base holds design knowledge. The consolidated KB (`dh-knowledgebase.md`, `dh-connection-kb.md`) is downloaded in full at bootstrap; detailed docs are searched by heading on demand.
+3. **The LLM orchestrates, the tool guards:** the LLM writes each payload and runs levels with `batch`; `dh.mjs` handles the parts that are easy to get wrong (see §4).
+4. **Self-extracting tool fence:** `dh.mjs` is embedded at the end of each skill in a quad-backtick ```` ```js file=dh.mjs ```` fence; the bootstrap extracts it with a Node one-liner. The LLM is told "do not read or re-type", which saves tokens.
+5. **Single-row, parallel API calls:** Developer Hub endpoints take one row per call; independent calls run in parallel (4 at a time) inside a level.
 
 ---
 
 ## 3. Skill Comparison Matrix
 
-| Capability | [SKILL-PLUG-CREATION.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/skills/SKILL-PLUG-CREATION.md) | [SKILL-CONNECTION.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/skills/SKILL-CONNECTION.md) | [SKILL-ACTION.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/skills/SKILL-ACTION.md) |
+| Capability | [SKILL-PLUG-CREATION.md](SKILL-PLUG-CREATION.md) | [SKILL-CONNECTION.md](SKILL-CONNECTION.md) | [SKILL-ACTION.md](SKILL-ACTION.md) |
 | :--- | :--- | :--- | :--- |
-| **Primary Scope** | Complete plug lifecycle | Plug connection / auth details | Individual Action or Trigger |
-| **Active Levels in apply.mjs** | Levels 0, 1, 2, 3, 4, 5 | Levels 0, 1, 5 | Levels 0, 2, 3, 4, 5 |
-| **Embedded Tools** | `dh.mjs`, `kb.mjs`, `apply.mjs`, `mock.mjs` | `dh.mjs`, `kb.mjs`, `apply.mjs` | `dh.mjs`, `kb.mjs`, `apply.mjs`, `mock.mjs` |
-| **RAG Modules Queried** | `dh_plug`, `dh_action_trigger`, `dh_connection` | `dh_connection` | `dh_action_trigger` |
-| **Target Mode Handling** | Creates new plug or resolves by domain | Resolves by `PLUGIN_ID` | Resolves by `PLUGIN_ID` + `ACTION_ID` |
-| **Branching Decisions** | Match domain -> extend vs create | `create` vs `update` vs `clone` | `create` vs `edit draft` vs `clone draft` |
-| **Offline Testing (`mock.mjs`)**| Yes (for multi-step / complex items) | No (tests directly in DH with `testcode`) | Yes (for complex triggers & pagination) |
+| **Primary Scope** | Complete plug (create or extend) | One connection | One action or trigger |
+| **Consolidated KB fetched** | `dh-knowledgebase.md` + `dh-connection-kb.md` | `dh-connection-kb.md` | `dh-knowledgebase.md` |
+| **Existing rows read at bootstrap** | All plugs (match by domain) | Plug, connections, connection usage | Plug, connections, actions, components |
+| **Branching** | Domain match → extend vs create | Create · edit in place (non-breaking, unused) · new version (breaking or in use) | Create · edit draft · clone latest version to a new draft |
+| **Build levels** | 0 plug · 1 connection ∥ details · 2 components · 3 actions/triggers · 4 versions ∥ mappings · 5 plug finalize | write → plug MERGE | components → action → version ∥ mappings → action MERGE |
 
 ---
 
-## 4. The Embedded Execution Engine
+## 4. The Embedded Tool — `dh.mjs`
 
-Each skill carries a synchronized runtime engine consisting of the following tools:
-
-### 4.1 `dh.mjs` — Developer Hub REST Client
-* Reads environment configuration from `.dh-run/config.json`.
-* Transparently routes requests relative to `/developers/<orgId>/` or absolute URLs.
-* Automatically includes `proxy_auth_token`, `Content-Type: application/json`, and `ngrok-skip-browser-warning`.
-* Maintains an append-only JSONL execution log at `.dh-run/log.jsonl`.
-
-### 4.2 `kb.mjs` — Vectorless Hierarchical RAG
-* Synchronizes knowledge base markdown documentation without vector databases.
-* Hierarchical fallback discovery:
-  1. Local path via `KB_SRC`.
-  2. Git shallow clone (`git clone -q --depth 1`).
-  3. GitHub Contents REST API.
-  4. Web scraping fallback of the repository folder listing.
-* Indexes document headings (`#` to `######`) and extracts subsections on demand (`node kb.mjs get <kb> "<Heading>"`).
-* Caps output size (`--max=24000`) and lists child sections if truncated, preserving context window efficiency.
-
-### 4.3 `apply.mjs` — 6-Level Dependency Pipeline
-All mutations in Developer Hub flow through `apply.mjs` across 6 strict dependency tiers:
+Commands:
 
 ```
-Level 0: Plug Creation / Resolution
-    │   └── Creates plug row or queries existing plug by domain.
-    ▼
-Level 1: Connection & Plug Details (Parallel)
-    │   ├── Connection: create (V1) | update in place | clone to V(N+1).
-    │   └── Details: Fetches brand details (logo, color, tags) & updates metadata.
-    ▼
-Level 2: Reusable Components
-    │   └── Compiles and registers standalone helper functions (e.g., appRequest).
-    ▼
-Level 3: Actions & Triggers
-    │   └── Creates action rows, drafts versions, sets category/sub_category.
-    ▼
-Level 4: Component Mappings & Verification
-    │   ├── Scans perform/dropdown code with regex (\b<fn>\s*\() to link components.
-    │   └── Performs read-back verification against inputjson.blocks in DH.
-    ▼
-Level 5: Final Plug Finalization
-        └── Unions whitelist domains, sets preferedauthversion, updates aiContext.
+node dh.mjs GET|POST|PUT|PATCH '<path>' ['{json}' | @body.json]     one call
+node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'
+node dh.mjs batch @calls.json      [{ label, method, path, body }] → 4 in parallel → [{ label, ok, result | error }]
+node dh.mjs kb [file.md] ["Heading" …]    list KB files · heading tree · sections
 ```
 
-### 4.4 `mock.mjs` — Local VM Sandbox Simulator
-* Included in `SKILL-PLUG-CREATION.md` and `SKILL-ACTION.md`.
-* Simulates viaSocket's restricted JavaScript execution environment.
-* Injects mock `axios`, `context` (`inputData`, `authData`, `paginateData`), and error handlers to test complex triggers and pagination routines before applying them to Developer Hub.
+Paths are relative to `<API_BASE>/developers/<ORG_ID>/`; a leading `/` is relative to `<API_BASE>`. Config lives in `.dh-run/config.json` (`apiBase`, `orgId`, `token`, `skill`); every call is logged (method, path, status — never the token) to `.dh-run/log.jsonl`.
+
+Automatic behaviour:
+
+* **Syntax check before any write:** every code block (`perform`, `performlist`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`, `transferoption`, component `code`, connection code), every dropdown/field generator (recursively), and every `authenticationpaths` value (must be a function body that `return`s). A syntax error stops the call before it reaches Developer Hub.
+* **Provenance:** `create/*` gets a `metadata.aiLogs` `CREATED_BY_AI` entry; `create/plugins` also gets `metadata.createdBy`; `create/actions` then sets `isaiaction: true` + `aiorgid` and returns `{ actionId, versionId }` (if that follow-up fails, the ids are still returned with a `warning`, so nothing is created twice).
+* **Metadata-safe updates:** `MERGE` reads the row, keeps every metadata key, deep-merges `metadata.aiContext` (+ `updatedAt`) and appends an `UPDATED_BY_AI` entry (optional `note`).
+* **Connection encoding:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` accept raw JS (or a `{source}` object/string) and are stored once-wrapped as `{"source": …}` strings; a `queryparams` object is stringified.
+* **Short results:** creates return `{ id }` (`oauth_details` adds `authversion`).
+* **Vectorless RAG (`kb`):** knowledge-base files are discovered at run time (GitHub contents API, folder-page fallback) and cached in `.dh-kb/`. Headings are matched exact → normalized → partial, ignoring headings inside code fences; a section over 24,000 characters returns its own intro plus its sub-section names to ask for next.
+
+What the tool intentionally does **not** do (the LLM does it, guided by the skill): plan files, dependency resolution, component-mapping discovery, resume state, offline VM simulation.
 
 ---
 
@@ -212,7 +164,7 @@ Level 5: Final Plug Finalization
    * The AI only configures the connection schema, endpoints, scopes, authenticationpaths, and testcode, leaving root client credentials null/empty or as placeholders.
 3. **Never Edit Published Versions:**
    * In viaSocket Developer Hub, `published` versions are immutable to protect live user workflows.
-   * Updates to an existing entity must target an unreleased `drafted` version or use `cloneFrom` to create a new draft.
+   * Updates to an existing entity must target a non-deleted `drafted` version, or clone the latest version into a new draft.
 4. **Cross-Platform Compatibility:**
    * In the tool extractor regex:
      ```javascript
@@ -222,4 +174,4 @@ Level 5: Final Plug Finalization
 5. **Branch Configuration:**
    * By default, bootstrap scripts point to the `dev` branch:
      `R=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev`
-   * If working from a feature branch or fork, update the `R` variable in the bootstrap command.
+   * If working from a feature branch or fork, set `R` to the part of the skill link before `/skills/`. `dh.mjs kb` reads `kbRepo`/`kbRef` from `.dh-run/config.json` (default `RoystonSanctis/dh-planner-viasocket` / `dev`).
