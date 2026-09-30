@@ -115,7 +115,7 @@ entry (`note` optional). Write bodies to files with a script — never hand-esca
   code, function_code, description, componentgenerationsource: "userGenerated" }`; `function_code` =
   `async function <name>(<params>) {\n<code indented 2>\n}`. Always an `appRequest(method, path, options)` (base URL,
   API headers, drops empty params, returns `response?.data`) + list/dropdown helpers used ≥2×. Standalone — never call
-  another component. Never create `errorComponent` (the backend does; find its id in the component list).
+  another component. Never create `errorComponent` (the backend does; find its id in the component list; update its code only if the API uses different error keys/paths for code or message like error/errors/detail/error_code).
 - **Action / trigger** — `POST create/actions { name, description, key, pluginrecordid, type, authid, isvisible: true,
   category, sub_category, preferred_step_name, ignoreuniversalsampledata: false }` (triggers: `category`,
   `sub_category`, `preferred_step_name` = `""`; manual triggers: no `authid`).

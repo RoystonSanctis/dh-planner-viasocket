@@ -2265,6 +2265,74 @@ throw {
 };
 ```
 
+### Updating `errorComponent` for Plugin-Specific Error Keys (Code & Message)
+
+The default backend-generated `errorComponent` implementation only checks `data?.message` and uses generic `error.code`. However, external APIs frequently structure error details, messages, and error codes under different paths (e.g., `data?.error`, `data?.error?.message`, `data?.errors`, `data?.detail`, `data?.error_code`, `data?.code`, `data?.error?.code`).
+
+When configuring a plug, verify the provider's API error documentation to ensure both **proper message and error code key retrieval**:
+
+1. **Analyze API Error Structure**:
+   - **Error Message Key Paths**:
+     - String error: `{ "error": "Invalid API key" }` → `data?.error`
+     - Nested object: `{ "error": { "message": "Resource not found", "code": 404 } }` → `data?.error?.message`
+     - Errors array: `{ "errors": [{ "message": "Field required" }] }` → `data?.errors?.[0]?.message`
+     - Errors string array: `{ "errors": ["Field required"] }` → `data?.errors?.[0]`
+     - Errors object/map: `{ "errors": { "email": ["Invalid email format"] } }` → `Object.values(data?.errors || {})?.[0]?.[0]`
+     - Detail key: `{ "detail": "Not authenticated" }` → `data?.detail`
+     - RFC 7807 Problem Details: `{ "title": "Bad Request", "detail": "..." }` → `data?.detail || data?.title`
+     - OAuth error description: `{ "error": "invalid_grant", "error_description": "Token expired" }` → `data?.error_description || data?.error`
+   - **Error Code Key Paths**:
+     - Nested error code: `{ "error": { "code": "resource_missing" } }` → `data?.error?.code`
+     - Direct code key: `{ "code": "INVALID_ARGUMENT" }` → `data?.code`
+     - Snake_case code: `{ "error_code": 100 }` → `data?.error_code`
+     - CamelCase code: `{ "errorCode": "ERR_01" }` → `data?.errorCode`
+     - Errors array code: `{ "errors": [{ "code": "UNAUTHORIZED" }] }` → `data?.errors?.[0]?.code`
+     - HTTP status code key: `{ "status_code": 400 }` → `data?.status_code`
+
+2. **Update the `errorComponent` Reusable Component**:
+   - If the API returns error messages or codes under different keys or paths, update the existing `errorComponent` reusable component for that plugin so that both `message` and `code` extract the plugin-specific keys before falling back:
+   ```javascript
+   const status = error.response?.status ?? 500;
+   const data = error.response?.data;
+
+   // Retrieve error message from plugin-specific path(s)
+   const message =
+     (typeof data?.error === 'string' ? data?.error : data?.error?.message) ||
+     data?.message ||
+     data?.errors?.[0]?.message ||
+     (typeof data?.errors?.[0] === 'string' ? data?.errors?.[0] : null) ||
+     data?.detail ||
+     data?.description ||
+     data?.error_description ||
+     error.message ||
+     STATUS_MESSAGES[status] ||
+     'Request Failed';
+
+   // Retrieve error code from plugin-specific path(s)
+   const code =
+     data?.code ||
+     data?.error?.code ||
+     data?.error_code ||
+     data?.errorCode ||
+     data?.errors?.[0]?.code ||
+     data?.status_code ||
+     error.code ||
+     status;
+
+   throw {
+     message,
+     status,
+     code,
+     originalError: data,
+   };
+   ```
+
+3. **Execution Rule**:
+   - `errorComponent` is automatically created by the backend (do NOT create it as a new component).
+   - Fetch the reusable components list to obtain its `component_id` / `rowid`.
+   - If custom code or message key handling is required for the plugin, update the existing component code using `dhUpdateReusableComponentDetails` (or `create_update_reusable_components`).
+   - Map it across all actions and triggers using that component ID.
+
 ---
 
 ## Reusable Component Code Patterns
