@@ -49,6 +49,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - No hardcoded input values or secrets in fields (documented default fallbacks in code excepted).
 4. **Error Handling**:
    - Perform, trigger blocks, `optionsGenerator`: `catch (error) { await errorComponent(error); }`. Never modify, throw, or return the error (no `return` needed after it)—the engine detects failure via `errorComponent`.
+   - **No Creation of `errorComponent`**: An `errorComponent` reusable component must NOT be created as it is created automatically by the backend. To map `errorComponent` to an action/trigger version, fetch the reusable components list to find the `errorComponent` component ID (`rowid`), then map it across all blocks/paths where `await errorComponent(error)` is called.
    - Reusable components: `catch (error) { throw error; }`; validations throw structured fallbacks.
    - Dynamic help `source`: catch returns `{ message }`.
    - Inside `try`, `throw new Error('<clear message>')` for missing required inputs and for 200 responses carrying error bodies (prevents false success).
@@ -537,6 +538,7 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
 - **Parameter Strictness**: `offset`/`limit`/`search` params ONLY if documented; these and parent paths are optional params—validate only required ones. Never read `context.inputData`, `__searchText`, or `context.paginateData` inside the component—pass every input path as a param.
 - **Client-Side Pagination**: Paginated component (`{ data, offset }`) inside a non-paginated dropdown (`canPaginate: false`) or dynamic multiselect → `optionsGenerator` loops all pages and returns a flat array.
 - **Reuse & Update**: Search existing components first; reuse if suitable. Mapped/active: never change `function_name`/`params`—code-only changes update in place; new params needed → new component. Unused: fully editable.
+- **No Creation of `errorComponent` (Backend Auto-Created)**: An `errorComponent` reusable component must **NEVER** be created manually or via `create/reusable_components` payloads—it is created automatically by the backend. To map it to an action or trigger version, fetch the reusable components (`get/reusable_components?identifier=${pluginId}&filter=dhGetReusableComponentDetails` or `Fetch_Reusable_Components_Details`) to find the `errorComponent` component ID (`rowid`), and map it using that component ID across all blocks/paths where `await errorComponent(error)` is invoked.
 - **Mapping Requirement**: Every component called in generators or code blocks must be mapped (see Mapping payload).
 
 ---
@@ -551,9 +553,9 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
   - *Scheduled*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (allowed minutes; `[]` = all; restrict e.g. `[5, 15, 60, 720, 1440]` for rate limits), `canpaginate` (`true` when perform uses `context.paginationData`).
   - *Manual*: `performlist`, `modifytriggerdata`.
 - **Reusable Component**:
-  - *Create*: `function_name` (camelCase), `description`, `params: [{name, sample}]` (string samples double-quoted `'"field ID"'`; other types raw), `code` (raw try-catch body), `function_code` (full async function wrapping name, params, code), `pluginrecordid`, `componentgenerationsource` (`userGenerated`/`aiGenerated`), `functionId` (action version ID).
+  - *Create*: `function_name` (camelCase; NEVER create `errorComponent` as it is created automatically by the backend), `description`, `params: [{name, sample}]` (string samples double-quoted `'"field ID"'`; other types raw), `code` (raw try-catch body), `function_code` (full async function wrapping name, params, code), `pluginrecordid`, `componentgenerationsource` (`userGenerated`/`aiGenerated`), `functionId` (action version ID).
   - *Update*: `rowid`, `description`, `code`, `function_code`, `componentgenerationsource`.
-- **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. Acts as a toggle: the same call again unmaps. `path` = block key (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key of a dynamic dropdown/multiselect/input group—never a group path (`page_id`, not `group.page_id`).
+- **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. Acts as a toggle: the same call again unmaps. `path` = block key (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key of a dynamic dropdown/multiselect/input group—never a group path (`page_id`, not `group.page_id`). For `errorComponent`, fetch reusable components to find its auto-created `component_id` and map it across all blocks invoking `await errorComponent(error)`.
 
 ---
 

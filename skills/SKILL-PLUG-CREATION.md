@@ -115,8 +115,10 @@ code; skips existing items/components (warns); resumes from `.dh-run/state.json`
   client ID, client secret, API keys, or passwords — user manually enters credentials in the platform. Configure the
   schema, endpoints, scopes, authenticationpaths, and testcode; leave client credentials for manual entry in DH.
 - **components** — `appRequest(method, path, options)` (base URL, API-version headers, drops empty params, returns
-  `response?.data`) + list/dropdown helpers used ≥2×. Standalone (never call another component); `errorComponent` is
-  built in. Existing ones are not versioned — never change a mapped one; add a new name.
+  `response?.data`) + list/dropdown helpers used ≥2×. Standalone (never call another component). **`errorComponent`**:
+  do NOT create an `errorComponent` reusable component as it is created automatically from the backend; fetch the reusable
+  components list to find the `errorComponent` component ID, then map it across all action/trigger blocks where `await errorComponent(error)` is invoked.
+  Existing components are not versioned — never change a mapped one; add a new name.
 - **items** — new: `name`, `type`, `category`/`sub_category` (triggers `""`), `version`. Existing: `target` +
   developer-confirmed `versionId` (draft, edited in place) or `cloneFrom` (new draft); `name`/`description` rename the
   row. Never rename field keys or the action `key`.
@@ -440,6 +442,7 @@ function check() {
   const lint = (where, code) => RUNTIME.forEach(([re, msg]) => re.test(code) && errs.push(`${where}: ${msg}`))
   const compNames = plan.components.map((c) => c.function_name)
   for (const c of plan.components) {
+    if (c.function_name === 'errorComponent') errs.push('plan.components: do NOT create errorComponent — it is created automatically from the backend; fetch it to find its component ID')
     compile(`component ${c.function_name}`, c.code)
     lint(`component ${c.function_name}`, c.code)
     for (const other of compNames) if (other !== c.function_name && new RegExp(`\\b${other}\\s*\\(`).test(c.code)) errs.push(`component ${c.function_name}: calls component ${other} — components must be standalone`)
@@ -588,9 +591,10 @@ if (!authId && plan.items.some((it) => !it.target && it.version?.triggertype !==
 }
 
 // ── level 2: components (never silently change existing ones — not versioned) ───────────────────────
+// Note: errorComponent should NOT be created as it is created automatically from backend; fetch it to find component ID.
 const listComponents = async () => rows(await dh('GET', `get/reusable_components?identifier=${pluginId}&filter=dhGetReusableComponentDetails`))
 let comps = await listComponents()
-const missing = plan.components.filter((c) => !comps.some((e) => e.function_name === c.function_name))
+const missing = plan.components.filter((c) => c.function_name !== 'errorComponent' && !comps.some((e) => e.function_name === c.function_name))
 plan.components.filter((c) => comps.some((e) => e.function_name === c.function_name && e.code !== c.code)).forEach((c) => report.warnings.push(`component ${c.function_name} exists with different code — left unchanged`))
 await pool(missing, concurrency, (c) => dh('POST', 'create/reusable_components', {
   pluginrecordid: pluginId, orgid: orgId, function_name: c.function_name, params: c.params, code: c.code, description: c.description,
@@ -668,6 +672,11 @@ const results = await pool(plan.items, concurrency, async (it) => {
 })
 
 // ── level 4: mappings — derived from which code calls which component; read-back ──────────────────────
+// Fetch reusable components to resolve auto-created errorComponent component id if not yet in compId
+if (!compId['errorComponent']) {
+  const latestComps = await listComponents()
+  latestComps.forEach((c) => { compId[c.function_name] = c.rowid })
+}
 const newRows = []
 await pool(results.filter((r) => r.status === 'ok'), concurrency, async (r) => {
   const current = rows(await dh('GET', `get/action_version_component_table?identifier=${r.st.versionId}&filter=dhGetUsedComponentInActionVersionDetails`))
