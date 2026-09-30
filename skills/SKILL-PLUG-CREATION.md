@@ -133,15 +133,16 @@ entry (`note` optional). Write bodies to files with a script — never hand-esca
 
 **Rules for existing rows** (extend runs)
 - Connection: non-breaking change (label, help, testcode, optional field, host, refresh/revoke) on an unused
-  connection → `PUT updateAuthDetails` with `pluginrecordid`, `rowid` + changed keys only. Breaking change (type,
-  grant, scopes, field keys, token URLs, auth header shape), or connection in use / plug published → new version: copy
-  the source minus `rowid`, `autonumber`, timestamps, `createdby`/`updatedby`, `metadata`, `pluginname`,
-  `pluginiconurl`, `domain`, `isencrypted`, `clientsecret`; set the next `authversion` and
-  `metadata.duplicatedfrom: { rowid, authversion }`; POST. Never rename auth field keys.
+  connection (`GetUsedInCountForAuth` count 0; unclear → in use) → `PUT updateAuthDetails` with `pluginrecordid`, `rowid` + changed keys only. Breaking change (type,
+  grant, scopes, field keys, token URLs, auth header shape), or connection in use / plug `status` published → new version: copy
+  the source minus `rowid`, `autonumber`, `createdat`/`updatedat`, `createdby`/`updatedby`, `created_by`/`updated_by`,
+  `metadata`, `pluginname`, `pluginiconurl`, `domain`, `isencrypted`, `clientsecret`; keep the copied `authversion`
+  (the server numbers it); add `metadata.duplicatedfrom: { rowid, authversion }`; `POST create/oauth_details`; set
+  `preferedauthversion` to the new id (existing actions stay on the old one — report it). Never rename auth field keys.
 - Action: edit a non-deleted `drafted` version in place; never a `published` one — clone the latest non-deleted
-  version: `POST create/action_version` with the source minus `rowid`, `autonumber`, timestamps, `createdby`/`updatedby`,
+  version (highest `version`): `POST create/action_version` with the source minus `rowid`, `autonumber`, `createdat`/`updatedat`, `createdby`/`updatedby`,
   `version`/`versionid`, `status`, `isdeleted`, `metadata`, `actionversionrecordid`, `publishdescription` + `actionid`,
-  `status: "drafted"`, `metadata.duplicatedfrom: { rowid, version }`; fill it; re-map (mappings aren't copied). Then
+  `status: "drafted"`, `metadata.duplicatedfrom: { rowid, version }`; always PUT its full version fields (the clone doesn't build blocks); re-map (mappings aren't copied). Then
   always MERGE the action row with `isaiaction: true`, `aiorgid`, a `note` (+ name/description if changed). Never
   rename field keys or the action `key`.
 - Component: not versioned — editing changes every mapped version, published included. Never change a mapped one; add a new name.
@@ -149,20 +150,20 @@ entry (`note` optional). Write bodies to files with a script — never hand-esca
 ## 5. Knowledge base
 
 Consolidated KBs (in context) are the baseline; they win on design (UX, fields, naming, category, code, review); this
-skill wins on runtime/REST. Detail via `node dh.mjs kb <file> "Heading"` (list files: `node dh.mjs kb`; headings:
-`node dh.mjs kb <file>`):
+skill wins on runtime/REST, including over KB payload schemas (mapping `path` toggle, `functionId`, `steps`/`blocks`,
+editing mapped components). Detail via `node dh.mjs kb <file> "Heading"` (list files: `node dh.mjs kb`; headings:
+`node dh.mjs kb <file>`; a miss lists the closest headings):
 
 | Need | Lookup |
 | ---- | ------ |
 | Category UX · similar example | `ux-practice.md "<category or trigger type>"` · `ux-worked-examples.md "<example>"` |
-| Field JSON · code rules · payload | `dh-Input-fields-json-builder.md "<Type> JSON Schema"` · `perform-code.md "<block> Rules"` · `dh-database-schema.md "<entity> JSON Schema"` |
-| Connection detail | `dh-connection-practice.md "<type>"` · `dh-connection-schema.md "<type> Update JSON Schema"` |
+| Field JSON · code rules · payload | `dh-Input-fields-json-builder.md "<Type> JSON Schema"` · `perform-code.md "Action Perform Code Rules"` / `"<Instant|Scheduled|Manual> Trigger <block> Code Rules"` · `dh-database-schema.md "<entity> JSON Schema"` |
+| Connection detail | `dh-connection-practice.md "<type>"` · `dh-connection-schema.md "<Basic Auth|Authorization Code|Client Credentials|Auth1.0> Update JSON Schema"` |
 | Review · one webhook per app | `dh-review.md "Review Priorities (Strict Order)"` · `backed-plug-service.md` |
 
 ## 6. Runtime (viaSocket VM)
 
-- **Auth:** `authenticationpaths` injects credentials only into calls to whitelisted hosts; action code sees secrets as
-  placeholders → never build auth in code; whitelist every host (plug + connection). `value` = function body that
+- **Auth:** `authenticationpaths` injects credentials only into calls to whitelisted hosts; every `context.authData` value is a placeholder in plug code; real values only via `authenticationpaths` and inside the URL host/path (``https://${context?.authData?.subdomain}.example.com``) → never build auth in code, never send an authData value in params/body/headers or branch on it; whitelist every host (plug + connection). `value` = function body that
   returns (``return `Bearer ${context?.authData?.api_key}` ``). `testcode`/token code get real values, set their own
   headers, return `response?.data` (stored as `context.authData.testcode`, read by the label). Redirect URL
   `https://auth.viasocket.com/redirect/auth2.0` (OAuth 1: `…/auth1`). `scopeseperatedby`: `"space"` | `"comma"` | `null`.
@@ -329,7 +330,11 @@ async function kb(file, queries) {
   if (!queries.length) return heads.map((h) => `${'  '.repeat(h.level - 1)}- ${h.head}`).join('\n')
   return queries.map((q) => {
     const hit = heads.find((h) => h.head.toLowerCase() === q.toLowerCase()) || heads.find((h) => norm(h.head) === norm(q)) || heads.find((h) => norm(h.head).includes(norm(q)))
-    if (!hit) return `<!-- ${file}: no heading "${q}" — run: node dh.mjs kb ${file} -->`
+    if (!hit) {
+      const qw = norm(q).split(' ')
+      const near = heads.map((h) => ({ h, s: qw.filter((w) => norm(h.head).includes(w)).length })).filter((x) => x.s).sort((x, y) => y.s - x.s)
+      return `<!-- ${file}: no heading "${q}" — closest: ${near.slice(0, 12).map((x) => `"${x.h.head}"`).join(', ') || `none; run: node dh.mjs kb ${file}`} -->`
+    }
     const text = hit.text.length > 24000 && hit.children.length ? `${hit.own}\n\n> Long section — ask for a sub-section: ${hit.children.join(' | ')}` : hit.text
     return `<!-- ${file} § ${hit.head} -->\n${text}`
   }).join('\n\n')

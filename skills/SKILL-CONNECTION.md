@@ -49,7 +49,7 @@ wait
 
 1. **Read** `dh-connection-kb.md` in full (it wins on auth design; this skill on runtime/REST). Detail:
    `node dh.mjs kb dh-connection-practice.md "<type>"` · `… kb dh-connection-practice.md "Test (Me) API"` ·
-   `… kb dh-connection-schema.md "<type> Update JSON Schema"`. Plug `metadata.aiContext.auth` = earlier findings — re-verify.
+   `… kb dh-connection-schema.md "<Basic Auth|Authorization Code|Client Credentials|Auth1.0> Update JSON Schema"` (a miss lists the closest). Plug `metadata.aiContext.auth` = earlier findings — re-verify.
 2. **Research** — official auth docs: methods, grant, authorize/token/refresh/revoke URLs, scopes (minimal), token
    lifetime, one cheap "me" endpoint + its response shape, every API host. Pick per KB priority: OAuth 2.0 whenever documented.
 3. **Branch** (decide yourself, don't ask). Target = the connection named in the request, else `{{PREFERRED_AUTH_ID}}`,
@@ -58,8 +58,8 @@ wait
    | Situation | Do |
    | --------- | -- |
    | No connection | Create (§2). |
-   | Non-breaking change (label, help, test code, optional field, host, refresh/revoke) and the target is not in use (`usage.json`) | `PUT update/oauth_details?identifier=<authId>&filter=updateAuthDetails { pluginrecordid: "{{PLUGIN_ID}}", rowid: <authId>, <changed keys only> }` (`authenticationpaths` whole if sent). |
-   | Breaking change (type, grant, scopes, field keys, token URLs, auth header shape), or the target is in use / the plug is published | New version: copy the source minus `rowid`, `autonumber`, timestamps, `createdby`/`updatedby`, `metadata`, `pluginname`, `pluginiconurl`, `domain`, `isencrypted`, `clientsecret`; set the next `authversion` and `metadata: { duplicatedfrom: { rowid, authversion } }`; apply the change; POST. Source untouched. |
+   | Non-breaking change (label, help, test code, optional field, host, refresh/revoke), target not in use (`usage.json` count 0 for it; unclear → in use) and plug `status` not `published` | `PUT update/oauth_details?identifier=<authId>&filter=updateAuthDetails { pluginrecordid: "{{PLUGIN_ID}}", rowid: <authId>, <changed keys only> }` (`authenticationpaths` whole if sent). |
+   | Breaking change (type, grant, scopes, field keys, token URLs, auth header shape), or the target is in use / the plug is published | New version: copy the source minus `rowid`, `autonumber`, `createdat`/`updatedat`, `createdby`/`updatedby`, `created_by`/`updated_by`, `metadata`, `pluginname`, `pluginiconurl`, `domain`, `isencrypted`, `clientsecret`; keep the copied `authversion` (the server numbers the version); add `metadata: { duplicatedfrom: { rowid, authversion } }`; apply the change; `node dh.mjs POST create/oauth_details @auth-new.json`. Source untouched; set `preferedauthversion` to the new id; existing actions stay on the old one — say so in the report. |
 
    Never rename or remove auth field keys (every action reading them breaks).
 4. **Build** — the write, then `node dh.mjs MERGE 'update/plugins?identifier={{PLUGIN_ID}}&filter=updatePluginDetails'`
@@ -70,7 +70,7 @@ wait
 
 ## 2. Payload + runtime
 
-`POST create/oauth_details` with every KB "Create Payload" key + `pluginrecordid: "{{PLUGIN_ID}}"`, `authversion: "V1"`,
+`POST create/oauth_details` (new connection) with every KB "Create Payload" key + `pluginrecordid: "{{PLUGIN_ID}}"`, `authversion: "V1"`,
 `whitelistdomains` (service + API hosts). Tool: `node dh.mjs <METHOD> '<path>' ['{json}' | @file.json]` · `node dh.mjs
 MERGE '<update path>' '{changes}'` (keeps existing metadata, appends an `aiLogs` entry). Code fields are raw JS — it wraps
 `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` as `{"source"}` strings, stringifies `queryparams`,
@@ -79,7 +79,7 @@ with a script — never hand-escape code into JSON on the command line.
 
 - `authenticationpaths: { headers: [{ name, value }], queryParams: [], body: [] }`; `value` = function body that
   returns (``return `Bearer ${context?.authData?.api_key}` ``; OAuth 2: `context?.authData?.accesstokencode?.access_token`).
-- Action code sees secrets as placeholders; real values reach only `authenticationpaths` entries on calls to
+- Plug code sees every authData value as a placeholder; real values reach only `authenticationpaths` entries on calls to
   whitelisted hosts and `${context.authData.x}` in URL host/path → whitelist every API host.
 - `testcode` and token code run with real values, set their own headers, follow the KB function template; `testcode`
   calls the "me" endpoint and returns `response?.data` — stored as `context.authData.testcode`, read by the label.
@@ -231,7 +231,11 @@ async function kb(file, queries) {
   if (!queries.length) return heads.map((h) => `${'  '.repeat(h.level - 1)}- ${h.head}`).join('\n')
   return queries.map((q) => {
     const hit = heads.find((h) => h.head.toLowerCase() === q.toLowerCase()) || heads.find((h) => norm(h.head) === norm(q)) || heads.find((h) => norm(h.head).includes(norm(q)))
-    if (!hit) return `<!-- ${file}: no heading "${q}" — run: node dh.mjs kb ${file} -->`
+    if (!hit) {
+      const qw = norm(q).split(' ')
+      const near = heads.map((h) => ({ h, s: qw.filter((w) => norm(h.head).includes(w)).length })).filter((x) => x.s).sort((x, y) => y.s - x.s)
+      return `<!-- ${file}: no heading "${q}" — closest: ${near.slice(0, 12).map((x) => `"${x.h.head}"`).join(', ') || `none; run: node dh.mjs kb ${file}`} -->`
+    }
     const text = hit.text.length > 24000 && hit.children.length ? `${hit.own}\n\n> Long section — ask for a sub-section: ${hit.children.join(' | ')}` : hit.text
     return `<!-- ${file} § ${hit.head} -->\n${text}`
   }).join('\n\n')

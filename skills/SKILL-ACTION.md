@@ -54,7 +54,7 @@ wait
 
    | Situation | Do |
    | --------- | -- |
-   | `update` | Action = `{{ACTION_ID}}`, else the match by name/key in `actions.json`. `GET get/action_version?identifier=<actionId>&filter=getActionVersions`: `{{VERSION_ID}}` is `drafted` → edit it; else the latest draft; none → clone the latest version into a new draft (§3). |
+   | `update` | Action = `{{ACTION_ID}}`, else the case-insensitive name/key match (`{{ACTION_NAME}}`, else the request) in `actions.json`; no match → stop and ask which one. `GET get/action_version?identifier=<actionId>&filter=getActionVersions`: `{{VERSION_ID}}` is `drafted` → edit it; else the latest draft (highest `version`); none → clone the latest version into a new draft (§3). |
    | `create`, no match by name/key/capability | Create. |
    | `create`, same capability exists | Update that one as above; otherwise create with a distinct name/key. |
 
@@ -64,7 +64,7 @@ wait
    Priorities" (P0/P1 = 0). Tell the user the plan in a few plain lines, then build.
 4. **Build** (`node dh.mjs batch @file.json` for independent calls):
    - create: new components → `POST create/actions` (returns `{ actionId, versionId }`) → fill version ∥ mappings;
-   - update: [clone] → fill the chosen draft (full `inputjson` if inputs change) ∥ mappings → always
+   - update: [clone] → new components → fill the chosen draft (full `inputjson` if inputs change; always after a clone) ∥ mappings → always
      `node dh.mjs MERGE 'update/actions?identifier=<actionId>&filter=updateActionDetails' '{"isaiaction":true,"aiorgid":"{{ORG_ID}}","note":"draft updated"}'`
      (`note: "new draft version"` when cloned; + `name`/`description` if changed);
    - code calls a host not in the plug's `whitelistdomains` → MERGE the plug (`updatePluginDetails`) with existing + new
@@ -83,7 +83,8 @@ appends an UPDATED entry. Write bodies to files with a script — never hand-esc
 
 - **Action / trigger** — `POST create/actions { name, description, key, pluginrecordid: "{{PLUGIN_ID}}", type:
   "{{ENTITY_TYPE}}", authid, isvisible: true, category, sub_category, preferred_step_name, ignoreuniversalsampledata:
-  false }`; `authid` = `{{PREFERRED_AUTH_ID}}` or the first non-deleted connection (manual trigger: none); triggers
+  false }`; `authid` = `{{PREFERRED_AUTH_ID}}` → plug `preferedauthversion` → first row of `auth.json` (manual trigger: none; on
+  update send it only if it changes); triggers
   `category`, `sub_category`, `preferred_step_name` = `""`; `key` = `name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')`.
   Never rename field keys or `key`.
 - **Version** — `PUT update/action_version?identifier=<versionId>&filter=updateActionVersionDetails { perform,
@@ -93,8 +94,9 @@ appends an UPDATED entry. Write bodies to files with a script — never hand-esc
   polling: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions`, `canpaginate`; manual_webhook:
   `performlist`, `modifytriggerdata`. No `aifield` in triggers.
 - **Clone to a new draft** — `POST create/action_version` with the source version minus `rowid`, `autonumber`,
-  timestamps, `createdby`/`updatedby`, `version`/`versionid`, `status`, `isdeleted`, `metadata`, `actionversionrecordid`,
-  `publishdescription` + `actionid`, `status: "drafted"`, `metadata: { duplicatedfrom: { rowid, version } }` → returns the new `id`.
+  `createdat`/`updatedat`, `createdby`/`updatedby`, `version`/`versionid`, `status`, `isdeleted`, `metadata`, `actionversionrecordid`,
+  `publishdescription` + `actionid`, `status: "drafted"`, `metadata: { duplicatedfrom: { rowid, version } }` → returns the new `id`; then always PUT its full version fields
+  (the clone doesn't build blocks) and re-map.
 - **Component** (only new ones; reuse by name) — `POST create/reusable_components { pluginrecordid, orgid,
   function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource:
   "userGenerated" }`; `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Standalone — never
@@ -112,13 +114,13 @@ appends an UPDATED entry. Write bodies to files with a script — never hand-esc
 
 ## 4. Knowledge base + runtime
 
-KB (in context) wins on design; this skill on runtime/REST. Detail: `node dh.mjs kb ux-practice.md "<category>"` ·
+KB (in context) wins on design; this skill on runtime/REST, including over KB payload schemas (mapping `path` toggle,
+`functionId`, `steps`/`blocks`, editing mapped components). Detail: `node dh.mjs kb ux-practice.md "<category>"` ·
 `kb ux-worked-examples.md "<example>"` (list: `kb ux-worked-examples.md`) · `kb dh-Input-fields-json-builder.md "<Type>
-JSON Schema"` · `kb perform-code.md "<block> Rules"` · `kb dh-database-schema.md "<entity> JSON Schema"` ·
-`kb dh-review.md "Review Priorities (Strict Order)"` · `kb backed-plug-service.md` (one webhook per app). Files: `node dh.mjs kb`.
+JSON Schema"` · `kb perform-code.md "Action Perform Code Rules"` (triggers: `"<Instant|Scheduled|Manual> Trigger <block> Code Rules"`) · `kb dh-database-schema.md "<entity> JSON Schema"` ·
+`kb dh-review.md "Review Priorities (Strict Order)"` · `kb backed-plug-service.md` (one webhook per app). Files: `node dh.mjs kb`; a miss lists the closest headings.
 
-- **Auth** is injected by the connection's `authenticationpaths` into calls to whitelisted hosts; code sees secrets as
-  placeholders → never build auth in code; non-secret connection fields: `context?.authData?.<key>`.
+- **Auth** is injected by the connection's `authenticationpaths` into calls to whitelisted hosts; every `context.authData` value is a placeholder in plug code; real values only via `authenticationpaths` and inside the URL host/path (``https://${context?.authData?.subdomain}.example.com``) → never build auth in code, never send an authData value in params/body/headers or branch on it.
 - **Code:** body of `async function step(context)`; top-level `await`; must `return`; `try { … } catch (error) { await
   errorComponent(error) }` (components: `throw error`); `?.` on every property path; no `console.log`; never redeclare
   `context`, `axios`, `fetch`, `console`, `authData`, component names. Unavailable: `URL`, `btoa`, `TextEncoder`,
@@ -135,7 +137,7 @@ JSON Schema"` · `kb perform-code.md "<block> Rules"` · `kb dh-database-schema.
 
 ## 5. Verify + report
 
-Read back the action and version: version `drafted`, every field in `inputjson.blocks`, dynamic fields have `source`,
+Read back (`get/actions?identifier=<actionId>&filter=getActionDetails`, `getActionVersions` → the `versionId` row, its mappings): version `drafted`, every field in `inputjson.blocks`, dynamic fields have `source`,
 every called component mapped, `isaiaction: true`. Report in plain language: what was created or changed (fields,
 behaviour), which version, what to test, with the link
 `<base>developer/{{ORG_ID}}/plugin/{{PLUGIN_ID}}/{{ENTITY_TYPE}}/<actionId>?versionId=<versionId>` (base:
@@ -275,7 +277,11 @@ async function kb(file, queries) {
   if (!queries.length) return heads.map((h) => `${'  '.repeat(h.level - 1)}- ${h.head}`).join('\n')
   return queries.map((q) => {
     const hit = heads.find((h) => h.head.toLowerCase() === q.toLowerCase()) || heads.find((h) => norm(h.head) === norm(q)) || heads.find((h) => norm(h.head).includes(norm(q)))
-    if (!hit) return `<!-- ${file}: no heading "${q}" — run: node dh.mjs kb ${file} -->`
+    if (!hit) {
+      const qw = norm(q).split(' ')
+      const near = heads.map((h) => ({ h, s: qw.filter((w) => norm(h.head).includes(w)).length })).filter((x) => x.s).sort((x, y) => y.s - x.s)
+      return `<!-- ${file}: no heading "${q}" — closest: ${near.slice(0, 12).map((x) => `"${x.h.head}"`).join(', ') || `none; run: node dh.mjs kb ${file}`} -->`
+    }
     const text = hit.text.length > 24000 && hit.children.length ? `${hit.own}\n\n> Long section — ask for a sub-section: ${hit.children.join(' | ')}` : hit.text
     return `<!-- ${file} § ${hit.head} -->\n${text}`
   }).join('\n\n')
