@@ -41,6 +41,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - **Automatic Backend Injection via `authenticationpaths`**: All authentication is passed and injected automatically from the viaSocket backend into request `headers`, `body`, or `queryParams` as configured in the connection's `authenticationpaths` section (`authenticationpaths.headers`, `authenticationpaths.body`, `authenticationpaths.queryParams`).
    - **Direct Code Calls**: All `axios` / `fetch` calls in code must omit authentication headers/params entirely—the backend HTTP interceptor injects credentials automatically when making requests to whitelisted hosts. Adding auth in code is strictly prohibited, causes errors or leaks, and sends masked literal placeholders resulting in 401s. Add only extra non-auth application headers (e.g., `Content-Type: application/json`, custom API version headers) or request-specific parameters.
    - **Non-secret Metadata Only**: Only non-secret connection metadata (e.g., domain, subdomain, tenant ID, account ID, region) can be accessed in code via `context?.authData?.<key>` (where `<key>` comes from `authfields -> authentication -> fields -> key` in preferred connection details). Never read or use secret credential keys (e.g., `api_key`, `token`) from `context.authData`. Never ask the user for `pluginrecordid` or `authid`.
+   - **Runtime Placeholders**: In plug code every `context.authData` value is a masked placeholder; the real value is substituted only in `authenticationpaths` and inside the request URL host/path (``https://${context?.authData?.subdomain}.example.com/v1/...``). Never send an `authData` value in params, body, or headers, or branch on it. Every host the code calls must be in the plug's and the connection's `whitelistdomains`.
    - **Minimal Connection Scopes vs Action/Trigger Specific Scopes**: Connection-level scopes must ONLY include the minimal scopes required for connection establishment and the Test (Me) API. Never request all app scopes or action-specific scopes at the connection level. Individual actions and triggers (Instant and Scheduled) specify their own endpoint-specific scopes via the `scopes` key (formatted as a string separated by space or comma matching connection's `scopeseperatedby`, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Manual triggers (`manual_webhook`) do NOT support `scopes`.
 3. **JSON Schema (`inputjson`)**: `{"steps": {}, "blocks": {}, "inputFields": [...]}`.
    - **Exhaustive Field Coverage (Zero Missing Fields)**: When analyzing any action or trigger from the API documentation, strictly include ALL documented fields (path, query, body, filters, optional, and advanced parameters) in `inputFields`. No documented fields may be omitted or skipped.
@@ -397,9 +398,11 @@ return response?.data || { id, deleted: true };
 ```
 
 ## Libraries & Globals
-- **Global Libraries** (never imported): `axios`, `fetch` (node-fetch), `FormData` (form-data), `jwt` (jsonwebtoken), `_` (lodash), `https`, `crypto`, `setTimeout`, `Buffer`, `atob`, `cheerio`, `moment`, `URLSearchParams`, `XMLParser`, `XMLBuilder`, `XMLValidator`.
+- **Global Libraries** (never imported): `axios`, `fetch` (node-fetch), `FormData` (form-data), `jwt` (jsonwebtoken), `_` (lodash), `https`, `crypto`, `setTimeout`, `Buffer`, `atob`, `cheerio`, `moment`, `URLSearchParams`, `XMLParser`, `XMLBuilder`, `XMLValidator`. Extras: `usaProxy`, `__findFromMemory` / `__updateInMemory`.
+- **Unavailable** (runtime error): `URL`, `btoa` (use `Buffer`), `TextEncoder`, `structuredClone`, `setInterval`, `clearTimeout`, `AbortController`, `Blob`, `require`, `process`, `module`, `import`. `axios`: only `axios(config)` and `.get/.post/.put/.patch/.delete/.request`—no `axios.create`, `axios.isAxiosError()` (use `error?.isAxiosError`), `defaults`, or interceptors. `console`: only `log`/`error`.
+- **VM**: Every block is the body of `async function step(context)`—top-level `await`, must `return`. Never redeclare `context`, `axios`, `fetch`, `console`, `authData`, or component names. Limits: 5–15 s per block (polling perform ~5 min), 256 MB.
 - **System Globals**:
-  - `context.inputData.<key>`: User inputs.
+  - `context.inputData.<key>`: User inputs. Empty optionals arrive as `''` (numbers `0`)—treat as unset; never send them.
   - `context.authData.<key>`: Non-secret connection metadata only (e.g., domain, subdomain, account ID, region). Secret keys (API key, token, secret) are masked by the backend and must never be referenced in code (auth is automatically injected via `authenticationpaths`).
   - `__executionStartTime__`: Scheduled run ISO timestamp (`"2026-07-28T09:26:51.074Z"`); compute via `new Date(__executionStartTime__).getTime()`.
   - `context.inputData.scheduledTime`: Polling interval in minutes.
@@ -410,14 +413,14 @@ return response?.data || { id, deleted: true };
   - `context.inputData.hookUrl`: Instant webhook URL.
   - `_scriptId`: Unique script ID, for apps requiring a unique webhook key.
   - `context.inputData.performsubscribe`: Subscription response stored for Unsubscribe.
-  - `context.req.body`: Raw webhook payload in `modifytriggerdata`.
+  - `context.req.body` / `.headers` / `.query`: Raw webhook request in `modifytriggerdata`.
 
 ---
 
 # Code Skeletons
 
 ## Instant Subscribe & Unsubscribe
-Subscribe sends `hookUrl` (+ event, user config from `context.inputData`, `_scriptId` if needed) and returns `response.data` (stored as `performsubscribe`).
+Subscribe sends `hookUrl` (+ event, user config from `context.inputData`, `_scriptId` if needed) and returns `response.data` (stored as `performsubscribe`). Unsubscribe with no stored subscription id → `return { success: true }`.
 ```javascript
 // Subscribe
 const { data } = await axios.post('<url>/subscribe', { hookUrl: context?.inputData?.hookUrl, event: '<event>' });

@@ -189,6 +189,7 @@ Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, maske
   - Client credentials: `context?.authData?.clientid`, `context?.authData?.clientsecret`
   - Test response: `context?.authData?.testcode`
   - User inputs: `context?.authData?.<field_key>`
+- **Real vs Placeholder Values**: connection code (`testcode`, token code) receives real `authData` values and sets its own headers. Plug code (Actions/Triggers) sees every `authData` value as a placeholder; real values reach only `authenticationpaths` entries and `${context.authData.<key>}` in the URL host/path, on calls to whitelisted hosts → whitelist every API host.
 - **Scope**: code handles only tokens, signatures, and dispatch; business logic belongs to Actions/Triggers.
 
 ## Code Style
