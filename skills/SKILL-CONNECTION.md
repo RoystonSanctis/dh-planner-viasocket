@@ -178,9 +178,9 @@ async function kbText(file) {
   return readFileSync(p, 'utf8')
 }
 async function kbList() {
-  const api = await fetch(`https://api.github.com/repos/${REPO}/contents/knowledge-base?ref=${REF}`).then((r) => r.json()).catch(() => null)
-  const names = Array.isArray(api) ? api.map((f) => f.name)
-    : [...(await (await fetch(`https://github.com/${REPO}/tree/${REF}/knowledge-base`)).text()).matchAll(/knowledge-base\/([\w.-]+\.md)/g)].map((m) => m[1])
+  const res = await fetch(`https://github.com/${REPO}/tree/${REF}/knowledge-base`)
+  if (!res.ok) throw new Error(`KB list: HTTP ${res.status}`)
+  const names = [...(await res.text()).matchAll(/knowledge-base\/([\w.-]+\.md)/g)].map((m) => m[1])
   return [...new Set(names.filter((n) => n.endsWith('.md')))]
 }
 function sections(md) {
