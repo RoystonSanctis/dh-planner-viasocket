@@ -104,14 +104,6 @@ what the developer must enter (client ID/secret or API key) and test (save a tes
 Written to `dh.mjs` by the bootstrap command — do not read or re-type.
 
 ````js file=dh.mjs
-// dh.mjs — Developer Hub client + KB reader. Config: .dh-run/config.json { apiBase, orgId, token, skill }
-//   node dh.mjs GET|POST|PUT|PATCH '<path>' ['{json}' | @body.json]   one call
-//   node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'   GET → keep metadata, append aiLogs → PUT
-//   node dh.mjs batch @calls.json      [{ label, method, path, body }] run in parallel (4) → [{ label, ok, result | error }]
-//   node dh.mjs kb [file.md] ["Heading" …]   list KB files · headings of a file · sections (with sub-sections)
-// Automatic: syntax check of every code field before a write · create/* gets an aiLogs CREATED entry (+ plug createdBy)
-// · create/* returns { id } (oauth_details + authversion); create/actions sets isaiaction, returns { actionId, versionId }
-// · oauth_details code (raw JS, {source} object or string) → {"source"} string.
 import { readFileSync, appendFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 
 const cfg = JSON.parse(readFileSync('.dh-run/config.json', 'utf8'))
@@ -119,12 +111,9 @@ const headers = { proxy_auth_token: cfg.token, 'Content-Type': 'application/json
 const entry = (by, note) => ({ by, time: new Date().toISOString(), skill: cfg.skill, ...(note ? { note } : {}) })
 const obj = (v) => (typeof v === 'string' ? JSON.parse(v || '{}') : v || {})
 const src = (v) => (v && typeof v === 'object' ? v.source : typeof v === 'string' && v.trim().startsWith('{') ? JSON.parse(v).source : v) ?? null
-const CODE = ['perform', 'performlist', 'performsubscribe', 'performunsubscribe', 'modifytriggerdata', 'transferoption', 'code']
 const AUTH = ['testcode', 'accesstokencode', 'refreshtokencode', 'revokeapicode']
-const GEN = ['optionsGenerator', 'fieldsGenerator', 'source', 'suggestionGenerator']
-const GET_BY_ID = { plugins: 'getPluginDetails', actions: 'getActionDetails' }
+const GET_BY_ID = { plugins: 'getPluginDetails' }
 const AsyncFunction = (async () => {}).constructor
-
 async function call(method, path, body) {
   const url = path.startsWith('/') ? cfg.apiBase + path : `${cfg.apiBase}/developers/${cfg.orgId}/${path}`
   const res = await fetch(url, { method, headers, body: body === undefined || typeof body === 'string' ? body : JSON.stringify(body) })
@@ -142,10 +131,7 @@ function compile(b) {
     if (typeof src !== 'string' || !src.trim()) return
     try { new Fn('context', 'axios', src) } catch (e) { throw new Error(`syntax error in ${where}: ${e.message}`) }
   }
-  CODE.forEach((k) => check(k, b[k]))
   AUTH.forEach((k) => check(k, src(b[k])))
-  const walk = (fields) => (fields || []).forEach((f) => (GEN.forEach((g) => check(`${f.key}.${g}`, f[g])), walk(f.fields)))
-  walk(b.inputjson?.inputFields)
   const ap = b.authenticationpaths || {}
   for (const e of [...(ap.headers || []), ...(ap.queryParams || []), ...(ap.body || [])]) {
     if (!/\breturn\b/.test(e?.value || '')) throw new Error(`authenticationpaths ${e?.name}: value must be a function body that returns`)
@@ -156,7 +142,7 @@ function compile(b) {
 async function run({ method, path, body }) {
   if (method === 'MERGE') {
     const [, table, id] = path.match(/^update\/(\w+)\?identifier=([^&]+)/) || []
-    if (!GET_BY_ID[table]) throw new Error('MERGE supports update/plugins and update/actions')
+    if (!GET_BY_ID[table]) throw new Error('MERGE supports update/plugins')
     const current = (await call('GET', `get/${table}?identifier=${id}&filter=${GET_BY_ID[table]}`)).data?.[0] || {}
     const meta = obj(current.metadata)
     const { note, by, metadata, ...changes } = body || {}
@@ -177,20 +163,8 @@ async function run({ method, path, body }) {
   }
   const r = await call(method, path, body)
   const row = r?.data?.actionData?.[0]
-  if (method === 'POST' && path.startsWith('create/actions')) {
-    const ids = { actionId: row?.rowid, versionId: r?.data?.actionVersionData?.data?.[0]?.rowid }
-    if (!ids.actionId || !ids.versionId) throw new Error(`created but no ids returned — check getAllActions before retrying: ${JSON.stringify(r).slice(0, 300)}`)
-    try {
-      await run({ method: 'MERGE', path: `update/actions?identifier=${ids.actionId}&filter=updateActionDetails`, body: { isaiaction: true, aiorgid: cfg.orgId, by: 'CREATED_BY_AI', note: 'isaiaction set' } })
-    } catch (e) {
-      ids.warning = `created; isaiaction not set — rerun only that MERGE: ${e.message.slice(0, 200)}`
-    }
-    return ids
-  }
   return method !== 'GET' && row ? { id: row.rowid, ...(row.authversion ? { authversion: row.authversion } : {}) } : r
 }
-
-// ── KB (vectorless RAG over knowledge-base/*.md, files discovered at run time) ──────────────────────
 const REPO = cfg.kbRepo || 'RoystonSanctis/dh-planner-viasocket'
 const REF = cfg.kbRef || 'dev'
 async function kbText(file) {
@@ -240,26 +214,11 @@ async function kb(file, queries) {
     return `<!-- ${file} § ${hit.head} -->\n${text}`
   }).join('\n\n')
 }
-
-// ── CLI ──────────────────────────────────────────────────────────────────────────────────────────
 const [cmd, a, ...rest] = process.argv.slice(2)
 const read = (v) => (v?.startsWith('@') ? readFileSync(v.slice(1), 'utf8') : v)
 try {
   if (cmd === 'kb') console.log(await kb(a, rest))
-  else if (cmd === 'batch') {
-    const ops = JSON.parse(read(a))
-    if (!Array.isArray(ops) || !ops.length) throw new Error('batch file must be a non-empty JSON array of { label, method, path, body }')
-    const out = []
-    let i = 0
-    await Promise.all(Array.from({ length: Math.min(4, ops.length) }, async () => {
-      while (i < ops.length) {
-        const k = i++
-        try { out[k] = { label: ops[k].label, ok: true, result: await run(ops[k]) } } catch (e) { out[k] = { label: ops[k].label, ok: false, error: e.message } }
-      }
-    }))
-    console.log(JSON.stringify(out))
-    if (out.some((o) => !o.ok)) process.exitCode = 1
-  } else {
+  else {
     const raw = read(rest[0])
     console.log(JSON.stringify(await run({ method: cmd, path: a, body: raw === undefined ? undefined : JSON.parse(raw) })))
   }

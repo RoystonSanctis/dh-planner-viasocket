@@ -150,14 +150,6 @@ behaviour), which version, what to test, with the link
 Written to `dh.mjs` by the bootstrap command — do not read or re-type.
 
 ````js file=dh.mjs
-// dh.mjs — Developer Hub client + KB reader. Config: .dh-run/config.json { apiBase, orgId, token, skill }
-//   node dh.mjs GET|POST|PUT|PATCH '<path>' ['{json}' | @body.json]   one call
-//   node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'   GET → keep metadata, append aiLogs → PUT
-//   node dh.mjs batch @calls.json      [{ label, method, path, body }] run in parallel (4) → [{ label, ok, result | error }]
-//   node dh.mjs kb [file.md] ["Heading" …]   list KB files · headings of a file · sections (with sub-sections)
-// Automatic: syntax check of every code field before a write · create/* gets an aiLogs CREATED entry (+ plug createdBy)
-// · create/* returns { id } (oauth_details + authversion); create/actions sets isaiaction, returns { actionId, versionId }
-// · oauth_details code (raw JS, {source} object or string) → {"source"} string.
 import { readFileSync, appendFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 
 const cfg = JSON.parse(readFileSync('.dh-run/config.json', 'utf8'))
@@ -170,7 +162,6 @@ const AUTH = ['testcode', 'accesstokencode', 'refreshtokencode', 'revokeapicode'
 const GEN = ['optionsGenerator', 'fieldsGenerator', 'source', 'suggestionGenerator']
 const GET_BY_ID = { plugins: 'getPluginDetails', actions: 'getActionDetails' }
 const AsyncFunction = (async () => {}).constructor
-
 async function call(method, path, body) {
   const url = path.startsWith('/') ? cfg.apiBase + path : `${cfg.apiBase}/developers/${cfg.orgId}/${path}`
   const res = await fetch(url, { method, headers, body: body === undefined || typeof body === 'string' ? body : JSON.stringify(body) })
@@ -235,8 +226,6 @@ async function run({ method, path, body }) {
   }
   return method !== 'GET' && row ? { id: row.rowid, ...(row.authversion ? { authversion: row.authversion } : {}) } : r
 }
-
-// ── KB (vectorless RAG over knowledge-base/*.md, files discovered at run time) ──────────────────────
 const REPO = cfg.kbRepo || 'RoystonSanctis/dh-planner-viasocket'
 const REF = cfg.kbRef || 'dev'
 async function kbText(file) {
@@ -286,8 +275,6 @@ async function kb(file, queries) {
     return `<!-- ${file} § ${hit.head} -->\n${text}`
   }).join('\n\n')
 }
-
-// ── CLI ──────────────────────────────────────────────────────────────────────────────────────────
 const [cmd, a, ...rest] = process.argv.slice(2)
 const read = (v) => (v?.startsWith('@') ? readFileSync(v.slice(1), 'utf8') : v)
 try {
