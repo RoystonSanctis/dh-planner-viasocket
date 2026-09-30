@@ -315,7 +315,7 @@ return await testcode();
 
 #### Authorization Code Best Practices
 - **Always enable PKCE** (`code_challenge_method=S256`) when the provider supports it.
-- **Request minimal scopes at the Connection level** — put broader/specific scopes at the individual Action/Trigger level instead of requesting everything upfront.
+- **Request ONLY minimal scopes at the Connection level** — include only the minimal scopes required for the Test (Me) API or connection establishment. Do NOT bundle all scopes into the connection. Put action- and trigger-specific scopes directly on the individual Action/Trigger level via the `scopes` key (string separated by space or comma, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Note that manual triggers (`manual_webhook`) do not support `scopes`.
 - **Never hardcode tokens in Request Parameters** — always resolve dynamically via `context.authData.<key>` so token refresh is respected transparently.
 - **Use a stable Unique Connection Identifier when available** — prevents duplicate connections and keeps token management clean.
 - **Verify Base64 client-credential encoding requirements** in the provider's docs before building the Access Token API step.
@@ -808,7 +808,7 @@ Before proposing any Connection architecture, perform a comprehensive analysis o
 * **Auth Methods Available:** Which of No Auth / Basic Auth / OAuth 2.0 (and which grant types) / OAuth 1.0 the service documents.
 * **Endpoints:** Authorization Endpoint, Token Endpoint, Refresh Endpoint, Revoke Endpoint, and a lightweight Test/Me endpoint.
 * **Token Lifecycle:** Expiry duration, whether refresh tokens are issued, whether refresh tokens rotate.
-* **Scopes:** Available scopes, and the minimal set required for the Test API and the plug's core use cases.
+* **Scopes:** Available scopes, and the strictly minimal set required for the Test (Me) API / connection establishment (all action- and trigger-specific scopes belong directly on their individual actions/triggers via the `scopes` key).
 * **Identifiers:** Stable fields usable for Connection Label and Unique Connection Identifier (user ID, workspace ID, email, etc.).
 
 > [!IMPORTANT]
@@ -829,7 +829,7 @@ Before proposing any Connection architecture, perform a comprehensive analysis o
 
 ### The Minimal Trust Principle
 Collect and request only what is strictly necessary:
-* **Scopes:** Request only the scopes required for the Test API and the plug's actual Actions/Triggers at the Connection level; push additional/specific scopes down to individual Action/Trigger configuration where viaSocket supports it.
+* **Scopes:** Request ONLY the minimal scopes required for the Test (Me) API at the Connection level. Do NOT add all available scopes or action-specific scopes to the connection. Specific scopes must be attached directly to individual Actions or Triggers via the `scopes` key (string separated by space or comma, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Manual triggers do NOT support `scopes`.
 * **Fields:** Only add "Configure your Fields" entries the chosen Auth Type/Grant Type genuinely requires (e.g. do not add a Redirect URL step for Client Credentials).
 
 ### Test (Me) API & `testcode` Selection Rules (CRITICAL)
@@ -965,8 +965,8 @@ Your final proposed design must strictly output the following structure:
 
 ### Scope & Permissions
 
-* [ ] **Use only the minimum required scopes at the connection level:** Request only the baseline scopes necessary for connection establishment and the Test (Me) API.
-* [ ] **Add action-specific or trigger-specific scopes in the Overview section:** Document and isolate special action or trigger scopes in overview instructions rather than over-permissioning the base connection.
+* [ ] **Use ONLY minimal scopes at the connection level:** Request only the baseline scopes necessary for connection establishment and the Test (Me) API. Do NOT request all scopes or action-specific scopes here.
+* [ ] **Define action-specific and trigger-specific scopes directly on each entity:** Set the `scopes` key on the individual Action or Trigger definition as a string (separated by space or comma matching connection's `scopeseperatedby`, e.g. `{"scopes": "instagram_business_content_publish,instagram_business_manage_messages"}`). Note: manual triggers (`manual_webhook`) do not support `scopes`.
 * [ ] **Do not request unnecessary or "all available" scopes:** Avoid blanket scope requests that increase vulnerability and user authorization friction.
 * [ ] **Verify that incorrect scopes would cause runtime failures:** Test and verify that missing required scopes fail gracefully with actionable error feedback.
 * [ ] **Confirm over-permissioned connections are not a security risk:** Ensure that granted permissions adhere strictly to the principle of least privilege.

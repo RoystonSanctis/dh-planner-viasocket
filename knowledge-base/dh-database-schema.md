@@ -75,6 +75,7 @@ An Action represents a single operational task (e.g., "Send an Email", "Create C
   },
   "perform": "String (Executable JavaScript function block conforming to perform-code.md)",
   "authid": "String (Optional. Authentication identifier associated with the service/action, e.g., 'rowqgp0s6jwh')",
+  "scopes": "String (Optional. Action-specific OAuth scopes required for this endpoint, formatted as a string separated by space or comma matching connection's scopeseperatedby, e.g., 'instagram_business_content_publish,instagram_business_manage_messages')",
   "metadata": {
     "chatbotthreadid": "String (Optional. Association with chatbot thread, e.g., 'KSniUIbOsr')"
   },
@@ -103,6 +104,7 @@ inputjson: InputJsonObject
   - inputFields: Array of FieldObjects
 perform: String (async JS try-catch)
 authid: String (optional)
+scopes: String (optional, action-specific OAuth scopes separated by space or comma, e.g., 'instagram_business_content_publish,instagram_business_manage_messages')
 metadata: Object (optional)
   - chatbotthreadid: String
 sampledata: Object (optional)
@@ -121,6 +123,7 @@ The additional keys for each trigger which is specified are the supported keys a
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "scopes": "String (Optional. Trigger-specific OAuth scopes required for this trigger, formatted as a string separated by space or comma matching connection's scopeseperatedby, e.g., 'instagram_business_content_publish,instagram_business_manage_messages'. Supported in 'hook' and 'polling' triggers; NOT supported in 'manual_webhook' triggers)",
   "category": "String (Must be empty `\"\"` for triggers)",
   "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
@@ -149,6 +152,7 @@ Instant Triggers run via webhooks where external systems send events immediately
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "scopes": "String (Optional. Trigger-specific OAuth scopes required for this webhook/endpoint, formatted as a string separated by space or comma matching connection's scopeseperatedby, e.g., 'instagram_business_content_publish,instagram_business_manage_messages')",
   "category": "String (Must be empty `\"\"` for triggers)",
   "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
@@ -177,6 +181,7 @@ Instant Triggers run via webhooks where external systems send events immediately
 #### Instant Trigger TOON Schema
 ```toon
 authid: String (optional)
+scopes: String (optional, trigger-specific OAuth scopes separated by space or comma)
 category: String (Must be empty for triggers)
 sub_category: String (Must be empty for triggers)
 description: String
@@ -208,6 +213,7 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
 ```json
 {
   "authid": "String (Optional. Authentication identifier, e.g., 'rowqgp0s6jwh')",
+  "scopes": "String (Optional. Trigger-specific OAuth scopes required for this polling endpoint, formatted as a string separated by space or comma matching connection's scopeseperatedby, e.g., 'instagram_business_content_publish,instagram_business_manage_messages')",
   "category": "String (Must be empty `\"\"` for triggers)",
   "sub_category": "String (Must be empty `\"\"` for triggers)",
   "description": "String (Description of what triggers the workflow)",
@@ -236,6 +242,7 @@ Schedule/Polling Triggers poll the external API periodically at defined interval
 #### Schedule Trigger TOON Schema
 ```toon
 authid: String (optional)
+scopes: String (optional, trigger-specific OAuth scopes separated by space or comma)
 category: String (Must be empty for triggers)
 sub_category: String (Must be empty for triggers)
 description: String
@@ -261,7 +268,7 @@ sampledata: Object (optional)
 
 ### Manual Trigger Schema (`triggertype: "manual_webhook"`)
 
-Manual Webhook Triggers are user-configured webhooks where the user manually copies the webhook URL into the external service. Note: For Manual Webhook Triggers, authentication is always 'No Auth'; therefore, `authid` must not be sent or configured.
+Manual Webhook Triggers are user-configured webhooks where the user manually copies the webhook URL into the external service. Note: For Manual Webhook Triggers, authentication is always 'No Auth'; therefore, `authid` and `scopes` must not be sent or configured (the `scopes` key is NOT supported for manual triggers).
 
 #### Manual Trigger JSON Schema
 ```json

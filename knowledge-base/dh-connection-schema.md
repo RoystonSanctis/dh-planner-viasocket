@@ -96,7 +96,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "authrequrl": "String | null (Authorization endpoint URL for OAuth redirect flows; supports context template interpolation; null for Basic, Auth1, NoAuth, and Password Credentials)",
   "redirecturl": "String | null (ViaSocket OAuth callback URL: \"https://auth.viasocket.com/redirect/auth2.0\" | \"https://auth.viasocket.com/redirect/auth1\" | null)",
   "queryparams": "String (Stringified JSON of static query params appended to authrequrl; \"{}\" when no params needed, e.g., \"{\\\"response_type\\\":\\\"code\\\"}\")",
-  "scopeseperatedby": "String | null (Delimiter for joining OAuth scope values: \"comma\" | \"space\" | null. STRICTLY the literal word strings \"comma\" or \"space\", or null. NEVER use \" \" or \",\" or \"\")",
+  "scopeseperatedby": "String | null (Delimiter for joining OAuth scope values: \"comma\" | \"space\" | null. STRICTLY the literal word strings \"comma\" or \"space\", or null. NEVER use \" \" or \",\" or \"\"). Connection-level scopes must ONLY include the minimal scopes required for the Test (Me) API / connection establishment; action- and trigger-specific scopes are configured on individual actions and triggers using the 'scopes' key.",
   "authrequrlhtml": "String | null (Custom HTML for overriding the auth request page; always null in observed data)",
   "auth1parameters": {
     "requestTokenUrl": "String (Step 1 OAuth1: URL to obtain temporary request token, e.g., \"https://trello.com/1/OAuthGetRequestToken\")",
@@ -562,7 +562,7 @@ skipwhitelistvalidation: null (null if not set)
 
   "authrequrl": "String (Authorization endpoint URL, e.g., \"https://api.notion.com/v1/oauth/authorize\")",
   "queryparams": "String (Stringified JSON of query parameters, e.g., \"{\\\"response_type\\\":\\\"code\\\"}\")",
-  "scopeseperatedby": "String | null (Scope separator type: \"comma\" | \"space\" | null. Must be literal word \"comma\" or \"space\", NEVER \" \" or \",\")",
+  "scopeseperatedby": "String | null (Scope separator type: \"comma\" | \"space\" | null. Must be literal word \"comma\" or \"space\", NEVER \" \" or \",\"). Note: Connection-level scopes must only request the minimal scopes needed for the Test (Me) API. Action/trigger-specific scopes belong on their respective entities via the 'scopes' key.",
 
   "accesstokencode": "String (Stringified JSON with source JS code for fetching access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
   "refreshtokencode": "String (Stringified JSON with source JS code for refreshing access token, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
