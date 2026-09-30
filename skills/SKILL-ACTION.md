@@ -17,8 +17,8 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
 | ------------------ | --------------------- | ---------- | ------------- | ----------------- | -------- |
 | `{{ORG_ID}}` · `{{PLUGIN_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{SKILL_MODE}}` | `{{ACTION_ID}}` · {{ACTION_NAME}} · `{{VERSION_ID}}` | `{{PREFERRED_AUTH_ID}}` | `{{API_BASE}}` |
 
-**Already in context — don't re-fetch:** `dh-knowledgebase.md` (it decides all design) and the GET results for the
-plug, its connections, actions and components. Missing → GET it (§3).
+**Knowledge base:** read `dh-knowledgebase.md` in full (the last setup line prints it; it decides all design).
+**Already in context — don't re-fetch:** the GET results for the plug, its connections, actions and components. Missing → GET it (§3).
 
 **Rules**
 - Fill every `{{…}}` from your inputs. ACTION_ID, ACTION_NAME, VERSION_ID, UPDATE_CONTEXT and PREFERRED_AUTH_ID may
@@ -36,6 +36,7 @@ plug, its connections, actions and components. Missing → GET it (§3).
 ```bash
 mkdir -p dh-run/.dh-run && cd dh-run && curl -sfLO https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/skills/dh.mjs
 echo '{"apiBase":"{{API_BASE}}","orgId":"{{ORG_ID}}","token":"{{PROXY_AUTH_TOKEN}}","skill":"viasocket-developer-hub-action"}' > .dh-run/config.json
+node dh.mjs kb dh-knowledgebase.md '*'
 ```
 
 1. **Resolve** — decide yourself, don't ask; skip `status: "deleted"` actions and `isdeleted: true` versions:

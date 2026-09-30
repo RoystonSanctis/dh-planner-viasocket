@@ -13,8 +13,8 @@ description: >-
 | ------ | --------------------- | -------- |
 | `{{ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` |
 
-**Already in context — don't re-fetch:** `dh-knowledgebase.md` + `dh-connection-kb.md` (they decide all design) and
-the GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → GET it (§3).
+**Knowledge base:** read `dh-knowledgebase.md` + `dh-connection-kb.md` in full (the last setup line prints them; they
+decide all design). **Already in context — don't re-fetch:** the GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → GET it (§3).
 
 **Rules**
 - Fill every `{{…}}` from your inputs. USECASE empty → every trigger and action. Ask only at the start, and only if
@@ -32,6 +32,7 @@ the GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its detail
 ```bash
 mkdir -p dh-run/.dh-run && cd dh-run && curl -sfLO https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/skills/dh.mjs
 echo '{"apiBase":"{{API_BASE}}","orgId":"{{ORG_ID}}","token":"{{PROXY_AUTH_TOKEN}}","skill":"viasocket-developer-hub-plug"}' > .dh-run/config.json
+node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
 ```
 
 1. **Resolve** — a non-deleted plug with `domain` = `{{APP_DOMAIN}}` → extend it (never duplicate) and build only what

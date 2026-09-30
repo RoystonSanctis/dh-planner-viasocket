@@ -89,7 +89,7 @@ flowchart TD
     Exec --> Report["Verify read-back + plain-language report with DH links"]
 ```
 
-1. **Pre-context (host):** before the skill runs, the host loads the consolidated KB and the GET results the skill
+1. **KB + pre-context:** the setup prints the consolidated KB from GitHub (`node dh.mjs kb <file> '*'`); the host pre-loads the GET results the skill
    needs. The skills say "don't re-fetch"; anything missing is fetched with `node dh.mjs GET`.
 
    | Skill | Consolidated KB | GET results |

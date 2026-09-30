@@ -13,8 +13,8 @@ description: >-
 | ------------------ | --------------------- | ----------------- | -------- |
 | `{{ORG_ID}}` · `{{PLUGIN_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{PREFERRED_AUTH_ID}}` | `{{API_BASE}}` |
 
-**Already in context — don't re-fetch:** `dh-connection-kb.md` (it decides auth design) and the GET results for the
-plug, its connections and their usage. Missing → `GET`
+**Knowledge base:** read `dh-connection-kb.md` in full (the last setup line prints it; it decides auth design).
+**Already in context — don't re-fetch:** the GET results for the plug, its connections and their usage. Missing → `GET`
 `get/plugins?identifier={{PLUGIN_ID}}&filter=getPluginDetails` · `get/oauth_details?identifier={{PLUGIN_ID}}&filter=getAuthDetails`
 · `GetUsedInCountForAuth?pluginId={{PLUGIN_ID}}`.
 
@@ -35,6 +35,7 @@ plug, its connections and their usage. Missing → `GET`
 ```bash
 mkdir -p dh-run/.dh-run && cd dh-run && curl -sfLO https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/skills/dh.mjs
 echo '{"apiBase":"{{API_BASE}}","orgId":"{{ORG_ID}}","token":"{{PROXY_AUTH_TOKEN}}","skill":"viasocket-developer-hub-connection"}' > .dh-run/config.json
+node dh.mjs kb dh-connection-kb.md '*'
 ```
 
 1. **Research** — official auth docs, per KB "Selection & Priority Strategy" (+ the "me" response shape, every API
