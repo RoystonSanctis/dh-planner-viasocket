@@ -113,18 +113,19 @@ A Connection lets users prove their identity to a plug's target app and authoriz
 
 ## Connection Selection & Priority Guidelines
 
-When designing or planning a Connection, follow this structured priority flow to determine the Auth Type (and Grant Type, if OAuth 2.0) to implement, especially when the user has not specified their preferred method.
+When designing or planning a Connection, verify supported authentication methods directly from the official API documentation. In the connection setup, authentication selection MUST strictly prioritize **OAuth 2.0 (`Auth2.0`) first**, followed by other authentication methods only if OAuth 2.0 is verified as not supported in the API documentation.
 
 **1. Auth Type Priority Flow**
-If the auth method is not specified, evaluate capabilities in this order:
+Verify capabilities directly from the API documentation in this strict order:
 **OAuth 2.0 (`Authorization Code`)** → **OAuth 2.0 (`Client Credentials`)** → **Basic Auth** → **OAuth 1.0** → **No Auth**
 
-*   **Step 1: Check for OAuth 2.0 support** **(`if easily available`)**
-    *   Verify if the external service provides an OAuth 2.0 Authorization Endpoint and Token Endpoint. If yes, and real end-users are involved, implement **OAuth 2.0 — Authorization Code** (with PKCE where supported). This is the default, industry-recommended choice for any public SaaS integration.
+*   **Step 1: Check and prioritize OAuth 2.0 support from API documentation**
+    *   Verify if the external service provides an OAuth 2.0 Authorization Endpoint and Token Endpoint in its API documentation. If supported, OAuth 2.0 **MUST** be chosen as the primary authentication method.
+    *   If real end-users are involved, implement **OAuth 2.0 — Authorization Code** (with PKCE where supported). This is the default, industry-recommended choice for any public SaaS integration.
     *   If the service only needs to authenticate the *application itself* (no end-user identity, e.g. server-to-server, internal automation), implement **OAuth 2.0 — Client Credentials** instead.
     *   Never propose **Implicit** or **Password Credentials** for a new integration; only use them if the service exclusively supports that grant type and no alternative exists (see individual sections below for guardrails).
 *   **Step 2: Check for Basic Auth support**
-    *   If OAuth 2.0 is not supported, verify if the service issues a static API Key, or a Username + Password pair. If yes, implement **Basic Auth**.
+    *   Only if OAuth 2.0 is verified as not supported in the API docs, verify if the service issues a static API Key, Bearer token, or a Username + Password pair. If yes, implement **Basic Auth**.
 *   **Step 3: Check for OAuth 1.0 support**
     *   If neither OAuth 2.0 nor Basic Auth is supported, and the service uses request-signing (Consumer Key/Secret + Access Token/Secret), implement **OAuth 1.0**.
 *   **Step 4: Check for No Auth**

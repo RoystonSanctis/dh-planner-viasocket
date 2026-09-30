@@ -78,15 +78,16 @@ description: "Token-minimal knowledge base for designing and updating viaSocket 
 ---
 
 # Selection & Priority Strategy
-**Analyze first**: available auth methods and grant types; authorization, token, refresh, revoke, and Test endpoints; token lifecycle (expiry, refresh issued, rotation); minimal scopes; stable identifiers; encoding needs (Base64 client credentials, `application/x-www-form-urlencoded` vs JSON).
+**Analyze & verify first**: Verify available auth methods directly from the provider's official API documentation (OpenAPI, developer guides, auth specs). Note grant types; authorization, token, refresh, revoke, and Test endpoints; token lifecycle (expiry, refresh issued, rotation); minimal scopes; stable identifiers; encoding needs (Base64 client credentials, `application/x-www-form-urlencoded` vs JSON).
 
-Priority when unspecified (may also ask the user upfront):
-1. **OAuth 2.0 Authorization Code**: public SaaS with real end-users. PKCE (`S256`) when supported. Confirm the grant is documented.
-2. **OAuth 2.0 Client Credentials**: app-only, server-to-server; no end-user identity and no user-scoped data.
-3. **Basic Auth**: static API key, bearer token, or username/password.
-4. **OAuth 1.0**: legacy request signing.
-5. **No Auth**: genuinely public, non-sensitive APIs.
-6. Nothing documented → ask the user for the auth type and auth docs.
+**Mandatory Selection Priority (OAuth 2.0 First)**:
+In the connection setup, the authentication selection MUST strictly be **OAuth 2.0 (`Auth2.0`) first**, followed by other authentication methods only if OAuth 2.0 is verified as not supported in the API documentation:
+1. **OAuth 2.0 Authorization Code**: Primary & default choice for public SaaS with real end-users. PKCE (`S256`) when supported. Confirm the grant is documented.
+2. **OAuth 2.0 Client Credentials**: Primary choice for app-only, server-to-server integrations with no end-user identity and no user-scoped data.
+3. **Basic Auth**: Static API key, bearer token, or username/password. Select only if OAuth 2.0 is verified as not supported in the API docs.
+4. **OAuth 1.0**: Legacy request signing. Select only if OAuth 2.0 and Basic Auth are not supported.
+5. **No Auth**: Genuinely public, non-sensitive APIs.
+6. Nothing documented → ask the user for the auth type and official API documentation.
 
 - **Implicit / Password Credentials**: deprecated; only when the provider supports nothing else—state the trade-off.
 - One viable method → implement directly, no selector.
