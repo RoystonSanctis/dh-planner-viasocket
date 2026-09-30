@@ -145,7 +145,7 @@ entry (`note` optional). Write bodies to files with a script — never hand-esca
   `status: "drafted"`, `metadata.duplicatedfrom: { rowid, version }`; always PUT its full version fields (the clone doesn't build blocks); re-map (mappings aren't copied). Then
   always MERGE the action row with `isaiaction: true`, `aiorgid`, a `note` (+ name/description if changed). Never
   rename field keys or the action `key`.
-- Component: not versioned — editing changes every mapped version, published included. Never change a mapped one; add a new name.
+- Component: not versioned — editing changes every mapped version, published included. Never change a mapped one (except `errorComponent` as above); add a new name.
 
 ## 5. Knowledge base
 

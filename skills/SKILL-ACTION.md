@@ -100,8 +100,8 @@ appends an UPDATED entry. Write bodies to files with a script — never hand-esc
 - **Component** (only new ones; reuse by name) — `POST create/reusable_components { pluginrecordid, orgid,
   function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource:
   "userGenerated" }`; `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Standalone — never
-  call another component. Never create `errorComponent` (backend-made; update its code only if the API uses different error keys/paths for code or message like error/errors/detail/error_code). Never change a mapped component (not
-  versioned — it changes every version); add a new name.
+  call another component. Never create `errorComponent` (backend-made; update its code only if the API uses different error keys/paths for code or message like error/errors/detail/error_code). Never change another mapped
+  component (not versioned — it changes every version); add a new name.
 - **Mapping** — every component the version's code or dropdowns call, plus `errorComponent` (id from
   `components.json`): `GET get/action_version_component_table?identifier=<versionId>&filter=dhGetUsedComponentInActionVersionDetails`;
   missing → `POST create/action_version_component_table { action_version_id, component_id, action_id, pluginrecordid,
