@@ -219,6 +219,10 @@ The standard, most secure OAuth 2.0 method. Users authenticate via the provider'
 The standard 13-step section flow:
 
 1. **Configure your Fields** *(optional)* → Extra pre-auth info the Authorization/Token URLs may depend on (e.g. subdomain, region, environment, tenant ID). Available as `context.authData.<fieldName>`. Skip if the provider's endpoints don't depend on user-entered values.
+   - **Subdomain Input Formatting (`scheme`, `tld`):** When asking users for a subdomain or store slug, configure `"scheme": "https"` and `"tld": "<domain>"` (e.g. `scheme: "https"`, `tld: "fourthwall.com"`, placeholder: `"demo-example-shop"`). The viaSocket UI automatically displays a structured input widget framed with `https://` prefix and `.<domain>` suffix so the user only enters the subdomain slug.
+   - **Multi-Environment / Region Dropdown (`type: "dropdown"`):** When services operate across isolated environments or regional datacenters, define a dropdown with `children` and `source`:
+     - *Salesforce:* `login` (Production) vs `test` (Sandbox).
+     - *Zoho CRM:* `com` (US), `in` (India), `eu` (Europe), `com.au` (Australia), `com.cn` (China), `zohocloud.ca` (Canada), `sa` (Saudi Arabia), `jp` (Japan), `.ae` (UAE).
 2. **Copy your OAuth Redirect URL** → viaSocket-generated callback URL; pasted into the provider's "Redirect/Callback URL" dashboard setting.
    - **Redirect URL in Auth 2.0 App**:
      - **Prod**: `https://auth.viasocket.com/redirect/auth2.0`
@@ -230,15 +234,29 @@ The standard 13-step section flow:
    * **Manual / User-Provided Setup (Special Case):** If the user specifies that customers will manually add client ID and client secret, the root-level `clientid` and `clientsecret` properties will be empty (`null`). Instead, define `clientid` (key: `"clientid"`, type: `"string"`, placeholder: `"Enter Client id"`, required: `true`, disableField: `true`), `clientsecret` (key: `"clientsecret"`, type: `"string"`, placeholder: `"Enter Client Secret"`, required: `true`, disableField: `true`), and `redirectUrl` (key: `"redirectUrl"`, value: `"https://auth.viasocket.com/redirect/auth2.0"` for Prod, `"https://dev-auth.viasocket.com/redirect/auth2.0"` for Dev, `"http://localhost:3000/redirect/auth2.0"` for Local) inside `authfields.authentication.fields`. 
    * **Mandatory Redirect URL in Manual Setup:** In a manual setup, the `redirectUrl` field **must** be present in `authfields.authentication.fields`. If `redirectUrl` is omitted, user-supplied credentials are invalid, and the `clientid` and `clientsecret` fields will be disabled.
 4. **Configure Authorization Endpoint** *(Required)* → Authorization URL, requested Scopes (space- or comma-joined), core param `response_type=code`, PKCE params (`code_challenge_method=S256` recommended), and any additional provider-specific params (`access_type=offline`, `prompt=consent`, `audience=api`, etc.). Some providers require Base64-encoded client credentials — verify against the API docs.
+   - **Dynamic URL Template Interpolation (`authrequrl`):** For services with dynamic tenant domains or environments, interpolate user input directly into `authrequrl` using `${context.authData.<fieldName>}` (or `${context?.authData?.<fieldName>}`):
+     - Fourthwall: `https://${context.authData.subdomain}.fourthwall.com/admin/platform-apps/a.045c9ea0-ceb0-4bb5-bf5c-fcfc756c4bff/connect`
+     - Shopify: `https://${context.authData.shop}.myshopify.com/admin/oauth/authorize`
+     - Salesforce: `https://${context?.authData?.environment}.salesforce.com/services/oauth2/authorize`
+     - Zoho CRM: `https://accounts.zoho.${context.authData.domain}/oauth/v2/auth`
 5. **Configure Access Token API** *(Required)* → `POST` to the Token Endpoint exchanging the authorization code for `access_token` (+ optional `refresh_token`). Built with `axios`, returning `response.data`. Stored under a key such as `context.authData?.accesstokencode?.access_token`. The authorization code is read from `context?.authData?.Authorization?.code`. When PKCE is enabled, the code verifier is read from `context?.authData?.code_verifier` and must be included as `code_verifier` in the request body.
-6. **Configure Refresh Token API** → `POST` to the Token Endpoint with `grant_type=refresh_token` and the stored `refresh_token`, returning a fresh `access_token`. Same code pattern as Step 5.
+   - **Short-to-Long Token Exchange Pattern (Facebook / Instagram):** If an API returns short-lived tokens upon code exchange, `accesstokencode` must immediately invoke the provider's token exchange endpoint (e.g. `grant_type=fb_exchange_token` or `grant_type=ig_exchange_token`) to obtain a 60-day long-lived token before returning `response.data`.
+   - **Manual Expiry Override (`expires_in`):** If an OAuth endpoint omits `expires_in` or returns non-standard duration values, manually assign `response.data.expires_in = 7200` (Salesforce) or `864000` (Instagram) before returning to ensure viaSocket's token refresh automation executes at the correct interval.
+6. **Configure Refresh Token API** → `POST` to the Token Endpoint with `grant_type=refresh_token` and the stored `refresh_token`, returning a fresh `access_token`. Same code pattern as Step 5. Supports token exchange/refresh queries and custom `expires_in` overrides where applicable.
 7. **Configure Revoke Token API** → Calls the provider's revoke endpoint with the active token, pulled from `context.authData`, to cleanly disconnect.
 8. **Configure Test (Me) API** *(Required)* → Authenticated `GET /me` (or equivalent User/Profile endpoint; if unavailable, any suitable lightweight authenticated endpoint like `GET /workspaces` or `GET /teams`) using `Authorization: Bearer <access_token>`. Validates token exchange, header injection, and scope sufficiency together.
 9. **Add Connection Label** → Human-friendly identifier mapped from the Test API response (e.g. `authData.testcode.profile.real_name`); maskable.
-10. **Add Icon** → Visual icon for the connection (path expression to extract the verified connection icon, e.g. user photo/avatar or workspace icon, from the Test API response; this is NOT the service icon. Only fill if the Test API provides a verified connection icon, otherwise leave empty).
+10. **Add Icon** → Visual icon for the connection (path expression to extract verified connection icon, e.g. user photo/avatar or workspace icon, from the Test API response; this is NOT the service icon. Only fill if the Test API provides a verified connection icon, otherwise leave empty).
+    - **Dynamic Avatar/Photo Extraction (`iconurlpath`):** Set to extract the user's avatar or profile picture from `testcode`:
+      - Facebook: `"${context?.authData?.testcode?.picture?.data?.url}"`
+      - Instagram: `"${context?.authData?.testcode?.profile_picture_url}"`
+      - Google Sheets: `"${context?.authData?.testcode?.picture}"`
 11. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 12. **Add Unique Connection Identifier** *(optional)* → Stable field from the Test/Token response (e.g. `user_id`, `workspace_id`) used to prevent duplicate connections for the same account; enables update-instead-of-duplicate behavior. Leave blank if no reliable stable field exists.
 13. **Set Request Parameters** *(Final, Required)* → Dynamic JS functions building Headers (e.g. `Authorization: Bearer ${context.authData?.accesstokencode?.access_token}`), Query Params, and Body defaults for every request.
+    - **Custom Header Schemes:** E.g., `Authorization: Zoho-oauthtoken ${context?.authData?.accesstokencode?.access_token}`.
+    - **Custom Header Keys:** E.g., `X-Shopify-Access-Token: ${context?.authData?.accesstokencode?.access_token}`.
+    - **Query Parameter Token Injection (`queryParams`):** If the service expects the access token as a URL query param rather than a header (e.g. Instagram Graph API `access_token`), define it inside `authenticationpaths.queryParams` (`return context.authData?.accesstokencode.access_token`).
 
 #### Authorization Code Common Auth Fields
 - **String / Password / Dropdown** *(Step 1 only)* — Pre-auth contextual values (subdomain, region, environment, tenant ID).
@@ -327,6 +345,7 @@ return await testcode();
 - **Prefer Global/Internal Client Setup:** Always prefer setting up `clientid` and `clientsecret` globally/internally via dedicated root keys so no credentials input fields are created for end users.
 - **Manual Setup Requirements:** If manual setup is explicitly requested, root `clientid` and `clientsecret` must be null, and `clientid`, `clientsecret`, and `redirectUrl` (`https://auth.viasocket.com/redirect/auth2.0` in Prod, `https://dev-auth.viasocket.com/redirect/auth2.0` in Dev, `http://localhost:3000/redirect/auth2.0` in Local) must be included inside `authfields.authentication.fields`. Without `redirectUrl`, user-entered client credentials will not be validated and will be disabled.
 - **Scope Separator Format (`scopeseperatedby`):** Strictly use the literal word strings `"space"` or `"comma"` (or `null`). NEVER pass a literal space character `" "` or comma character `","` (WRONG: `"scopeseperatedby": " "`, CORRECT: `"scopeseperatedby": "space"` or `"scopeseperatedby": "comma"`).
+- **Worked Examples Reference:** For complete, real-world production configurations of Salesforce, Trello, Zoho CRM, Commerce Layer, Shopify, Fourthwall, Facebook Lead Ads, Instagram for Business, and Google Sheets, consult [dh-connection-examples.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/knowledge-base/dh-connection-examples.md).
 
 ---
 

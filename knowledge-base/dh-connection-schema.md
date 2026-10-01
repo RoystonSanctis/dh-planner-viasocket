@@ -78,7 +78,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "pluginrecordid": "String (Foreign key referencing the parent plugin record, e.g., \"rowgt678e7la\")",
   "pluginname": "String (Human-readable name of the plugin/service, e.g., \"Notion\")",
   "pluginiconurl": "String | null (URL to the plugin icon hosted on CDN, e.g., \"https://stuff.thingsofbrand.com/notion.com/images/imgf_notion.png\")",
-  "iconurlpath": "String | null (Path to extract verified connection icon from Test API response, e.g., \"context.authData?.testcode?.avatar_url\" or \"context?.authData?.testcode?.[\\\"avatar_url\\\"]\" or \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise empty \"\" or null which defaults to pluginiconurl)",
+  "iconurlpath": "String | null (Path to extract verified connection icon from Test API response, e.g., \"context.authData?.testcode?.avatar_url\" or \"context?.authData?.testcode?.[\\\"avatar_url\\\"]\" or \"${context?.authData?.testcode?.picture?.data?.url}\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise empty \"\" or null which defaults to pluginiconurl)",
   "domain": "String (Primary domain of the service, e.g., \"notion.com\")",
   "whitelistdomains": "Array (List of allowed domains for outgoing API requests. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"notion.com\", \"api.notion.com\"])",
   "skipwhitelistvalidation": "Boolean | null (When true, bypasses domain whitelist checks; null means default validation applies)",
@@ -93,7 +93,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "granttype": "String | null (OAuth2 sub-flow type: \"Authorization Code\" | \"Implicit\" | \"Client Credentials\" | \"Password Credentials\"; null for Basic, Auth1, NoAuth)",
   "clientid": "String | null (OAuth2 Client ID or OAuth1 Consumer Key stored at dedicated root level; null for Basic, NoAuth, Password Credentials, or for Authorization Code flow when custom client-side/manual credentials are used under authfields)",
   "clientsecret": "String | null (OAuth2 Client Secret or OAuth1 Consumer Secret stored at dedicated root level; encrypted string when isencrypted=true; null for Implicit, Basic, NoAuth, Password Credentials, or for Authorization Code flow when custom client-side/manual credentials are used under authfields)",
-  "authrequrl": "String | null (Authorization endpoint URL for OAuth redirect flows; supports context template interpolation; null for Basic, Auth1, NoAuth, and Password Credentials)",
+  "authrequrl": "String | null (Authorization endpoint URL for OAuth redirect flows; natively supports JS template literal interpolation referencing user auth fields, e.g. `https://${context.authData.subdomain}.fourthwall.com/admin/platform-apps/.../connect`, `https://${context.authData.shop}.myshopify.com/admin/oauth/authorize`, `https://${context?.authData?.environment}.salesforce.com/services/oauth2/authorize`, `https://accounts.zoho.${context.authData.domain}/oauth/v2/auth`; null for Basic, Auth1, NoAuth, and Password Credentials)",
   "redirecturl": "String | null (ViaSocket OAuth callback URL. Auth2.0: Prod: \"https://auth.viasocket.com/redirect/auth2.0\", Dev: \"https://dev-auth.viasocket.com/redirect/auth2.0\", Local: \"http://localhost:3000/redirect/auth2.0\"; Auth1: \"https://auth.viasocket.com/redirect/auth1\" | null)",
   "queryparams": "String (Stringified JSON of static query params appended to authrequrl, e.g., \"{\\\"response_type\\\":\\\"code\\\",\\\"scope\\\":\\\"user.read\\\"}\"; \"{}\" when no params needed). OAuth connection scopes are passed in the 'scope' key inside this JSON object and MUST strictly contain ONLY the minimal scopes required for the Test (Me) API / initial connection establishment. Action- and trigger-specific scopes are never added here (they are configured on individual actions and triggers via the 'scopes' key in dh-database-schema).",
   "scopeseperatedby": "String | null (Delimiter for joining OAuth scope values: \"comma\" | \"space\" | null. STRICTLY the literal word strings \"comma\" or \"space\", or null. NEVER use \" \" or \",\" or \"\").",
@@ -115,12 +115,15 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
         {
           "key": "String (Unique field identifier referenced in code as context?.authData?.<key>, e.g., \"token\")",
           "label": "String (Human-readable display label shown in UI, e.g., \"API Key\")",
-          "type": "String (Input field type: \"string\" | \"password\")",
+          "type": "String (Input field type: \"string\" | \"password\" | \"dropdown\")",
           "required": "Boolean (Whether the user must fill this field to create the connection, e.g., true)",
           "help": "String (Help text displayed below the input supporting both HTML and Markdown. Must guide the user on where to find the value, followed by a direct Markdown link `[here](url)` if available. E.g., \"Please enter your API Key. You can generate this key from your account Settings -> Developer -> API Key, or click [here](https://example.com/api-keys).\")",
           "placeholder": "String (Example value shown inside the input, e.g., \"https://your-domain.okta.com\")",
           "value": "String (Default pre-filled value; empty string means no default, e.g., \"\")",
-          "source": "String (URL linking to official docs where the user can find this field's value)",
+          "source": "String (For dropdowns: JS returning array of options. Or URL linking to official docs)",
+          "children": "Array (For dropdowns: array of option objects [{ label, value, sample }])",
+          "scheme": "String (Optional URL scheme prefix for subdomain inputs, e.g., \"https\")",
+          "tld": "String (Optional top-level domain suffix for subdomain inputs, e.g., \"fourthwall.com\". When scheme and tld are provided, viaSocket renders a dedicated subdomain input widget prefixing https:// and suffixing .<tld> so the user only enters the subdomain slug)",
           "visibilityCondition": "String (JS expression evaluated to determine field visibility; references context.authData)"
         }
       ]
@@ -130,8 +133,8 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "authenticationpaths": {
     "headers": [
       {
-        "name": "String (HTTP header name to inject, e.g., \"Authorization\")",
-        "value": "String (JS expression or named function returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
+        "name": "String (HTTP header name to inject, e.g., \"Authorization\" or \"X-Shopify-Access-Token\")",
+        "value": "String (JS expression or named function returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\" or \"return `Zoho-oauthtoken ${context?.authData?.accesstokencode?.access_token}`\")"
       }
     ],
     "body": [
@@ -142,8 +145,8 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     ],
     "queryParams": [
       {
-        "name": "String (Query parameter name to inject, e.g., \"api_key\")",
-        "value": "String (JS expression or named function returning the query param value, e.g., \"return context?.authData?.clientsecret\")"
+        "name": "String (Query parameter name to inject, e.g., \"api_key\" or \"access_token\")",
+        "value": "String (JS expression or named function returning the query param value, e.g., \"return context?.authData?.clientsecret\" or \"function returnAccessToken(){ return context.authData?.accesstokencode.access_token } return returnAccessToken()\")"
       }
     ]
   },
@@ -552,13 +555,15 @@ skipwhitelistvalidation: null (null if not set)
               "value": "String (Option value, e.g., \"value1\")",
               "sample": "String (Sample value for the option, e.g., \"sample1\")"
             }
-          ]
+          ],
+          "scheme": "String (Optional URL scheme prefix for subdomain inputs, e.g., \"https\")",
+          "tld": "String (Optional top-level domain suffix for subdomain inputs, e.g., \"fourthwall.com\")"
         }
       ]
     }
   },
 
-  "authrequrl": "String (Authorization endpoint URL, e.g., \"https://api.notion.com/v1/oauth/authorize\")",
+  "authrequrl": "String (Authorization endpoint URL, e.g., \"https://api.notion.com/v1/oauth/authorize\"; supports template interpolation like `https://${context.authData.subdomain}.fourthwall.com/...` or `https://${context.authData.shop}.myshopify.com/...`)",
   "queryparams": "String (Stringified JSON of query parameters, e.g., \"{\\\"response_type\\\":\\\"code\\\",\\\"scope\\\":\\\"user.read\\\"}\". OAuth connection scopes are passed via the 'scope' key inside this object and MUST only include the minimal scopes needed for the Test (Me) API / connection establishment)",
   "scopeseperatedby": "String | null (Scope separator type: \"comma\" | \"space\" | null. Must be literal word \"comma\" or \"space\", NEVER \" \" or \",\").",
 
@@ -572,7 +577,7 @@ skipwhitelistvalidation: null (null if not set)
   "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.testcode?.name}\" or \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
-  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
+  "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"${context?.authData?.testcode?.picture?.data?.url}\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
 
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
@@ -581,14 +586,14 @@ skipwhitelistvalidation: null (null if not set)
   "authenticationpaths": {
     "headers": [
       {
-        "name": "String (Header name, e.g., \"Authorization\")",
+        "name": "String (Header name, e.g., \"Authorization\" or \"X-Shopify-Access-Token\")",
         "value": "String (JS code returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
       }
     ],
     "queryParams": [
       {
-        "name": "String (Query param name, e.g., \"Query params\")",
-        "value": "String (JS code returning the query param value, e.g., \"return \\\"query\\\";\")"
+        "name": "String (Query param name, e.g., \"access_token\" or \"api_key\")",
+        "value": "String (JS code returning the query param value, e.g., \"return context.authData?.accesstokencode.access_token\")"
       }
     ],
     "body": [

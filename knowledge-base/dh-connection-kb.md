@@ -120,7 +120,20 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
   - **Prod**: `https://auth.viasocket.com/redirect/auth2.0`
   - **Dev**: `https://dev-auth.viasocket.com/redirect/auth2.0`
   - **Local**: `http://localhost:3000/redirect/auth2.0`
+- **Dynamic Field Mapping in `authrequrl` & Endpoints**: When authorization depends on user-specific inputs (`subdomain`, `shop`, `environment`, `domain`), collect them in `authfields` and dynamically interpolate them into `authrequrl`, `testcode`, and token endpoints via `${context.authData.<key>}`:
+  - *Subdomain*: `https://${context.authData.subdomain}.fourthwall.com/...`
+  - *Store Name*: `https://${context.authData.shop}.myshopify.com/admin/oauth/authorize`
+  - *Environment*: `https://${context?.authData?.environment}.salesforce.com/services/oauth2/authorize`
+  - *Multi-Datacenter Domain*: `https://accounts.zoho.${context.authData.domain}/oauth/v2/auth`
+- **Subdomain Input Formatting (`scheme` and `tld`)**: When collecting a tenant subdomain, define `"scheme": "https"` and `"tld": "<domain.com>"` (e.g. `scheme: "https"`, `tld: "fourthwall.com"`) on the field inside `authfields.authentication.fields`. The UI renders `https://` prefix and `.<domain.com>` suffix around the input box so users only enter the slug.
+- **Short-to-Long Token Exchange Pattern**: For providers returning short-lived tokens (e.g. Meta Graph API for Facebook Lead Ads and Instagram for Business), `accesstokencode` executes a two-step exchange: first exchanging auth code for a short-lived token, then immediately exchanging it for a 60-day long-lived token via `grant_type=fb_exchange_token` or `ig_exchange_token` before returning.
+- **Custom Auth Injections**:
+  - Custom header prefix: e.g. Zoho CRM uses `Authorization: Zoho-oauthtoken <token>`.
+  - Custom header key: e.g. Shopify uses `X-Shopify-Access-Token: <token>`.
+  - Query parameter injection: When an API expects tokens as URL parameters (e.g. Instagram Graph API), configure `authenticationpaths.queryParams` with `{ name: "access_token", value: ... }` and leave `headers` empty.
+- **Dynamic Connection Avatar (`iconurlpath`)**: Extract user avatar or workspace photo from test API response: e.g. `"${context?.authData?.testcode?.picture?.data?.url}"` (Facebook), `"${context?.authData?.testcode?.profile_picture_url}"` (Instagram), `"${context?.authData?.testcode?.picture}"` (Google).
 - **Rules**: Minimal scopes in `queryparams.scope` (strictly those required for the Test/Me API or baseline connection); action/trigger-specific scopes belong on individual actions/triggers in `dh-database-schema.md` via the `scopes` key; `scopeseperatedby` strictly `"space"`, `"comma"`, or `null` (never `" "` / `","`); verify Base64/content-type needs for the token call. `authenticationpaths.headers` must inject the Bearer token (empty `headers` → every request 401s).
+- *See [dh-connection-examples.md](file:///Users/royston/Github/viaSocket/dh-planner-viasocket/knowledge-base/dh-connection-examples.md) for full production examples (Salesforce, Trello, Zoho CRM, Commerce Layer, Shopify, Fourthwall, Facebook Lead Ads, Instagram for Business, Google Sheets).*
 
 ## OAuth 2.0 Client Credentials
 - **Flow (10)**: Fields? → Access Token API (`grant_type=client_credentials`, `scope`; usually no refresh token) → Refresh Token API (re-request with same credentials) → Revoke Token API (token + client credentials) → Test (Me) API (`/me`, `/account`, else `/status`, `/ping`) → Connection Label → Icon → Whitelist Domains → Set Request Parameters (Bearer).
