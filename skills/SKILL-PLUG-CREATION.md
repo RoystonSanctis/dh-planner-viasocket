@@ -40,9 +40,12 @@ node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
 2. **Research** the official docs (`/docs`, `/developers`, `/api`, `llms.txt`, `openapi.json`; a spec beats prose):
    every entity and endpoint (method, path, all params, body, response example, pagination, errors), auth (connection
    KB priority; nothing documented → stop and ask for the auth type and docs, never fall back to No Auth), every API
-   host, webhooks (one per app?), rate limits. Cover ALL triggers and actions; skip auth/admin/deprecated/response-less endpoints.
-3. **Plan** — design every item per the KB and self-review against KB "Review & Priorities" (P0/P1 = 0). Post the
-   plan in a few lines, then execute straight away — no approval wait.
+   host, webhooks (one per app?), rate limits. Cover ALL triggers and actions; skip auth/admin/deprecated/response-less
+   endpoints. List all possible triggers and actions discovered and propose them to the user, grouped by entity/category
+   (name, trigger/action type [Instant `hook`, Manual `manual_webhook`, Scheduled `polling`, or Action], HTTP method,
+   path, description, verified `source_doc_url`, plus documented rate limits and any excluded endpoints with reasons).
+3. **Plan** — design every item from the proposed list per the KB and self-review against KB "Review & Priorities"
+   (P0/P1 = 0). Post the plan in a few lines, then execute straight away — no approval wait.
 4. **Execute by level** — one `node dh.mjs batch @Ln.json` per level, feeding its ids into the next:
 
    | Level | Ops (§3) | Needs |
