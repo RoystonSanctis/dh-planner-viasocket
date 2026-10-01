@@ -267,8 +267,7 @@ Set flags from verified API capability; an existing component that already pagin
 
 - `offset` = next cursor; `null` at the end.
 - Both flags, while `__searchText` is set: don't send the stored cursor; return the current cursor as `offset` (ignore the search API's) so exiting search resumes paging.
-- Search text: `__searchText`. Cursor: `context?.paginateData?.['<key>']`; inside groups `['<group>.<key>']` (nested group keys in order).
-- Prefer a reusable component. Inline code defines the function and invokes it at the end, inside `try/catch → errorComponent`.
+- **Dynamic Dropdowns, Multiselects & Dynamic Fields**: Prefer a reusable component for dynamic dropdowns, multiselects (`optionsGenerator`), and dynamic input groups (`fieldsGenerator`). Creation of new reusable components is primarily focused on dynamic fields rather than creating components for standard perform code or trigger blocks. Inline code defines the function and invokes it at the end, inside `try/catch → errorComponent`.
 
 **Custom Mapping Mode** (dropdown, multiselect, boolean—static and dynamic; triplet mandatory there, invalid on other types)
 - **Standard Mode**: shows `label` (`"Page"`), `help` (`"Select..."`), `placeholder`.
@@ -520,13 +519,18 @@ return await executeAction();
 ---
 
 # Reusable Components
-JS logic stored once; usable in any code block (generators, perform, trigger blocks), never in static fields. Hides sensitive logic and removes duplication; prefer them in `optionsGenerator`.
-- **No Component-in-Component Calls (Single Component Rule)**: **Avoid calling components inside components.** Each reusable component must be a single, standalone component created and added/mapped for its specific operation or dynamic dropdown/field. For example, in Google Sheets:
+Reusable components are supported across all code blocks (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) and field generators (`optionsGenerator`, `fieldsGenerator`).
+- **Creation Focus**: Current authoring/creation focus for reusable components is on **dynamic fields**—specifically dynamic `dropdown` and `multiselect` fields (`optionsGenerator`), and dynamic input groups (`fieldsGenerator`). Avoid creating reusable components all the time for perform code or general utilities when direct code execution is sufficient.
+- **Mapping Path Rules**:
+  - **Dedicated Section Key Path**: For code blocks, `path` MUST be the dedicated section key: `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, or `modifytriggerdata`.
+  - **Field Key Path**: When mapping a component in the `optionsGenerator` of a dynamic `dropdown`, `multiselect`, or dynamic input group (`fieldsGenerator`), `path` MUST be the field key (e.g., `"page_id"`).
+  - **No Nested Input Group Path**: In case of fields present inside an input group, `path` is STILL strictly the field key itself (e.g., `"page_id"`), NOT a nested input group path (such as `"input_group_key.page_id"`).
+- **No Component-in-Component Calls (Single Component Rule)**: **Avoid calling components inside components.** Each reusable component must be a single, standalone component created and added/mapped for its specific dynamic dropdown, multiselect, dynamic field, or code block. For example, in Google Sheets:
   - For the `spreadsheet` dropdown: create a single reusable component `fetchSpreadsheet` (fetches and returns spreadsheets directly).
   - For the `subsheet` dropdown: create a separate single reusable component `fetchSubsheet` (takes `spreadsheetId` as a parameter and fetches subsheets directly using `axios`).
   - `fetchSubsheet` must **NEVER** call `fetchSpreadsheet` or any other reusable component. Each component is completely self-contained.
 - **Parts**: **Name** (unique camelCase; immutable once used), **Parameters**, **Code** (raw `try...catch` body, no function wrapper, params as globals, `catch (error) { throw error; }`).
-- **Caller Pattern (`optionsGenerator`)**: reads inputs/globals and passes them as params:
+- **Caller Pattern (`optionsGenerator` / `fieldsGenerator`)**: reads inputs/globals and passes them as params:
   ```javascript
   try {
     return await listTallyForms(context.inputData.workspaceId, context?.paginateData?.['formid']);
@@ -546,7 +550,7 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
 - **Client-Side Pagination**: Paginated component (`{ data, offset }`) inside a non-paginated dropdown (`canPaginate: false`) or dynamic multiselect → `optionsGenerator` loops all pages and returns a flat array.
 - **Reuse & Update**: Search existing components first; reuse if suitable. Mapped/active: never change `function_name`/`params`—code-only changes update in place; new params needed → new component. Unused: fully editable.
 - **No Creation of `errorComponent` (Backend Auto-Created)**: An `errorComponent` reusable component must **NEVER** be created manually or via `create/reusable_components` payloads—it is created automatically by the backend. To map it to an action or trigger version, fetch the reusable components (`get/reusable_components?identifier=${pluginId}&filter=dhGetReusableComponentDetails` or `Fetch_Reusable_Components_Details`) to find the `errorComponent` component ID (`rowid`), and map it using that component ID across all blocks/paths where `await errorComponent(error)` is invoked. If the plugin API returns error messages or codes in different keys/paths (e.g., `error`, `errors`, `detail`, `error.code`, `error_code`, `code`), update the existing `errorComponent` reusable component so its `code` and `message` assignments check those provider-specific error keys before fallback.
-- **Mapping Requirement**: Every component called in generators or code blocks must be mapped (see Mapping payload).
+- **Mapping Requirement**: Every component called in code blocks or field generators must be mapped to its corresponding `path` (see Mapping payload).
 
 ---
 
@@ -560,9 +564,12 @@ JS logic stored once; usable in any code block (generators, perform, trigger blo
   - *Scheduled*: `perform`, `performlist`, `transferoption`, `scheduleTimeOptions` (allowed minutes; `[]` = all; restrict e.g. `[5, 15, 60, 720, 1440]` for rate limits), `canpaginate` (`true` when perform uses `context.paginationData`).
   - *Manual*: `performlist`, `modifytriggerdata`.
 - **Reusable Component**:
-  - *Create*: `function_name` (camelCase; NEVER create `errorComponent` as it is created automatically by the backend), `description`, `params: [{name, sample}]` (string samples double-quoted `'"field ID"'`; other types raw), `code` (raw try-catch body), `function_code` (full async function wrapping name, params, code), `pluginrecordid`, `componentgenerationsource` (`userGenerated`/`aiGenerated`), `functionId` (action version ID).
+  - *Create*: `function_name` (camelCase; creation focus is on dynamic dropdowns, multiselects, and dynamic fields (`fieldsGenerator`); avoid creating components all the time for perform code; NEVER create `errorComponent` as it is created automatically by the backend), `description`, `params: [{name, sample}]` (string samples double-quoted `'"field ID"'`; other types raw), `code` (raw try-catch body), `function_code` (full async function wrapping name, params, code), `pluginrecordid`, `componentgenerationsource` (`userGenerated`/`aiGenerated`), `functionId` (action version ID).
   - *Update*: `rowid`, `description`, `code`, `function_code`, `componentgenerationsource`.
-- **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. Acts as a toggle: the same call again unmaps. `path` = block key (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) or the field key of a dynamic dropdown/multiselect/input group—never a group path (`page_id`, not `group.page_id`). For `errorComponent`, fetch reusable components to find its auto-created `component_id` and map it across all blocks invoking `await errorComponent(error)`.
+- **Mapping**: `action_version_id`, `component_id`, `pluginrecordid`, `action_id`, `path`. Acts as a toggle: the same call again unmaps.
+  - Dedicated Section Key Path: For code blocks, `path` is one of `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`.
+  - Field Key Path: When mapping a component in the `optionsGenerator` of a dynamic `dropdown`, `multiselect`, or dynamic input group (`fieldsGenerator`), `path` MUST be the field key (e.g., `page_id`, not `group.page_id`).
+  - For `errorComponent`, fetch reusable components to find its auto-created `component_id` and map it across all blocks invoking `await errorComponent(error)`.
 
 ---
 
@@ -591,8 +598,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Mandatory Optional Chaining (`?.`) in paths: Optional chaining (`?.`) is strictly required in EVERY property access path in code blocks (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Flag as a defect if optional chaining is missing (e.g., `body.form_response` or `formResponseData.definition?.fields`). Rationale: If a key is missing or undefined at runtime, direct access throws an unhandled runtime error (`TypeError: Cannot read properties of undefined`).
 - Every input referenced in code exists in `inputFields`; no orphan fields; valid `visibilityCondition` paths.
 - Base `.data` extraction on every API call (including multi-API calls).
-- JSON schema: `{"steps": {}, "blocks": {}, "inputFields": [...]}` with NO `"item"` array wrappers and NO stringified objects.
-- All reusable components called in code are mapped with a valid `path`. No component-in-component calls: every reusable component must be a single standalone component and never call another component.
+- All reusable components called in code are mapped with a valid `path` (dedicated section key for code blocks, field key for dynamic fields). Creation focus is on dynamic fields (dynamic dropdowns, multiselects, and dynamic input groups via `fieldsGenerator`). No component-in-component calls: every reusable component must be a single standalone component and never call another component.
 - Zero results return an informative `{ message }` or valid empty payload per flag combination. In `LIST`/`GET` actions, if data length is 0, return `message: response?.data?.length ? null : "No data found."` along with `data` and important keys (`pagination`, `has_more`, `success`).
 - **No authentication / API key in code**: Code must NEVER pass API keys, tokens, or credentials in headers (`Authorization`, `x-api-key`, etc.), query parameters, or body payloads. All authentication is injected automatically by the backend via the connection's `authenticationpaths` (`headers`, `body`, or `queryParams`). Flag any direct auth or API key in code as a critical defect. Manual triggers send no `authid` and make no API calls.
 - Required inputs (dependent required included) validated before API calls.

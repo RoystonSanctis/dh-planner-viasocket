@@ -2185,17 +2185,24 @@ return await deleteRecord();
 
 # Reusable Components
 
-Reusable components are modular JavaScript functions stored once per plug and mapped to action/trigger versions. They can be invoked across perform code, trigger blocks, and dropdown `optionsGenerator`s to encapsulate shared logic, prevent code duplication, and isolate complex API handling.
+Reusable components are modular JavaScript functions stored once per plug and mapped to action/trigger versions. Reusable components are supported across all code blocks (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) and field generators (`optionsGenerator`, `fieldsGenerator`).
 
-## Reusable Component Rules & Standalone Isolation
+> [!NOTE]
+> **Creation Focus:** While supported in all code blocks, new component creation is currently focused on **dynamic fields** (dynamic dropdowns and multiselects via `optionsGenerator`, and dynamic input groups via `fieldsGenerator`). Avoid creating components all the time for perform code or general utilities when direct code execution is sufficient.
 
-1. **No Component-in-Component Calls (Single Component Rule)**:
-   - **Avoid calling components inside components.** Each reusable component must be a single, standalone component created and mapped for its specific operation.
+## Reusable Component Rules & Mapping Instructions
+
+1. **Mapping Path Rules**:
+   - **Dedicated Section Key Path:** For code blocks, `path` MUST be the dedicated section key: `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, or `modifytriggerdata`.
+   - **Field Key Path:** When mapping a component in the `optionsGenerator` of a dynamic `dropdown`, `multiselect`, or dynamic input group (`fieldsGenerator`), `path` MUST be the field key (e.g., `"page_id"`).
+   - **No Nested Input Group Path:** In case of fields present inside an input group, `path` is STILL strictly the field key itself (e.g., `"page_id"`), NOT a nested input group path (such as `"input_group_key.page_id"`).
+2. **No Component-in-Component Calls (Single Component Rule)**:
+   - **Avoid calling components inside components.** Each reusable component must be a single, standalone component created and mapped for its specific dynamic dropdown, multiselect, dynamic field, or code block.
    - For example, when building Google Sheets:
      - Dropdown for `spreadsheet`: create a standalone reusable component `fetchSpreadsheet`.
      - Dropdown for `subsheet`: create a separate standalone reusable component `fetchSubsheet` that takes `spreadsheetId` as a parameter and calls the API directly using `axios`.
      - `fetchSubsheet` must **NEVER** call `fetchSpreadsheet` or any other reusable component. Every component must be independent and self-contained.
-2. **Error Handling in Reusable Components**:
+3. **Error Handling in Reusable Components**:
    - In code blocks (perform, trigger blocks, optionsGenerator), errors are caught and passed to `await errorComponent(error)`.
    - In **reusable components**, catch blocks must **NEVER** call `errorComponent`. Instead, they must `throw error;` so the caller's try/catch block can intercept it.
    - For validation failures (e.g. missing parent dependencies), reusable components must `throw` structured fallbacks:

@@ -395,7 +395,10 @@ code: String (raw JS body in try-catch parent format, not wrapped in a function;
 
 ## Reusable Component Action Version Mapping Schema
 
-When a reusable component (new or existing) is used within an action or trigger (e.g., in dropdown fields or code blocks like perform, subscribe, unsubscribe, performlist, transfer option code, or modify trigger data), a mapping entry must be created to link the component to the specific action version and path.
+When a reusable component (new or existing) is used within an action or trigger version, a mapping entry must be created to link the component to the specific action version and path. Reusable components are supported across all code blocks and dynamic field generators.
+
+> [!NOTE]
+> **Creation Focus:** While reusable components are supported in all code blocks, new component creation is currently focused on **dynamic fields** (dynamic dropdowns and multiselects via `optionsGenerator`, and dynamic input groups via `fieldsGenerator`). Avoid creating components all the time for perform code or general utilities when direct code execution is sufficient.
 
 > [!WARNING]
 > The mapping API acts as a toggle (boolean behavior): calling the API the first time maps the reusable component to the path, and calling it again with the same parameters unmaps (removes the link) the reusable component from the path.
@@ -403,9 +406,8 @@ When a reusable component (new or existing) is used within an action or trigger 
 ### Reusable Component Mapping Path Rules
 The `path` parameter specifies where the reusable component is mapped within the action/trigger version:
 - **Dedicated Section Key Path:** For code blocks, `path` MUST be the dedicated section key: `perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, or `modifytriggerdata`.
-- **Field Key Path:** When mapping a component in the `optionsGenerator` of a dynamic `dropdown`, `multiselect`, or dynamic input group, `path` MUST be the field key (e.g., `"page_id"`).
+- **Field Key Path:** When mapping a component in the `optionsGenerator` of a dynamic `dropdown`, `multiselect`, or dynamic input group (`fieldsGenerator`), `path` MUST be the field key (e.g., `"page_id"`).
 - **No Nested Input Group Path:** In case of fields present inside an input group, `path` is STILL strictly the field key itself (e.g., `"page_id"`), NOT a nested input group path (such as `"input_group_key.page_id"`).
-- **Conclusion:** The reusable component mapping `path` is ALWAYS either a **dedicated section key path** (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) OR a **field key** of a dynamic dropdown, multiselect, or dynamic input group.
 
 ### Reusable Component Mapping JSON Schema
 ```json
