@@ -11,6 +11,7 @@ published: true
   - Special Case: Batch Processing
 - Verify Service
 - Subscribe User
+  - Precondition Block Types ("rule", "and", "or", "any", "every")
   - Special Case: Subscribe user but mark verification false
 - Unsubscribe User
 - Get Subscription by ID
@@ -18,6 +19,7 @@ published: true
 - List All Subscriptions by Service Name
 - Toggle Debugging Mode
 - Update Subscription
+- Evaluate / Test Preconditions Utility API
 
 ## Create Service
 
@@ -114,10 +116,158 @@ curl --location 'https://plugservice-api.viasocket.com/api/subscribe' \
 
 - `external_id`: unique identifier that will be received via webhook with `user_extraction_paths`.
 - `webhook`: Flow url to which we should forward the reqeust.
-- `precondition_config`: JSON-based way to define conditions using logical blocks (`and` / `or`) that contain smaller conditions. Each block combines its child conditions, and the smallest unit is a rule that compares a value from the input data (using a path and operator) to an expected value. These blocks can be nested to represent complex boolean logic without writing code.
+- `precondition_config`: JSON-based way to define conditions using logical blocks (`and` / `or`), array evaluation blocks (`any` / `every`), and individual `rule` blocks. These blocks can be nested to represent complex boolean logic without writing code.
 - `metadata`: Optional information if need for a subscription
 
-Below are the operators supported: 
+### Precondition Block Types (`type`)
+
+`precondition_config` supports 5 distinct block types: `"rule"`, `"and"`, `"or"`, `"any"`, and `"every"`. These blocks can be nested to form complex boolean filters.
+
+#### 1. `"type": "rule"` (Atomic Rule)
+The base evaluation block. Compares a field from the incoming webhook payload against an expected value using an operator.
+- `type`: `"rule"`
+- `path`: Target property path in dot notation (e.g. `"body.event.type"`).
+- `operator`: Comparison operator (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`, `nin`, `exists`, `not_exists`).
+- `value`: Target value to compare against (not required for `exists` / `not_exists`).
+
+```json
+{
+  "type": "rule",
+  "path": "body.event.type",
+  "operator": "eq",
+  "value": "message"
+}
+```
+
+#### 2. `"type": "and"` (Logical All)
+Evaluates to `true` if and only if **all** conditions in the `conditions` array evaluate to `true`.
+- `type`: `"and"`
+- `conditions`: Array of child condition blocks (`rule`, `and`, `or`, `any`, `every`).
+
+```json
+{
+  "type": "and",
+  "conditions": [
+    {
+      "type": "rule",
+      "path": "body.event.type",
+      "operator": "eq",
+      "value": "message"
+    },
+    {
+      "type": "rule",
+      "path": "body.event.status",
+      "operator": "eq",
+      "value": "active"
+    }
+  ]
+}
+```
+
+#### 3. `"type": "or"` (Logical Any)
+Evaluates to `true` if **at least one** condition in the `conditions` array evaluates to `true`.
+- `type`: `"or"`
+- `conditions`: Array of child condition blocks (`rule`, `and`, `or`, `any`, `every`).
+
+```json
+{
+  "type": "or",
+  "conditions": [
+    {
+      "type": "rule",
+      "path": "body.event.channel_type",
+      "operator": "eq",
+      "value": "channel"
+    },
+    {
+      "type": "rule",
+      "path": "body.event.channel_type",
+      "operator": "eq",
+      "value": "im"
+    }
+  ]
+}
+```
+
+#### 4. `"type": "any"` (Array - At Least One)
+Evaluates array items in the payload. Evaluates to `true` if **at least one** item in the target array satisfies the specified `condition`.
+- `type`: `"any"`
+- `path`: Dot-notation path to the array in the payload (e.g. `"body.items"`).
+- `condition`: Single condition block evaluated against each array element (`condition.path` is relative to each array element).
+
+```json
+{
+  "type": "any",
+  "path": "body.items",
+  "condition": {
+    "type": "rule",
+    "path": "status",
+    "operator": "eq",
+    "value": "paid"
+  }
+}
+```
+
+#### 5. `"type": "every"` (Array - All)
+Evaluates array items in the payload. Evaluates to `true` only if **all** items in the target array satisfy the specified `condition`.
+- `type`: `"every"`
+- `path`: Dot-notation path to the array in the payload (e.g. `"body.items"`).
+- `condition`: Single condition block evaluated against each array element (`condition.path` is relative to each array element).
+
+```json
+{
+  "type": "every",
+  "path": "body.items",
+  "condition": {
+    "type": "rule",
+    "path": "status",
+    "operator": "eq",
+    "value": "paid"
+  }
+}
+```
+
+#### Nested / Combined Precondition Example
+
+Precondition blocks can be nested arbitrarily to handle complex business filtering:
+
+```json
+{
+  "type": "and",
+  "conditions": [
+    {
+      "type": "rule",
+      "path": "body.event",
+      "operator": "eq",
+      "value": "order_updated"
+    },
+    {
+      "type": "or",
+      "conditions": [
+        {
+          "type": "any",
+          "path": "body.order.line_items",
+          "condition": {
+            "type": "rule",
+            "path": "fulfillment_status",
+            "operator": "eq",
+            "value": "fulfilled"
+          }
+        },
+        {
+          "type": "rule",
+          "path": "body.order.financial_status",
+          "operator": "eq",
+          "value": "paid"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Supported Operators
+Below are the operators supported for `"type": "rule"`:
 - `eq` — equal to
 - `ne` — not equal to
 - `gt` — greater than
@@ -241,3 +391,37 @@ You can update few things in subscriptions:
 
 - `precondition_config`
 - `metadata`: You can decide whether to append to existing metadata by setting `append_metadata` to true, by default it’s false and it will replace whole metadata on update.
+
+## Evaluate / Test Preconditions Utility API
+
+A utility API for testing and evaluating precondition rules against sample webhook payloads before saving or updating a subscription. It requires only the `precondition_config` rule definition and the test `payload`:
+
+```bash
+curl -X POST 'https://plug-service.viasocket.com/api/preconditions/evaluate' \
+  -H "Content-Type: application/json" \
+  -H "auth_token: {{auth_token}}" \
+  -d '{
+    "precondition_config": {
+      "type": "any",
+      "path": "body.items",
+      "condition": {
+        "type": "rule",
+        "path": "status",
+        "operator": "eq",
+        "value": "paid"
+      }
+    },
+    "payload": {
+      "body": {
+        "items": [
+          { "status": "pending" },
+          { "status": "paid" }
+        ]
+      }
+    }
+  }'
+```
+
+- `precondition_config`: The precondition rule/tree (`rule`, `and`, `or`, `any`, `every`) to validate.
+- `payload`: The sample webhook JSON payload (`body`, `headers`, `query`) to test against.
+- **Evaluation**: Returns whether the test payload satisfies the configured precondition rules.
