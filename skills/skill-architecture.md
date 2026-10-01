@@ -139,11 +139,11 @@ Automatic behaviour:
 * **Syntax check before a write** — code blocks (`perform`, `performlist`, `performsubscribe`, `performunsubscribe`,
   `modifytriggerdata`, `transferoption`, component `code`), connection code, every field generator (recursively) and
   every `authenticationpaths` value (must be a function body that `return`s).
-* **Provenance** — `create/*` gets a `metadata.aiLogs` `CREATED_BY_AI` entry (+ `metadata.createdBy` on plugs);
+* **Provenance** — `create/*` gets a `metadata.aiLogs` `CREATED_BY_SKILL_AI` entry (+ `metadata.createdBy` on plugs);
   `create/actions` then sets `isaiaction` + `aiorgid` and returns `{ actionId, versionId }` (a failed follow-up
   returns the ids with a `warning`, so nothing is created twice).
 * **MERGE** — reads the row, keeps every metadata key, deep-merges `metadata.aiContext` (nested objects merged, arrays replaced; + `updatedAt`) and appends an
-  `UPDATED_BY_AI` entry (optional `note`).
+  `UPDATED_BY_SKILL_AI` entry (optional `note`).
 * **COPY** — reads the parent's rows, copies the one with `rowid` minus DB-managed keys (`rowid`, `autonumber`,
   timestamps, creator keys, `metadata`; connections also `pluginname`, `pluginiconurl`, `domain`, `isencrypted`,
   `clientsecret`; versions also `version`, `versionid`, `status`, `isdeleted`, `actionversionrecordid`,

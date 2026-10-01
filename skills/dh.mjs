@@ -79,7 +79,7 @@ async function run({ method, path, body, keys }) {
     const meta = obj(current.metadata)
     const { note, by, metadata, ...changes } = body || {}
     const aiContext = metadata?.aiContext ? { aiContext: { ...deep(meta.aiContext || {}, metadata.aiContext), updatedAt: now() } } : {}
-    return call('PUT', path, { ...changes, metadata: { ...meta, ...metadata, ...aiContext, aiLogs: [...(meta.aiLogs || []), entry(by || 'UPDATED_BY_AI', note)] } })
+    return call('PUT', path, { ...changes, metadata: { ...meta, ...metadata, ...aiContext, aiLogs: [...(meta.aiLogs || []), entry(by || 'UPDATED_BY_SKILL_AI', note)] } })
   }
   if (method === 'COPY') {
     const [, table, parent] = path.match(/^get\/(\w+)\?identifier=([^&]+)/) || []
@@ -99,7 +99,7 @@ async function run({ method, path, body, keys }) {
     }
     if (method === 'POST' && path.startsWith('create/') && !path.includes('component_table')) {
       const m = (body.metadata = obj(body.metadata))
-      m.aiLogs = [...(m.aiLogs || []), entry('CREATED_BY_AI')]
+      m.aiLogs = [...(m.aiLogs || []), entry('CREATED_BY_SKILL_AI')]
       if (path.startsWith('create/plugins')) m.createdBy ??= { type: 'AI', agent: 'ai', skill: cfg.skill, orgId: cfg.orgId, time: now() }
     }
   }
@@ -109,7 +109,7 @@ async function run({ method, path, body, keys }) {
     const ids = { actionId: row?.rowid, versionId: r?.data?.actionVersionData?.data?.[0]?.rowid }
     if (!ids.actionId || !ids.versionId) throw new Error(`created but no ids returned — check getAllActions before retrying: ${JSON.stringify(r).slice(0, 300)}`)
     try {
-      await run({ method: 'MERGE', path: `update/actions?identifier=${ids.actionId}&filter=updateActionDetails`, body: { isaiaction: true, aiorgid: cfg.orgId, by: 'CREATED_BY_AI', note: 'isaiaction set' } })
+      await run({ method: 'MERGE', path: `update/actions?identifier=${ids.actionId}&filter=updateActionDetails`, body: { isaiaction: true, aiorgid: cfg.orgId, by: 'CREATED_BY_SKILL_AI', note: 'isaiaction set' } })
     } catch (e) {
       ids.warning = `created; isaiaction not set — rerun only that MERGE: ${e.message.slice(0, 200)}`
     }
