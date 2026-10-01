@@ -102,8 +102,9 @@ flowchart TD
    it overrides the KB payload schemas) and the tool. Design and runtime knowledge (UX, fields, naming, code rules,
    runtime globals and limits, review priorities) lives in `knowledge-base/`; detailed files are read on demand with
    `node dh.mjs kb <file> "Heading"`.
-3. **Research → plan → execute.** Ask only at the start if a required input is missing; post the plan in plain
-   language, then execute without an approval pause.
+3. **Research → plan → execute.** Ask all clarifications upfront at the start (missing inputs, unverified API docs or
+   curl, auth details); once proceeding with creation, do not ask or interrupt — post a high-level plan and execute
+   without an approval pause.
 4. **One shared tool.** All three skills use `skills/dh.mjs`, downloaded by the setup (`curl -sfLO …/skills/dh.mjs`).
    The model never reads the tool code — the skill documents only its commands — and there is one file to maintain.
 5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; `batch` runs 4 at a time per level.
