@@ -17,9 +17,12 @@ description: >-
 decide all design). **Already in context — don't re-fetch:** the GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → GET it (§3).
 
 **Rules**
-- Fill every `{{…}}` from your inputs. USECASE empty → every trigger and action. Ask all clarifications at the very
-  beginning (missing ORG_ID, APP_DOMAIN, API_BASE, token, or unverified REST API docs/curl/auth). Once proceeding with
-  creation, never ask the user or interrupt — execute quietly to completion.
+- Fill every `{{…}}` from your inputs. Prefer OAuth 2.0 (`Auth2.0`) first; if not supported, use another documented
+  method per connection KB priority (Basic Auth/API key, OAuth 1.0) — don't ask the user (ask only if auth is
+  completely undocumented). In the research phase, ask the user to choose the trigger/action scope: (1) Core functionality
+  triggers/actions or (2) List all triggers/actions. Ask all other clarifications (missing ORG_ID, APP_DOMAIN, API_BASE,
+  token, or unverified REST API docs/curl) strictly at the start. Once proceeding with creation (Plan & Execute), never
+  ask the user or interrupt — execute quietly to completion.
 - Chat output style: user-friendly, plain language, and short. Never output internal technical steps (commands, tool
   calls, API payloads, batch levels, or internal IDs) — present only the concise outcome.
 - The token lives only in `.dh-run/config.json` — never print, log or commit it. Never ask for client ID/secret, API
@@ -41,16 +44,19 @@ node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
    is missing or requested; its `metadata.aiContext` holds earlier findings — re-verify. Else create a plug.
 2. **Research** the official docs (`/docs`, `/developers`, `/api`, `llms.txt`, `openapi.json`; a spec beats prose):
    every entity and endpoint (method, path, all params, body, response example, pagination, errors), auth (connection
-   KB priority), every API host, webhooks (one per app?), rate limits. Ask all clarifications upfront here: if the REST
-   API or auth is not verified, ask the user for the official API doc or curl right now (never guess or use placeholder
-   endpoints). Cover ALL triggers and actions; skip auth/admin/deprecated/response-less endpoints. List all possible
-   triggers and actions discovered and propose them to the user, grouped by entity/category (name, trigger/action type
-   [Instant `hook`, Manual `manual_webhook`, Scheduled `polling`, or Action], HTTP method, path, description, verified
-   `source_doc_url`, plus documented rate limits and any excluded endpoints with reasons). Once proposed, proceed to
-   creation without asking or interrupting.
-3. **Plan** — design every item from the proposed list per the KB and self-review against KB "Review & Priorities"
-   (P0/P1 = 0). Keep it to a few high-level lines (no internal technical steps), then proceed straight to creation — no
-   approval wait, no interruptions.
+   KB priority: prefer OAuth 2.0 (`Auth2.0`) first; if not present, use another documented method per KB priority —
+   don't ask the user unless undocumented), every API host, webhooks (one per app?), rate limits. Ask any doc
+   clarifications upfront: if the REST API is not verified, ask the user for the official API doc or curl right now
+   (never guess or use placeholder endpoints). Cover ALL triggers and actions; skip auth/admin/deprecated/response-less
+   endpoints. List all possible triggers and actions discovered and propose them to the user, grouped by entity/category (name, trigger/action type [Instant `hook`, Manual `manual_webhook`,
+   Scheduled `polling`, or Action], HTTP method, path, description, verified `source_doc_url`, plus documented rate limits
+   and any excluded endpoints with reasons). Then, ask the user to choose between two options:
+   1. **Core functionality triggers/actions**
+   2. **List all triggers/actions**
+   Once the user selects an option, proceed to creation (Plan & Execute) without asking or interrupting.
+3. **Plan** — design every item from the selected scope (Core vs All) per the KB and self-review against KB "Review &
+   Priorities" (P0/P1 = 0). Keep it to a few high-level lines (no internal technical steps), then proceed straight to
+   creation — no approval wait, no interruptions.
 4. **Execute by level** — run quietly without intermediate technical logs: one `node dh.mjs batch @Ln.json` per level,
    feeding its ids into the next:
 
