@@ -62,66 +62,82 @@ Return exactly one JSON object grouped by Category.
 
 ```json
 {
-  "name": "generate_actions_and_triggers",
-  "schema": {
-    "type": "object",
-    "properties": {
-      "message": {
-        "type": "string",
-        "description": "Opens with the framing line ('This service exists to ___'), the core object vs config object split, documented rate limits, then findings, duplicate variants dropped, and any endpoint skipped for lacking a documented response. If arrays are empty, explain why."
-      },
-      "action": {
-        "type": "array",
-        "description": "List of workflow actions.",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "[Verb] [Object] in Title Case, e.g. 'Create Data Source Item'."
+    "name": "jsonSchema",
+    "strict": true,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "message": {
+                "type": "string",
+                "description": "Opens with the framing line ('This service exists to ___'), the core object vs config object split, documented rate limits, then findings, duplicate variants dropped, and any endpoint skipped for lacking a documented response. If arrays are empty, explain why."
             },
-            "description": {
-              "type": "string",
-              "description": "Must include Capability Evaluation Contract and API details:[Type] [Category]. Details: app, capability, capability_type ('action'|'helper'), requested_change ('create'|'modify'), method & path, required_inputs (array of input keys), expected_outputs (array of returned keys), success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), parent dropdown source if any, and verified source_doc_url."
-            }
-          },
-          "required": [
-            "name",
-            "description"
-          ],
-          "additionalProperties": false
-        }
-      },
-      "trigger": {
-        "type": "array",
-        "description": "List of workflow triggers.",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "[State Modifier] [Object], e.g. 'New Document'."
+            "action": {
+                "type": "array",
+                "description": "List of workflow actions.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "[Verb] [Object] in Title Case, e.g. 'Create Data Source Item'."
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Must include Capability Evaluation Contract and API details:[Type] [Category]. Details: app, capability, capability_type ('action'|'helper'), requested_change ('create'|'modify'), method & path, required_inputs (array of input keys), expected_outputs (array of returned keys), success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), parent dropdown source if any, and verified source_doc_url."
+                        },
+                        "source_doc_url": {
+                            "type": "array",
+                            "description": "Exact official REST API documentation URLs from the provided input (one or more).",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "description",
+                        "source_doc_url"
+                    ],
+                    "additionalProperties": false
+                }
             },
-            "description": {
-              "type": "string",
-              "description": "Must include Capability Evaluation Contract and Trigger details. Starts with 'Runs when...'. Specify:[Trigger Type] [Category]. Details: app, capability, capability_type ('trigger'), event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, parent dropdown source if parent-scoped, required_inputs, expected_outputs, success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), and verified source_doc_url."
+            "trigger": {
+                "type": "array",
+                "description": "List of workflow triggers.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "[State Modifier] [Object], e.g. 'New Document'."
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Must include Capability Evaluation Contract and Trigger details. Starts with 'Runs when...'. Specify:[Trigger Type] [Category]. Details: app, capability, capability_type ('trigger'), event name, subscribe/unsubscribe endpoints, dedup field, signature scheme, parent dropdown source if parent-scoped, required_inputs, expected_outputs, success_condition (plain-language definition of success for semantic review), ambiguities (array or empty []), and verified source_doc_url."
+                        },
+                        "source_doc_url": {
+                            "type": "array",
+                            "description": "Exact official REST API documentation URLs from the provided input (one or more).",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "description",
+                        "source_doc_url"
+                    ],
+                    "additionalProperties": false
+                }
             }
-          },
-          "required": [
-            "name",
-            "description"
-          ],
-          "additionalProperties": false
-        }
-      }
-    },
-    "required": [
-      "message",
-      "action",
-      "trigger"
-    ],
-    "additionalProperties": false
-  },
-  "strict": true
+        },
+        "required": [
+            "message",
+            "action",
+            "trigger"
+        ],
+        "additionalProperties": false
+    }
 }
 ```
