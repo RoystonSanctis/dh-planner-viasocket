@@ -147,10 +147,6 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
       }
     ]
   },
-  "uniquekeytostoreauth": {
-    "uniqueKey": "String (Optional. JS expression evaluating to unique identifier for stored auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use this feature in the case where refresh token is revoked on each refresh. This feature makes the connection unique so a new connection will override the existing connection. In case the Unique Identifier is missing, viaSocket will create a new connection individually and will not merge it)",
-    "_uniqueKey": "String (Optional. Template string version of uniqueKey, e.g., \"${context?.authData?.clientid}\")"
-  },
   "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace\")",
   "connectionlabelvalue": "String | null (JS expression extracting display value for connected account. MUST begin with context?.authData? and be exactly ONE path with no '||' operators. Use bracket notation for the final key, e.g., context?.authData?.testcode?[\"workspace_name\"] or context?.authData?.testcode?[\"bot\"]?[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is a local variable inside perform-code function scope and is NOT in scope at label resolution; the testcode return value is stored at context.authData.testcode. Never use || fallback chains. Testcode must return response.data directly without mutation, so you must know the test response structure and pick a single reliable identifier path from it.)",
   "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
@@ -242,9 +238,6 @@ authenticationpaths: Object
   - queryParams: Array of PathObjects
     - name: String (query param name)
     - value: String (JS expression/function)
-uniquekeytostoreauth: Object (Always optional)
-  - uniqueKey: String (Optional. JS expression. Only used when refresh token is revoked on each refresh; new connection overrides existing. If missing, viaSocket creates a new connection individually without merging)
-  - _uniqueKey: String (Optional. Templated version of uniqueKey)
 connectionlabelkey: String | null
 connectionlabelvalue: String | null (JS expression)
 _connectionlabelvalue: String | null (templated version)
@@ -300,7 +293,7 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 > - **Double-encoded fields — use `\\n`:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. These wrap a `"source"` key, so their value is decoded TWICE (once as the payload string, once by `JSON.parse`). A newline MUST be written as `\\n` so it survives both decodes.
 >   - Correct: `"testcode": "{\"source\":\"async function testcode() {\\n  const { api_key } = context?.authData || {};\\n}\\n\\nreturn await testcode();\"}"`
 >   - Wrong (unparseable — raw newline inside the inner JSON string): `"{\"source\":\"async function testcode() {\n  ...\"}"`
-> - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.uniqueKey`, `uniquekeytostoreauth._uniqueKey`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
+> - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
 >   - Correct: `"value": "function returnHeaders() {\n  const { api_key } = context?.authData || {};\n\n  return \`Api-Key ${api_key}\`;\n}\n\nreturn returnHeaders();"`
 >   - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor and collapses the code onto one line): `"value": "function returnHeaders() {\\n  ..."`
 > - **The rule in one line:** escape levels MUST equal decode passes — 2 levels (`\\n`) for wrapper fields, 1 level (`\n`) for plain fields. `queryparams` is also a stringified JSON field but holds only static params, never code or newlines.
@@ -528,7 +521,7 @@ skipwhitelistvalidation: null (null if not set)
 {
   "granttype": "String (OAuth grant type, e.g., \"Authorization Code\")",
 
-  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"authorizationEndPointConfiguration\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"authUniqueKey\" | \"appeandHeaders\")",
+  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"authorizationEndPointConfiguration\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"appeandHeaders\")",
   "isScopeSeperatorChanged": "Boolean (Whether scope separator was changed, e.g., false)",
 
   "clientid": "String | null (OAuth client ID dedicated root key, e.g., \"123\"; null/empty if client credentials are entered manually by users under authfields)",
@@ -579,9 +572,6 @@ skipwhitelistvalidation: null (null if not set)
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
-  "uniquekeytostoreauth": {
-    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)"
-  },
 
   "authenticationpaths": {
     "headers": [
@@ -611,7 +601,7 @@ skipwhitelistvalidation: null (null if not set)
 
 ```toon
 granttype: String ('Authorization Code')
-componentToRender: String ('authfields' | 'auth2Credentials' | 'authorizationEndPointConfiguration' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'authUniqueKey' | 'appeandHeaders')
+componentToRender: String ('authfields' | 'auth2Credentials' | 'authorizationEndPointConfiguration' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'appeandHeaders')
 isScopeSeperatorChanged: Boolean
 clientid: String | null (dedicated root key; null for manual client-side setup)
 clientsecret: String | null (dedicated root key; null for manual client-side setup)
@@ -646,8 +636,6 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
-  - uniqueKey: String (JS expression)
 authenticationpaths: Object
   - headers: Array of PathObjects
     - name: String
@@ -713,9 +701,6 @@ skipwhitelistvalidation: null (null if not set)
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
-  "uniquekeytostoreauth": {
-    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)"
-  },
 
   "authenticationpaths": {
     "headers": [
@@ -775,8 +760,6 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
-  - uniqueKey: String (JS expression)
 authenticationpaths: Object
   - headers: Array of PathObjects
     - name: String
@@ -796,7 +779,7 @@ skipwhitelistvalidation: null (null if not set)
 
 ```json
 {
-  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"authUniqueKey\" | \"appeandHeaders\")",
+  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"appeandHeaders\")",
   "isScopeSeperatorChanged": "Boolean (Whether scope separator was changed, e.g., false)",
 
   "granttype": "String (OAuth grant type, e.g., \"Implicit\")",
@@ -844,10 +827,6 @@ skipwhitelistvalidation: null (null if not set)
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
-  "uniquekeytostoreauth": {
-    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.instanceUrl\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)",
-    "_uniqueKey": "String (Optional. Template string version of unique key, e.g., \"${context?.authData?.instanceUrl}\")"
-  },
 
   "authenticationpaths": {
     "headers": [
@@ -876,7 +855,7 @@ skipwhitelistvalidation: null (null if not set)
 #### Implicit Update TOON Schema
 
 ```toon
-componentToRender: String ('authfields' | 'auth2Credentials' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'authUniqueKey' | 'appeandHeaders')
+componentToRender: String ('authfields' | 'auth2Credentials' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'appeandHeaders')
 isScopeSeperatorChanged: Boolean
 granttype: String ('Implicit')
 clientid: String
@@ -909,9 +888,6 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
-  - uniqueKey: String (JS expression)
-  - _uniqueKey: String (templated version of uniqueKey)
 authenticationpaths: Object
   - headers: Array of PathObjects
     - name: String
@@ -931,7 +907,7 @@ skipwhitelistvalidation: null (null if not set)
 
 ```json
 {
-  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"authUniqueKey\" | \"appeandHeaders\")",
+  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"accesstokencode\" | \"refreshtokencode\" | \"revokeapicode\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"appeandHeaders\")",
   "isScopeSeperatorChanged": "Boolean (Whether scope separator was changed, e.g., false)",
 
   "granttype": "String (OAuth grant type, e.g., \"Password Credentials\")",
@@ -980,10 +956,6 @@ skipwhitelistvalidation: null (null if not set)
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
-  "uniquekeytostoreauth": {
-    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.clientid\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)",
-    "_uniqueKey": "String (Optional. Template string version of unique key, e.g., \"${context?.authData?.clientid}\")"
-  },
 
   "authenticationpaths": {
     "headers": [
@@ -1012,7 +984,7 @@ skipwhitelistvalidation: null (null if not set)
 #### Password Credentials Update TOON Schema
 
 ```toon
-componentToRender: String ('authfields' | 'auth2Credentials' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'authUniqueKey' | 'appeandHeaders')
+componentToRender: String ('authfields' | 'auth2Credentials' | 'accesstokencode' | 'refreshtokencode' | 'revokeapicode' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'appeandHeaders')
 isScopeSeperatorChanged: Boolean
 granttype: String ('Password Credentials')
 clientid: String
@@ -1045,9 +1017,6 @@ isconnectionlabelmasked: Boolean
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
-  - uniqueKey: String (JS expression)
-  - _uniqueKey: String (templated version of uniqueKey)
 authenticationpaths: Object
   - headers: Array of PathObjects
     - name: String
@@ -1067,7 +1036,7 @@ skipwhitelistvalidation: null (null if not set)
 
 ```json
 {
-  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"auth1Urls\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"authUniqueKey\" | \"appeandHeaders\")",
+  "componentToRender": "String (Which component to render, e.g., \"authfields\" | \"auth2Credentials\" | \"auth1Urls\" | \"testcode\" | \"connectionLabel\" | \"iconUrlPath\" | \"appeandHeaders\")",
   "isScopeSeperatorChanged": "Boolean (Whether scope separator was changed, e.g., false)",
 
   "type": "String (Authentication type identifier, e.g., \"Auth1\")",
@@ -1103,10 +1072,6 @@ skipwhitelistvalidation: null (null if not set)
   "whitelistdomains": "Array (List of whitelisted domains. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"arcsite.com\", \"api.arcsite.com\"])",
   "isbuiltinplugin": "Boolean (Whether this is a built-in plugin, e.g., false)",
 
-  "uniquekeytostoreauth": {
-    "uniqueKey": "String (Optional. JS expression used as unique key to store auth, e.g., \"context?.authData?.consumerkey\". ALWAYS OPTIONAL: only use when refresh token is revoked on each refresh so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and does not merge it)",
-    "_uniqueKey": "String (Optional. Template string version of unique key, e.g., \"${context?.authData?.consumerkey}\")"
-  },
 
   "authenticationpaths": {
     "headers": [
@@ -1135,7 +1100,7 @@ skipwhitelistvalidation: null (null if not set)
 ### Auth1.0 Update TOON Schema
 
 ```toon
-componentToRender: String ('authfields' | 'auth2Credentials' | 'auth1Urls' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'authUniqueKey' | 'appeandHeaders')
+componentToRender: String ('authfields' | 'auth2Credentials' | 'auth1Urls' | 'testcode' | 'connectionLabel' | 'iconUrlPath' | 'appeandHeaders')
 isScopeSeperatorChanged: Boolean
 type: String ('Auth1')
 redirecturl: String ('https://auth.viasocket.com/redirect/auth1')
@@ -1160,9 +1125,6 @@ isconnectionlabelmasked: Boolean [see note: field first declared above as null]
 iconurlpath: String (path to verified connection icon from Test API; NOT service icon; empty \"\" if unavailable)
 whitelistdomains: Array of Strings
 isbuiltinplugin: Boolean
-uniquekeytostoreauth: Object (Always optional; only if refresh token revoked on each refresh)
-  - uniqueKey: String (JS expression)
-  - _uniqueKey: String (templated version of uniqueKey)
 authenticationpaths: Object
   - headers: Array of PathObjects
     - name: String

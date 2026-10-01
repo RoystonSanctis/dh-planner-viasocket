@@ -101,7 +101,7 @@ This document contains structured UX guidelines and best practices for creating 
   - **Double-encoded fields — use `\\n`:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. These wrap a `"source"` key, so their value is decoded TWICE (once as the payload string, once by `JSON.parse`). A newline MUST be written as `\\n` so it survives both decodes.
     - Correct: `"testcode": "{\"source\":\"async function testcode() {\\n  const { api_key } = context?.authData || {};\\n}\\n\\nreturn await testcode();\"}"`
     - Wrong (unparseable — raw newline inside the inner JSON string): `"{\"source\":\"async function testcode() {\n  ...\"}"`
-  - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.uniqueKey`, `uniquekeytostoreauth._uniqueKey`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
+  - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
     - Correct: `"value": "function returnHeaders() {\n  const { api_key } = context?.authData || {};\n\n  return \`Api-Key ${api_key}\`;\n}\n\nreturn returnHeaders();"`
     - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor and collapses the code onto one line): `"value": "function returnHeaders() {\\n  ..."`
   - **The rule in one line:** escape levels MUST equal decode passes — 2 levels (`\\n`) for wrapper fields, 1 level (`\n`) for plain fields. `queryparams` is also a stringified JSON field but holds only static params, never code or newlines.
@@ -734,7 +734,7 @@ A Connection Label uniquely identifies a saved connection so users can distingui
 * **Bracket Notation for Keys:** Access each property with bracket notation and double quotes, e.g. `context?.authData?.testcode?.["workspace_name"]`, not `context?.authData?.testcode?.workspace_name`.
 * **Single Value Path Only:** The field MUST contain **exactly one single path** (e.g., `context?.authData?.testcode?.["workspace_name"]` or `context?.authData?.testcode?.["bot"]?.["workspace_name"]`).
 * **Direct Return in Test API Code:** The `testcode` perform code MUST return the API response payload (e.g., `return response.data;`) directly without any mutation. DO NOT construct composite or fallback keys inside the test code.
-* **Deriving Label and Value Paths from Test Response:** The direct return of `testcode` is stored under `context?.authData?.testcode`. You must know and inspect the test response structure to map the identifier keys for the Connection Label (`connectionlabelvalue` and `_connectionlabelvalue`). The Unique Identifier (`uniquekeytostoreauth.uniqueKey` and `_uniqueKey`) is **always optional** and should ONLY be used in the case where the refresh token is revoked on each refresh (so a new connection overrides the existing connection; if omitted, viaSocket creates a new connection individually and will not merge it). Never guess keys; verify the API docs or live response.
+* **Deriving Label and Value Paths from Test Response:** The direct return of `testcode` is stored under `context?.authData?.testcode`. You must know and inspect the test response structure to map the identifier keys for the Connection Label (`connectionlabelvalue` and `_connectionlabelvalue`). Never guess keys; verify the API docs or live response.
 * **Fallback logic:** Since `testcode` cannot mutate the data and `||` logic is not allowed, select the single most reliable primary identifier field from the known `response.data`.
 * **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` is **STRICTLY PROHIBITED**.
   * *Bad (PROHIBITED):* `"context?.authData?.testcode?.[\"workspace_name\"] || context?.authData?.testcode?.[\"email\"]"`
@@ -844,7 +844,7 @@ Collect and request only what is strictly necessary:
 
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
-1. Resolve the Connection Label (`connectionlabelvalue`) and Unique Connection Identifier / Value Path (`uniqueKey`) from the Test (Me) API response wherever possible.
+1. Resolve the Connection Label (`connectionlabelvalue`) from the Test (Me) API response wherever possible.
 2. Ensure `connectionlabelvalue` maps to **exactly one path**, beginning with `context?.authData?` and using bracket notation (e.g., `context?.authData?.testcode?.["bot"]?.["workspace_name"]`). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
 3. The `testcode` perform code MUST return the response data directly (i.e. `return response.data;`). Do not mutate the response object to create composite or fallback keys.
 4. **Mandatory Knowledge of Test Response Structure**: To set the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Extract identifier keys (e.g., `id`, `email`, `name`, `workspace_name`) directly from `context?.authData?.testcode`. Never guess property keys.
@@ -894,7 +894,7 @@ Use **response-derived resolution** rather than asking users to manually supply 
     * The `testcode` field value in payloads MUST ALWAYS be a stringified JSON string wrapping an object with a `"source"` key (e.g. `JSON.stringify({ source: "async function testcode() { ... } return await testcode();" })` or `"{\"source\":\"...\"}"`).
     * The actual JavaScript perform code must NEVER be placed directly on the `testcode` key as a raw code string.
     * If no test code is present or required, set `testcode` to `"{\"source\":null}"`.
-  * **Direct Response & Test Response Knowledge Rule** — The `testcode` perform code MUST return the response data directly without any mutation (e.g. `return response.data;`). The returned data is stored under `context.authData.testcode`. You must know and verify the exact test response structure to extract the identifier keys used for `connectionlabelvalue` (and `_connectionlabelvalue`) and `uniqueKey` (and `_uniqueKey`). Do not construct composite keys or fallback values inside the test code; select a single reliable primary identifier path from the known response.
+  * **Direct Response & Test Response Knowledge Rule** — The `testcode` perform code MUST return the response data directly without any mutation (e.g. `return response.data;`). The returned data is stored under `context.authData.testcode`. You must know and verify the exact test response structure to extract the identifier keys used for `connectionlabelvalue` (and `_connectionlabelvalue`). Do not construct composite keys or fallback values inside the test code; select a single reliable primary identifier path from the known response.
   * **Grant-Type-Aware Section Pruning** — Only render the Connection sections relevant to the selected Grant Type/Auth Type (e.g. omit Redirect URL / App Credentials / Authorization Endpoint for Client Credentials and Password Credentials; omit Access Token API for Implicit; OAuth 1.0 uses Configure OAuth1 Endpoint instead of a custom Access Token API step).
 
 ---
@@ -911,12 +911,12 @@ Use **response-derived resolution** rather than asking users to manually supply 
   * **Always define a Revoke strategy where the provider supports one** — ensures a clean, verifiable disconnect.
   * **Never let expired tokens silently fail Actions/Triggers** — the Request Parameters function should always pull the freshest stored token.
 * **Response Handling:**
-  * **Test (Me) API responses:** Extract only the fields needed for Connection Label / Unique Connection Identifier; do not surface the full raw response to the end user.
+  * **Test (Me) API responses:** Extract only the fields needed for Connection Label; do not surface the full raw response to the end user.
   * **Token responses:** Store only what's needed (`access_token`, `refresh_token`, `expires_in`); never surface raw token values in the visible UI.
 * **Backward Compatibility Rules:**
   * Connection field keys and `context.authData` key names are stable contracts. When modifying an existing Connection:
     * **Never rename or remove existing `context.authData` keys** unless a migration strategy exists — this breaks every Action/Trigger perform code referencing them.
-    * **Allowed changes:** Adding new optional fields, improving help text/labels, adding a Unique Connection Identifier retroactively, tightening the domain whitelist.
+    * **Allowed changes:** Adding new optional fields, improving help text/labels, tightening the domain whitelist.
 
 ---
 
@@ -958,7 +958,7 @@ Your final proposed design must strictly output the following structure:
 > *   The perform code should focus strictly on token/signature handling and request dispatching.
 > *   `testcode` payload values MUST ALWAYS be stringified JSON objects wrapping a `"source"` key containing the perform code (e.g. `JSON.stringify({ source: "..." })` / `"{\"source\":\"...\"}"`). Raw JS code strings MUST NOT be directly assigned to `testcode`.
 
-* **Connection Safety & Longevity Check:** A robust analysis explaining the refresh strategy, revoke strategy, duplicate-connection prevention (Unique Connection Identifier), and runtime stability guarantees across long-lived automations.
+* **Connection Safety & Longevity Check:** A robust analysis explaining the refresh strategy, revoke strategy, runtime stability guarantees across long-lived automations.
 
 ---
 

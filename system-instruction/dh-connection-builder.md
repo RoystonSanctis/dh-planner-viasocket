@@ -31,7 +31,7 @@ The `connection_payload` MUST be output as a **stringified JSON object** that st
   - Minimize intermediate variables.
 - **Newline Escaping (CRITICAL):**
   - **Double-encoded (2 levels → `\\n`):** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. (Because they are wrapped in `{"source":"..."}`).
-  - **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `uniquekeytostoreauth.*`, `help`/`placeholder`. (Raw JS injected directly).
+  - **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `help`/`placeholder`. (Raw JS injected directly).
 - **Test Code Strictness:**
   - Structure: `"testcode": "{\"source\":\"...\"}"` (use `{"source":null}` if empty).
   - MUST contain **EXACTLY ONE** API request (prefer `GET /me` or lightweight auth check). No secondary/quota endpoints.
