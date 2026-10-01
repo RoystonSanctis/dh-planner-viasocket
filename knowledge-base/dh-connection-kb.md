@@ -115,7 +115,11 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
 - **Payload**: no `granttype`, token codes or token codes.
 
 ## OAuth 2.0 Authorization Code
-- **Flow (13)**: Pre-auth Fields? (subdomain, region, tenant) → Copy Redirect URL (`https://auth.viasocket.com/redirect/auth2.0`) → App Credentials (see Client Credentials Setup Modes) → Authorization Endpoint (`authrequrl`, scopes, `response_type=code`, PKCE, provider params like `access_type=offline`, `prompt=consent`, `audience`) → Access Token API → Refresh Token API → Revoke Token API → Test (Me) API (Bearer) → Connection Label → Icon → Whitelist Domains → Set Request Parameters (Bearer header).
+- **Flow (13)**: Pre-auth Fields? (subdomain, region, tenant) → Copy Redirect URL → App Credentials (see Client Credentials Setup Modes) → Authorization Endpoint (`authrequrl`, scopes, `response_type=code`, PKCE, provider params like `access_type=offline`, `prompt=consent`, `audience`) → Access Token API → Refresh Token API → Revoke Token API → Test (Me) API (Bearer) → Connection Label → Icon → Whitelist Domains → Set Request Parameters (Bearer header).
+- **Redirect URL in Auth 2.0 App**:
+  - **Prod**: `https://auth.viasocket.com/redirect/auth2.0`
+  - **Dev**: `https://dev-auth.viasocket.com/redirect/auth2.0`
+  - **Local**: `http://localhost:3000/redirect/auth2.0`
 - **Rules**: Minimal scopes in `queryparams.scope` (strictly those required for the Test/Me API or baseline connection); action/trigger-specific scopes belong on individual actions/triggers in `dh-database-schema.md` via the `scopes` key; `scopeseperatedby` strictly `"space"`, `"comma"`, or `null` (never `" "` / `","`); verify Base64/content-type needs for the token call. `authenticationpaths.headers` must inject the Bearer token (empty `headers` → every request 401s).
 
 ## OAuth 2.0 Client Credentials
@@ -147,7 +151,7 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
 - **Manual / User-Provided (only when requested)**: Root `clientid`/`clientsecret` = `null`; `authfields.authentication.fields` MUST include:
   - `{"key": "clientid", "type": "string", "label": "Client Id", "placeholder": "Enter Client id", "required": true, "disableField": true}` (never `client_id`)
   - `{"key": "clientsecret", "type": "string", "label": "Client Secret", "placeholder": "Enter Client Secret", "required": true, "disableField": true}` (never `client_secret`)
-  - `{"key": "redirectUrl", "value": "https://auth.viasocket.com/redirect/auth2.0"}` (**mandatory**; omission invalidates and disables the credential fields)
+  - `{"key": "redirectUrl", "value": "https://auth.viasocket.com/redirect/auth2.0"}` (**mandatory**; omission invalidates and disables the credential fields; Prod: `https://auth.viasocket.com/redirect/auth2.0`, Dev: `https://dev-auth.viasocket.com/redirect/auth2.0`, Local: `http://localhost:3000/redirect/auth2.0`)
 - Token code reads both modes the same way: `context?.authData?.clientid`, `context?.authData?.clientsecret`.
 
 ---
@@ -363,7 +367,7 @@ DB-managed (`rowid`, timestamps, `createdby`, `metadata`) and plugin-display fie
   "authversion": "V1 | V2",
   "granttype": "Authorization Code | Implicit | Client Credentials | Password Credentials | null",
   "pluginrecordid": "string",
-  "redirecturl": "https://auth.viasocket.com/redirect/auth2.0 | https://auth.viasocket.com/redirect/auth1",
+  "redirecturl": "https://auth.viasocket.com/redirect/auth2.0 (Prod) | https://dev-auth.viasocket.com/redirect/auth2.0 (Dev) | http://localhost:3000/redirect/auth2.0 (Local) | https://auth.viasocket.com/redirect/auth1",
   "queryparams": "{}",
   "isconnectionlabelmasked": false,
   "authfields": {

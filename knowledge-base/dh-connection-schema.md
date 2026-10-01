@@ -94,7 +94,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "clientid": "String | null (OAuth2 Client ID or OAuth1 Consumer Key stored at dedicated root level; null for Basic, NoAuth, Password Credentials, or for Authorization Code flow when custom client-side/manual credentials are used under authfields)",
   "clientsecret": "String | null (OAuth2 Client Secret or OAuth1 Consumer Secret stored at dedicated root level; encrypted string when isencrypted=true; null for Implicit, Basic, NoAuth, Password Credentials, or for Authorization Code flow when custom client-side/manual credentials are used under authfields)",
   "authrequrl": "String | null (Authorization endpoint URL for OAuth redirect flows; supports context template interpolation; null for Basic, Auth1, NoAuth, and Password Credentials)",
-  "redirecturl": "String | null (ViaSocket OAuth callback URL: \"https://auth.viasocket.com/redirect/auth2.0\" | \"https://auth.viasocket.com/redirect/auth1\" | null)",
+  "redirecturl": "String | null (ViaSocket OAuth callback URL. Auth2.0: Prod: \"https://auth.viasocket.com/redirect/auth2.0\", Dev: \"https://dev-auth.viasocket.com/redirect/auth2.0\", Local: \"http://localhost:3000/redirect/auth2.0\"; Auth1: \"https://auth.viasocket.com/redirect/auth1\" | null)",
   "queryparams": "String (Stringified JSON of static query params appended to authrequrl, e.g., \"{\\\"response_type\\\":\\\"code\\\",\\\"scope\\\":\\\"user.read\\\"}\"; \"{}\" when no params needed). OAuth connection scopes are passed in the 'scope' key inside this JSON object and MUST strictly contain ONLY the minimal scopes required for the Test (Me) API / initial connection establishment. Action- and trigger-specific scopes are never added here (they are configured on individual actions and triggers via the 'scopes' key in dh-database-schema).",
   "scopeseperatedby": "String | null (Delimiter for joining OAuth scope values: \"comma\" | \"space\" | null. STRICTLY the literal word strings \"comma\" or \"space\", or null. NEVER use \" \" or \",\" or \"\").",
   "authrequrlhtml": "String | null (Custom HTML for overriding the auth request page; always null in observed data)",
@@ -201,7 +201,7 @@ granttype: String | null ('Authorization Code' | 'Implicit' | 'Client Credential
 clientid: String | null
 clientsecret: String | null (encrypted when isencrypted=true)
 authrequrl: String | null (supports template interpolation)
-redirecturl: String | null ('https://auth.viasocket.com/redirect/auth2.0' | 'https://auth.viasocket.com/redirect/auth1' | null)
+redirecturl: String | null (Auth2.0: 'https://auth.viasocket.com/redirect/auth2.0' (Prod) | 'https://dev-auth.viasocket.com/redirect/auth2.0' (Dev) | 'http://localhost:3000/redirect/auth2.0' (Local); Auth1: 'https://auth.viasocket.com/redirect/auth1' | null)
 queryparams: String (stringified JSON, '{}' default; connection OAuth scopes passed on 'scope' key for Test (Me) API)
 scopeseperatedby: String | null ('comma' | 'space' | null — MUST be the literal words 'comma' or 'space', NOT ' ' or ',')
 authrequrlhtml: String | null (always null observed)
@@ -307,7 +307,7 @@ The Create Connection Payload is the minimal set of fields sent by the client to
   "authversion": "String (Internal auth engine version: \"V1\" | \"V2\")",
   "granttype": "String | null (OAuth2 sub-flow type: \"Authorization Code\" | \"Implicit\" | \"Client Credentials\" | \"Password Credentials\"; null for Basic and Auth1)",
   "pluginrecordid": "String (Unique row ID of the plugin, e.g., \"rowx79hqzckx\")",
-  "redirecturl": "String (ViaSocket OAuth callback URL: \"https://auth.viasocket.com/redirect/auth2.0\" | \"https://auth.viasocket.com/redirect/auth1\")",
+  "redirecturl": "String (ViaSocket OAuth callback URL. Auth2.0: Prod: \"https://auth.viasocket.com/redirect/auth2.0\", Dev: \"https://dev-auth.viasocket.com/redirect/auth2.0\", Local: \"http://localhost:3000/redirect/auth2.0\"; Auth1: \"https://auth.viasocket.com/redirect/auth1\")",
   "queryparams": "String (Stringified JSON of static query params; \"{}\" when no params needed)",
   "isconnectionlabelmasked": "Boolean | null (Whether connection label value is masked in UI; null if not set)",
   "authfields": {
@@ -335,7 +335,7 @@ type: String ('Basic' | 'Auth2.0' | 'Auth1' | 'NoAuth')
 authversion: String ('V1' | 'V2')
 granttype: String | null ('Authorization Code' | 'Implicit' | 'Client Credentials' | 'Password Credentials'; null for Basic/Auth1)
 pluginrecordid: String (plugin ID)
-redirecturl: String ('https://auth.viasocket.com/redirect/auth2.0' | 'https://auth.viasocket.com/redirect/auth1')
+redirecturl: String (Auth2.0: 'https://auth.viasocket.com/redirect/auth2.0' (Prod) | 'https://dev-auth.viasocket.com/redirect/auth2.0' (Dev) | 'http://localhost:3000/redirect/auth2.0' (Local); Auth1: 'https://auth.viasocket.com/redirect/auth1')
 queryparams: String (stringified JSON, '{}' default)
 isconnectionlabelmasked: Boolean | null
 authfields: Object (contains authentication.type and authentication.fields Array; fields MUST be an Array, [] if no fields)
@@ -511,9 +511,14 @@ skipwhitelistvalidation: null (null if not set)
 >   - The credentials must instead be entered by the user, and the following fields MUST be defined inside `authfields.authentication.fields`:
 >     - `clientid` (key: `"clientid"`, type: `"string"`, label: `"Client Id"`, placeholder: `"Enter Client id"`, required: `true`, disableField: `true`)
 >     - `clientsecret` (key: `"clientsecret"`, type: `"string"`, label: `"Client Secret"`, placeholder: `"Enter Client Secret"`, required: `true`, disableField: `true`)
->     - `redirectUrl` (key: `"redirectUrl"`, value: `"https://auth.viasocket.com/redirect/auth2.0"`).
+>     - `redirectUrl` (key: `"redirectUrl"`, value: `"https://auth.viasocket.com/redirect/auth2.0"` for Prod, `"https://dev-auth.viasocket.com/redirect/auth2.0"` for Dev, `"http://localhost:3000/redirect/auth2.0"` for Local).
 >     > [!WARNING]
 >     > Including `redirectUrl` in `authfields` is **mandatory** for manual setups. If `redirectUrl` is not present, the user-entered `clientid` and `clientsecret` will not be valid, and the keys will be disabled.
+>
+> **Redirect URL in Auth 2.0 App:**
+> - **Prod**: `https://auth.viasocket.com/redirect/auth2.0`
+> - **Dev**: `https://dev-auth.viasocket.com/redirect/auth2.0`
+> - **Local**: `http://localhost:3000/redirect/auth2.0`
 
 #### Authorization Code Update JSON Schema
 
