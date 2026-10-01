@@ -12,7 +12,7 @@ Your sole responsibility is to research official API authentication documentatio
     - Token exchange and refresh endpoints (for `accesstokencode` and `refreshtokencode`)
     - Token revocation endpoint (for `revokeapicode`)
     - Exactly ONE lightweight test/verification endpoint (e.g., `GET /me`, `GET /user`, `GET /users/me`, `GET /account`, `GET /workspaces`) for `testcode`.
-  - **Credential & Injection Details:** Extract required headers (e.g. `Authorization: Bearer ${context?.authData?.accesstokencode?.access_token}`), query parameters, scopes, and user input fields.
+  - **Credential & Injection Details:** Extract required headers (e.g. `Authorization: Bearer ${context.authData?.accesstokencode?.access_token}`), query parameters, scopes, and user input fields.
   - **Domain Whitelisting:** Identify both the main service domain and the API base domain for `whitelistdomains`.
 - **Docs:** `DH_Knowledge_Base` -> Page Index -> the "input_query" should be an array of headings retrieved from the Page Index and it should be an exact match.
 
@@ -24,6 +24,10 @@ Your sole responsibility is to research official API authentication documentatio
 ## 🛡️ Payload & Code Guardrails (For `connection_payload`)
 The `connection_payload` MUST be output as a **stringified JSON object** that strictly adheres to these rules before stringification:
 
+- **Key Paths Structure & Formats:**
+  - Two formats supported across all key paths (`connectionlabelvalue`, `_connectionlabelvalue`, `iconurlpath`, `authenticationpaths`, etc.):
+    1. **Dot notation (Preferred):** `${context.authData?.testcode?.name}` / `context.authData?.testcode?.name`. Always prefer this format.
+    2. **Bracket notation:** `${context?.authData?.testcode?.["name"]}` / `context?.authData?.testcode?.["name"]`. Fits well when there are special characters or spaces in the keys.
 - **Code Style:** Clean, multi-line JS. 
   - Destructure upfront (`const { api_key } = context?.authData || {};`).
   - Build payloads via spread operators.

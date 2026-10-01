@@ -156,12 +156,17 @@ Render only the sections the flow needs (no Redirect/App Credentials/Authorizati
 
 ## Connection Labels
 Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, masked `"XXX-XXX-23433"`); never a static generic string (`"My App Connection"`).
-- **Source**: the Test (Me) response stored at `context?.authData?.testcode` (or an auth field). You MUST verify and know the Test API response structure (`context?.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`). Never guess property paths.
+- **Source**: the Test (Me) response stored at `context.authData?.testcode` (or an auth field). You MUST verify and know the Test API response structure (`context.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`). Never guess property paths.
   - User-scoped flows: name, email, workspace.
   - App-scoped (Client Credentials): app, workspace, or tenant ID.
   - No user-identifiable field → stable non-sensitive ID (account/workspace).
-- **`connectionlabelvalue`**: one direct JS path starting `context?.authData?`, bracket notation (`context?.authData?.testcode?.["user"]?.["email"]`). No `return`, function wrapper, or `||` fallback—pick the single most reliable key. Invalid: `context?.res?.data?.*` (`res` is local to `testcode`).
-- **`_connectionlabelvalue`**: template version `"${context?.authData?.testcode?.[\"workspace_name\"]}"`.
+- **Key Paths Structure & Formats (Applicable Across All Key Paths)**:
+  Two formats are supported for accessing values across all key paths structures (`connectionlabelvalue`, `_connectionlabelvalue`, `iconurlpath`, `authenticationpaths`, etc.):
+  1. `${context.authData?.testcode?.name}` (raw JS: `context.authData?.testcode?.name`) — **Preferred format**.
+  2. `${context?.authData?.testcode?.["name"]}` (raw JS: `context?.authData?.testcode?.["name"]`) — Bracket notation; fits well when there are special characters or spaces in the keys (e.g., `${context?.authData?.testcode?.["workspace-name"]}`).
+  *Rule: Prefer the first format; the second format fits well when there are special characters or spaces in the keys.*
+- **`connectionlabelvalue`**: one direct JS path starting with `context.authData?.` (or `context?.authData?`). Prefer dot notation (`context.authData?.testcode?.name` or `context.authData?.testcode?.user?.email`). Use bracket notation (`context?.authData?.testcode?.["key with-space"]`) when keys contain special characters or spaces. No `return`, function wrapper, or `||` fallback—pick the single most reliable key. Invalid: `context?.res?.data?.*` (`res` is local to `testcode`).
+- **`_connectionlabelvalue`**: template version of `connectionlabelvalue`, e.g., `"${context.authData?.testcode?.name}"` (preferred) or `"${context?.authData?.testcode?.[\"key-with-space\"]}"` (when keys have special characters or spaces).
 - **`connectionlabelkey`**: identifier type (`"workspace"`). `connectionlabelname`: reserved—omit or `null`.
 - **`isconnectionlabelmasked: true`** when the label is sensitive.
 
@@ -181,13 +186,14 @@ Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, maske
 ## Environment & Globals
 - **Libraries** (no `import`/`require`/`window`/`document`): `axios`, `fetch` (node-fetch), `FormData` (form-data), `Buffer`, `crypto`, `_` (lodash), `moment`, `jwt` (jsonwebtoken), `cheerio`, `XMLParser`, `XMLBuilder`, `XMLValidator`, `URLSearchParams`, `https`, `setTimeout`, `atob`.
 - **Context Paths**:
-  - Auth code: `context?.authData?.Authorization?.code`
-  - PKCE verifier: `context?.authData?.code_verifier` (send as `code_verifier`)
-  - Access token: `context?.authData?.accesstokencode?.access_token`
-  - Refresh token: `context?.authData?.accesstokencode?.refresh_token`
-  - Client credentials: `context?.authData?.clientid`, `context?.authData?.clientsecret`
-  - Test response: `context?.authData?.testcode`
-  - User inputs: `context?.authData?.<field_key>`
+  - Preferred access format is dot notation `${context.authData?.testcode?.name}` / `context.authData?.testcode?.name`; use bracket format `${context?.authData?.testcode?.["name"]}` / `context?.authData?.testcode?.["name"]` when keys contain special characters or spaces.
+  - Auth code: `context.authData?.Authorization?.code` (or `context?.authData?.Authorization?.code`)
+  - PKCE verifier: `context.authData?.code_verifier` (send as `code_verifier`)
+  - Access token: `context.authData?.accesstokencode?.access_token`
+  - Refresh token: `context.authData?.accesstokencode?.refresh_token`
+  - Client credentials: `context.authData?.clientid`, `context.authData?.clientsecret`
+  - Test response: `context.authData?.testcode`
+  - User inputs: `context.authData?.<field_key>`
 - **Real vs Placeholder Values**: connection code (`testcode`, token code) receives real `authData` values and sets its own headers. Plug code (Actions/Triggers) sees every `authData` value as a placeholder; real values reach only `authenticationpaths` entries and `${context.authData.<key>}` in the URL host/path, on calls to whitelisted hosts → whitelist every API host.
 - **Scope**: code handles only tokens, signatures, and dispatch; business logic belongs to Actions/Triggers.
 
@@ -275,17 +281,17 @@ return await revokeToken();
 ## Test (Me) Code
 - **Structure**: `"testcode": "{\"source\":\"...\"}"` (use `{"source":null}` if empty).
 - **Single Request**: MUST contain **EXACTLY ONE** API request (prefer `GET /me`, `/user`, `/users/me`, `/account`, `/profile`, `/oauth2/v2/userinfo`; else `/workspaces`, `/teams`, `/status`, `/ping`). No secondary/quota endpoints. A successful authenticated response passes the test.
-- **Direct Return**: MUST return `response.data` directly (`return response.data;`) without mutation or synthetic wrappers. Stored at `context?.authData?.testcode` for label paths.
-- **Test Response Knowledge**: You MUST verify and know the Test API response structure (`context?.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`). Never guess property paths.
+- **Direct Return**: MUST return `response.data` directly (`return response.data;`) without mutation or synthetic wrappers. Stored at `context.authData?.testcode` for label paths.
+- **Test Response Knowledge**: You MUST verify and know the Test API response structure (`context.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`). Never guess property paths.
 - Validates token exchange, header injection, and scope sufficiency together.
 
-**Basic / OAuth 2.0** (Basic: `${context?.authData?.api_key}`)
+**Basic / OAuth 2.0** (Basic: `${context.authData?.api_key}`)
 ```javascript
 async function testcode() {
   try {
     const response = await axios.get('https://api.example.com/v1/me', {
       headers: {
-        'Authorization': `Bearer ${context?.authData?.accesstokencode?.access_token}`
+        'Authorization': `Bearer ${context.authData?.accesstokencode?.access_token}`
       }
     });
     return response.data;
@@ -327,18 +333,18 @@ return await testcode();
 ```javascript
 // Header (OAuth 2.0 Bearer)
 function returnHeaders() {
-  return `Bearer ${context?.authData?.accesstokencode?.access_token}`;
+  return `Bearer ${context.authData?.accesstokencode?.access_token}`;
 }
 return returnHeaders();
 
 // Header (API key)
 function returnHeaders() {
-  return `Api-Key ${context?.authData?.api_key}`;
+  return `Api-Key ${context.authData?.api_key}`;
 }
 return returnHeaders();
 
 // Query param
-return context?.authData?.api_key;
+return context.authData?.api_key;
 ```
 
 ---
@@ -442,8 +448,8 @@ Shape branches on `type` + `granttype`. Always `rowid` + `pluginrecordid` + chan
   "revokeapicode": "{\"source\":\"...\"}",
   "testcode": "{\"source\":\"...\"}",
   "connectionlabelkey": "string",
-  "connectionlabelvalue": "context?.authData?.testcode?.[\"key\"]",
-  "_connectionlabelvalue": "${context?.authData?.testcode?.[\"key\"]}",
+  "connectionlabelvalue": "context.authData?.testcode?.name",
+  "_connectionlabelvalue": "${context.authData?.testcode?.name}",
   "isconnectionlabelmasked": false,
   "iconurlpath": "",
   "whitelistdomains": ["service.com", "api.service.com"],
@@ -505,8 +511,8 @@ Dynamic URL to view and configure the connection in the Developer Hub.
 - [ ] Client Credentials Setup Mode correct: global → root keys, nothing in `authfields`; manual → root `null`, `clientid`/`clientsecret`/`redirectUrl` in `authfields`.
 - [ ] `scopeseperatedby` is strictly `"space"`, `"comma"`, or `null` (never `" "` or `","`); connection scopes are passed via the `scope` key in `queryparams` and strictly minimal for Test (Me) API (action/trigger scopes are placed on individual entities in `dh-database-schema.md`); PKCE enabled when supported.
 - [ ] Test code: structure is `{"source": "..."}`; exactly one lightweight endpoint; returns `response.data` unmodified without synthetic wrappers.
-- [ ] Test API response structure verified and known (`context?.authData?.testcode`) before mapping label paths; never guess property paths.
-- [ ] Label: single `context?.authData?` bracket path from the verified test response; no `return`, `||`, or `context?.res`; `_connectionlabelvalue` is `"${...}"`; masked if sensitive.
+- [ ] Test API response structure verified and known (`context.authData?.testcode`) before mapping label paths; never guess property paths.
+- [ ] Label: single `context.authData?.` path from the verified test response (prefer dot format `context.authData?.testcode?.name`; use bracket format `context?.authData?.testcode?.["account name"]` for keys with special characters or spaces); no `return`, `||`, or `context?.res`; `_connectionlabelvalue` is `"${...}"`; masked if sensitive.
 - [ ] Secrets use `password` fields and never appear in code, logs, labels, or defaults.
 - [ ] Credential fields: exact API keys, Title Case source-app labels, actionable help with link.
 - [ ] `whitelistdomains` has the service and API base domains.

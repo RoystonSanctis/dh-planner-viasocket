@@ -727,23 +727,38 @@ A Connection Label uniquely identifies a saved connection so users can distingui
 * **App-scoped auth (Client Credentials):** Prefer a stable app/workspace/tenant identifier, since no user exists.
 * **Masking:** Enable masking whenever the label value is sensitive (e.g. partially hidden email or ID).
 
+### Key Paths Structure & Formats (Applicable Across All Key Paths)
+Two formats are supported for accessing values across all key paths structures (including `connectionlabelvalue`, `_connectionlabelvalue`, `iconurlpath`, and `authenticationpaths`):
+1. **Dot notation (Preferred):** `${context.authData?.testcode?.name}` / `context.authData?.testcode?.name`
+2. **Bracket notation:** `${context?.authData?.testcode?.["name"]}` / `context?.authData?.testcode?.["name"]`
+
+**Rule:** Always prefer the first format (`${context.authData?.testcode?.name}`). The second format (`${context?.authData?.testcode?.["name"]}`) fits well when there are special characters or spaces in the keys (e.g., `${context?.authData?.testcode?.["workspace-name"]}` or `${context?.authData?.testcode?.["user name"]}`).
+
 ### Connection Value Path Rules (Single Value Paths)
-* **Mandatory `context?.authData?` Prefix:** The `connectionlabelvalue` (and `_connectionlabelvalue`) MUST begin with `context?.authData?`. The value returned by the Test (Me) API perform code is stored at `context.authData.testcode`, so label paths resolve from there.
+* **Mandatory `context.authData?.` / `context?.authData?` Prefix:** The `connectionlabelvalue` (and `_connectionlabelvalue`) MUST begin with `context.authData?.` (or `context?.authData?` when using bracket notation). The value returned by the Test (Me) API perform code is stored at `context.authData.testcode`, so label paths resolve from there.
   * *INVALID (never emit):* `context?.res?.data?.<anything>` — `res` / `response` is a **local variable inside the `testcode` function scope**. It does not exist on `context` at label-resolution time, so this always resolves to `undefined`.
-  * *Valid:* `context?.authData?.testcode?.["workspace_name"]`
-* **Bracket Notation for Keys:** Access each property with bracket notation and double quotes, e.g. `context?.authData?.testcode?.["workspace_name"]`, not `context?.authData?.testcode?.workspace_name`.
-* **Single Value Path Only:** The field MUST contain **exactly one single path** (e.g., `context?.authData?.testcode?.["workspace_name"]` or `context?.authData?.testcode?.["bot"]?.["workspace_name"]`).
+  * *Valid (Preferred):* `context.authData?.testcode?.workspace_name`
+  * *Valid (Special characters/spaces):* `context?.authData?.testcode?.["workspace-name"]`
+* **Supported Formats & Preferences:**
+  * **Preferred Format:** Dot notation without brackets, e.g. `context.authData?.testcode?.workspace_name` (template: `"${context.authData?.testcode?.workspace_name}"`).
+  * **Bracket Format:** Use bracket notation when property keys contain spaces, hyphens, or special characters, e.g. `context?.authData?.testcode?.["workspace-name"]` (template: `"${context?.authData?.testcode?.[\"workspace-name\"]}"`).
+* **Single Value Path Only:** The field MUST contain **exactly one single path** (e.g., `context.authData?.testcode?.workspace_name` or `context.authData?.testcode?.bot?.workspace_name`).
 * **Direct Return in Test API Code:** The `testcode` perform code MUST return the API response payload (e.g., `return response.data;`) directly without any mutation. DO NOT construct composite or fallback keys inside the test code.
-* **Deriving Label and Value Paths from Test Response:** The direct return of `testcode` is stored under `context?.authData?.testcode`. You must know and inspect the test response structure to map the identifier keys for the Connection Label (`connectionlabelvalue` and `_connectionlabelvalue`). Never guess keys; verify the API docs or live response.
+* **Deriving Label and Value Paths from Test Response:** The direct return of `testcode` is stored under `context.authData?.testcode`. You must know and inspect the test response structure to map the identifier keys for the Connection Label (`connectionlabelvalue` and `_connectionlabelvalue`). Never guess keys; verify the API docs or live response.
 * **Fallback logic:** Since `testcode` cannot mutate the data and `||` logic is not allowed, select the single most reliable primary identifier field from the known `response.data`.
 * **No `||` Logical OR Operators:** Chaining multiple paths or fallback expressions using `||` in `connectionlabelvalue` is **STRICTLY PROHIBITED**.
-  * *Bad (PROHIBITED):* `"context?.authData?.testcode?.[\"workspace_name\"] || context?.authData?.testcode?.[\"email\"]"`
-  * *Good:* `"context?.authData?.testcode?.[\"workspace_name\"]"`
+  * *Bad (PROHIBITED):* `"context.authData?.testcode?.workspace_name || context.authData?.testcode?.email"`
+  * *Good:* `"context.authData?.testcode?.workspace_name"`
 
-**Example — Single Direct Path (e.g., Notion/Workspace):**
+**Example — Preferred Format (Standard Keys):**
 * `connectionlabelkey`: `"workspace"`
-* `connectionlabelvalue`: `"context?.authData?.testcode?.[\"workspace_name\"]"`
-* `_connectionlabelvalue`: `"${context?.authData?.testcode?.[\"workspace_name\"]}"`
+* `connectionlabelvalue`: `"context.authData?.testcode?.workspace_name"`
+* `_connectionlabelvalue`: `"${context.authData?.testcode?.workspace_name}"`
+
+**Example — Bracket Format (Keys with special characters or spaces):**
+* `connectionlabelkey`: `"workspace"`
+* `connectionlabelvalue`: `"context?.authData?.testcode?.[\"workspace-name\"]"`
+* `_connectionlabelvalue`: `"${context?.authData?.testcode?.[\"workspace-name\"]}"`
 
 ## Field Naming & Description
 Applies to all credential Auth fields collected in "Configure your Fields":
@@ -845,9 +860,9 @@ Collect and request only what is strictly necessary:
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
 1. Resolve the Connection Label (`connectionlabelvalue`) from the Test (Me) API response wherever possible.
-2. Ensure `connectionlabelvalue` maps to **exactly one path**, beginning with `context?.authData?` and using bracket notation (e.g., `context?.authData?.testcode?.["bot"]?.["workspace_name"]`). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
+2. Ensure `connectionlabelvalue` maps to **exactly one path** (prefer dot notation `context.authData?.testcode?.name`; use bracket notation `context?.authData?.testcode?.["name"]` when keys contain special characters or spaces). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
 3. The `testcode` perform code MUST return the response data directly (i.e. `return response.data;`). Do not mutate the response object to create composite or fallback keys.
-4. **Mandatory Knowledge of Test Response Structure**: To set the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Extract identifier keys (e.g., `id`, `email`, `name`, `workspace_name`) directly from `context?.authData?.testcode`. Never guess property keys.
+4. **Mandatory Knowledge of Test Response Structure**: To set the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Extract identifier keys (e.g., `id`, `email`, `name`, `workspace_name`) directly from `context.authData?.testcode`. Never guess property keys.
 5. If no user-identifiable field exists in the response, map directly to a stable non-sensitive value (e.g. account/workspace ID) from the original payload, noting this fallback explicitly in the design output.
 6. Never ask the user to manually paste internal system IDs when the Test API can supply them.
 

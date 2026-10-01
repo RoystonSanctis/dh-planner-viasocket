@@ -78,7 +78,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
   "pluginrecordid": "String (Foreign key referencing the parent plugin record, e.g., \"rowgt678e7la\")",
   "pluginname": "String (Human-readable name of the plugin/service, e.g., \"Notion\")",
   "pluginiconurl": "String | null (URL to the plugin icon hosted on CDN, e.g., \"https://stuff.thingsofbrand.com/notion.com/images/imgf_notion.png\")",
-  "iconurlpath": "String | null (Path to extract verified connection icon from Test API response, e.g., \"context?.authData?.testcode?.avatar_url\" or \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise empty \"\" or null which defaults to pluginiconurl)",
+  "iconurlpath": "String | null (Path to extract verified connection icon from Test API response, e.g., \"context.authData?.testcode?.avatar_url\" or \"context?.authData?.testcode?.[\\\"avatar_url\\\"]\" or \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise empty \"\" or null which defaults to pluginiconurl)",
   "domain": "String (Primary domain of the service, e.g., \"notion.com\")",
   "whitelistdomains": "Array (List of allowed domains for outgoing API requests. MUST include both the main domain link of the service AND the API base domain used (which can be identified from the Test API payload/request), e.g., [\"notion.com\", \"api.notion.com\"])",
   "skipwhitelistvalidation": "Boolean | null (When true, bypasses domain whitelist checks; null means default validation applies)",
@@ -131,7 +131,7 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     "headers": [
       {
         "name": "String (HTTP header name to inject, e.g., \"Authorization\")",
-        "value": "String (JS expression or named function returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context?.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
+        "value": "String (JS expression or named function returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
       }
     ],
     "body": [
@@ -148,8 +148,8 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     ]
   },
   "connectionlabelkey": "String | null (Label for the type of identifier used to display the connected account in UI, e.g., \"workspace\")",
-  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account. MUST begin with context?.authData? and be exactly ONE path with no '||' operators. Use bracket notation for the final key, e.g., context?.authData?.testcode?[\"workspace_name\"] or context?.authData?.testcode?[\"bot\"]?[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is a local variable inside perform-code function scope and is NOT in scope at label resolution; the testcode return value is stored at context.authData.testcode. Never use || fallback chains. Testcode must return response.data directly without mutation, so you must know the test response structure and pick a single reliable identifier path from it.)",
-  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
+  "connectionlabelvalue": "String | null (JS expression extracting display value for connected account. MUST be exactly ONE path with no '||' operators. Two formats supported: (1) Preferred dot notation: context.authData?.testcode?.name, or (2) Bracket notation: context?.authData?.testcode?[\"name\"], which fits well when keys have special characters or spaces. INVALID: context?.res?.data?.* — 'res' is a local variable inside perform-code function scope and is NOT in scope at label resolution; the testcode return value is stored at context.authData.testcode. Never use || fallback chains. Testcode must return response.data directly without mutation, so you must know the test response structure and pick a single reliable identifier path from it.)",
+  "_connectionlabelvalue": "String | null (Template string version of connectionlabelvalue, e.g., \"${context.authData?.testcode?.name}\" or \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "connectionlabelname": "null (Reserved field; always null in observed data)",
   "_connectionlabelkey": "null (Reserved field; always null in observed data)",
   "connectionlabelkey_copy": "null (Reserved copy field; always null in observed data)",
@@ -422,8 +422,8 @@ The Update Connection Payload is sent by the client to modify an existing Connec
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value. MUST begin with context?.authData? and be a single path without '||' operators, using bracket notation for the final key, e.g., context?.authData?.testcode?.[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is function-local to perform code and is NOT in scope at label resolution.)",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value. MUST be a single path without '||' operators. Two formats supported: prefer dot format context.authData?.testcode?.name, or bracket format context?.authData?.testcode?.[\"name\"] for keys with special characters/spaces. INVALID: context?.res?.data?.* — 'res' is function-local to perform code and is NOT in scope at label resolution.)",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.testcode?.name}\" or \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
@@ -563,8 +563,8 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"workspace\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value. MUST begin with context?.authData? and be a single path without '||' operators, using bracket notation for the final key, e.g., context?.authData?.testcode?.[\"workspace_name\"]. INVALID: context?.res?.data?.* — 'res' is function-local to perform code and is NOT in scope at label resolution.)",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value. MUST be a single path without '||' operators. Two formats supported: prefer dot format context.authData?.testcode?.name, or bracket format context?.authData?.testcode?.[\"name\"] for keys with special characters/spaces. INVALID: context?.res?.data?.* — 'res' is function-local to perform code and is NOT in scope at label resolution.)",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.testcode?.name}\" or \"${context?.authData?.testcode?.[\\\"workspace_name\\\"]}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
   "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
@@ -577,7 +577,7 @@ skipwhitelistvalidation: null (null if not set)
     "headers": [
       {
         "name": "String (Header name, e.g., \"Authorization\")",
-        "value": "String (JS code returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context?.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
+        "value": "String (JS code returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
       }
     ],
     "queryParams": [
@@ -692,8 +692,8 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.clientid\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context.authData?.clientid\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.clientid}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
   "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
@@ -819,8 +819,8 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"Email\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.testcode.email\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.testcode.email}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context.authData?.testcode?.email\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.testcode?.email}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., false)",
 
   "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
@@ -947,8 +947,8 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"Username\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.username\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.username}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context.authData?.username\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.username}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
@@ -1064,8 +1064,8 @@ skipwhitelistvalidation: null (null if not set)
   "testcode": "String (Stringified JSON wrapping a 'source' key containing JS code for testing the connection, e.g., \"{\\\"source\\\":\\\"...\\\"}\")",
 
   "connectionlabelkey": "String (Field name used as connection label, e.g., \"ClientId\")",
-  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context?.authData?.clientid\")",
-  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context?.authData?.clientid}\")",
+  "connectionlabelvalue": "String (JS expression to resolve connection label value; MUST be a single path without '||' operators, e.g., \"context.authData?.clientid\")",
+  "_connectionlabelvalue": "String (Template string version of connection label value, e.g., \"${context.authData?.clientid}\")",
   "isconnectionlabelmasked": "Boolean (Whether connection label value is masked, e.g., true)",
 
   "iconurlpath": "String (Path to extract verified connection icon from Test API response, e.g., \"\"; this is NOT the service icon. Only fill this value if the Test API provides a verified connection icon, otherwise \"\")",
