@@ -11,7 +11,14 @@ published: true
   - Special Case: Batch Processing
 - Verify Service
 - Subscribe User
-  - Precondition Block Types ("rule", "and", "or", "any", "every")
+  - Precondition Block Types (`type`)
+    - 1. `"type": "rule"` (Atomic Rule)
+    - 2. `"type": "and"` (Logical All)
+    - 3. `"type": "or"` (Logical Any)
+    - 4. `"type": "any"` (Array - At Least One)
+    - 5. `"type": "every"` (Array - All)
+    - Nested / Combined Precondition Example
+  - Supported Operators
   - Special Case: Subscribe user but mark verification false
 - Unsubscribe User
 - Get Subscription by ID
