@@ -154,7 +154,7 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
   `connectionlabelkey`, `connectionlabelvalue`, `_connectionlabelvalue` mandatory (create fails without).
 - **Component** — `create/reusable_components { pluginrecordid, orgid, function_name, params: [{ name, sample }], code,
   function_code, description, componentgenerationsource: "userGenerated" }`; `function_code` =
-  `async function <name>(<params>) {\n<code indented 2>\n}`. Do not create reusable components for the request API (no `appRequest` or generic HTTP wrappers; actions/triggers execute API calls directly via axios/fetch). Focus component creation strictly on `optionsGenerator` for dynamic dropdowns and multiselects, and `fieldsGenerator` for dynamic input groups. Delete component → `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` (verify usage first with `dhGetUsedActionVersionForComponent`).
+  `async function <name>(<params>) {\n<code indented 2>\n}`. Do not create reusable components for API requests (actions/triggers execute API requests directly via axios/fetch). Focus component creation strictly on `optionsGenerator` for dynamic dropdowns and multiselects, and `fieldsGenerator` for dynamic input groups. Delete component → `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` (verify usage first with `dhGetUsedActionVersionForComponent`).
 - **Action / trigger** — `create/actions { name, description, key, pluginrecordid, type, authid, isvisible: true,
   category, sub_category, preferred_step_name, ignoreuniversalsampledata: false }` (`key` and trigger values per KB;
   manual trigger: no `authid`).
