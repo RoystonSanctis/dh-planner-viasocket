@@ -34,23 +34,26 @@ async function call(method, path, body, retry = method === 'GET') {
   try {
     res = await fetch(url, { method, headers, body: body === undefined || typeof body === 'string' ? body : JSON.stringify(body) })
     text = await res.text()
-  } catch (e) {
+  } catch (error) {
     if (retry) return call(method, path, body, false)
-    throw new Error(`${method} ${path} → network error: ${e.message}`)
+    throw { error: `${error?.message || error}` }
   }
   mkdirSync('.dh-run', { recursive: true })
   appendFileSync('.dh-run/log.jsonl', `${JSON.stringify({ time: now(), method, path, status: res.status })}\n`)
   if (retry && res.status >= 500) return call(method, path, body, false)
   let json
   try { json = JSON.parse(text) } catch {}
-  if (!res.ok || json?.success === false) throw new Error(`${method} ${path} → ${res.status} ${text.slice(0, 600)}`)
-  return json ?? text
+  if (!res.ok || json?.success === false) {
+    const msg = json?.message || json?.error || (typeof json === 'object' ? JSON.stringify(json) : text.slice(0, 600))
+    throw { error: `${method} ${path} → ${res.status}: ${msg}` }
+  }
+  return json?.data !== undefined ? json.data : (json ?? text)
 }
 
 function compile(b) {
   const check = (where, code, Fn = AsyncFunction) => {
     if (typeof code !== 'string' || !code.trim()) return
-    try { new Fn('context', 'axios', code) } catch (e) { throw new Error(`syntax error in ${where}: ${e.message}`) }
+    try { new Fn('context', 'axios', code) } catch (error) { throw { error: `syntax error in ${where}: ${error?.message || error}` } }
   }
   CODE.forEach((k) => check(k, b[k]))
   AUTH.forEach((k) => check(k, src(b[k])))
@@ -58,111 +61,127 @@ function compile(b) {
   walk(b.inputjson?.inputFields)
   const ap = b.authenticationpaths || {}
   for (const e of [...(ap.headers || []), ...(ap.queryParams || []), ...(ap.body || [])]) {
-    if (!/\breturn\b/.test(e?.value || '')) throw new Error(`authenticationpaths ${e?.name}: value must be a function body that returns`)
-    check(`authenticationpaths ${e.name}`, e.value, Function)
+    if (!/\breturn\b/.test(e?.value || '')) throw { error: `authenticationpaths ${e?.name}: value must be a function body that returns` }
+    try { check(`authenticationpaths ${e.name}`, e.value, Function) } catch (error) { throw { error: `${error?.message || error}` } }
   }
 }
 
 async function run({ method, path, body, keys }) {
-  if (!/^(GET|POST|PUT|PATCH|MERGE|COPY)$/.test(method || '')) throw new Error(`unknown method "${method}"`)
-  if (!path) throw new Error(`${method}: missing '<path>'`)
-  if (method === 'GET') {
-    if (typeof keys === 'string' && /^\s*[{[]/.test(keys)) throw new Error('GET takes a comma-separated key list, not a body')
-    const ks = (typeof keys === 'string' ? keys.split(',') : keys || []).map((k) => String(k).trim()).filter(Boolean)
-    const r = await call('GET', path)
-    const rows = Array.isArray(r?.data) ? r.data : Array.isArray(r?.data?.rows) ? r.data.rows : Array.isArray(r?.rows) ? r.rows : Array.isArray(r) ? r : null
-    return ks.length && rows ? rows.map((row) => Object.fromEntries(ks.map((k) => [k, row?.[k]]))) : r
-  }
-  if (method === 'MERGE') {
-    const [, table, id] = path.match(/^update\/(\w+)\?identifier=([^&]+)/) || []
-    if (!GET_BY_ID[table]) throw new Error('MERGE supports update/plugins and update/actions')
-    const current = (await call('GET', `get/${table}?identifier=${id}&filter=${GET_BY_ID[table]}`)).data?.[0] || {}
-    const meta = obj(current.metadata)
-    const { note, by, metadata, ...changes } = body || {}
-    const aiContext = metadata?.aiContext ? { aiContext: { ...deep(meta.aiContext || {}, metadata.aiContext), updatedAt: now() } } : {}
-    return call('PUT', path, { ...changes, metadata: { ...meta, ...metadata, ...aiContext, aiLogs: [...(meta.aiLogs || []), entry(by || 'UPDATED_BY_SKILL_AI', note)] } })
-  }
-  if (method === 'COPY') {
-    const [, table, parent] = path.match(/^get\/(\w+)\?identifier=([^&]+)/) || []
-    const spec = COPY[table]
-    if (!spec) throw new Error(`COPY supports get/${Object.keys(COPY).join(', get/')}`)
-    const { rowid, ...changes } = body || {}
-    const source = (await call('GET', path)).data?.find((r) => r?.rowid === rowid)
-    if (!source) throw new Error(`COPY: no ${table} row ${rowid} in ${path}`)
-    const copy = Object.fromEntries(Object.entries(source).filter(([k]) => !DROP.includes(k) && !spec.drop.includes(k)))
-    return run({ method: 'POST', path: `create/${table}`, body: { ...copy, ...spec.add?.(parent), ...changes, metadata: { ...changes.metadata, duplicatedfrom: { rowid, [spec.ver]: source[spec.ver] } } } })
-  }
-  if (body && typeof body === 'object') {
-    compile(body)
-    if (path.includes('oauth_details')) {
-      AUTH.forEach((k) => { if (k in body) body[k] = JSON.stringify({ source: src(body[k]) || null }) })
-      if (body.queryparams && typeof body.queryparams === 'object') body.queryparams = JSON.stringify(body.queryparams)
+  try {
+    if (!/^(GET|POST|PUT|PATCH|MERGE|COPY)$/.test(method || '')) throw new Error(`unknown method "${method}"`)
+    if (!path) throw new Error(`${method}: missing '<path>'`)
+    if (method === 'GET') {
+      if (typeof keys === 'string' && /^\s*[{[]/.test(keys)) throw new Error('GET takes a comma-separated key list, not a body')
+      const ks = (typeof keys === 'string' ? keys.split(',') : keys || []).map((k) => String(k).trim()).filter(Boolean)
+      const r = await call('GET', path)
+      const rows = Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : Array.isArray(r?.rows) ? r.rows : Array.isArray(r?.data?.rows) ? r.data.rows : null
+      return ks.length && rows ? rows.map((row) => Object.fromEntries(ks.map((k) => [k, row?.[k]]))) : r
     }
-    if (method === 'POST' && path.startsWith('create/') && !path.includes('component_table')) {
-      const m = (body.metadata = obj(body.metadata))
-      m.aiLogs = [...(m.aiLogs || []), entry('CREATED_BY_SKILL_AI')]
-      if (path.startsWith('create/plugins')) m.createdBy ??= { type: 'AI', agent: 'ai', skill: cfg.skill, orgId: cfg.orgId, time: now() }
+    if (method === 'MERGE') {
+      const [, table, id] = path.match(/^update\/(\w+)\?identifier=([^&]+)/) || []
+      if (!GET_BY_ID[table]) throw new Error('MERGE supports update/plugins and update/actions')
+      const res = await call('GET', `get/${table}?identifier=${id}&filter=${GET_BY_ID[table]}`)
+      const current = (Array.isArray(res) ? res[0] : res?.data?.[0] || res) || {}
+      const meta = obj(current.metadata)
+      const { note, by, metadata, ...changes } = body || {}
+      const aiContext = metadata?.aiContext ? { aiContext: { ...deep(meta.aiContext || {}, metadata.aiContext), updatedAt: now() } } : {}
+      return call('PUT', path, { ...changes, metadata: { ...meta, ...metadata, ...aiContext, aiLogs: [...(meta.aiLogs || []), entry(by || 'UPDATED_BY_SKILL_AI', note)] } })
     }
-  }
-  const r = await call(method, path, body)
-  const row = r?.data?.actionData?.[0]
-  if (method === 'POST' && path.startsWith('create/actions')) {
-    const ids = { actionId: row?.rowid, versionId: r?.data?.actionVersionData?.data?.[0]?.rowid }
-    if (!ids.actionId || !ids.versionId) throw new Error(`created but no ids returned — check getAllActions before retrying: ${JSON.stringify(r).slice(0, 300)}`)
-    try {
-      await run({ method: 'MERGE', path: `update/actions?identifier=${ids.actionId}&filter=updateActionDetails`, body: { isaiaction: true, aiorgid: cfg.orgId, by: 'CREATED_BY_SKILL_AI', note: 'isaiaction set' } })
-    } catch (e) {
-      ids.warning = `created; isaiaction not set — rerun only that MERGE: ${e.message.slice(0, 200)}`
+    if (method === 'COPY') {
+      const [, table, parent] = path.match(/^get\/(\w+)\?identifier=([^&]+)/) || []
+      const spec = COPY[table]
+      if (!spec) throw new Error(`COPY supports get/${Object.keys(COPY).join(', get/')}`)
+      const { rowid, ...changes } = body || {}
+      const res = await call('GET', path)
+      const list = Array.isArray(res) ? res : res?.data || []
+      const source = list.find((r) => r?.rowid === rowid)
+      if (!source) throw new Error(`COPY: no ${table} row ${rowid} in ${path}`)
+      const copy = Object.fromEntries(Object.entries(source).filter(([k]) => !DROP.includes(k) && !spec.drop.includes(k)))
+      return run({ method: 'POST', path: `create/${table}`, body: { ...copy, ...spec.add?.(parent), ...changes, metadata: { ...changes.metadata, duplicatedfrom: { rowid, [spec.ver]: source[spec.ver] } } } })
     }
-    return ids
+    if (body && typeof body === 'object') {
+      compile(body)
+      if (path.includes('oauth_details')) {
+        AUTH.forEach((k) => { if (k in body) body[k] = JSON.stringify({ source: src(body[k]) || null }) })
+        if (body.queryparams && typeof body.queryparams === 'object') body.queryparams = JSON.stringify(body.queryparams)
+      }
+      if (method === 'POST' && path.startsWith('create/') && !path.includes('component_table')) {
+        const m = (body.metadata = obj(body.metadata))
+        m.aiLogs = [...(m.aiLogs || []), entry('CREATED_BY_SKILL_AI')]
+        if (path.startsWith('create/plugins')) m.createdBy ??= { type: 'AI', agent: 'ai', skill: cfg.skill, orgId: cfg.orgId, time: now() }
+      }
+    }
+    const r = await call(method, path, body)
+    const row = r?.actionData?.[0] || r?.data?.actionData?.[0] || (Array.isArray(r) ? r[0] : r?.data?.[0] || (r?.rowid ? r : null))
+    if (method === 'POST' && path.startsWith('create/actions')) {
+      const actionVerData = r?.actionVersionData?.data?.[0] || r?.data?.actionVersionData?.data?.[0] || r?.actionVersionData?.[0]
+      const ids = { actionId: row?.rowid, versionId: actionVerData?.rowid }
+      if (!ids.actionId || !ids.versionId) throw new Error(`created but no ids returned — check getAllActions before retrying: ${JSON.stringify(r).slice(0, 300)}`)
+      try {
+        await run({ method: 'MERGE', path: `update/actions?identifier=${ids.actionId}&filter=updateActionDetails`, body: { isaiaction: true, aiorgid: cfg.orgId, by: 'CREATED_BY_SKILL_AI', note: 'isaiaction set' } })
+      } catch (e) {
+        ids.warning = `created; isaiaction not set — rerun only that MERGE: ${e?.error || e?.message || String(e).slice(0, 200)}`
+      }
+      return ids
+    }
+    return row?.rowid ? { id: row.rowid, ...(row.authversion ? { authversion: row.authversion } : {}) } : (r?.data !== undefined ? r.data : r)
+  } catch (error) {
+    throw { error: `${error?.error || error?.message || error}` }
   }
-  return row ? { id: row.rowid, ...(row.authversion ? { authversion: row.authversion } : {}) } : r
 }
 
 // GitHub KB: kb → files · kb <file> → headings · kb <file> "Heading"… → sections · kb <file> '*' → whole file
 const REPO = cfg.kbRepo || 'RoystonSanctis/dh-planner-viasocket'
 const REF = cfg.kbRef || 'dev'
 async function fetchText(url) {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`)
-  return res.text()
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`)
+    return await res.text()
+  } catch (error) {
+    throw { error: `${error?.error || error?.message || error}` }
+  }
 }
 async function kb(file, queries) {
-  if (!file) return [...new Set([...(await fetchText(`https://github.com/${REPO}/tree/${REF}/knowledge-base`)).matchAll(/knowledge-base\/([\w.-]+\.md)/g)].map((m) => m[1]))].join('\n')
-  const p = `.dh-kb/${file}`
-  if (!existsSync(p)) {
-    const text = await fetchText(`https://raw.githubusercontent.com/${REPO}/refs/heads/${REF}/knowledge-base/${file}`)
-    mkdirSync('.dh-kb', { recursive: true })
-    writeFileSync(p, text)
-  }
-  const md = readFileSync(p, 'utf8')
-  if (queries[0] === '*') return md
-  const lines = md.replace(/^---\s*[\r\n]+[\s\S]*?[\r\n]+---/, '').trim().split('\n')
-  const heads = []
-  let fence = false
-  lines.forEach((line, start) => {
-    if (/^\s*(```|~~~)/.test(line)) fence = !fence
-    const m = !fence && line.match(/^(?:\*\*)?(#{1,6})\s+(.*?)(?:\*\*)?\s*$/)
-    if (m) heads.push({ level: m[1].length, head: m[2].trim(), start })
-  })
-  if (!queries.length) return heads.map((h) => `${'  '.repeat(h.level - 1)}- ${h.head}`).join('\n')
-  const norm = (s) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/^(\d+ )+/, '')
-  return queries.map((q) => {
-    const hit = heads.find((h) => h.head.toLowerCase() === q.toLowerCase()) || heads.find((h) => norm(h.head) === norm(q)) || heads.find((h) => norm(h.head).includes(norm(q)))
-    if (!hit) {
-      const qw = norm(q).split(' ')
-      const near = heads.map((h) => ({ h, s: qw.filter((w) => norm(h.head).includes(w)).length })).filter((x) => x.s).sort((x, y) => y.s - x.s)
-      return `<!-- ${file}: no heading "${q}" — closest: ${near.slice(0, 12).map((x) => `"${x.h.head}"`).join(', ') || `none; run: node dh.mjs kb ${file}`} -->`
+  try {
+    if (!file) return [...new Set([...(await fetchText(`https://github.com/${REPO}/tree/${REF}/knowledge-base`)).matchAll(/knowledge-base\/([\w.-]+\.md)/g)].map((m) => m[1]))].join('\n')
+    const p = `.dh-kb/${file}`
+    if (!existsSync(p)) {
+      const text = await fetchText(`https://raw.githubusercontent.com/${REPO}/refs/heads/${REF}/knowledge-base/${file}`)
+      mkdirSync('.dh-kb', { recursive: true })
+      writeFileSync(p, text)
     }
-    const after = heads.filter((n) => n.start > hit.start)
-    const end = after.find((n) => n.level <= hit.level)?.start ?? lines.length
-    const children = after.filter((n) => n.start < end && n.level === hit.level + 1)
-    const text = lines.slice(hit.start, end).join('\n').trim()
-    const body = text.length > 24000 && children.length
-      ? `${lines.slice(hit.start, after[0].start).join('\n').trim()}\n\n> Long section — ask for a sub-section: ${children.map((n) => n.head).join(' | ')}`
-      : text
-    return `<!-- ${file} § ${hit.head} -->\n${body}`
-  }).join('\n\n')
+    const md = readFileSync(p, 'utf8')
+    if (queries[0] === '*') return md
+    const lines = md.replace(/^---\s*[\r\n]+[\s\S]*?[\r\n]+---/, '').trim().split('\n')
+    const heads = []
+    let fence = false
+    lines.forEach((line, start) => {
+      if (/^\s*(```|~~~)/.test(line)) fence = !fence
+      const m = !fence && line.match(/^(?:\*\*)?(#{1,6})\s+(.*?)(?:\*\*)?\s*$/)
+      if (m) heads.push({ level: m[1].length, head: m[2].trim(), start })
+    })
+    if (!queries.length) return heads.map((h) => `${'  '.repeat(h.level - 1)}- ${h.head}`).join('\n')
+    const norm = (s) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/^(\d+ )+/, '')
+    return queries.map((q) => {
+      const hit = heads.find((h) => h.head.toLowerCase() === q.toLowerCase()) || heads.find((h) => norm(h.head) === norm(q)) || heads.find((h) => norm(h.head).includes(norm(q)))
+      if (!hit) {
+        const qw = norm(q).split(' ')
+        const near = heads.map((h) => ({ h, s: qw.filter((w) => norm(h.head).includes(w)).length })).filter((x) => x.s).sort((x, y) => y.s - x.s)
+        return `<!-- ${file}: no heading "${q}" — closest: ${near.slice(0, 12).map((x) => `"${x.h.head}"`).join(', ') || `none; run: node dh.mjs kb ${file}`} -->`
+      }
+      const after = heads.filter((n) => n.start > hit.start)
+      const end = after.find((n) => n.level <= hit.level)?.start ?? lines.length
+      const children = after.filter((n) => n.start < end && n.level === hit.level + 1)
+      const text = lines.slice(hit.start, end).join('\n').trim()
+      const body = text.length > 24000 && children.length
+        ? `${lines.slice(hit.start, after[0].start).join('\n').trim()}\n\n> Long section — ask for a sub-section: ${children.map((n) => n.head).join(' | ')}`
+        : text
+      return `<!-- ${file} § ${hit.head} -->\n${body}`
+    }).join('\n\n')
+  } catch (error) {
+    throw { error: `${error?.error || error?.message || error}` }
+  }
 }
 
 const [cmd, a, ...rest] = process.argv.slice(2)
@@ -177,7 +196,7 @@ try {
     await Promise.all(Array.from({ length: Math.min(4, ops.length) }, async () => {
       while (i < ops.length) {
         const k = i++
-        try { out[k] = { label: ops[k].label, ok: true, result: await run(ops[k]) } } catch (e) { out[k] = { label: ops[k].label, ok: false, error: e.message } }
+        try { out[k] = { label: ops[k].label, ok: true, result: await run(ops[k]) } } catch (error) { out[k] = { label: ops[k].label, ok: false, error: error?.error || error?.message || String(error) } }
       }
     }))
     console.log(JSON.stringify(out))
@@ -186,7 +205,7 @@ try {
     const x = read(rest[0])
     console.log(JSON.stringify(await run(cmd === 'GET' ? { method: cmd, path: a, keys: x } : { method: cmd, path: a, body: x === undefined ? undefined : JSON.parse(x) })))
   }
-} catch (e) {
-  console.log(e.message)
+} catch (error) {
+  console.log(JSON.stringify(error?.error ? error : { error: `${error?.message || error}` }))
   process.exitCode = 1
 }
