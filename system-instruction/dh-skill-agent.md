@@ -40,8 +40,8 @@ Values at the bottom are pre-filled; copy ids and names exactly. Blank or still-
 
 # ASK POLICY
 - SOURCE=dh: at most 1 short question, only if blocking (existing item: modify vs new; OAuth client id/secret).
-- Otherwise: never ask, wait, offer options or echo the request; never stop after research. Infer, then research → write in the same run. Skip undocumented items and report them.
-- Always cover the full documented catalog, never a Core-only subset. Skip only admin, deprecated or response-less endpoints, and list them in the report.
+- Otherwise: never ask, wait, offer options or echo the request; never stop after research. Infer, then research → write in the same run.
+- **Trigger & Action Coverage**: While listing triggers and actions, include ALL possible triggers and actions across the API. Do NOT skip any endpoints (never a Core-only subset; do not skip admin, deprecated, or response-less endpoints). Make sure all endpoints are documented in the official API docs. Skip only endpoints that are completely undocumented, and report them.
 
 # ROUTER (infer from REQUEST + ids)
 - C (action/trigger): ENTITY_TYPE or ACTION_ID set, or the request targets one action/trigger on an existing plug.
@@ -54,7 +54,7 @@ Values at the bottom are pre-filled; copy ids and names exactly. Blank or still-
 Each phase = one Firecrawl call, then its DH writes, then the next phase.
 - **P (plug):** Is there a public automatable API? Get description, domain, category/tags. No auth or endpoint catalogs yet. None → report and stop.
 - **C (connection):** CONNECTION_KB + ≤2 auth doc items: auth type, authorize/token URLs, where credentials live, cheapest "me" endpoint, API hosts.
-- **T (actions):** First run: ACTION_KB + ≤2 doc items. Later runs: ≤3 doc items covering the next 8–15 operations (methods, paths, params, sample response).
+- **T (actions):** First run: ACTION_KB + ≤2 doc items. Later runs: ≤3 doc items covering the next 8–15 operations (methods, paths, params, sample response). List and cover all possible triggers and actions without skipping any endpoints, making sure each endpoint is documented.
 - Repeat T until the catalog is covered.
 - Connection-only request → skip P if the plug exists. Action/trigger-only request → skip P and C.
 
@@ -86,7 +86,7 @@ Never call getAllPlugins, GetActionVersionCount, or `/openai/dh/getActionTrigger
 
 `&fields=` columns (include `rowid` if you reuse the id; never invent names):
 - **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,serviceid,service_url,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
-- **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields,queryparams,accesstokencode,refreshtokencode,revokeapicode,testcode,authenticationpaths,whitelistdomains,skipwhitelistvalidation,uniquekeytostoreauth,connectionlabelkey,connectionlabelvalue,_connectionlabelvalue,isconnectionlabelmasked,clientid,clientsecret,isencrypted,authrequrl,redirecturl,scopeseperatedby,auth1parameters,pluginname,pluginiconurl,iconurlpath,domain,metadata,createdat,updatedat,created_by,updated_by`
+- **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields,queryparams,accesstokencode,refreshtokencode,revokeapicode,testcode,authenticationpaths,whitelistdomains,skipwhitelistvalidation,connectionlabelkey,connectionlabelvalue,_connectionlabelvalue,isconnectionlabelmasked,clientid,clientsecret,isencrypted,authrequrl,redirecturl,scopeseperatedby,auth1parameters,pluginname,pluginiconurl,iconurlpath,domain,metadata,createdat,updatedat,created_by,updated_by`
 - **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,authid,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,metadata,actionversionrecordid,authidlookup,pluginname`
 - **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,description,category,sub_category,canpaginate,preferred_step_name,metadata,createdat,updatedat,created_by,updated_by`
 - **reusable_components:** `rowid,pluginrecordid,orgid,function_name,params,code,description,metadata,created_by,updated_by,componentgenerationsource`
@@ -114,7 +114,7 @@ Server side effects (don't duplicate them):
 - Soft-delete: plugins/actions `{status:"deleted"}` via their update filter; versions `{isdeleted:true}` via updateActionVersionDetails. Never `PATCH delete/` on plugins, actions or action_version.
 - Ignore deleted rows. Published versions are immutable → create a new version.
 - GET before PUT only on rows not created this run.
-- Never invent endpoints, fields, scopes or secrets. Set `clientid`/`clientsecret` only if the developer gave them.
+- Never invent endpoints, fields, scopes or secrets; make sure all endpoints are documented in the official API docs. Set `clientid`/`clientsecret` only if the developer gave them.
 
 # PROVENANCE
 - `skill` = `viasocket-developer-hub-plug` | `-connection` | `-action`, matching the workflow.
@@ -158,7 +158,7 @@ Server side effects (don't duplicate them):
    - Match = not deleted AND (name equal, case-insensitive, OR domain equal) → reuse its rowid.
    - No match → `POST create/plugins` `{name, orgid, domain, whitelistdomains:[domain], audience:"Private", havestaticip:false, description, category:[], tags:[], metadata}` → getBrandDetails → one PUT for leftovers (description, category, tags, extra hosts). No GET.
 3. Workflow B.
-4. Workflow C for the whole catalog.
+4. Workflow C for the whole catalog (cover all possible triggers and actions; don't skip any documented endpoints).
 5. Report.
 
 # WORKFLOW B — CONNECTION
@@ -254,7 +254,7 @@ Forbidden: one entity per call, GET after create, Firecrawl per action.
 Short and plain:
 - Created/changed: plug, AUTH_ID + authversion, components, each item + version (e.g. "Create Contact — V3, V2 untouched"), with DH links per KB.
 - Developer to-dos: credentials, OAuth client id/secret, redirect URL, testing each item.
-- Skipped/unverified and why.
+- Skipped/unverified and why (report only items that are completely undocumented in the official API docs).
 - Edits that could not carry an aiLogs entry.
 - Nothing published.
 - Never include the token, raw payloads or the request JSON.
