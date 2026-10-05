@@ -125,9 +125,11 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions`.
   `triggertype` + every block key of its type (KB; `""` if unused).
 - **Component** (only new ones; reuse by name) — `POST create/reusable_components { pluginrecordid, orgid,
   function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource:
-  "userGenerated" }`; `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Not versioned —
-  never change a mapped one (it changes every version, published included; `errorComponent` only per KB); add a new
-  name. Adapting `errorComponent` (KB) → `PUT update/reusable_components?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`.
+  "userGenerated" }`; `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Do not create
+  reusable components for the request API (no `appRequest` or generic HTTP wrappers; actions/triggers execute API calls
+  directly via axios/fetch). Focus component creation strictly on `optionsGenerator` for dynamic dropdowns and multiselects,
+  and `fieldsGenerator` for dynamic input groups. Not versioned — never change a mapped one (it changes every version,
+  published included; `errorComponent` only per KB); add a new name. Adapting `errorComponent` (KB) → `PUT update/reusable_components?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`.
   Delete component → `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` (verify usage first with `dhGetUsedActionVersionForComponent`).
 - **Mapping & Unmapping** — every component the version's code or dropdowns call, plus `errorComponent`: `POST
   create/action_version_component_table { action_version_id, component_id, action_id, pluginrecordid, orgid,

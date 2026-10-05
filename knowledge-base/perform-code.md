@@ -2188,7 +2188,8 @@ return await deleteRecord();
 Reusable components are modular JavaScript functions stored once per plug and mapped to action/trigger versions. Reusable components are supported across all code blocks (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) and field generators (`optionsGenerator`, `fieldsGenerator`).
 
 > [!NOTE]
-> **Creation Focus:** While supported in all code blocks, new component creation is currently focused on **dynamic fields** (dynamic dropdowns and multiselects via `optionsGenerator`, and dynamic input groups via `fieldsGenerator`). Avoid creating components all the time for perform code or general utilities when direct code execution is sufficient.
+> **No Request API Component:** Do NOT create reusable components for generic request API (such as `appRequest` or generic HTTP fetcher/wrapper functions). Actions and triggers execute their API requests directly using `axios` or `fetch`.
+> **Creation Focus:** While reusable components are supported across all code blocks and field generators, new component creation is strictly focused on **`optionsGenerator`** in case of dynamic dropdowns and multiselects, and **`fieldsGenerator`** in case of dynamic input groups. Avoid creating reusable components for perform code or general utilities when direct code execution is sufficient.
 
 ## Reusable Component Rules & Mapping Instructions
 
