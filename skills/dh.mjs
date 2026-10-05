@@ -34,9 +34,9 @@ async function call(method, path, body, retry = method === 'GET') {
   try {
     res = await fetch(url, { method, headers, body: body === undefined || typeof body === 'string' ? body : JSON.stringify(body) })
     text = await res.text()
-  } catch (error) {
+  } catch (e) {
     if (retry) return call(method, path, body, false)
-    throw { error: `${error?.message || error}` }
+    throw { error: `${e?.message || e}` }
   }
   mkdirSync('.dh-run', { recursive: true })
   appendFileSync('.dh-run/log.jsonl', `${JSON.stringify({ time: now(), method, path, status: res.status })}\n`)
@@ -53,16 +53,16 @@ async function call(method, path, body, retry = method === 'GET') {
 function compile(b) {
   const check = (where, code, Fn = AsyncFunction) => {
     if (typeof code !== 'string' || !code.trim()) return
-    try { new Fn('context', 'axios', code) } catch (error) { throw { error: `syntax error in ${where}: ${error?.message || error}` } }
+    try { new Fn('context', 'axios', code) } catch (e) { throw { error: `syntax error in ${where}: ${e?.message || e}` } }
   }
   CODE.forEach((k) => check(k, b[k]))
   AUTH.forEach((k) => check(k, src(b[k])))
   const walk = (fields) => (fields || []).forEach((f) => (GEN.forEach((g) => check(`${f.key}.${g}`, f[g])), walk(f.fields)))
   walk(b.inputjson?.inputFields)
   const ap = b.authenticationpaths || {}
-  for (const e of [...(ap.headers || []), ...(ap.queryParams || []), ...(ap.body || [])]) {
-    if (!/\breturn\b/.test(e?.value || '')) throw { error: `authenticationpaths ${e?.name}: value must be a function body that returns` }
-    try { check(`authenticationpaths ${e.name}`, e.value, Function) } catch (error) { throw { error: `${error?.message || error}` } }
+  for (const p of [...(ap.headers || []), ...(ap.queryParams || []), ...(ap.body || [])]) {
+    if (!/\breturn\b/.test(p?.value || '')) throw { error: `authenticationpaths ${p?.name}: value must be a function body that returns` }
+    try { check(`authenticationpaths ${p.name}`, p.value, Function) } catch (e) { throw { error: `${e?.message || e}` } }
   }
 }
 
@@ -125,8 +125,8 @@ async function run({ method, path, body, keys }) {
       return ids
     }
     return row?.rowid ? { id: row.rowid, ...(row.authversion ? { authversion: row.authversion } : {}) } : (r?.data !== undefined ? r.data : r)
-  } catch (error) {
-    throw { error: `${error?.error || error?.message || error}` }
+  } catch (e) {
+    throw { error: `${e?.error || e?.message || e}` }
   }
 }
 
@@ -138,8 +138,8 @@ async function fetchText(url) {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`)
     return await res.text()
-  } catch (error) {
-    throw { error: `${error?.error || error?.message || error}` }
+  } catch (e) {
+    throw { error: `${e?.error || e?.message || e}` }
   }
 }
 async function kb(file, queries) {
@@ -179,8 +179,8 @@ async function kb(file, queries) {
         : text
       return `<!-- ${file} § ${hit.head} -->\n${body}`
     }).join('\n\n')
-  } catch (error) {
-    throw { error: `${error?.error || error?.message || error}` }
+  } catch (e) {
+    throw { error: `${e?.error || e?.message || e}` }
   }
 }
 
@@ -196,7 +196,7 @@ try {
     await Promise.all(Array.from({ length: Math.min(4, ops.length) }, async () => {
       while (i < ops.length) {
         const k = i++
-        try { out[k] = { label: ops[k].label, ok: true, result: await run(ops[k]) } } catch (error) { out[k] = { label: ops[k].label, ok: false, error: error?.error || error?.message || String(error) } }
+        try { out[k] = { label: ops[k].label, ok: true, result: await run(ops[k]) } } catch (e) { out[k] = { label: ops[k].label, ok: false, error: e?.error || e?.message || String(e) } }
       }
     }))
     console.log(JSON.stringify(out))
@@ -205,7 +205,7 @@ try {
     const x = read(rest[0])
     console.log(JSON.stringify(await run(cmd === 'GET' ? { method: cmd, path: a, keys: x } : { method: cmd, path: a, body: x === undefined ? undefined : JSON.parse(x) })))
   }
-} catch (error) {
-  console.log(JSON.stringify(error?.error ? error : { error: `${error?.message || error}` }))
+} catch (e) {
+  console.log(JSON.stringify(e?.error ? e : { error: `${e?.message || e}` }))
   process.exitCode = 1
 }
