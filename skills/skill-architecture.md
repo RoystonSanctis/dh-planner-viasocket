@@ -94,7 +94,7 @@ flowchart TD
 
    | Skill | Consolidated KB | GET results |
    | ----- | --------------- | ----------- |
-   | Plug | `dh-knowledgebase.md` + `dh-connection-kb.md` | org's plugs; for a plug on the domain: details, connections, connection usage, actions, components |
+   | Plug | `dh-knowledgebase.md` + `dh-connection-kb.md` | org's plugs (or search via `getPluginByQuery`); for a plug on the domain: details, connections, connection usage, actions, components |
    | Connection | `dh-connection-kb.md` | plug, connections, connection usage |
    | Action | `dh-knowledgebase.md` | plug, connections, actions, components |
 
@@ -115,7 +115,7 @@ flowchart TD
 | - | ---- | ---------- | ------ |
 | **Scope** | whole plug (create or extend) | one connection | one action or trigger |
 | **Branching** | domain match → extend, else create | create · edit in place (non-breaking, unused) · `COPY` to a new version (breaking or in use) | create · edit draft · `COPY` latest version to a new draft |
-| **Execution** | L0 plug · L1 connection ∥ components ∥ brand details · L2 actions/triggers ∥ plug MERGE · L3 versions ∥ mappings | write → plug MERGE | components → action → version ∥ mappings → action MERGE |
+| **Execution** | L0 plug · L1 connection ∥ components ∥ brand details · L2 actions/triggers ∥ plug MERGE · L3 versions ∥ mappings (unmap/delete via PATCH) | write → plug MERGE | components → action → version ∥ mappings (unmap/delete via PATCH) → action MERGE |
 
 ## 4. `dh.mjs`
 
@@ -135,7 +135,7 @@ Paths are relative to `<API_BASE>/developers/<ORG_ID>/`; a leading `/` is relati
 Automatic behaviour:
 
 * **Guards** — only `GET`, `POST`, `PUT`, `PATCH`, `MERGE`, `COPY` (also inside `batch`; no `DELETE`); `GET` keys are
-  a comma list (spaces trimmed); `GET` is retried once on a network error or 5xx.
+  a comma list (spaces trimmed); `GET` is retried once on a network error or 5xx; parses rows from array, `.rows`, or `data.rows`. Supports `&fields=` query parameter on REST endpoints to filter columns server-side.
 * **Syntax check before a write** — code blocks (`perform`, `performlist`, `performsubscribe`, `performunsubscribe`,
   `modifytriggerdata`, `transferoption`, component `code`), connection code, every field generator (recursively) and
   every `authenticationpaths` value (must be a function body that `return`s).

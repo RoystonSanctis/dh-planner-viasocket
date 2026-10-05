@@ -70,7 +70,8 @@ async function run({ method, path, body, keys }) {
     if (typeof keys === 'string' && /^\s*[{[]/.test(keys)) throw new Error('GET takes a comma-separated key list, not a body')
     const ks = (typeof keys === 'string' ? keys.split(',') : keys || []).map((k) => String(k).trim()).filter(Boolean)
     const r = await call('GET', path)
-    return ks.length && Array.isArray(r?.data) ? r.data.map((row) => Object.fromEntries(ks.map((k) => [k, row?.[k]]))) : r
+    const rows = Array.isArray(r?.data) ? r.data : Array.isArray(r?.data?.rows) ? r.data.rows : Array.isArray(r?.rows) ? r.rows : Array.isArray(r) ? r : null
+    return ks.length && rows ? rows.map((row) => Object.fromEntries(ks.map((k) => [k, row?.[k]]))) : r
   }
   if (method === 'MERGE') {
     const [, table, id] = path.match(/^update\/(\w+)\?identifier=([^&]+)/) || []

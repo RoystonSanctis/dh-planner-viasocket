@@ -14,7 +14,7 @@ description: >-
 | `{{ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` |
 
 **Knowledge base:** read `dh-knowledgebase.md` + `dh-connection-kb.md` in full (the last setup line prints them; they
-decide all design). **Already in context — don't re-fetch:** the GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → GET it (§3).
+decide all design). **Already in context — don't re-fetch:** the search/GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → search with Search plug or GET (§3).
 
 **Rules**
 - Fill every `{{…}}` from your inputs. Prefer OAuth 2.0 (`Auth2.0`) first; if not supported, use another documented
@@ -40,8 +40,7 @@ echo '{"apiBase":"{{API_BASE}}","orgId":"{{ORG_ID}}","token":"{{PROXY_AUTH_TOKEN
 node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
 ```
 
-1. **Resolve** — a non-deleted plug with `domain` = `{{APP_DOMAIN}}` → extend it (never duplicate) and build only what
-   is missing or requested; its `metadata.aiContext` holds earlier findings — re-verify. Else create a plug.
+1. **Resolve** — prefer searching if the plug exists using the Search plug endpoint: `GET /dbdash/getPluginByQuery?query={{APP_NAME}}&mode=dh` (accepts `&fields=`; hits = array or `.rows`). If the full org plug list is needed, `getAllPlugins` (`GET get/plugins?identifier={{ORG_ID}}&filter=getAllPlugins`) gives all available plugs. If a non-deleted plug with `domain` = `{{APP_DOMAIN}}` exists → extend it (never duplicate) and build only what is missing or requested; its `metadata.aiContext` holds earlier findings — re-verify. Else create a plug.
 2. **Research** the official docs (`/docs`, `/developers`, `/api`, `llms.txt`, `openapi.json`; a spec beats prose):
    every entity and endpoint (method, path, all params, body, response example, pagination, errors), auth (connection
    KB priority: prefer OAuth 2.0 (`Auth2.0`) first; if not present, use another documented method per KB priority —
@@ -81,7 +80,7 @@ node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
 
 ```text
 node dh.mjs GET   '<path>' [key,key]            read; only those keys of each row; retried once
-node dh.mjs POST|PUT '<path>' '{json}'|@file    write
+node dh.mjs POST|PUT|PATCH '<path>' '{json}'|@file write
 node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'
                                                 keep all metadata, deep-merge aiContext, append aiLogs (note optional)
 node dh.mjs COPY  'get/<oauth_details|action_version>?identifier=<parentId>&filter=<f>' '{"rowid":"<id>",…changes}'
@@ -107,19 +106,43 @@ KB detail: `ux-practice.md "<category or trigger type>"` · `ux-worked-examples.
 Wins over the KB payload rules on REST: `whitelistdomains` on connection create; no mapping `path` toggle,
 `functionId`, authored `steps`/`blocks`/`dependsOn`, or edits to mapped components; code fields are plain strings.
 
-`POST create/<table>` · `GET get/<table>?identifier=<id>&filter=<f>` → `data: [rows]` · `PUT update/<table>?identifier=<id>&filter=<f>`
-· soft delete: action `{"status":"deleted"}`, version `{"isdeleted":true}` (never `PATCH delete/`) ·
-`GET GetUsedInCountForAuth?pluginId=<id>` · `GET GetActionVersionCount?actionId=<id>`.
+### DH REST Operations
 
-| Table | Filters (identifier) |
-| ----- | -------------------- |
-| `plugins` | `getAllPlugins` (ORG_ID) · `getPluginDetails`, `updatePluginDetails` (PLUGIN_ID) |
-| `oauth_details` | `getAuthDetails` (PLUGIN_ID) · `updateAuthDetails` (AUTH_ID) |
-| `actions` | `getAllActions` (PLUGIN_ID) · `getActionDetails`, `updateActionDetails` (ACTION_ID) |
-| `action_version` | `getActionVersions` (ACTION_ID) · `updateActionVersionDetails` (VERSION_ID) |
-| `reusable_components` | `dhGetReusableComponentDetails` (PLUGIN_ID) · `dhUpdateReusableComponentDetails` (COMPONENT_ID) |
-| `action_version_component_table` | `dhGetUsedComponentInActionVersionDetails` (VERSION_ID) · `dhUpdateReusableComponentDetails` (mapping rowid) |
+| Op | Call |
+|---|---|
+| Read | `GET DH_BASE/get/<table>?identifier=<id>&filter=<f>` (+`&fields=<cols>`) |
+| Create | `POST DH_BASE/create/<table>` |
+| Update | `PUT DH_BASE/update/<table>?identifier=<id>&filter=<f>` |
+| Map component | `POST DH_BASE/create/action_version_component_table` |
+| Unmap (never on published) | `PATCH DH_BASE/delete/action_version_component_table` `{action_version_id, component_id, status:"drafted"}` |
+| Delete component | `PATCH DH_BASE/delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` |
+| Connection usage | `GET DH_BASE/GetUsedInCountForAuth?pluginId=<id>` |
+| Search plug | `GET API_BASE/dbdash/getPluginByQuery?query=<name>&mode=dh` (hits = array or `.rows`; accepts `&fields=`) |
+| Brand (new plug only) | `POST API_BASE/openai/dh/getBrandDetails` `{pluginDomain, pluginName, pluginId}` |
 
+* `DH_BASE` paths are relative to `<API_BASE>/developers/<ORG_ID>/` (in `dh.mjs`, omit leading `/`).
+* `API_BASE` paths are relative to `<API_BASE>` (in `dh.mjs`, include leading `/`).
+
+### Filters (table → filter: identifier)
+- **plugins** → `getAllPlugins`: `ORG_ID` (gives list of plugs available) · `getPluginDetails` / `updatePluginDetails`: `PLUGIN_ID`
+- **oauth_details** → `getAuthDetails`: `PLUGIN_ID` · `updateAuthDetails`: `AUTH_ID`
+- **actions** → `getAllActions`: `PLUGIN_ID` · `getActionDetails` / `updateActionDetails`: `ACTION_ID`
+- **action_version** → `getActionVersions`: `ACTION_ID` · `updateActionVersionDetails`: `VERSION_ID`
+- **reusable_components** → `dhGetReusableComponentDetails`: `PLUGIN_ID` · `dhUpdateReusableComponentDetails`: `COMPONENT_ID`
+- **action_version_component_table** → `dhGetUsedComponentInActionVersionDetails`: `VERSION_ID` · `dhGetUsedActionVersionForComponent`: `COMPONENT_ID` · update mapping: mapping `rowid` + `dhUpdateReusableComponentDetails`
+
+Prefer the endpoint **'Search plug'** (`GET /dbdash/getPluginByQuery?query=<name>&mode=dh`) to search if a plug exists or not. The endpoint `getAllPlugins` gives the list of all plugs available in the organization.
+Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` (it creates rows).
+
+### `&fields=` Columns (include `rowid` if you reuse the id; never invent names)
+- **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,serviceid,service_url,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
+- **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields,queryparams,accesstokencode,refreshtokencode,revokeapicode,testcode,authenticationpaths,whitelistdomains,skipwhitelistvalidation,uniquekeytostoreauth,connectionlabelkey,connectionlabelvalue,_connectionlabelvalue,isconnectionlabelmasked,clientid,clientsecret,isencrypted,authrequrl,redirecturl,scopeseperatedby,auth1parameters,pluginname,pluginiconurl,iconurlpath,domain,metadata,createdat,updatedat,created_by,updated_by`
+- **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,authid,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,metadata,actionversionrecordid,authidlookup,pluginname`
+- **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,description,category,sub_category,canpaginate,preferred_step_name,metadata,createdat,updatedat,created_by,updated_by`
+- **reusable_components:** `rowid,pluginrecordid,orgid,function_name,params,code,description,metadata,created_by,updated_by,componentgenerationsource`
+- **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata,status`
+
+### Entity Payloads & Rules
 - **Plug** — `create/plugins { name, orgid, domain, whitelistdomains: [domain] }`. New plug only:
   `POST /openai/dh/getBrandDetails { pluginDomain, pluginName, pluginId }` (fills logo, colour, tags; overwrites
   `name`, `domain`, `audience`, `whitelistdomains`); the level-2 MERGE then sets `name`, `description`, `domain`,
@@ -132,16 +155,16 @@ Wins over the KB payload rules on REST: `whitelistdomains` on connection create;
 - **Component** — `create/reusable_components { pluginrecordid, orgid, function_name, params: [{ name, sample }], code,
   function_code, description, componentgenerationsource: "userGenerated" }`; `function_code` =
   `async function <name>(<params>) {\n<code indented 2>\n}`. Always one `appRequest(method, path, options)` (base URL,
-  API headers, drops empty params, returns `response?.data`) + a list helper per list used ≥2×.
+  API headers, drops empty params, returns `response?.data`) + a list helper per list used ≥2×. Delete component → `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` (verify usage first with `dhGetUsedActionVersionForComponent`).
 - **Action / trigger** — `create/actions { name, description, key, pluginrecordid, type, authid, isvisible: true,
   category, sub_category, preferred_step_name, ignoreuniversalsampledata: false }` (`key` and trigger values per KB;
   manual trigger: no `authid`).
 - **Version** — `update/action_version … updateActionVersionDetails { perform, inputjson: { inputFields }, sampledata,
   description, authid, category, sub_category }`; triggers: `triggertype` + every block key of its type (KB; `""` if unused).
-- **Mapping** — every component a version's code or dropdowns call, plus `errorComponent`: `create/action_version_component_table
+- **Mapping & Unmapping** — every component a version's code or dropdowns call, plus `errorComponent`: `create/action_version_component_table
   { action_version_id, component_id, action_id, pluginrecordid, orgid, metadata: { componentdependson: { perform: true,
   <fieldKey>: true } } }` (keys = block names or the dynamic field's key, never a group path). Existing version → GET
-  its mappings first; mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails` with the full `metadata`.
+  its mappings first (`dhGetUsedComponentInActionVersionDetails`); mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails` with the full `metadata`. Unmap component (never on published versions) → `PATCH delete/action_version_component_table` `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `status: "published"`, `rtllayer` (auto-publishes), `isAIActionTrigger`, `functionId`, `isUserOnDh`,
   `actionversionrecordid`, `publishdescription`. `plugins`/`actions` updates replace `metadata` → MERGE;
   `action_version`/`oauth_details` updates ignore it → omit it. Skip deleted rows (`status: "deleted"`, `isdeleted: true`).
@@ -158,4 +181,5 @@ Wins over the KB payload rules on REST: `whitelistdomains` on connection create;
   Then MERGE the action with `isaiaction: true`, `aiorgid`, a `note` (+ name/description if changed). Never rename
   the action `key`.
 - Component: not versioned — an edit changes every mapped version, published included. Never change a mapped one
-  (except `errorComponent` per KB); add a new name.
+  (except `errorComponent` per KB); add a new name. Check usage with `dhGetUsedActionVersionForComponent`. To delete an
+  unused component: `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent`.
