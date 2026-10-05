@@ -141,20 +141,11 @@ Server side effects (don't duplicate them):
 - **Masked credentials:** Action/trigger/component code sees `authData` as a literal `"${context.authData.x}"`. Real values are injected only via `authenticationpaths` on whitelisted hosts, or `${context.authData.x}` in the URL host/path. Non-whitelisted hosts silently 401. Token/test code gets real values.
 - **Returns:** 204 → `{ success: true, <idField>: id }`. Arrays run the flow per item (max 1000).
 - **Components:**
-  - **Tool call format (Create)**: `POST create/reusable_components` `{ pluginrecordid, orgid, function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource: "userGenerated" }`
-    - Curl: `curl -s -X POST '{{API_BASE}}/developers/{{ORG_ID}}/create/reusable_components' -H 'proxy_auth_token: {{PROXY_AUTH_TOKEN}}' -H 'Content-Type: application/json' -d '{"pluginrecordid":"<PLUGIN_ID>","orgid":"{{ORG_ID}}","function_name":"<name>","params":[{"name":"<param>","sample":"\"sample\""}],"code":"<raw try-catch body>","function_code":"async function <name>(<params>) {\\n  …\\n}","description":"…","componentgenerationsource":"userGenerated"}'`
-    - `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Update `code` and `function_code` together.
-    - `params`: `[{ name, sample }]` (string samples double-quoted `'"field ID"'`; other types raw).
-  - **Tool call format (Mapping)**: `POST create/action_version_component_table` `{ bulkEntry: true, pluginrecordid, dataToSend: [{ action_version_id, component_id, action_id, pluginrecordid, orgid, metadata: { componentdependson: { <calling block or dynamic field key>: true } } }] }`
-    - Unmap: `PATCH delete/action_version_component_table` `{ action_version_id, component_id, status: "drafted" }`
-  - **Tool call format (Update / Delete / Read)**:
-    - Read: `GET get/reusable_components?identifier=<PLUGIN_ID>&filter=dhGetReusableComponentDetails&fields=<cols>`
-    - Update: `PUT update/reusable_components?identifier=<id>&filter=dhUpdateReusableComponentDetails` `{ rowid, description, code, function_code, componentgenerationsource }`
-    - Delete: `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` (verify usage first with `dhGetUsedActionVersionForComponent`)
-  - **When to create**: Reusable components are supported across all code blocks (`perform`, `performlist`, `transferoption`, `performsubscribe`, `performunsubscribe`, `modifytriggerdata`) and field generators (`optionsGenerator`, `fieldsGenerator`). Create reusable components strictly for **`optionsGenerator`** in case of dynamic dropdowns and multiselects, and **`fieldsGenerator`** in case of dynamic input groups. Do NOT create reusable components for API requests (actions and triggers execute API requests directly via `axios` or `fetch`), nor for perform code or general helpers when direct execution is sufficient.
-  - **Single Standalone Component Rule**: Each reusable component must be self-contained; never call or nest reusable components inside other reusable components.
-  - `errorComponent` is built in: never create it; keep it mapped (adapt via `PUT update/reusable_components` only if custom provider error extraction is needed).
-  - A component can only call components mapped to the same version.
+  - Create reusable components strictly for dynamic fields (`optionsGenerator` in dynamic dropdowns/multiselects, `fieldsGenerator` in dynamic input groups). Do NOT create reusable components for API requests (actions/triggers execute API requests directly via `axios` or `fetch`), nor for perform code or general helpers when direct execution is sufficient.
+  - Create payload: `create/reusable_components` `{ pluginrecordid, orgid, function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource: "userGenerated" }`.
+  - `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Update `code` and `function_code` together. Params: string samples double-quoted `'"field ID"'`; other types raw.
+  - Standalone only: never call or nest reusable components inside other components. A component can only call components mapped to the same version.
+  - `errorComponent` is built in: never create it; keep it mapped.
 - **Triggers:**
   - The platform doesn't deduplicate.
   - Verify webhook signatures when a secret exists.
