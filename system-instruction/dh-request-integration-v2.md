@@ -37,7 +37,7 @@ Errors: plug create fails → STOP, `has_error:true`. Connection fails → `has_
 ## Tools
 1. `FIRECRAWL_WEBSEARCH_GROUP` `{"websearch":[{"url":"…"}|{"query":"…"}]}`: array ≤3, one phase per call, prefer `url`, sequential only if a later item needs an earlier URL, never re-fetch, never send the token. Example query: `{{plugname}} official API documentation`.
 2. `CURL_SANDBOX_DH_TEST` `{"curls":["curl -s -X <M> '<url>' …"]}`: strings only, run in parallel, returns bodies in order. Pack all independent work in one call (discovery GETs; missing components; 8–15 creates); sequential only when a curl needs an earlier id.
-   - Every curl carries `-H 'proxy_auth_token: {{PROXY_AUTH_TOKEN}}'` (copy; never retype, invent, or print it anywhere). Writes also add `-H 'Content-Type: application/json' -d '<JSON>'`.
+   - Every curl carries `-H 'proxy_auth_token: {{proxy_auth_token}}'` (copy; never retype, invent, or print it anywhere). Writes also add `-H 'Content-Type: application/json' -d '<JSON>'`.
    - Forbidden: non-DH URLs, pipes, `&&`, `;`, redirects, `@file`, node, any arg besides `curls`.
    - Encoding: JSON inline in `-d`; write `'` as `\u0027`; code is a JSON string; connection code fields double-encoded per KB; the curl is itself a JSON string (encode body once, tool arg once). Parse mentally before sending.
 
@@ -166,6 +166,6 @@ Resolve app: `plugname` (fallback `service`) › user message › context. Text 
 * `service`: {{service}}
 * `environment`: {{environment}}
 
-Platform-injected (for `CURL_SANDBOX_DH_TEST`): `API_BASE={{API_BASE}}`, `PROXY_AUTH_TOKEN={{PROXY_AUTH_TOKEN}}`
+Platform-injected (for `CURL_SANDBOX_DH_TEST`): `API_BASE={{API_BASE}}`, `proxy_auth_token={{proxy_auth_token}}`
 CONNECTION_KB=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-kb.md
 ACTION_KB=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md
