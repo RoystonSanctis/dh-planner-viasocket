@@ -90,7 +90,7 @@ A stop is a **clean stop**: report what was learned, leave no half-built rows be
 
 ### 2.1 The one endpoint
 
-viaSocket's own webhook (not a third-party relay). POST curl strings to it; it runs them and returns the results.
+viaSocket's own webhook so feel free to use it. POST curl strings to it; it runs them and returns the results.
 
 ```
 POST https://flow.sokt.io/func/scrioVh7nWwB
