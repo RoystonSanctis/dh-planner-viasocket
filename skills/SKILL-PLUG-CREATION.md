@@ -20,11 +20,13 @@ decide all design). **Already in context — don't re-fetch:** the GET results: 
 
 - Fill every `{{…}}` from your inputs. Prefer OAuth 2.0 (`Auth2.0`) first; if not supported, use another documented
   method per connection KB priority (Basic Auth/API key, OAuth 1.0) — don't ask the user (ask only if auth is
-  completely undocumented). In the research phase, ask the user to choose the trigger/action scope: (1) Core functionality
-  triggers/actions or (2) List all triggers/actions. Ask all other clarifications (missing ORG_ID, APP_DOMAIN, API_BASE,
-  token, or unverified REST API docs/curl) strictly at the start. Once proceeding with creation (Plan & Execute), never
-  ask the user or interrupt — execute quietly to completion. The only mid-run questions allowed are the connection
-  request and the publish question in §4.
+  completely undocumented). If `APP_DOMAIN` is missing or unknown, do **not** stop or ask — web-search for the app's
+  official site (by `APP_NAME` / product name), take the canonical hostname (no `https://`, no path), and use that as
+  `{{APP_DOMAIN}}`. Ask the user for the domain only if web search still cannot identify a clear official domain. In the
+  research phase, ask the user to choose the trigger/action scope: (1) Core functionality triggers/actions or (2) List
+  all triggers/actions. Ask all other clarifications (missing ORG_ID, API_BASE, token, or unverified REST API docs/curl)
+  strictly at the start. Once proceeding with creation (Plan & Execute), never ask the user or interrupt — execute
+  quietly to completion. The only mid-run questions allowed are the connection request and the publish question in §4.
 - Chat output style: user-friendly, plain language, and short. Never output internal technical steps (commands, tool
   calls, API payloads, batch levels, or internal IDs) — present only the concise outcome.
 - The token lives only in `.dh-run/config.json` — never print, log or commit it. Never ask for client ID/secret, API
