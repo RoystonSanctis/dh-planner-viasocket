@@ -74,7 +74,7 @@ node dh.mjs kb dh-connection-kb.md '*'
 
 ```text
 node dh.mjs GET   '<path>' [key,key]            read; only those keys of each row; retried once
-node dh.mjs POST|PUT '<path>' '{json}'|@file    write
+node dh.mjs POST|PUT|PATCH '<path>' '{json}'|@file write
 node dh.mjs MERGE 'update/plugins?identifier=<id>&filter=updatePluginDetails' '{changes}'
                                                 keep all metadata, deep-merge aiContext, append aiLogs
 node dh.mjs COPY  'get/oauth_details?identifier={{PLUGIN_ID}}&filter=getAuthDetails' '{"rowid":"<authId>",…changes}'
@@ -91,13 +91,24 @@ adds the `aiLogs` CREATED entry and syntax-checks the code and every `authentica
 KB detail: `dh-connection-practice.md "<auth type>"` · `… "Test (Me) API"` ·
 `dh-connection-schema.md "<Basic Auth|Authorization Code|Client Credentials|Auth1.0> Update JSON Schema"`.
 
-## 3. Payload
+## 3. Payload + API
 
 Wins over the KB payload rules on REST (code encoding, `whitelistdomains` on create).
 
+Reads:
+- `GET get/plugins?identifier={{PLUGIN_ID}}&filter=getPluginDetails` (+`&fields=<cols>`)
+- `GET get/oauth_details?identifier={{PLUGIN_ID}}&filter=getAuthDetails` (+`&fields=<cols>`)
+- `GET GetUsedInCountForAuth?pluginId={{PLUGIN_ID}}`
+
+### `&fields=` Columns (include `rowid` if you reuse the id; never invent names)
+- **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields,queryparams,accesstokencode,refreshtokencode,revokeapicode,testcode,authenticationpaths,whitelistdomains,skipwhitelistvalidation,uniquekeytostoreauth,connectionlabelkey,connectionlabelvalue,_connectionlabelvalue,isconnectionlabelmasked,clientid,clientsecret,isencrypted,authrequrl,redirecturl,scopeseperatedby,auth1parameters,pluginname,pluginiconurl,iconurlpath,domain,metadata,createdat,updatedat,created_by,updated_by`
+- **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,serviceid,service_url,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
+
+### Payloads & Rules
 - `POST create/oauth_details` with every KB "Create Payload" key + `pluginrecordid: "{{PLUGIN_ID}}"`,
   `authversion: "V1"`, `whitelistdomains`. `connectionlabelkey`, `connectionlabelvalue`, `_connectionlabelvalue` are
   mandatory (create fails without).
+- `PUT update/oauth_details?identifier=<authId>&filter=updateAuthDetails` with `{ pluginrecordid: "{{PLUGIN_ID}}", rowid: <authId>, <changed keys only> }`.
 - `clientsecret` is encrypted on save — never copy it. `update/oauth_details` ignores `metadata`. `success: false` →
   fix the payload (unknown keys are silently stored or rejected).
 

@@ -84,7 +84,7 @@ node dh.mjs kb dh-knowledgebase.md '*'
 
 ```text
 node dh.mjs GET   '<path>' [key,key]            read; only those keys of each row; retried once
-node dh.mjs POST|PUT '<path>' '{json}'|@file    write
+node dh.mjs POST|PUT|PATCH '<path>' '{json}'|@file write
 node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'
                                                 keep all metadata, deep-merge aiContext, append aiLogs (note optional)
 node dh.mjs COPY  'get/action_version?identifier=<actionId>&filter=getActionVersions' '{"rowid":"<versionId>"}'
@@ -109,29 +109,42 @@ KB detail: `ux-practice.md "<category or trigger type>"` · `ux-worked-examples.
 Wins over the KB payload schemas: no mapping `path` toggle, `functionId`, authored `steps`/`blocks`/`dependsOn`, or
 edits to mapped components; code fields are plain strings.
 
-Reads: `GET get/<table>?identifier=<id>&filter=<f>` → `data: [rows]` — `plugins` `getPluginDetails` (PLUGIN_ID) ·
+Reads: `GET get/<table>?identifier=<id>&filter=<f>` (+`&fields=<cols>`) → `data: [rows]` — `plugins` `getPluginDetails` (PLUGIN_ID) ·
 `oauth_details` `getAuthDetails` (PLUGIN_ID) · `actions` `getAllActions` (PLUGIN_ID), `getActionDetails` (ACTION_ID) ·
 `action_version` `getActionVersions` (ACTION_ID) · `reusable_components` `dhGetReusableComponentDetails` (PLUGIN_ID) ·
-`action_version_component_table` `dhGetUsedComponentInActionVersionDetails` (VERSION_ID).
+`action_version_component_table` `dhGetUsedComponentInActionVersionDetails` (VERSION_ID) · `dhGetUsedActionVersionForComponent` (COMPONENT_ID).
+Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions`.
 
+### `&fields=` Columns (include `rowid` if you reuse the id; never invent names)
+- **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,authid,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,metadata,actionversionrecordid,authidlookup,pluginname`
+- **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,description,category,sub_category,canpaginate,preferred_step_name,metadata,createdat,updatedat,created_by,updated_by`
+- **reusable_components:** `rowid,pluginrecordid,orgid,function_name,params,code,description,metadata,created_by,updated_by,componentgenerationsource`
+- **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata,status`
+- **plugins:** `rowid,name,domain,orgid,status,whitelistdomains,preferedauthversion,metadata`
+- **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields`
+
+### Payloads & Rules
 - **Action / trigger** — `POST create/actions { name, description, key, pluginrecordid: "{{PLUGIN_ID}}", type:
-"{{ENTITY_TYPE}}", authid, isvisible: true, category, sub_category, preferred_step_name, ignoreuniversalsampledata:
-false }` (`key` and trigger values per KB). `authid` = `{{PREFERRED_AUTH_ID}}` → plug `preferedauthversion` → first
+  "{{ENTITY_TYPE}}", authid, isvisible: true, category, sub_category, preferred_step_name, ignoreuniversalsampledata:
+  false }` (`key` and trigger values per KB). `authid` = `{{PREFERRED_AUTH_ID}}` → plug `preferedauthversion` → first
   connection row (manual trigger: none; on update send it only if it changes). Never rename `key`.
 - **Version** — `PUT update/action_version?identifier=<versionId>&filter=updateActionVersionDetails { perform,
-inputjson: { inputFields }, sampledata, description, authid, category, sub_category }`; no `metadata`; triggers:
+  inputjson: { inputFields }, sampledata, description, authid, category, sub_category }`; no `metadata`; triggers:
   `triggertype` + every block key of its type (KB; `""` if unused).
 - **Component** (only new ones; reuse by name) — `POST create/reusable_components { pluginrecordid, orgid,
-function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource:
-"userGenerated" }`; `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Not versioned —
-  never change a mapped one (it changes every version, published included; `errorComponent` only per KB); add a new
-  name. Adapting `errorComponent` (KB) → `PUT update/reusable_components?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`.
-- **Mapping** — every component the version's code or dropdowns call, plus `errorComponent`: `POST
-create/action_version_component_table { action_version_id, component_id, action_id, pluginrecordid, orgid,
-metadata: { componentdependson: { perform: true, <fieldKey>: true } } }` (keys = block names or the dynamic field's
+  function_name, params: [{ name, sample }], code, function_code, description, componentgenerationsource:
+  "userGenerated" }`; `function_code` = `async function <name>(<params>) {\n<code indented 2>\n}`. Do not create
+  reusable components for API requests (actions/triggers execute API requests directly via axios/fetch). Focus component
+  creation strictly on `optionsGenerator` for dynamic dropdowns and multiselects, and `fieldsGenerator` for dynamic
+  input groups. Not versioned — never change a mapped one (it changes every version, published included; `errorComponent`
+  only per KB); add a new name. Adapting `errorComponent` (KB) → `PUT update/reusable_components?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`.
+  Delete component → `PATCH delete/reusable_components?identifier=<id>&filter=dhDeleteReusableComponent` (verify usage first with `dhGetUsedActionVersionForComponent`).
+- **Mapping & Unmapping** — every component the version's code or dropdowns call, plus `errorComponent`: `POST
+  create/action_version_component_table { action_version_id, component_id, action_id, pluginrecordid, orgid,
+  metadata: { componentdependson: { perform: true, <fieldKey>: true } } }` (keys = block names or the dynamic field's
   key, never a group path). New or copied version → create directly (copies have no mappings); existing draft → GET
-  its mappings first; mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`
-  with the full `metadata`.
+  its mappings first (`dhGetUsedComponentInActionVersionDetails`); mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`
+  with the full `metadata`. Unmap component (never on published versions) → `PATCH delete/action_version_component_table` `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `rtllayer`, `isAIActionTrigger`, `functionId`, or a body-level `isUserOnDh` on writes;
   `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `success: false` → fix the payload (unknown keys are silently stored
   or rejected).
