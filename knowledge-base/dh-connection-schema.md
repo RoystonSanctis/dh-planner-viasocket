@@ -134,19 +134,19 @@ A Connection represents a stored authentication configuration (e.g., "Notion - B
     "headers": [
       {
         "name": "String (HTTP header name to inject, e.g., \"Authorization\" or \"X-Shopify-Access-Token\")",
-        "value": "String (JS expression or named function returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\" or \"return `Zoho-oauthtoken ${context?.authData?.accesstokencode?.access_token}`\")"
+        "value": "String (Single-line JS return statement returning the header value, e.g., \"return `Bearer ${context.authData?.accesstokencode?.access_token}`;\" or \"return `Zoho-oauthtoken ${context?.authData?.accesstokencode?.access_token}`;\" or \"return context.authData?.api_key;\". Do NOT wrap in functions.)"
       }
     ],
     "body": [
       {
         "name": "String (Body field key to inject, e.g., \"name\")",
-        "value": "String (JS expression or named function returning the body value, e.g., \"return \\\"Prince\\\";\")"
+        "value": "String (Single-line JS return statement returning the body value, e.g., \"return context.authData?.api_key;\" or \"return \\\"Prince\\\";\". Do NOT wrap in functions.)"
       }
     ],
     "queryParams": [
       {
         "name": "String (Query parameter name to inject, e.g., \"api_key\" or \"access_token\")",
-        "value": "String (JS expression or named function returning the query param value, e.g., \"return context?.authData?.clientsecret\" or \"function returnAccessToken(){ return context.authData?.accesstokencode.access_token } return returnAccessToken()\")"
+        "value": "String (Single-line JS return statement returning the query param value, e.g., \"return context?.authData?.clientsecret;\" or \"return context.authData?.accesstokencode?.access_token;\". Do NOT wrap in functions.)"
       }
     ]
   },
@@ -266,7 +266,7 @@ metadata: Object
 The Create Connection Payload is the minimal set of fields sent by the client to create a new Connection record. DB-managed fields (`rowid`, `autonumber`, `createdat`/`updatedat`, `createdby`/`updatedby`, `metadata`) and plugin-display fields (`pluginname`, `pluginiconurl`, `domain`, `whitelistdomains`) are not part of this payload.
 
 > [!IMPORTANT]
-> **`authenticationpaths` First-Time Creation Rule:**
+> **`authenticationpaths` First-Time Creation & Single-Line Rule:**
 > When creating a connection for the first time, the `authenticationpaths` object **MUST** be present with all three sub-keys: `headers`, `body`, and `queryParams`. If no data is present for any (or all) of these, set their values to empty arrays `[]`.
 > ```json
 > "authenticationpaths": {
@@ -275,6 +275,8 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 >   "queryParams": []
 > }
 > ```
+> **Single-Line Code Recommendation for Set Request Parameters:**
+> Each injected parameter's `value` in `headers`, `queryParams`, or `body` MUST be a clean, single line of code with a direct `return` statement (e.g. `return context.authData?.api_key;` or `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`). Do NOT write an entire wrapper function like `function returnHeaders() { ... } return returnHeaders();`.
 
 > [!IMPORTANT]
 > **`authfields.authentication.fields` Array Rule:**
@@ -296,9 +298,11 @@ The Create Connection Payload is the minimal set of fields sent by the client to
 > - **Double-encoded fields — use `\\n`:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. These wrap a `"source"` key, so their value is decoded TWICE (once as the payload string, once by `JSON.parse`). A newline MUST be written as `\\n` so it survives both decodes.
 >   - Correct: `"testcode": "{\"source\":\"async function testcode() {\\n  const { api_key } = context?.authData || {};\\n}\\n\\nreturn await testcode();\"}"`
 >   - Wrong (unparseable — raw newline inside the inner JSON string): `"{\"source\":\"async function testcode() {\n  ...\"}"`
-> - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
->   - Correct: `"value": "function returnHeaders() {\n  const { api_key } = context?.authData || {};\n\n  return \`Api-Key ${api_key}\`;\n}\n\nreturn returnHeaders();"`
->   - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor and collapses the code onto one line): `"value": "function returnHeaders() {\\n  ..."`
+> - **Plain string fields — use `\n` if multi-line:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. Note: `authenticationpaths.*[].value` is recommended as a single line of code returning the credential directly. For multi-line plain text strings (such as `help` text), a newline MUST be written as `\n`.
+>   - Correct (single-line return): `"value": "return context.authData?.api_key;"`
+>   - Correct (single-line Bearer): `"value": "return \`Bearer ${context?.authData?.accesstokencode?.access_token}\`;"`
+>   - Wrong (wrapped function): `"value": "function returnHeaders() {\n  return context.authData?.api_key;\n}\n\nreturn returnHeaders();"`
+>   - Wrong (over-escaped — leaks a visible literal `\n`): `"value": "return context.authData?.api_key;\\n"`
 > - **The rule in one line:** escape levels MUST equal decode passes — 2 levels (`\\n`) for wrapper fields, 1 level (`\n`) for plain fields. `queryparams` is also a stringified JSON field but holds only static params, never code or newlines.
 > - **Self-check before every call:** `JSON.parse(testcode).source` MUST parse successfully AND span multiple lines. Every `authenticationpaths.*[].value` MUST contain NO `\\n`. Build these values with `JSON.stringify(...)` rather than hand-counting backslashes.
 
@@ -385,7 +389,7 @@ The Update Connection Payload is sent by the client to modify an existing Connec
 
 > [!IMPORTANT]
 > **`authenticationpaths` Update Rule:**
-> When updating a connection, if the `authenticationpaths` key is included in the update payload, all three sub-keys (`headers`, `body`, and `queryParams`) **MUST** be present inside `authenticationpaths` (using empty arrays `[]` for any sub-key with no data). If there are no updates to `authenticationpaths`, skip/omit the `"authenticationpaths"` key entirely during the update operation.
+> When updating a connection, if the `authenticationpaths` key is included in the update payload, all three sub-keys (`headers`, `body`, and `queryParams`) **MUST** be present inside `authenticationpaths` (using empty arrays `[]` for any sub-key with no data). If there are no updates to `authenticationpaths`, skip/omit the `"authenticationpaths"` key entirely during the update operation. Each entry `value` MUST be a single line of code with a direct `return` statement (e.g. `return context.authData?.api_key;` or `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`), NOT a wrapper function.
 
 ## Basic Auth Update Schema
 
@@ -587,19 +591,19 @@ skipwhitelistvalidation: null (null if not set)
     "headers": [
       {
         "name": "String (Header name, e.g., \"Authorization\" or \"X-Shopify-Access-Token\")",
-        "value": "String (JS code returning the header value, e.g., \"function returnHeaders(){ return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()\")"
+        "value": "String (Single-line JS return statement returning the header value, e.g., \"return `Bearer ${context.authData?.accesstokencode?.access_token}`;\" or \"return context.authData?.api_key;\". Do NOT wrap in functions.)"
       }
     ],
     "queryParams": [
       {
         "name": "String (Query param name, e.g., \"access_token\" or \"api_key\")",
-        "value": "String (JS code returning the query param value, e.g., \"return context.authData?.accesstokencode.access_token\")"
+        "value": "String (Single-line JS return statement returning the query param value, e.g., \"return context.authData?.accesstokencode?.access_token;\" or \"return context.authData?.api_key;\". Do NOT wrap in functions.)"
       }
     ],
     "body": [
       {
         "name": "String (Body param name, e.g., \"body params\")",
-        "value": "String (JS code returning the body param value, e.g., \"return \\\"body\\\";\")"
+        "value": "String (Single-line JS return statement returning the body param value, e.g., \"return context.authData?.api_key;\" or \"return \\\"body\\\";\". Do NOT wrap in functions.)"
       }
     ]
   },

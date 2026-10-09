@@ -95,7 +95,7 @@ This document captures production-grade connection records from the viaSocket De
     "headers": [
       {
         "name": "Authorization",
-        "value": "function returnHeaders() { return `Bearer ${context.authData?.accesstokencode?.access_token}` } return returnHeaders()"
+        "value": "return `Bearer ${context.authData?.accesstokencode?.access_token}`"
       },
       {
         "name": "Content-Type",
@@ -151,7 +151,7 @@ This document captures production-grade connection records from the viaSocket De
     "headers": [
       {
         "name": "Authorization",
-        "value": "function returnHeaders() {\n  return `Bearer ${context?.authData?.accesstokencode?.access_token}`;\n}\n\nreturn returnHeaders();"
+        "value": "return `Bearer ${context?.authData?.accesstokencode?.access_token}`"
       }
     ],
     "queryParams": []
@@ -311,7 +311,7 @@ This document captures production-grade connection records from the viaSocket De
     "headers": [
       {
         "name": "Authorization",
-        "value": "function returnAuthorization(){ return `Bearer ${context?.authData?.accesstokencode?.access_token}`} return returnAuthorization()"
+        "value": "return `Bearer ${context?.authData?.accesstokencode?.access_token}`"
       }
     ],
     "queryParams": []
@@ -449,7 +449,7 @@ This document captures production-grade connection records from the viaSocket De
     "headers": [
       {
         "name": "Authorization",
-        "value": "function returnAuthorization(){ return `Bearer ${context?.authData?.accesstokencode?.access_token}` } return returnAuthorization()"
+        "value": "return `Bearer ${context?.authData?.accesstokencode?.access_token}`"
       }
     ],
     "queryParams": []
@@ -524,7 +524,7 @@ This document captures production-grade connection records from the viaSocket De
 - **Two-Step Long-Lived Token Exchange**: Short-lived token is immediately upgraded via `https://graph.instagram.com/access_token?grant_type=ig_exchange_token`.
 - **User Profile Enrichment in `accesstokencode`**: After token exchange, calls `https://graph.instagram.com/me?fields=user_id,username,name` and merges `instagram_user_id`, `username`, and `name` into the returned token object.
 - **Query Parameter Auth Injection**: Instead of standard Authorization headers, token is passed in `authenticationpaths.queryParams`:
-  `[{ "name": "access_token", "value": "function returnAccessToken(){ return context.authData?.accesstokencode.access_token} return returnAccessToken()" }]`.
+  `[{ "name": "access_token", "value": "return context.authData?.accesstokencode?.access_token" }]`.
 - **Dynamic Avatar Icon (`iconurlpath`)**: `"${context?.authData?.testcode?.profile_picture_url}"`.
 - **Connection Label**: Mapped to Instagram handle: `context.authData?.testcode?.username`.
 
@@ -558,7 +558,7 @@ This document captures production-grade connection records from the viaSocket De
     "queryParams": [
       {
         "name": "access_token",
-        "value": "function returnAccessToken(){ return context.authData?.accesstokencode.access_token} return returnAccessToken()"
+        "value": "return context.authData?.accesstokencode?.access_token"
       }
     ]
   },

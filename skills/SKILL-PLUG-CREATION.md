@@ -9,9 +9,9 @@ description: >-
 
 {{USECASE}}
 
-| ORG_ID       | APP_NAME · APP_DOMAIN           | API_BASE       |
-| ------------ | ------------------------------- | -------------- |
-| `{{ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` |
+| ORG_ID       | APP_NAME · APP_DOMAIN           | API_BASE       | PROXY_AUTH_TOKEN       |
+| ------------ | ------------------------------- | -------------- | ---------------------- |
+| `{{ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` | `{{PROXY_AUTH_TOKEN}}` |
 
 **Knowledge base:** read `dh-knowledgebase.md` + `dh-connection-kb.md` in full (the last setup line prints them; they
 decide all design). **Already in context — don't re-fetch:** the search/GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → search with Search plug or GET (§3).

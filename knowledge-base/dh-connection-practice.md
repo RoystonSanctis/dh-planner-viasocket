@@ -101,9 +101,11 @@ This document contains structured UX guidelines and best practices for creating 
   - **Double-encoded fields — use `\\n`:** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode`. These wrap a `"source"` key, so their value is decoded TWICE (once as the payload string, once by `JSON.parse`). A newline MUST be written as `\\n` so it survives both decodes.
     - Correct: `"testcode": "{\"source\":\"async function testcode() {\\n  const { api_key } = context?.authData || {};\\n}\\n\\nreturn await testcode();\"}"`
     - Wrong (unparseable — raw newline inside the inner JSON string): `"{\"source\":\"async function testcode() {\n  ...\"}"`
-  - **Plain string fields — use `\n`:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. A newline MUST be written as `\n`.
-    - Correct: `"value": "function returnHeaders() {\n  const { api_key } = context?.authData || {};\n\n  return \`Api-Key ${api_key}\`;\n}\n\nreturn returnHeaders();"`
-    - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor and collapses the code onto one line): `"value": "function returnHeaders() {\\n  ..."`
+  - **Plain string fields — use `\n` if multi-line:** `authenticationpaths.headers[].value`, `authenticationpaths.body[].value`, `authenticationpaths.queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, and all `help` / `placeholder` text. Raw JS sits DIRECTLY in the string and is decoded ONCE. Note: `authenticationpaths.*[].value` is recommended as a single line of code returning the credential directly. For multi-line plain text strings (such as `help` text), a newline MUST be written as `\n`.
+    - Correct (single-line return): `"value": "return context.authData?.api_key;"`
+    - Correct (single-line Bearer): `"value": "return \`Bearer ${context?.authData?.accesstokencode?.access_token}\`;"`
+    - Wrong (wrapped function): `"value": "function returnHeaders() {\n  return context.authData?.api_key;\n}\n\nreturn returnHeaders();"`
+    - Wrong (over-escaped — leaks a visible literal `\n` into the UI editor): `"value": "return context.authData?.api_key;\\n"`
   - **The rule in one line:** escape levels MUST equal decode passes — 2 levels (`\\n`) for wrapper fields, 1 level (`\n`) for plain fields. `queryparams` is also a stringified JSON field but holds only static params, never code or newlines.
   - **Self-check before every call:** `JSON.parse(testcode).source` MUST parse successfully AND span multiple lines. Every `authenticationpaths.*[].value` MUST contain NO `\\n`. Build these values with `JSON.stringify(...)` rather than hand-counting backslashes.
 
@@ -152,7 +154,7 @@ The standard field ordering/section flow for a Basic Auth Connection follows thi
 3. **Add Connection Label** → A dynamic, human-readable identifier for the saved connection, built from auth fields or the Test API response.
 4. **Add Icon** → Visual icon for the connection (path expression to extract the verified connection icon, e.g. user photo/avatar or workspace icon, from the Test API response; this is NOT the service icon. Only fill if the Test API provides a verified connection icon, otherwise leave empty).
 5. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
-6. **Set Request Parameters** *(Final, Required)* → Dynamic functions that inject the credential into every request's Header, Query Param, or Body — so it never needs to be re-specified inside individual Actions/Triggers.
+6. **Set Request Parameters** *(Final, Required)* → Dynamic single-line return statements that inject the credential into every request's Header, Query Param, or Body (e.g. `return context.authData?.api_key;` or `return \`Bearer ${context.authData?.api_key}\`;`) — so it never needs to be re-specified inside individual Actions/Triggers. Always use a single line of code; do not write wrapper functions.
 
 ### Basic Auth Common Auth Fields
 - **String** — For non-sensitive credential parts (e.g. `username`, `account_id`).
@@ -161,7 +163,7 @@ The standard field ordering/section flow for a Basic Auth Connection follows thi
 
 ### Basic Auth Perform Code Reference
 - Basic Auth Connections inject credentials automatically via **Set Request Parameters** — Actions/Triggers do not need to manually attach auth headers.
-- Test (Me) API and Request Parameter functions reference credentials via `context.authData.<field_key>`.
+- Test (Me) API references credentials via `context.authData.<field_key>`, and Set Request Parameters uses a single line of code returning the credential directly (e.g. `return context.authData?.api_key;`).
 
 **testcode (Test (Me) API):**
 ```javascript
@@ -253,19 +255,22 @@ The standard 13-step section flow:
       - Google Sheets: `"${context?.authData?.testcode?.picture}"`
 11. **Add Urls to Whitelist** → Include both the main domain link of the service and the API base domain used (which can be identified from the Test API payload/request, since they can be different).
 12. **Add Unique Connection Identifier** *(optional)* → Stable field from the Test/Token response (e.g. `user_id`, `workspace_id`) used to prevent duplicate connections for the same account; enables update-instead-of-duplicate behavior. Leave blank if no reliable stable field exists.
-13. **Set Request Parameters** *(Final, Required)* → Dynamic JS functions building Headers (e.g. `Authorization: Bearer ${context.authData?.accesstokencode?.access_token}`), Query Params, and Body defaults for every request.
-    - **Custom Header Schemes:** E.g., `Authorization: Zoho-oauthtoken ${context?.authData?.accesstokencode?.access_token}`.
-    - **Custom Header Keys:** E.g., `X-Shopify-Access-Token: ${context?.authData?.accesstokencode?.access_token}`.
-    - **Query Parameter Token Injection (`queryParams`):** If the service expects the access token as a URL query param rather than a header (e.g. Instagram Graph API `access_token`), define it inside `authenticationpaths.queryParams` (`return context.authData?.accesstokencode.access_token`).
+13. **Set Request Parameters** *(Final, Required)* → Dynamic single-line JS return expressions injecting Headers (e.g. `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`), Query Params, and Body defaults for every request.
+    - **Single-Line Code Recommendation:** Every entry in Set Request Parameters (`authenticationpaths` for `headers`, `queryParams`, or `body`) MUST be a clean, single line of code with a direct `return` statement:
+      - Preferred: `return context.authData?.api_key;` or `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`
+      - **Do NOT write entire function wrapper blocks:** Never write `function returnHeaders() { ... } return returnHeaders();`.
+    - **Custom Header Schemes:** E.g., `return \`Zoho-oauthtoken ${context?.authData?.accesstokencode?.access_token}\`;`.
+    - **Custom Header Keys:** E.g., `X-Shopify-Access-Token` with value `return context?.authData?.accesstokencode?.access_token;`.
+    - **Query Parameter Token Injection (`queryParams`):** If the service expects the access token as a URL query param rather than a header (e.g. Instagram Graph API `access_token`), define it inside `authenticationpaths.queryParams` (`return context.authData?.accesstokencode?.access_token;`).
 
 #### Authorization Code Common Auth Fields
 - **String / Password / Dropdown** *(Step 1 only)* — Pre-auth contextual values (subdomain, region, environment, tenant ID).
 - **String / Password** *(Step 3)* — `Client ID`, `Client Secret` (configured globally via dedicated root keys by default, or inside `authfields.authentication.fields` under keys `"clientid"` and `"clientsecret"` along with `"redirectUrl"` for manual setup).
-- **Key-Value pairs** *(Steps 4–7, 13)* — Authorization params, token request/response mapping, refresh/revoke request bodies, and request-parameter functions.
+- **Key-Value pairs** *(Steps 4–7, 13)* — Authorization params, token request/response mapping, refresh/revoke request bodies, and request-parameter expressions.
 
 #### Authorization Code Perform Code Reference
 - Token exchange, refresh, and revoke each use a `POST` request built via `axios` returning `response.data` / `res.data`.
-- Request Parameters use small functions referencing `context.authData.<key>` so the latest token is always used, including seamlessly after a refresh.
+- Request Parameters use single-line return statements referencing `context.authData.<key>` (e.g. `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`) so the latest token is always used, including seamlessly after a refresh, without wrapper function boilerplate.
 - The authorization `code` path is `context?.authData?.Authorization?.code`, used inside `accesstokencode`.
 - The refresh token path is `context?.authData?.accesstokencode?.refresh_token`, used inside `refreshtokencode`.
 - The PKCE code verifier path is `context?.authData?.code_verifier`, included as `code_verifier` in `accesstokencode` when PKCE is enabled.
@@ -921,6 +926,7 @@ Use **response-derived resolution** rather than asking users to manually supply 
 * **Cross-Cutting UX Patterns:**
   * **Token Freshness Pattern** — Always resolve tokens dynamically inside Request Parameter functions (`context.authData?.accesstokencode?.access_token`) rather than caching a static value, so refreshed tokens are picked up automatically.
   * **`authenticationpaths` (Set Request Parameters) Payload Rules:**
+    * **Single-Line Return Statement Rule:** Every entry `value` in `authenticationpaths.headers`, `queryParams`, and `body` MUST be a single line of code with a direct `return` statement (e.g., `return context.authData?.api_key;` or `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`). Do NOT define entire wrapper functions (e.g. `function returnHeaders() { ... } return returnHeaders();`).
     * **First-Time Creation:** When creating a connection for the first time, `authenticationpaths` MUST be included with all three sub-keys: `headers`, `body`, and `queryParams`. If no injection parameters exist for any (or all) of these keys, set their value to an empty array `[]` (e.g., `"authenticationpaths": { "headers": [], "body": [], "queryParams": [] }`).
     * **Updates:** When updating a connection, if `authenticationpaths` is included in the update payload, it MUST include all three sub-keys (`headers`, `body`, `queryParams`), using empty arrays `[]` for any sub-key with no data. If `authenticationpaths` is not being updated, skip/omit the `"authenticationpaths"` key entirely during the update operation.
   * **`authfields.authentication.fields` Array Rule:**

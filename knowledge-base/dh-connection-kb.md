@@ -239,8 +239,9 @@ return await <fnName>();
 Escape levels = decode passes.
 - **Double-encoded (2 levels → `\\n`):** `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` (because they are wrapped in `{"source":"..."}`).
   - ✅ `"{\"source\":\"async function testcode() {\\n  ...\\n}\\n\\nreturn await testcode();\"}"`
-- **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `help`, `placeholder` (raw JS injected directly).
-  - ✅ `"value": "function returnHeaders() {\n  return \`Bearer ${context?.authData?.accesstokencode?.access_token}\`;\n}\n\nreturn returnHeaders();"`
+- **Plain string (1 level → `\n`):** `authenticationpaths.headers[].value`, `body[].value`, `queryParams[].value`, `connectionlabelvalue`, `_connectionlabelvalue`, `help`, `placeholder` (raw JS injected directly). Note: `authenticationpaths.*[].value` is recommended as a single line of code (e.g. `return context.authData?.api_key;`). For multi-line plain text strings (e.g. `help` text), a newline is written as `\n`.
+  - ✅ `"value": "return \`Bearer ${context?.authData?.accesstokencode?.access_token}\`;"`
+  - ✅ `"value": "return context.authData?.api_key;"`
 - **Self-check**: `JSON.parse(testcode).source` parses and spans multiple lines; no `authenticationpaths` value contains `\\n`. Build with `JSON.stringify(...)` instead of counting backslashes.
 
 ## Token Handlers (Access, Refresh, Revoke)
@@ -346,21 +347,28 @@ return await testcode();
 ```
 
 ## Request Parameter Injection
-`authenticationpaths` entries `{ name, value }`, where `value` is a JS expression/function resolving the latest credential on every call (never a cached or static value). Format matches the provider (`Bearer <token>`, `Basic <base64>`, `Api-Key <key>`, query param). OAuth redirect params (`response_type`, `client_id`, `redirect_uri`, `scope`, `state`) never go here—they belong in `authrequrl`/`queryparams`.
+`authenticationpaths` entries `{ name, value }`, where `value` is a JS expression resolving the latest credential on every call (never a cached or static value). Format matches the provider (`Bearer <token>`, `Basic <base64>`, `Api-Key <key>`, query param). OAuth redirect params (`response_type`, `client_id`, `redirect_uri`, `scope`, `state`) never go here—they belong in `authrequrl`/`queryparams`.
+
+> [!IMPORTANT]
+> **Single-Line Code Recommendation for Set Request Parameters:**
+> In Set Request Parameters (`authenticationpaths` for `headers`, `queryParams`, or `body`), always write a clean, single line of code with a direct `return` statement.
+> - **Recommended:** `return context.authData?.api_key;` or `return \`Bearer ${context.authData?.accesstokencode?.access_token}\`;`
+> - **Do NOT write entire function blocks:** Avoid `function returnHeaders() { ... } return returnHeaders();`.
+
 ```javascript
-// Header (OAuth 2.0 Bearer)
-function returnHeaders() {
-  return `Bearer ${context.authData?.accesstokencode?.access_token}`;
-}
-return returnHeaders();
+// Header (OAuth 2.0 Bearer) - Single line
+return `Bearer ${context.authData?.accesstokencode?.access_token}`;
 
-// Header (API key)
-function returnHeaders() {
-  return `Api-Key ${context.authData?.api_key}`;
-}
-return returnHeaders();
+// Header (API key with prefix) - Single line
+return `Api-Key ${context.authData?.api_key}`;
 
-// Query param
+// Header (Direct API key) - Single line
+return context.authData?.api_key;
+
+// Query param - Single line
+return context.authData?.api_key;
+
+// Body param - Single line
 return context.authData?.api_key;
 ```
 
