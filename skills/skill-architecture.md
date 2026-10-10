@@ -69,12 +69,11 @@ VERSION_ID: <CONFIRMED_DRAFT_VERSION_ID_IF_UPDATE>
 PREFERRED_AUTH_ID: <PREFERRED_AUTH_ID>
 API_BASE: <API_BASE_URL>
 PROXY_AUTH_TOKEN: <YOUR_PROXY_AUTH_TOKEN>
-REQUEST: <WHAT_THIS_ACTION_OR_TRIGGER_DOES>
-UPDATE_CONTEXT: <CHANGES_REQUESTED_IF_UPDATING>
+REQUEST: <WHAT_THIS_ACTION_OR_TRIGGER_DOES_OR_CHANGES_REQUESTED>
 ```
 
 * `SKILL_MODE` — `create` or `update`.
-* `ACTION_ID`, `ACTION_NAME`, `VERSION_ID`, `PREFERRED_AUTH_ID`, `UPDATE_CONTEXT` — optional; resolved from the rows
+* `ACTION_ID`, `ACTION_NAME`, `VERSION_ID`, `PREFERRED_AUTH_ID` — optional; resolved from the rows
   (action by name/key; latest draft, or a new draft copied from the latest version — never a `published` one).
 
 ## 2. Architecture: pre-context + process + tool

@@ -11,8 +11,6 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
 
 {{REQUEST}}
 
-{{UPDATE_CONTEXT}}
-
 | ORG_ID · PLUGIN_ID             | APP_NAME · APP_DOMAIN           | SKILL_MODE       | Update target                                        | PREFERRED_AUTH_ID       | API_BASE       |
 | ------------------------------ | ------------------------------- | ---------------- | ---------------------------------------------------- | ----------------------- | -------------- |
 | `{{ORG_ID}}` · `{{PLUGIN_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{SKILL_MODE}}` | `{{ACTION_ID}}` · {{ACTION_NAME}} · `{{VERSION_ID}}` | `{{PREFERRED_AUTH_ID}}` | `{{API_BASE}}` |
@@ -22,7 +20,7 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
 
 **Rules**
 
-- Fill every `{{…}}` from your inputs. ACTION_ID, ACTION_NAME, VERSION_ID, UPDATE_CONTEXT and PREFERRED_AUTH_ID may
+- Fill every `{{…}}` from your inputs. ACTION_ID, ACTION_NAME, VERSION_ID and PREFERRED_AUTH_ID may
   be empty (resolve them from the rows). Ask all clarifications at the very beginning (missing ORG_ID, PLUGIN_ID,
   API_BASE, token, unclear goal, or unverified REST API docs/curl). Once proceeding with creation, never ask the user
   or interrupt — execute quietly to completion; the only mid-run questions allowed are the connection request and the
