@@ -183,6 +183,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 - **Exact Name Retention**: If a target name (or `actionName`) is provided in user input/context, strictly retain the exact same name during creation. Descriptions must be short (≤120 characters) and accurately based on the action/trigger functionality.
 - **Update Safety**: Keep compliant `old_title`/`old_description` unchanged; review `type`/`category` instead.
 - **Labels & Placeholders**: Labels are direct field names in Title Case describing the choice, generic (`"Page"`, not `"Facebook Page"`). Placeholders instruct (`"Select Page"`). Help and placeholders in sentence case. Never append `"(optional)"` (custom keys included).
+- **Plug-wide field `key` casing (mandatory):** The same logical UX field must use the exact same `key` string (same spelling and casing) everywhere inside the plug — every action/trigger `inputjson`, perform/source code (`context.inputData.<key>`), mappings, and `componentdependson`. When extending a plug, reuse existing keys as already written; never invent a differently cased variant for the same field.
 
 ---
 
@@ -227,7 +228,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 
 # Field Types & Custom Mapping
 **Common Keys**
-- `key`: unique, stable identifier (`message_type`). Static keys match `^[^.\[\]]*$`; `fieldsGenerator` children may contain `.`/`[]` (no normalization).
+- `key`: unique, stable identifier (`message_type`). Static keys match `^[^.\[\]]*$`; `fieldsGenerator` children may contain `.`/`[]` (no normalization). Plug-wide: the same logical field keeps that exact `key` (spelling and casing) across every action/trigger in the plug.
 - `label`: clean, human-readable name.
 - `help`: omit only when label + key are self-explanatory (`first_name`). Starts with `"Enter"` (text inputs incl. string ID fields—never "Select from the list", dictionary, aifield, groups) or `"Select"` (dropdown, multiselect, boolean). Short, plain, non-technical; markdown links allowed (`[Learn More](https://...)`). Length limits apply to `help` keys, not `type: "help"` panels.
 - `required`: an empty required field blocks the run with a UI error.
@@ -625,5 +626,5 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 - Names and descriptions follow Naming Conventions.
 - Field `help` starts with `"Enter"` for inputs/IDs and `"Select"` for dropdowns/booleans; custom triplet present; `customInputLabel` never starts with "Enter".
 - Casing: Labels in Title Case (sentence case inside whereClause); help, placeholders, and error messages in sentence case; no `"(optional)"`.
-- Consistency: no typos or trailing spaces; wording, casing, and punctuation match sibling fields and actions.
+- Consistency: no typos or trailing spaces; wording, casing, and punctuation match sibling fields and actions. Same logical field `key` matches exactly (spelling and casing) across the whole plug.
 - Placeholders are concrete examples, typed as strings, with no `"E.g."`.

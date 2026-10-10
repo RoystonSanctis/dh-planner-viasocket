@@ -37,7 +37,7 @@ Every trigger and action design and perform code must strictly be validated agai
 * [ ] **Use dropdowns and selection fields instead of requiring manual ID entry:** Always resolve resource references via user-friendly dropdowns and selection fields.
   * *Exceptions:* Direct ID entry is allowed for `Get by ID` (when manual entry from upstream steps is intended) and `DELETE` actions (which strictly use direct text ID fields of type `string` without selection logic).
 * [ ] **Implement proper visibility conditions and dependencies:** Ensure cascading dropdowns and dependent fields properly use `visibilityCondition` to depend on parent selections.
-* [ ] **Maintain consistent, predictable behaviour across all components:** Keep field ordering, naming conventions, casing, error handling, and response payloads predictable across all triggers, actions, and reusable components.
+* [ ] **Maintain consistent, predictable behaviour across all components:** Keep field ordering, naming conventions, casing, error handling, and response payloads predictable across all triggers, actions, and reusable components. The same logical UX field must use the exact same `key` string (spelling and casing) across every action/trigger in the plug — `inputjson`, perform/source code, mappings, and `componentdependson`.
 * [ ] **Never hardcode sensitive values (credentials, secrets, API keys):** Strictly forbid exposing credentials or API tokens in input fields, default values, or perform code; all authentication must run through connection auth.
 * [ ] **Handle pagination, dates, arrays, and error cases properly:** Implement engine or client-side pagination where required, normalize human dates to ISO timestamps in perform code, handle repeating line items with input groups, and route errors through `await errorComponent(error)`.
 * [ ] **Avoid `defaultValue` key in input JSON:** Never use the `defaultValue` key in input JSON fields. Mention default values in `help` text and handle default fallbacks in perform code.
@@ -197,6 +197,7 @@ Guidelines to preserve idempotency, ensure partial-update safety, and sanitize p
 * **Backward Compatibility Rules (Key Stability):**
   * Field keys are stable contracts. When modifying an existing action, trigger, or field:
     * **Never rename or remove existing keys** unless a migration strategy exists. Renaming keys invalidates existing user mappings.
+    * **Plug-wide key casing:** The same logical field must keep the exact same `key` (spelling and casing) across every action/trigger in the plug. When adding a field that already exists elsewhere on the plug, reuse that key as written — never a differently cased variant.
     * **Allowed changes:** Label updates, help text updates, visibility improvements, and adding optional fields. Always prioritize workflow continuity for existing users.
 
 ## Behavior Constraints

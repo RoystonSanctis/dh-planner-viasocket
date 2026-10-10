@@ -126,6 +126,8 @@ This document contains knowledge and best practices for creating and configuring
 > - In most cases, a `help` key is mandatory to guide users.
 > - **Exception:** If the field's `label` and `key` are completely self-explanatory (e.g., `label: "First Name"`, `key: "first_name"`), the `help` key can be omitted entirely.
 > - **Mandatory Cases:** If a field is not completely self-explanatory—for example, a date field with `label: "Date"` which requires explaining the purpose of the date and the accepted input format—the `help` key must be included.
+>
+> **Plug-wide field `key` casing:** The same logical field must use the exact same `key` string (same spelling and casing) across every action/trigger in the plug (`inputjson`, perform/source code, mappings, `componentdependson`). When extending, reuse existing keys as already written — never a differently cased variant.
 
 
 # Static Input Fields

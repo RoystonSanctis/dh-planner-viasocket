@@ -719,6 +719,7 @@ A trigger represents a real-world event that initiates a workflow.
 *Principles for field ordering, dropdown rules, and custom module-specific schema handling.*
 
 * **General Principles:**
+  * **Plug-wide field `key` casing (mandatory):** The same logical UX field must use the exact same `key` string (same spelling and casing) everywhere inside the plug — every action/trigger `inputjson`, perform/source code, mappings, and `componentdependson`. When extending, reuse existing keys as already written; never invent a differently cased variant for the same field.
   * **API Parameter Completeness (Strict Zero Missing Fields):** The integration design MUST support and strictly include ALL fields and parameters available in the API documentation (required, optional, path, query, request body properties, and filters). **Zero missing fields**: under no circumstances should a documented API parameter be omitted.
   * **KB-Driven Field Ordering & UX Architecture:** While capturing 100% of documented fields, organize them strictly according to KB hierarchy:
     1. **Parent/Dependency Selector Fields First:** Parent context (e.g. Workspace, Team, Project, Database) must always appear at the very top.
@@ -809,7 +810,7 @@ A trigger represents a real-world event that initiates a workflow.
 * [ ] **Configuration values are static; data resolution happens at runtime:** Ensure fields do not attempt runtime data resolution at configuration time.
 * [ ] **Use dropdowns and selection fields instead of requiring manual ID entry:** Prefer dropdowns/multiselects across all components (exceptions: GET by ID and DELETE actions where manual ID entry or upstream ID passing is standard).
 * [ ] **Implement proper visibility conditions and dependencies:** Ensure dynamic fields reveal logically without orphan or broken dependencies.
-* [ ] **Maintain consistent, predictable behaviour across all components:** Follow unified naming, ordering, and UX conventions.
+* [ ] **Maintain consistent, predictable behaviour across all components:** Follow unified naming, ordering, and UX conventions. Same logical field `key` (spelling and casing) across every action/trigger in the plug.
 * [ ] **Never hardcode sensitive values (credentials, secrets, API keys):** Keep sensitive credentials isolated to connection auth data.
 * [ ] **Handle pagination, dates, arrays, and error cases properly:** Ensure complete handling across all components and perform code.
 * [ ] **No Search, Only Pagination Dropdown Pattern:** When `canPaginate: true` and `enableSearchApi: false`, ensure the output strictly returns `{ data: [...], offset: ... }`. Differentiate empty results: initial empty (`!currentOffset && length === 0`) returns `{ data: [], offset: null, message: 'No <resources> found.' }`, while pagination end (`currentOffset && length === 0`) returns `{ data: [], offset: null, message: '<Resources> Fetched Successfully' }`.
