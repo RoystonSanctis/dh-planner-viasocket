@@ -2,7 +2,8 @@
 name: viasocket-developer-hub-action
 description: >-
   Create or update one {{ENTITY_TYPE}} on the {{APP_NAME}} plug ({{PLUGIN_ID}}) in viaSocket Developer Hub through its
-  REST API with one tool (dh.mjs). Updates go to a draft version, never a published one. Connects, dry-runs and publishes (privately) only after the user says yes.
+  REST API with one tool (dh.mjs). Updates go to a draft version, never a published one. Connects, dry-runs and
+  publishes (private or public, user chooses) only after the user says yes.
 ---
 
 # {{APP_NAME}} {{ENTITY_TYPE}} — viaSocket Developer Hub
@@ -24,7 +25,7 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
   be empty (resolve them from the rows). Ask all clarifications at the very beginning (missing ORG_ID, PLUGIN_ID,
   API_BASE, token, unclear goal, or unverified REST API docs/curl). Once proceeding with creation, never ask the user
   or interrupt — execute quietly to completion; the only mid-run questions allowed are the connection request and the
-  publish question in §4.
+  publish questions in §4 (publish yes/no, then private vs public).
 - Chat output style: user-friendly, plain language, and short. Never output internal technical steps (commands, tool
   calls, API payloads, or internal IDs) — present only the concise outcome.
 - The token lives only in `.dh-run/config.json` — never print, log or commit it. Never ask for credentials.
@@ -40,7 +41,7 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
   ≤4 KB, no secrets) → MERGE the plug's `metadata.aiContext` in the same run. Never defer metadata to publish.
   Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any model/tool name into
   metadata, notes or `aiContext`.
-- Publish only in §4.3, after the user says yes, and always private (`isvisible: false`); never hard-delete; never edit a
+- Publish only in §4.3, after the user says yes. Ask private vs public (§4.3); never hard-delete; never edit a
   `published` version. Needs shell + Node 18+.
 
 ## 1. Process
@@ -88,8 +89,9 @@ node dh.mjs kb dh-knowledgebase.md '*'
    create/update entry from this run.
 6. **Connect & dry run** (§4.1–4.2) — reuse a valid existing connection without asking; otherwise ask the user to
    create one, then safely run the new/changed fields and the {{ENTITY_TYPE}} and fix what fails.
-7. **Publish?** (§4.3) — ask once; on yes publish it privately. Publish only flips `status` / version publish fields —
-   it does **not** replace the create/update metadata MERGE from step 4.
+7. **Publish?** (§4.3) — ask whether to publish, then private vs public; on yes publish accordingly. Publish flips
+   `status` / visibility / version publish fields (and plug `audience` when public) — it does **not** replace the
+   create/update metadata MERGE from step 4.
 8. **Report**: a short, user-friendly outcome (no internal technical steps or IDs): what was created or changed
    (fields, behaviour), which version, what the dry run verified or could not verify, whether it was published, with the
    link (KB "Developer Hub (DH) URLs"; base = the environment of `{{API_BASE}}`). If any facts were learned after step 4,
@@ -217,16 +219,26 @@ is unverified and why. Summarise returned data — never paste raw records.
 
 ### 4.3 Publish (ask first)
 
-Ask one yes/no question: "The {{ENTITY_TYPE}} is built and tested — publish it privately?" No →
-leave everything as drafts and say so. Yes:
+Ask in order (plain language; no IDs):
 
-1. **Plug** — only if it is still unpublished and the user also wants the app published; needs non-empty `name`, `description`, `domain`, `audience`, `category` and
-   at least one connection. `MERGE 'update/plugins?identifier=<PLUGIN_ID>&filter=updatePluginDetails'
-   '{"status":"published","appslugname":"<name lowercased, runs of non-alphanumerics → \"-\">","by":"UPDATED_BY_SKILL","note":"published"}'`
-   (+ `"istriggeravailable": true` when a trigger is published). Never change `audience`.
-2. **The {{ENTITY_TYPE}}** (dry run passed or approved as not executed; has a description and an `authid`; publish the draft version you edited):
-   `MERGE 'update/actions?identifier=<ACTION_ID>&filter=updateActionDetails' '{"actionversionrecordid":"<VERSION_ID>","status":"published","type":"<action|trigger>","authidlookup":"<authid>","isvisible":false,"publishdescription":"<one line>","by":"UPDATED_BY_SKILL","note":"published privately"}'`
+1. "The {{ENTITY_TYPE}} is built and tested — publish it?" **No** → leave everything as drafts and say so; stop here.
+2. **Yes** → ask: "Publish **private** or **public**?"
+   - **Private** → plug `audience: "Private"` (only if also publishing the plug); action/trigger `isvisible: false`.
+   - **Public** → plug `audience: "Public"` (required if publishing the plug); action/trigger `isvisible: true`.
+
+Then publish:
+
+1. **Plug** — only if it is still unpublished and the user also wants the app published (or already published but
+   public was chosen and `audience` is not `"Public"` → set `audience: "Public"`). Needs non-empty `name`,
+   `description`, `domain`, `audience`, `category` and at least one connection.
+   `MERGE 'update/plugins?identifier=<PLUGIN_ID>&filter=updatePluginDetails'` with
+   `{"status":"published","appslugname":"<name lowercased, runs of non-alphanumerics → \"-\">","audience":"<Private|Public>","by":"UPDATED_BY_SKILL","note":"published <private|public>"}`
+   (+ `"istriggeravailable": true` when a trigger is published). Public publish **must** include `audience: "Public"`.
+2. **The {{ENTITY_TYPE}}** (dry run passed or approved as not executed; has a description and an `authid`; publish the
+   draft version you edited):
+   `MERGE 'update/actions?identifier=<ACTION_ID>&filter=updateActionDetails' '{"actionversionrecordid":"<VERSION_ID>","status":"published","type":"<action|trigger>","authidlookup":"<authid>","isvisible":<false if private, true if public>,"publishdescription":"<one line>","by":"UPDATED_BY_SKILL","note":"published <privately|publicly>"}'`
    then `PUT 'update/action_version?identifier=<VERSION_ID>&filter=updateActionVersionDetails'
    '{"versionid":"<the version row's versionid>","status":"published","publishdescription":"<one line>","verificationstatus":"L1_VERIFIED"}'`
-   (add `verificationstatus` only when it is empty, `NOT_VERIFIED` or `L2_REJECTED`). Always `isvisible: false` — never public.
-3. Read back (`status`, `isvisible`) and report. A published version is immutable: later changes go through `COPY`.
+   (add `verificationstatus` only when it is empty, `NOT_VERIFIED` or `L2_REJECTED`).
+3. Read back (`status`, `isvisible`, and plug `audience` when touched) and report private vs public. A published
+   version is immutable: later changes go through `COPY`.
