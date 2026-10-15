@@ -47,9 +47,14 @@ or GET (§3).
 - **UX field `key` casing is plug-wide:** the same logical field must use the exact same `key` string (same spelling and
   casing) in every action/trigger `inputjson`, perform/source code, mappings, and `componentdependson` across the plug.
   When extending, reuse existing keys as already written — never invent a differently cased variant for the same field.
+- **Metadata is updated on every create and every update — do not wait for a later human publish.** During Execute:
+  every new/updated action/trigger gets a MERGE (`updateActionDetails`) so `metadata.aiLogs` gains a
+  `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry and `isaiaction: true`, `aiorgid` stay set; plug `metadata.aiContext`
+  is MERGEd at level 2 (and again in the report if more facts appear). Never skip metadata because this run leaves
+  drafts unpublished. Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any
+  model/tool name into metadata, notes or `aiContext`.
 - **Never publish.** Leave everything `drafted`. No `status: "published"`, no `rtllayer`, no `appslugname` publish step.
-  Never hard-delete. Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any
-  model/tool name into metadata, notes or `aiContext`. Needs shell + Node 18+.
+  Never hard-delete. Needs shell + Node 18+.
 
 ---
 
@@ -106,18 +111,20 @@ node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
    | ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------------ |
    | 0     | new plug: create                                                                                                                | —            |
    | 1     | connection ∥ components ∥ new plug: `getBrandDetails`                                                                           | PLUGIN_ID    |
-   | 2     | actions + triggers create ∥ plug MERGE (details, `preferedauthversion`, every host in `whitelistdomains`, `metadata.aiContext`) | AUTH_ID      |
+   | 2     | actions + triggers create ∥ each action MERGE (`isaiaction`, `aiorgid`, `aiLogs`) ∥ plug MERGE (details, `preferedauthversion`, every host in `whitelistdomains`, `metadata.aiContext`) | AUTH_ID |
    | 3     | fill versions ∥ mappings                                                                                                        | ids from 1–2 |
 
    A failed op → read the error, fix only that op, rerun it (≤3 tries). A create that returned ids is done — never redo it.
+   Action/plug metadata MERGEs happen here — drafts stay unpublished, but metadata must still be written.
 
 5. **Verify** in one batch (use `keys`): plug, connections, actions, each version (`rowid,status,inputjson`) and its
    mappings — versions `drafted`, every field in `inputjson.blocks`, dynamic fields have `source`, every called
-   component mapped, `isaiaction: true`.
+   component mapped, `isaiaction: true`, and each action `metadata.aiLogs` has a create/update entry from this run.
 6. **Connect & dry run** (§4) — reuse a valid existing connection without asking; if none, skip execution and continue
    to the report (static review + next human steps). Never wait. Never publish.
 7. **Report** (§5). Facts learned after level 2 (docs URLs, auth, pagination, rate limits, components, quirks; ≤4 KB,
-   no secrets) → one MERGE into `metadata.aiContext`. Finally `rm .dh-run/config.json`.
+   no secrets) → one more MERGE into plug `metadata.aiContext` before finishing (supplemental — the level-2 MERGE must
+   already have run). Finally `rm .dh-run/config.json`.
 
 ---
 
@@ -220,9 +227,10 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
   `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `rtllayer` (auto-publishes), `isAIActionTrigger`, `functionId`, or a body-level `isUserOnDh` on writes.
   **Never** `status: "published"`, `actionversionrecordid`, or `publishdescription` — this run does not publish.
-  `plugins`/`actions` updates replace `metadata` → MERGE; `action_version`/`oauth_details` updates ignore it → omit it.
-  Skip deleted rows (`status: "deleted"`, `isdeleted: true`). Unknown keys are silently stored or rejected — spell keys
-  exactly.
+  `plugins`/`actions` updates replace `metadata` → always use `MERGE` on create/update in Execute (keeps existing keys,
+  deep-merges `aiContext`, appends `aiLogs`) — do not skip because drafts stay unpublished. `action_version` /
+  `oauth_details` updates ignore it → omit it. Skip deleted rows (`status: "deleted"`, `isdeleted: true`). Unknown keys
+  are silently stored or rejected — spell keys exactly.
 
 **Existing rows** (extend runs)
 

@@ -107,6 +107,9 @@ flowchart TD
 4. **One shared tool.** All three skills use `skills/dh.mjs`, downloaded by the setup (`curl -sfLO …/skills/dh.mjs`).
    The model never reads the tool code — the skill documents only its commands — and there is one file to maintain.
 5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; `batch` runs 4 at a time per level.
+6. **Metadata on create/update, not publish.** `plugins`/`actions` `metadata.aiLogs` and plug `metadata.aiContext` are
+   MERGEd during Execute (every create/update). Publish only flips `status` / version publish fields — never defer
+   metadata until the user says yes to publish (or skip it because a skill never publishes).
 
 ## 3. Skill comparison
 

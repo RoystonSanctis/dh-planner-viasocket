@@ -36,9 +36,14 @@ decide all design). **Already in context — don't re-fetch:** the search/GET re
 - **UX field `key` casing is plug-wide:** the same logical field must use the exact same `key` string (same spelling and
   casing) in every action/trigger `inputjson`, perform/source code, mappings, and `componentdependson` across the plug.
   When extending, reuse existing keys as already written — never invent a differently cased variant for the same field.
-- Publish only in §4.3, after the user says yes, and always private (`isvisible: false`); never hard-delete.
-  Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any model/tool name into
-  metadata, notes or `aiContext`. Needs shell + Node 18+.
+- **Metadata is updated on every create and every update — not only on publish.** Publish (§4.3) does not own metadata.
+  During Execute: every new/updated action/trigger gets a MERGE (`updateActionDetails`) so `metadata.aiLogs` gains a
+  `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry and `isaiaction: true`, `aiorgid` stay set; plug `metadata.aiContext`
+  is MERGEd at level 2 (and again if more facts appear later). Do this even if the user later says no to publish or
+  dry run is skipped. Never defer metadata to §4.3. Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL`
+  — never write "Claude" or any model/tool name into metadata, notes or `aiContext`.
+- Publish only in §4.3, after the user says yes, and always private (`isvisible: false`); never hard-delete. Needs
+  shell + Node 18+.
 
 ## 1. Process
 
@@ -79,23 +84,25 @@ node dh.mjs kb dh-knowledgebase.md '*' && node dh.mjs kb dh-connection-kb.md '*'
    | ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------------ |
    | 0     | new plug: create                                                                                                                | —            |
    | 1     | connection ∥ components ∥ new plug: `getBrandDetails`                                                                           | PLUGIN_ID    |
-   | 2     | actions + triggers create ∥ plug MERGE (details, `preferedauthversion`, every host in `whitelistdomains`, `metadata.aiContext`) | AUTH_ID      |
+   | 2     | actions + triggers create ∥ each action MERGE (`isaiaction`, `aiorgid`, `aiLogs`) ∥ plug MERGE (details, `preferedauthversion`, every host in `whitelistdomains`, `metadata.aiContext`) | AUTH_ID |
    | 3     | fill versions ∥ mappings                                                                                                        | ids from 1–2 |
 
    A failed op → read the error, fix only that op, rerun it (≤3 tries). A create that returned ids is done — never redo it.
+   Action/plug metadata MERGEs happen here — not at publish time.
 
 5. **Verify** in one batch (use `keys`): plug, connections, actions, each version (`rowid,status,inputjson`) and its
    mappings — versions `drafted`, every field in `inputjson.blocks`, dynamic fields have `source`, every called
-   component mapped, `isaiaction: true`.
+   component mapped, `isaiaction: true`, and each action `metadata.aiLogs` has a create/update entry from this run.
 6. **Connect & dry run** (§4.1–4.2) — reuse a valid existing connection without asking; otherwise ask the user to
    create one, then safely run everything built and fix what fails.
-7. **Publish?** (§4.3) — ask once; on yes publish the plug and each action/trigger privately.
+7. **Publish?** (§4.3) — ask once; on yes publish the plug and each action/trigger privately. Publish only flips
+   `status` / version publish fields — it does **not** replace the create/update metadata MERGEs from level 2.
 8. **Report**: a short, user-friendly outcome (no internal technical steps or IDs): what was built (plug, connection,
    components, each action/trigger) with links (KB "Developer Hub (DH) URLs"; base = the environment of `{{API_BASE}}`),
    what the developer enters (credentials), what the dry run verified or could not verify, whether it was published,
-   anything skipped and why. Facts learned after level 2 (docs URLs,
-   auth, pagination, rate limits, components, quirks; ≤4 KB, no secrets) → one MERGE into `metadata.aiContext`.
-   Finally `rm .dh-run/config.json`.
+   anything skipped and why. Facts learned after level 2 (docs URLs, auth, pagination, rate limits, components,
+   quirks; ≤4 KB, no secrets) → one more MERGE into plug `metadata.aiContext` before finishing (supplemental — the
+   level-2 MERGE must already have run). Finally `rm .dh-run/config.json`.
 
 ## 2. Tool — `dh.mjs`
 
@@ -186,9 +193,10 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
   <fieldKey>: true } } }` (keys = block names or the dynamic field's key, never a group path). Existing version → GET
   its mappings first (`dhGetUsedComponentInActionVersionDetails`); mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails` with the full `metadata`. Unmap component (never on published versions) → `PATCH delete/action_version_component_table` `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `rtllayer` (auto-publishes), `isAIActionTrigger`, `functionId`, or a body-level `isUserOnDh` on writes;
-  `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `plugins`/`actions` updates replace `metadata` → MERGE;
-  `action_version`/`oauth_details` updates ignore it → omit it. Skip deleted rows (`status: "deleted"`, `isdeleted: true`).
-  Unknown keys are silently stored or rejected — spell keys exactly.
+  `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `plugins`/`actions` updates replace
+  `metadata` → always use `MERGE` (keeps existing keys, deep-merges `aiContext`, appends `aiLogs`) on create/update in
+  Execute — do not wait for §4.3. `action_version`/`oauth_details` updates ignore it → omit it. Skip deleted rows
+  (`status: "deleted"`, `isdeleted: true`). Unknown keys are silently stored or rejected — spell keys exactly.
 
 **Existing rows** (extend runs)
 

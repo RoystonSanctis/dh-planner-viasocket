@@ -33,9 +33,15 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
   casing) in every action/trigger `inputjson`, perform/source code, mappings, and `componentdependson` across the plug.
   Before creating fields, check existing actions/triggers on the plug and reuse their keys as already written — never
   invent a differently cased variant for the same field.
+- **Metadata is updated on every create and every update — not only on publish.** Publish (§4.3) does not own metadata.
+  After a create or a draft update (even if the user later says no to publish, or dry run is skipped), always MERGE the
+  action (`updateActionDetails`) so `metadata.aiLogs` gains a `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry (`note`
+  describing what changed) and `isaiaction: true`, `aiorgid` stay set. Durable findings (endpoints, quirks, components;
+  ≤4 KB, no secrets) → MERGE the plug's `metadata.aiContext` in the same run. Never defer metadata to publish.
+  Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any model/tool name into
+  metadata, notes or `aiContext`.
 - Publish only in §4.3, after the user says yes, and always private (`isvisible: false`); never hard-delete; never edit a
-  `published` version. Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any
-  model/tool name into metadata, notes or `aiContext`. Needs shell + Node 18+.
+  `published` version. Needs shell + Node 18+.
 
 ## 1. Process
 
@@ -64,23 +70,30 @@ node dh.mjs kb dh-knowledgebase.md '*'
 3. **Plan** — design per the KB and self-review against KB "Review & Priorities" (P0/P1 = 0). Keep it to a few
    high-level lines (no internal technical steps), then proceed straight to creation — no approval wait, no interruptions.
 4. **Execute** quietly without intermediate technical chatter (`batch` for independent calls):
-   - create: new components → `create/actions` → fill the version ∥ mappings;
+   - create: new components → `create/actions` → fill the version ∥ mappings → **always** `MERGE
+     'update/actions?identifier=<actionId>&filter=updateActionDetails'
+     '{"isaiaction":true,"aiorgid":"{{ORG_ID}}","by":"CREATED_BY_SKILL","note":"<what was created>"}'`
+     (even if `create/actions` already set `isaiaction` — confirm metadata/`aiLogs`; do this before any publish ask);
    - update: [`COPY`] → new components → fill the draft (full `inputjson` if inputs change; always after a copy) ∥
-     mappings → `MERGE 'update/actions?identifier=<actionId>&filter=updateActionDetails'
-'{"isaiaction":true,"aiorgid":"{{ORG_ID}}","note":"draft updated"}'` (`"new draft version"` after a copy; +
-     `name`/`description` if changed);
+     mappings → **always** `MERGE 'update/actions?identifier=<actionId>&filter=updateActionDetails'
+     '{"isaiaction":true,"aiorgid":"{{ORG_ID}}","by":"UPDATED_BY_SKILL","note":"draft updated"}'`
+     (`"new draft version"` after a copy; + `name`/`description` if changed). Required whether or not you will publish;
    - code calls a host missing from the plug's `whitelistdomains` → MERGE the plug (`updatePluginDetails`) with
-     existing + new hosts; report that the connection must whitelist it too (connection skill).
+     existing + new hosts; report that the connection must whitelist it too (connection skill);
+   - durable findings this run (endpoints, quirks, components; ≤4 KB, no secrets) → MERGE the plug
+     (`updatePluginDetails`) `metadata.aiContext` **now**, not at publish time.
 5. **Verify** (use `keys`): the action (`getActionDetails`), the version (`getActionVersions` → the `versionId` row,
    `rowid,status,inputjson`) and its mappings — version `drafted`, every field in `inputjson.blocks`, dynamic fields
-   have `source`, every called component mapped, `isaiaction: true`.
+   have `source`, every called component mapped, `isaiaction: true`, and the action `metadata.aiLogs` has a
+   create/update entry from this run.
 6. **Connect & dry run** (§4.1–4.2) — reuse a valid existing connection without asking; otherwise ask the user to
    create one, then safely run the new/changed fields and the {{ENTITY_TYPE}} and fix what fails.
-7. **Publish?** (§4.3) — ask once; on yes publish it privately.
+7. **Publish?** (§4.3) — ask once; on yes publish it privately. Publish only flips `status` / version publish fields —
+   it does **not** replace the create/update metadata MERGE from step 4.
 8. **Report**: a short, user-friendly outcome (no internal technical steps or IDs): what was created or changed
-   (fields, behaviour), which version, what the dry run verified or could not verify, whether it was published, with the link (KB "Developer Hub (DH) URLs"; base = the
-   environment of `{{API_BASE}}`). New app facts (endpoints, quirks, components; no secrets) → MERGE into the plug's
-   `metadata.aiContext`. Finally `rm .dh-run/config.json`.
+   (fields, behaviour), which version, what the dry run verified or could not verify, whether it was published, with the
+   link (KB "Developer Hub (DH) URLs"; base = the environment of `{{API_BASE}}`). If any facts were learned after step 4,
+   MERGE them into the plug's `metadata.aiContext` before finishing. Finally `rm .dh-run/config.json`.
 
 ## 2. Tool — `dh.mjs`
 
@@ -148,8 +161,10 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions`.
   its mappings first (`dhGetUsedComponentInActionVersionDetails`); mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`
   with the full `metadata`. Unmap component (never on published versions) → `PATCH delete/action_version_component_table` `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `rtllayer`, `isAIActionTrigger`, `functionId`, or a body-level `isUserOnDh` on writes;
-  `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `success: false` → fix the payload (unknown keys are silently stored
-  or rejected).
+  `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `plugins`/`actions` updates
+  replace `metadata` → always use `MERGE` (keeps existing keys, deep-merges `aiContext`, appends `aiLogs`). Do that
+  MERGE on create/update in §1 step 4; do not wait for §4.3. `action_version` updates ignore `metadata` → omit it.
+  `success: false` → fix the payload (unknown keys are silently stored or rejected).
 
 ## 4. Connect, dry run, publish
 
