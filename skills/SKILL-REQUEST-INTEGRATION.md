@@ -10,9 +10,9 @@ description: >-
 
 {{USECASE}}
 
-| ORG_ID       | APP_NAME · APP_DOMAIN           | API_BASE       | SCOPE                          |
-| ------------ | ------------------------------- | -------------- | ------------------------------ |
-| `{{ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` | `{{SCOPE}}` (empty → **core**) |
+| ORG_ID       | MASTER_ORG_ID       | APP_NAME · APP_DOMAIN           | API_BASE       | SCOPE                          |
+| ------------ | ------------------- | ------------------------------- | -------------- | ------------------------------ |
+| `{{ORG_ID}}` | `{{MASTER_ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` | `{{SCOPE}}` (empty → **core**) |
 
 > **Why this file exists.** `SKILL-PLUG-CREATION.md` is the interactive skill (scope choice, connection wait, publish
 > ask). **Request integration has no human in the loop** — this skill decides every question itself (§0), builds, and
@@ -197,7 +197,8 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
 - **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata,status`
 
 ### Entity Payloads & Rules
-- **Plug** — `create/plugins { name, orgid, domain, whitelistdomains: [domain] }`. New plug only:
+- **Plug** — `create/plugins { name, orgid, domain, whitelistdomains: [domain] }` (+ `plugin_origin: "Community"`
+  when `{{ORG_ID}}` ≠ `{{MASTER_ORG_ID}}`; omit `plugin_origin` when they are equal). New plug only:
   `POST /openai/dh/getBrandDetails { pluginDomain, pluginName, pluginId }` (fills logo, colour, tags; overwrites
   `name`, `domain`, `audience`, `whitelistdomains`); the level-2 MERGE then sets `name`, `description`, `domain`,
   `whitelistdomains`, `audience: "Private"`, `category`, `tags`, `iconurl`, `brandcolor`, `havestaticip: false`.

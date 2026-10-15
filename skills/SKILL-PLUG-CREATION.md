@@ -10,9 +10,9 @@ description: >-
 
 {{USECASE}}
 
-| ORG_ID       | APP_NAME · APP_DOMAIN           | API_BASE       | PROXY_AUTH_TOKEN       |
-| ------------ | ------------------------------- | -------------- | ---------------------- |
-| `{{ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` | `{{PROXY_AUTH_TOKEN}}` |
+| ORG_ID       | MASTER_ORG_ID       | APP_NAME · APP_DOMAIN           | API_BASE       | PROXY_AUTH_TOKEN       |
+| ------------ | ------------------- | ------------------------------- | -------------- | ---------------------- |
+| `{{ORG_ID}}` | `{{MASTER_ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` | `{{PROXY_AUTH_TOKEN}}` |
 
 **Knowledge base:** read `dh-knowledgebase.md` + `dh-connection-kb.md` in full (the last setup line prints them; they
 decide all design). **Already in context — don't re-fetch:** the search/GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → search with Search plug or GET (§3).
@@ -173,7 +173,8 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
 - **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata,status`
 
 ### Entity Payloads & Rules
-- **Plug** — `create/plugins { name, orgid, domain, whitelistdomains: [domain] }`. New plug only:
+- **Plug** — `create/plugins { name, orgid, domain, whitelistdomains: [domain] }` (+ `plugin_origin: "Community"`
+  when `{{ORG_ID}}` ≠ `{{MASTER_ORG_ID}}`; omit `plugin_origin` when they are equal). New plug only:
   `POST /openai/dh/getBrandDetails { pluginDomain, pluginName, pluginId }` (fills logo, colour, tags; overwrites
   `name`, `domain`, `audience`, `whitelistdomains`); the level-2 MERGE then sets `name`, `description`, `domain`,
   `whitelistdomains`, `audience: "Private"`, `category`, `tags`, `iconurl`, `brandcolor`, `havestaticip: false`.
