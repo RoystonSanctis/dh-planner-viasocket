@@ -49,7 +49,7 @@ Every trigger and action design and perform code must strictly be validated agai
 
 ### P0 — Breaking (Fail if any triggers; approved: false)
 - **errorComponent**: `catch` must await `errorComponent(error)` (except for Reusable Components which must use `throw error` or `throw e` in catch). For `optionsGenerator` using component mapping, the block must be wrapped with a parent `try-catch` and call `await errorComponent(error)` in the catch block (do NOT throw error). No `return` required; do not flag missing return.
-- **JSON ↔ Code Alignment**: Every `context.inputData.<key>` read must exist as a JSON input field key. Flag orphan fields (defined in JSON but never used in code). Every `visibilityCondition` must reference a real field key.
+- **JSON ↔ Code Alignment**: Every `context.inputData.<key>` read must exist as a JSON input field key. Flag orphan fields (defined in JSON but never used in code). Every `visibilityCondition` must reference a real field key. Every string literal in a `visibilityCondition` must be single-quoted; flag bare words such as `=== john` or `.includes(A)`.
 - **Payload Shape**: Must match the API schema exactly. The final endpoint must match the provided cURL.
 - **API Parameter Completeness**: Input fields and perform code MUST support all possible parameters available in the target API documentation (required and optional parameters across query, body, headers, and filters). Flag any omitted documented API parameters.
 - **Auto-Derivation Fallback**: If a required value is derived (e.g., mimetype from URL) and could fail, require a safe fallback.

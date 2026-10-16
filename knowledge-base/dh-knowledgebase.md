@@ -298,7 +298,13 @@ Children render inline as a sentence (end users see it without edit mode), e.g. 
 
 # Visibility & dependsOn
 - `visibilityCondition`: any JS expression returning a boolean over `context?.inputData` (math, `.includes`, `.some`, `Object.keys`). Evaluated before `required`: hidden fields are not enforced.
-- **Direct Dropdown Value Access**: Dropdowns store the raw `value` primitive at `context?.inputData?.<key>` (never `.value`): `context?.inputData?.type === 'custom'`.
+- **Direct Dropdown Value Access**: Dropdowns store the option's `value` itself at `context?.inputData?.<key>` (never `.value`): `context?.inputData?.type === 'custom'`.
+- **Literal Quoting (CRITICAL)**: `visibilityCondition` is JavaScript, so every string literal in it MUST be single-quoted; a bare word is read as an undefined variable and the condition fails. Numbers and `true`/`false`/`null` stay unquoted. Use single quotes so the outer JSON string needs no escaping.
+  - ✅ `"visibilityCondition": "context?.inputData?.name === 'john'"`
+  - ✅ `"visibilityCondition": "['text', 'image'].includes(context?.inputData?.message_type)"`
+  - ✅ `"visibilityCondition": "context?.inputData?.priority === 3"` (number value)
+  - ❌ `"visibilityCondition": "context?.inputData?.name === john"`
+  - ❌ `"visibilityCondition": "context?.inputData?.name === \"john\""` (avoid; use single quotes)
 
 | Scenario | Condition Pattern |
 |---|---|
@@ -598,7 +604,7 @@ Dynamic URLs to plugs, triggers, and actions in the viaSocket Developer Hub.
 **P0 (Breaking)**
 - Error handling matches rules (`await errorComponent(error)` in code blocks; `throw error` in reusable components).
 - Mandatory Optional Chaining (`?.`) in paths: Optional chaining (`?.`) is strictly required in EVERY property access path in code blocks (e.g. `body?.form_response`, `formResponseData?.definition?.fields`, `response?.data?.items`, `context?.inputData?.<key>`). Flag as a defect if optional chaining is missing (e.g., `body.form_response` or `formResponseData.definition?.fields`). Rationale: If a key is missing or undefined at runtime, direct access throws an unhandled runtime error (`TypeError: Cannot read properties of undefined`).
-- Every input referenced in code exists in `inputFields`; no orphan fields; valid `visibilityCondition` paths.
+- Every input referenced in code exists in `inputFields`; no orphan fields; valid `visibilityCondition` paths. Every string literal in a `visibilityCondition` is single-quoted (flag bare words like `=== john` or `.includes(A)`).
 - Base `.data` extraction on every API call (including multi-API calls).
 - All reusable components called in code are mapped with a valid `path` (dedicated section key for code blocks, field key for dynamic fields). Do not create reusable components for API requests; creation focus is strictly on `optionsGenerator` for dynamic fields (dynamic dropdowns, multiselects) and `fieldsGenerator` for dynamic input groups. No component-in-component calls: every reusable component must be a single standalone component and never call another component.
 - Zero results return an informative `{ message }` or valid empty payload per flag combination. In `LIST`/`GET` actions, if data length is 0, return `message: response?.data?.length ? null : "No data found."` along with `data` and important keys (`pagination`, `has_more`, `success`).

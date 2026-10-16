@@ -252,7 +252,7 @@ Generate a JSON object strictly following the rules below.
             },
             "visibilityCondition": {
                 "type": "string",
-                "description": "A JS condition string. Omit if always visible."
+                "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
             },
             "defaultValue": {
                 "type": "string",
@@ -315,7 +315,7 @@ schema:
       description: The max number of list entries. Only applicable if 'list' is true.
     visibilityCondition:
       type: string
-      description: A JS condition string. Omit if always visible.
+      description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
     defaultValue:
       type: string
       description: The default value. Omit if none.
@@ -578,7 +578,7 @@ Return only valid JSON.
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit this field entirely if not applicable."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         },
                         "template": {
                             "type": "object",
@@ -679,7 +679,7 @@ schema:
             description: Must be set to 'dictionary'.
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit this field entirely if not applicable.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
           template:
             type: object
             properties:
@@ -972,7 +972,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         }
                     },
                     "required": [
@@ -1065,7 +1065,7 @@ schema:
             description: "Required placeholder text (such as 'true'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only. The value must always be a string and wrapped in a string/quotes (e.g., '\"true\"')."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
         required[8]: key,type,label,help,options,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
 ```
@@ -1350,7 +1350,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         },
                         "options": {
                             "type": "array",
@@ -1494,7 +1494,7 @@ schema:
             description: "Required placeholder for the manual input mode. Provide a relevant numeric or text example (such as '15' if expecting an ID). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
           options:
             type: array
             description: The fixed list of choices.
@@ -1872,7 +1872,7 @@ Generate a JSON object strictly following the rules below for a static multisele
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         },
                         "options": {
                             "type": "array",
@@ -2000,7 +2000,7 @@ schema:
             description: "Required placeholder for the manual input mode. Provide a relevant array example (such as '[\"markdown\",\"block\"]' or '[\"first_name\",\"email\"]'). Do NOT use 'E.g.' or 'e.g.'; they must contain direct sample values only."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
           options:
             type: array
             description: The fixed list of available choices.
@@ -2249,7 +2249,7 @@ Generate a JSON object strictly following the rules below for an AI field.
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit this field entirely if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         }
                     },
                     "required": [
@@ -2313,7 +2313,7 @@ schema:
             description: "JavaScript code that fetches a schema or context to send to the AI. This key MUST be present in the JSON, but return an empty string \"\" if no dynamic suggestions/schema are needed."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit this field entirely if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
         required[6]: key,type,label,help,prompt,suggestionGenerator
   required[1]: inputFields
 ```
@@ -2446,7 +2446,7 @@ Generate a JSON object strictly following the rules below for a static help fiel
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility of the help block. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         }
                     },
                     "required": [
@@ -2489,7 +2489,7 @@ schema:
             description: "The instructional content to display to the user. This supports plain text, HTML (e.g., <ul>, <li>, <strong>), and Markdown format. It also supports markdown links for the reference."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility of the help block. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
         required[3]: key,type,help
   required[1]: inputFields
 ```
@@ -2613,7 +2613,7 @@ Generate a JSON object strictly following the rules below for an input group.
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility of the entire group. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         },
                         "fields": {
                             "type": "array",
@@ -2695,7 +2695,7 @@ schema:
             description: "If true, transforms the input group into a readable sentence layout in the UI. Omit this field entirely if false or not applicable."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility of the entire group. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
           fields:
             type: array
             description: "The array of fields contained within this group. MANDATORY RULE: If 'whereClause' is true, this array MUST ONLY contain fields where the 'type' is 'dropdown' or 'multiselect'."
@@ -3206,7 +3206,7 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         },
                         "defaultValue": {
                             "type": "object",
@@ -3321,7 +3321,7 @@ schema:
             description: "Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly where the user can find the ID (e.g., in a URL). Supports markdown links [Link](https://...). Omit if not applicable."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
           defaultValue:
             type: object
             description: The default object to select initially. Omit this field entirely if there is no default.
@@ -3834,7 +3834,7 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         },
                         "defaultValue": {
                             "type": "array",
@@ -3936,7 +3936,7 @@ schema:
             description: Optional help text for manual/dynamic input. Use this for longer explanations alongside or instead of customInputLabel. Explain exactly what array format is expected. Supports markdown links. Omit if not applicable.
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
           defaultValue:
             type: array
             description: The default array of objects to select initially. Omit this field entirely if there is no default.
@@ -4313,7 +4313,7 @@ Generate a JSON object strictly following the rules below for a dynamic help fie
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "Optional JavaScript condition for visibility of the help block. Omit this field entirely if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         }
                     },
                     "required": [
@@ -4359,7 +4359,7 @@ schema:
             description: Optional human-readable label displayed above the help text block. Omit this field entirely if not applicable.
           visibilityCondition:
             type: string
-            description: Optional JavaScript condition for visibility of the help block. Omit this field entirely if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
         required[3]: key,type,source
   required[1]: inputFields
 ```
@@ -4476,7 +4476,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
                         },
                         "visibilityCondition": {
                             "type": "string",
-                            "description": "A JavaScript condition for visibility of the entire dynamic group. Omit if always visible."
+                            "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
                         }
                     },
                     "required": [
@@ -4529,7 +4529,7 @@ schema:
             description: "JavaScript code that dynamically generates the nested fields. MANDATORY RULES:\n1. Standard Return: MUST return an array of complete, valid field objects (e.g., `return [{ key: 'f1', type: 'string', label: 'F1', ...}]`). The generated fields can be string, number, boolean, dropdown, multiselect, aifield, help, html, markdown, or nested input groups. It supports both static and dynamic fields.\n2. Key naming: Generated field keys can contain a full stop (.). Dot-to-underscore normalization is not required.\n3. Error/Empty Return: If dependencies are missing or no fields can be generated, return an object with a message (e.g., `return { message: 'Please select a data source first.' };`). This will render as a warning box in the UI.\n4. Context Access: You can use `context?.inputData?.['other_field_key']` to build logic dependent on previous user inputs."
           visibilityCondition:
             type: string
-            description: A JavaScript condition for visibility of the entire dynamic group. Omit if always visible.
+            description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
         required[4]: key,type,label,fieldsGenerator
   required[1]: inputFields
 ```
@@ -4670,6 +4670,8 @@ When generating Dropdown and Multiselect input fields (both Static and Dynamic):
 ## Special Note: Visibility Condition Rules
 
 When writing a `visibilityCondition`, the condition must be a valid JavaScript expression that evaluates to a boolean value. This expression determines whether the field or input group should be displayed. **Any valid JavaScript condition is supported, including complex calculations, array methods (like `.includes()`), and dynamic key value checks.**
+
+**String literals must always be single-quoted** (`=== 'text'`, `.includes('A')`). Never compare against a bare word like `=== text`. Numbers and booleans stay unquoted.
 
 Here are the various patterns you should use based on what field type it depends on:
 
