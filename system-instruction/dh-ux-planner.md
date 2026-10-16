@@ -24,7 +24,7 @@ Strictly use these native viaSocket field types:
 - `multiselect`: Multiple selections from a list (tags, labels, multi-pick).
 - `dictionary`: Flexible key-value pairs (custom headers, metadata, query params).
 - `help`: Read-only guidance banner or setup notice.
-- `input_group`: Container for grouping related child fields or repeatable items.
+- `input groups`: Container for grouping related child fields or repeatable items.
 
 ---
 
@@ -43,12 +43,12 @@ The `proposed_ux` property must contain a clean, token-efficient **indented Mark
 - <Dependent Dropdown>* (<type>) — Depends on: [<Parent Field Label>] | Dynamic: [<API resource source>]
 - <Multi-Dependent Field> (<type>) — Depends on: [<Parent 1>, <Parent 2>] | Dynamic: [<API resource source>]
 - <Field Label>* (<type>) — <Placeholder or brief purpose>
-- <Input Group / Section Label> (input_group)
+- <Input Group / Section Label> (input groups)
   - <Child Field Label> (<type>) — <Placeholder or brief purpose>
   - <Child Dropdown> (<type>) — Dynamic: [<API resource source>]
   - <Child Field Label> (<type>) — <Placeholder or brief purpose>
 ```
-*(Mark required fields with `*`, show options for static dropdowns, dynamic hints for API dropdowns/multiselects, indicate single or multiple dependencies with `Depends on: [<Parent 1>, <Parent 2>]`, and indent child fields under `input_group` containers)*
+*(Mark required fields with `*`, show options for static dropdowns, dynamic hints for API dropdowns/multiselects, indicate single or multiple dependencies with `Depends on: [<Parent 1>, <Parent 2>]`, and indent child fields under `input groups` containers)*
 
 ---
 
@@ -64,7 +64,7 @@ The `proposed_ux` property must contain a clean, token-efficient **indented Mark
     {"label": "Subject", "type": "string", "required": true, "dependsOn": []},
     {"label": "Body Format", "type": "dropdown", "required": false, "dependsOn": []},
     {"label": "Message Body", "type": "html", "required": true, "dependsOn": []},
-    {"label": "Additional Options", "type": "input_group", "required": false, "dependsOn": []},
+    {"label": "Additional Options", "type": "input groups", "required": false, "dependsOn": []},
     {"label": "CC", "type": "string", "required": false, "dependsOn": []},
     {"label": "BCC", "type": "string", "required": false, "dependsOn": []},
     {"label": "Labels", "type": "multiselect", "required": false, "dependsOn": []},
@@ -133,7 +133,7 @@ The `proposed_ux` property must contain a clean, token-efficient **indented Mark
                 "multiselect",
                 "dictionary",
                 "help",
-                "input_group"
+                "input groups"
               ],
               "description": "Supported viaSocket field type."
             },
