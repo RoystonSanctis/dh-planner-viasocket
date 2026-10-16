@@ -58,7 +58,7 @@ The `proposed_ux` property must contain a clean, token-efficient **indented Mark
 {
   "action_name": "Send Email",
   "action_description": "Sends an email to specified recipients with optional formatting and attachments.",
-  "proposed_ux": "### Proposed UX: Send Email\nSends an email to specified recipients with optional formatting and attachments.\n\n#### UX Form Layout:\n- To Email* (string) — \"recipient@example.com\"\n- Subject* (string) — \"Meeting Follow-up\"\n- Body Format (dropdown) — Options: [HTML | Plain Text] (Default: HTML)\n- Message Body* (html) — Rich HTML composer\n- Additional Options (input_group)\n  - CC (string) — \"cc@example.com\"\n  - BCC (string) — \"bcc@example.com\"\n  - Labels (multiselect) — Dynamic: [Gmail Labels API]\n  - Attachments (string) — File URL or attachment link",
+  "proposed_ux": "### Proposed UX: Send Email\nSends an email to specified recipients with optional formatting and attachments.\n\n#### UX Form Layout:\n- To Email* (string) — \"recipient@example.com\"\n- Subject* (string) — \"Meeting Follow-up\"\n- Body Format (dropdown) — Options: [HTML | Plain Text] (Default: HTML)\n- Message Body* (html) — Rich HTML composer\n- Additional Options (input groups)\n  - CC (string) — \"cc@example.com\"\n  - BCC (string) — \"bcc@example.com\"\n  - Labels (multiselect) — Dynamic: [Gmail Labels API]\n  - Attachments (string) — File URL or attachment link",
   "fields": [
     {"label": "To Email", "type": "string", "required": true, "dependsOn": []},
     {"label": "Subject", "type": "string", "required": true, "dependsOn": []},
