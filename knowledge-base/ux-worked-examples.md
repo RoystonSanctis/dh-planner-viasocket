@@ -154,7 +154,7 @@ This is the canonical **field-chooser → schema-driven dynamic input group** pa
     "type": "string",
     "label": "Additional properties",
     "required": false,
-    "placeholder": "E.g., hs_object_id, createdate"
+    "placeholder": "hs_object_id, createdate"
   }
 ]
 ```
@@ -254,17 +254,17 @@ return await performAction();
 **Input Fields JSON (invoice-style variant shipped for this action)**
 ```json
 [
-  { "key": "description", "type": "string", "label": "Invoice Description", "required": true, "placeholder": "e.g. Consulting services for August" },
+  { "key": "description", "type": "string", "label": "Invoice Description", "required": true, "placeholder": "Consulting services for August" },
   { "key": "draft", "type": "boolean", "label": "Create as Draft", "options": [ { "label": "Yes", "value": true }, { "label": "No", "value": false } ], "required": false },
   { "key": "currency", "type": "dropdown", "label": "Invoice Currency", "options": [ { "label": "INR", "value": "INR" }, { "label": "USD", "value": "USD" }, { "label": "EUR", "value": "EUR" } ], "required": true },
   { "key": "expiry_days", "type": "dropdown", "label": "Invoice Expiry", "options": [ { "label": "1 Day", "value": 1 }, { "label": "7 Days", "value": 7 }, { "label": "15 Days", "value": 15 }, { "label": "30 Days", "value": 30 } ], "required": true },
   { "key": "customer_mode", "type": "dropdown", "label": "Customer Selection Method", "options": [ { "label": "Use Existing Customer ID", "value": "id" }, { "label": "Enter Customer Details", "value": "details" } ], "required": true },
-  { "key": "customer_id", "type": "string", "label": "Customer ID", "required": true, "placeholder": "e.g. cust_ABC123", "visibilityCondition": "context.inputData.customer_mode === 'id'" },
-  { "key": "customer", "type": "input groups", "label": "Customer Details", "required": true, "visibilityCondition": "context.inputData.customer_mode === 'details'", "fields": [ { "key": "name", "type": "string", "label": "Customer Name", "required": true, "placeholder": "e.g. John Doe" }, { "key": "contact", "type": "string", "label": "Contact Number", "required": false, "placeholder": "e.g. 9876543210" }, { "key": "email", "type": "string", "label": "Email Address", "required": false, "placeholder": "e.g. john@example.com" } ] },
+  { "key": "customer_id", "type": "string", "label": "Customer ID", "required": true, "placeholder": "cust_ABC123", "visibilityCondition": "context.inputData.customer_mode === 'id'" },
+  { "key": "customer", "type": "input groups", "label": "Customer Details", "required": true, "visibilityCondition": "context.inputData.customer_mode === 'details'", "fields": [ { "key": "name", "type": "string", "label": "Customer Name", "required": true, "placeholder": "John Doe" }, { "key": "contact", "type": "string", "label": "Contact Number", "required": false, "placeholder": "9876543210" }, { "key": "email", "type": "string", "label": "Email Address", "required": false, "placeholder": "john@example.com" } ] },
   { "key": "billing_address", "type": "input groups", "label": "Billing Address", "required": false, "fields": [ { "key": "line1", "type": "string", "label": "Address Line 1", "required": false }, { "key": "line2", "type": "string", "label": "Address Line 2", "required": false }, { "key": "zipcode", "type": "string", "label": "Zip Code", "required": false }, { "key": "city", "type": "string", "label": "City", "required": false }, { "key": "state", "type": "string", "label": "State", "required": false }, { "key": "country", "type": "string", "label": "Country", "required": false } ] },
   { "key": "same_shipping", "type": "boolean", "label": "Shipping Address Same as Billing", "options": [ { "label": "Yes", "value": true }, { "label": "No", "value": false } ], "required": false },
   { "key": "shipping_address", "type": "input groups", "label": "Shipping Address", "required": false, "visibilityCondition": "context.inputData.same_shipping !== true", "fields": [ { "key": "line1", "type": "string", "label": "Address Line 1", "required": false }, { "key": "line2", "type": "string", "label": "Address Line 2", "required": false }, { "key": "zipcode", "type": "string", "label": "Zip Code", "required": false }, { "key": "city", "type": "string", "label": "City", "required": false }, { "key": "state", "type": "string", "label": "State", "required": false }, { "key": "country", "type": "string", "label": "Country", "required": false } ] },
-  { "key": "line_items", "type": "input groups", "label": "Line Items", "required": true, "fields": [ { "key": "name", "type": "string", "label": "Item Name", "required": true, "placeholder": "e.g. Master Cloud Computing in 30 Days" }, { "key": "description", "type": "string", "label": "Item Description", "required": false }, { "key": "amount", "type": "number", "label": "Amount (smallest currency unit)", "required": true }, { "key": "quantity", "type": "number", "label": "Quantity", "required": true } ] },
+  { "key": "line_items", "type": "input groups", "label": "Line Items", "required": true, "fields": [ { "key": "name", "type": "string", "label": "Item Name", "required": true, "placeholder": "Master Cloud Computing in 30 Days" }, { "key": "description", "type": "string", "label": "Item Description", "required": false }, { "key": "amount", "type": "number", "label": "Amount (smallest currency unit)", "required": true }, { "key": "quantity", "type": "number", "label": "Quantity", "required": true } ] },
   { "key": "partial_payment", "type": "boolean", "label": "Allow Partial Payment", "options": [ { "label": "Yes", "value": true }, { "label": "No", "value": false } ], "required": false },
   { "key": "sms_notify", "type": "boolean", "label": "Send SMS Notification", "options": [ { "label": "Yes", "value": true }, { "label": "No", "value": false } ], "required": false },
   { "key": "email_notify", "type": "boolean", "label": "Send Email Notification", "options": [ { "label": "Yes", "value": true }, { "label": "No", "value": false } ], "required": false },
@@ -1825,7 +1825,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
       },
       {
         "key": "country",
-        "help": "Enter the country code (e.g., 'IN' for India).",
+        "help": "Enter the country code (such as 'IN' for India).",
         "type": "string",
         "label": "Country",
         "required": true
@@ -1857,7 +1857,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
       },
       {
         "key": "amount",
-        "help": "Enter the price of the item in the smallest currency unit (e.g., 50000 for \u20b9500.00).",
+        "help": "Enter the price of the item in the smallest currency unit (such as 50000 for \u20b9500.00).",
         "type": "number",
         "label": "Amount (in smallest currency unit)",
         "required": true,
@@ -3140,7 +3140,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
     "fields": [
       {
         "key": "tags",
-        "help": "Enter tags separated by commas, e.g. vip, wholesale.",
+        "help": "Enter tags separated by commas, such as vip, wholesale.",
         "type": "string",
         "label": "Tags",
         "required": false,
@@ -5080,7 +5080,7 @@ Allows users to choose which employee attributes should be returned in the outpu
     "fields": [
       {
         "key": "updatedAfter",
-        "help": "Enter a relative or specific date (e.g., yesterday, 3 days ago, 2024-06-01).If not provided it will automatically return employees updated in last 30 days.",
+        "help": "Enter a relative or specific date (such as yesterday, 3 days ago, 2024-06-01).If not provided it will automatically return employees updated in last 30 days.",
         "type": "aifield",
         "label": "Updated After",
         "prompt": "User will enter a date or relative time in natural language or a specific date (e.g., 'yesterday', '3 days ago', 'last week', '2024-06-01'). ALWAYS convert the input into a valid ISO 8601 UTC datetime string in the format YYYY-MM-DDTHH:mm:ssZ. Even if the input already looks like a date, still normalize it to ISO 8601. Return ONLY the ISO string. Do not include explanations, labels, or text.",
@@ -5783,7 +5783,7 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
     "type": "dropdown",
     "label": "Lookup Field",
     "required": true,
-    "placeholder": "Select field to search (e.g., EmailAddress)",
+    "placeholder": "EmailAddress",
     "optionsGenerator": "async function generate() {\n  try {\n    const host = context?.authData?.apiHost;\n    if (!host) return [{ label: 'Reconnect account to load fields', value: '' }];\n    const url = `https://${host}.leadsquared.com/v2/LeadManagement.svc/LeadsMetaData.Get`;\n    const response = await axios.get(url);\n    const data = response?.data || {};\n    const candidates = [data.Fields, data.fields, data.FieldList, data.FieldListResponse, data?.Data, data];\n    let fieldsArr = [];\n    for (const c of candidates) {\n      if (Array.isArray(c)) { fieldsArr = c; break; }\n      if (c && typeof c === 'object' && Array.isArray(c.Fields)) { fieldsArr = c.Fields; break; }\n    }\n    if (!fieldsArr.length) return [{ label: 'No searchable fields found', value: '' }];\n    return fieldsArr\n      .filter(f => f.IsVisible !== false)\n      .map(f => {\n        const schema = f.SchemaName || f.FieldName || f.Name || f.Key;\n        const label = f.DisplayName || f.Label || schema;\n        if (!schema) return null;\n        return { label: `${label} (${schema})`, value: schema };\n      })\n      .filter(Boolean)\n      .sort((a, b) => a.label.localeCompare(b.label));\n  } catch (err) {\n    return [{ label: 'Unable to load fields', value: '' }];\n  }\n}\nreturn await generate();"
   },
   {
@@ -5809,7 +5809,7 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
     "type": "string",
     "label": "Lookup Value",
     "required": true,
-    "placeholder": "Enter value (e.g., test@example.com)"
+    "placeholder": "test@example.com"
   },
   {
     "key": "bulkMode",
@@ -6047,7 +6047,7 @@ try {
   },
   {
     "key": "relative_days",
-    "help": "Enter the number of days from today to fetch events for. Use a positive number for future days (e.g., 7 for next 7 days) or a negative number for past days (e.g., -2 for 2 days ago). Events will be fetched between today and the entered day.",
+    "help": "Enter the number of days from today to fetch events for. Use a positive number for future days (such as 7 for next 7 days) or a negative number for past days (such as -2 for 2 days ago). Events will be fetched between today and the entered day.",
     "type": "number",
     "label": "Days from Today",
     "required": true,
@@ -6564,7 +6564,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "relative_days",
-    "help": "Enter the number of past days to include in the report (e.g., 7, 28, 90).",
+    "help": "Enter the number of past days to include in the report (such as 7, 28, 90).",
     "type": "number",
     "label": "Last N Days",
     "required": true,
@@ -7386,7 +7386,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
         "type": "multiselect",
         "label": "",
         "required": true,
-        "customHelp": "Enter channel name(s) or channel ID(s) separated by commas (e.g. general, #random, C082ACF6XQQ). To find a channel ID, use the \"List all public channels\" action.",
+        "customHelp": "Enter channel name(s) or channel ID(s) separated by commas (such as general, #random, C082ACF6XQQ). To find a channel ID, use the \"List all public channels\" action.",
         "placeholder": "Select channels",
         "customInputLabel": "Channel IDs",
         "optionsGenerator": "try { return await get_all_channel(); } catch (error) { await errorComponent(error); }",
@@ -7558,7 +7558,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
       },
       {
         "key": "emoji",
-        "help": "Enter the emoji short code that will be used as the bot's icon, e.g., :smile:. You can find emoji codes [here](https://www.webfx.com/tools/emoji-cheat-sheet/).",
+        "help": "Enter the emoji short code that will be used as the bot's icon, such as :smile:. You can find emoji codes [here](https://www.webfx.com/tools/emoji-cheat-sheet/).",
         "type": "string",
         "label": "Emoji Code",
         "required": false,

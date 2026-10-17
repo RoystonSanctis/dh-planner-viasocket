@@ -230,7 +230,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 **Common Keys**
 - `key`: unique, stable identifier (`message_type`). Static keys match `^[^.\[\]]*$`; `fieldsGenerator` children may contain `.`/`[]` (no normalization). Plug-wide: the same logical field keeps that exact `key` (spelling and casing) across every action/trigger in the plug.
 - `label`: clean, human-readable name.
-- `help`: omit only when label + key are self-explanatory (`first_name`). Starts with `"Enter"` (text inputs incl. string ID fields—never "Select from the list", dictionary, aifield, groups) or `"Select"` (dropdown, multiselect, boolean). Short, plain, non-technical; markdown links allowed (`[Learn More](https://...)`). Length limits apply to `help` keys, not `type: "help"` panels.
+- `help`: omit only when label + key are self-explanatory (`first_name`). Starts with `"Enter"` (text inputs incl. string ID fields—never "Select from the list", dictionary, aifield, groups) or `"Select"` (dropdown, multiselect, boolean). Short, plain, non-technical; markdown links allowed (`[Learn More](https://...)`). Length limits apply to `help` keys, not `type: "help"` panels. No "E.g."/"e.g." in `help` or `customHelp`; use "such as".
 - `required`: an empty required field blocks the run with a UI error.
 - `placeholder`: always a string (`"100"`, `"true"`), concrete, no `"E.g."`. Required for text inputs; optional for `aifield` and for dropdown/multiselect/boolean (defaults to `"Choose <label>"`).
 - `visibilityCondition`: only when dependent; else omit.

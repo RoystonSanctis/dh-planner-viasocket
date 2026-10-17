@@ -281,7 +281,7 @@ This document captures production-grade connection records from the viaSocket De
           "type": "password",
           "label": "Client ID",
           "required": true,
-          "placeholder": "E.g., d_Y8CKDxxxxxxxxxxxxxxxxx"
+          "placeholder": "d_Y8CKDxxxxxxxxxxxxxxxxx"
         },
         {
           "key": "clientsecret",
@@ -289,7 +289,7 @@ This document captures production-grade connection records from the viaSocket De
           "type": "password",
           "label": "Client Secret",
           "required": true,
-          "placeholder": "E.g., _GwaPGgfwxxxxxxxxxxxxxxxxxxxxxxx"
+          "placeholder": "_GwaPGgfwxxxxxxxxxxxxxxxxxxxxxxx"
         },
         {
           "key": "subdomain",
