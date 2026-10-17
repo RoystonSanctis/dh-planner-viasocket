@@ -2254,7 +2254,7 @@ return createInvoice();
   },
   {
     "key": "select_additional_fields",
-    "help": "The most common fields are shown above. Use this to add any other fields such as deal type, pipeline, owner, probability, territory, or custom fields.",
+    "help": "The most common fields are shown above. Use this to add any other fields (deal type, pipeline, owner, probability, territory, or custom fields).",
     "type": "multiselect",
     "label": "Additional Fields",
     "required": false,
@@ -3568,7 +3568,7 @@ return await updateCustomer();
   },
   {
     "key": "basicInformation",
-    "help": "Update identity-related details such as employee number, blood group, nationality, or marital status. Leave any field blank to keep its existing value.",
+    "help": "Update identity-related details (employee number, blood group, nationality, or marital status). Leave any field blank to keep its existing value.",
     "type": "input groups",
     "label": "Basic Information",
     "required": false,
@@ -3763,7 +3763,7 @@ return await updateCustomer();
   },
   {
     "key": "workInformation",
-    "help": "Update organization-related details such as business unit or professional summary. Leave any field blank to keep its existing value.",
+    "help": "Update organization-related details (business unit or professional summary). Leave any field blank to keep its existing value.",
     "type": "input groups",
     "label": "Work Information",
     "required": false,
@@ -3792,7 +3792,7 @@ return await updateCustomer();
   },
   {
     "key": "contactDetails",
-    "help": "Update contact information such as personal email, phone numbers, and address. Leave any field blank to keep its existing value.",
+    "help": "Update contact information (personal email, phone numbers, and address). Leave any field blank to keep its existing value.",
     "type": "input groups",
     "label": "Contact Details",
     "required": false,
@@ -6640,7 +6640,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
           }
         ],
         "required": false,
-        "customHelp": "Enter the dimension to filter by, such as 'video', 'playlist', 'channel', 'country', 'ageGroup', 'gender', or 'deviceType'.",
+        "customHelp": "Enter the dimension to filter by ('video', 'playlist', 'channel', 'country', 'ageGroup', 'gender', or 'deviceType').",
         "customInputLabel": "Filter Dimension",
         "customPlaceholder": "video"
       },
@@ -6747,7 +6747,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
           }
         ],
         "required": true,
-        "customHelp": "Enter the age group to filter by, such as 'age13-17', 'age18-24', 'age25-34', 'age35-44', 'age45-54', 'age55-64', or 'age65-'.",
+        "customHelp": "Enter the age group to filter by ('age13-17', 'age18-24', 'age25-34', 'age35-44', 'age45-54', 'age55-64', or 'age65-').",
         "placeholder": "Select age group",
         "customInputLabel": "Age Group",
         "customPlaceholder": "age18-24",
@@ -6786,7 +6786,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
           }
         ],
         "required": true,
-        "customHelp": "Enter the device type to filter by, such as 'DESKTOP', 'MOBILE', 'TABLET', 'TV', or 'GAME_CONSOLE'.",
+        "customHelp": "Enter the device type to filter by ('DESKTOP', 'MOBILE', 'TABLET', 'TV', or 'GAME_CONSOLE').",
         "placeholder": "Select device type",
         "customInputLabel": "Device Type",
         "customPlaceholder": "DESKTOP",
@@ -7092,7 +7092,7 @@ The system sends the lead data (email, phone, name, custom fields, etc.) to the 
 [
   {
     "key": "searchByFields",
-    "help": "Select the lead fields to search by, such as Email or Phone.",
+    "help": "Select the lead fields to search by (Email or Phone).",
     "type": "multiselect",
     "label": "Search By Fields",
     "required": true,
