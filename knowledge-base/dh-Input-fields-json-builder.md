@@ -2326,7 +2326,7 @@ schema:
 [
     {
     "key": "filterConditions",
-    "help": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions, such as { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] } . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)",
+    "help": "Filters in JSON when supplied, limits which pages are returned based on the filter conditions ({ \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }) . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)",
     "type": "aifield",
     "label": "Filter Conditions",
     "prompt": "Generate a Notion API JSON filter condition based on the user request and provided schema. Support complex AND/OR structures.\n\n**CRITICAL Output Structure:**\n* Return the raw filter object directly at the root. Do NOT wrap the output inside a \"filter\" key.\n    * *Correct:* `{\"property\": \"Email\", \"email\": {\"equals\": \"...\"}}`\n    * *Wrong:* `{\"filter\": {\"property\": \"Email\", ...}}`\n**CRITICAL Rules for Variables (e.g., `${context.req.body.value}`):**\n* **Strings (email, rich_text, select):** MUST be wrapped in double quotes. \n    * *Format:* `{\"equals\": \"${context.req.body.email}\"}`\n* **Numbers/Booleans:** MUST NOT be wrapped in quotes. \n    * *Format:* `{\"equals\": ${context.req.body.age}}`\nOutput ONLY valid JSON. No markdown backticks, code formatting, or explanations.",
@@ -2352,7 +2352,7 @@ schema:
 ```toon
 [2]:
   - key: filterConditions
-    help: "Filters in JSON when supplied, limits which pages are returned based on the filter conditions, such as { \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] } . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)"
+    help: "Filters in JSON when supplied, limits which pages are returned based on the filter conditions ({ \"and\": [ { \"property\": \"Status\", \"select\": { \"equals\": \"done\" } } ] }) . [Learn More](https://developers.notion.com/reference/filter-data-source-entries)"
     type: aifield
     label: Filter Conditions
     prompt: "Generate a Notion API JSON filter condition based on the user request and provided schema. Support complex AND/OR structures.\n\n**CRITICAL Output Structure:**\n* Return the raw filter object directly at the root. Do NOT wrap the output inside a \"filter\" key.\n    * *Correct:* `{\"property\": \"Email\", \"email\": {\"equals\": \"...\"}}`\n    * *Wrong:* `{\"filter\": {\"property\": \"Email\", ...}}`\n**CRITICAL Rules for Variables (e.g., `${context.req.body.value}`):**\n* **Strings (email, rich_text, select):** MUST be wrapped in double quotes. \n    * *Format:* `{\"equals\": \"${context.req.body.email}\"}`\n* **Numbers/Booleans:** MUST NOT be wrapped in quotes. \n    * *Format:* `{\"equals\": ${context.req.body.age}}`\nOutput ONLY valid JSON. No markdown backticks, code formatting, or explanations."
@@ -3978,7 +3978,7 @@ schema:
         "type": "multiselect",
         "label": "Return Columns",
         "required": false,
-        "customHelp": "Enter column names or letters manually in an array format (such as [\"Name\"] or [\"A\"]).",
+        "customHelp": "Enter column names or letters manually in an array format ([\"Name\"] or [\"A\"]).",
         "placeholder": "Choose Columns",
         "customInputLabel": "Return Columns in Array",
         "optionsGenerator": "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}",
@@ -4016,7 +4016,7 @@ schema:
     type: multiselect
     label: Return Columns
     required: false
-    customHelp: "Enter column names or letters manually in an array format (such as [\"Name\"] or [\"A\"])."
+    customHelp: "Enter column names or letters manually in an array format ([\"Name\"] or [\"A\"])."
     placeholder: Choose Columns
     customInputLabel: Return Columns in Array
     optionsGenerator: "const spreadSheet_id = context?.inputData?.spreadsheet_Id;\nconst targetsheet_Id = context?.inputData?.sheet_Id;\nconst column_key = context?.inputData?.search_filter?.column_key?? true;\ntry {\nreturn await fetchSheetColumns(spreadSheet_id,targetsheet_Id,column_key);\n\n} catch (error) {\n await errorComponent(error);\n}"

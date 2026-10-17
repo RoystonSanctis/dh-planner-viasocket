@@ -1825,7 +1825,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
       },
       {
         "key": "country",
-        "help": "Enter the country code (such as 'IN' for India).",
+        "help": "Enter the country code ('IN' for India).",
         "type": "string",
         "label": "Country",
         "required": true
@@ -1857,7 +1857,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
       },
       {
         "key": "amount",
-        "help": "Enter the price of the item in the smallest currency unit (such as 50000 for \u20b9500.00).",
+        "help": "Enter the price of the item in the smallest currency unit (50000 for \u20b9500.00).",
         "type": "number",
         "label": "Amount (in smallest currency unit)",
         "required": true,
@@ -3140,7 +3140,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
     "fields": [
       {
         "key": "tags",
-        "help": "Enter tags separated by commas, such as vip, wholesale.",
+        "help": "Enter tags separated by commas (vip, wholesale).",
         "type": "string",
         "label": "Tags",
         "required": false,
@@ -5080,7 +5080,7 @@ Allows users to choose which employee attributes should be returned in the outpu
     "fields": [
       {
         "key": "updatedAfter",
-        "help": "Enter a relative or specific date (such as yesterday, 3 days ago, 2024-06-01).If not provided it will automatically return employees updated in last 30 days.",
+        "help": "Enter a relative or specific date (yesterday, 3 days ago, 2024-06-01).If not provided it will automatically return employees updated in last 30 days.",
         "type": "aifield",
         "label": "Updated After",
         "prompt": "User will enter a date or relative time in natural language or a specific date (e.g., 'yesterday', '3 days ago', 'last week', '2024-06-01'). ALWAYS convert the input into a valid ISO 8601 UTC datetime string in the format YYYY-MM-DDTHH:mm:ssZ. Even if the input already looks like a date, still normalize it to ISO 8601. Return ONLY the ISO string. Do not include explanations, labels, or text.",
@@ -6047,7 +6047,7 @@ try {
   },
   {
     "key": "relative_days",
-    "help": "Enter the number of days from today to fetch events for. Use a positive number for future days (such as 7 for next 7 days) or a negative number for past days (such as -2 for 2 days ago). Events will be fetched between today and the entered day.",
+    "help": "Enter the number of days from today to fetch events for. Use a positive number for future days (7 for next 7 days) or a negative number for past days (-2 for 2 days ago). Events will be fetched between today and the entered day.",
     "type": "number",
     "label": "Days from Today",
     "required": true,
@@ -6564,7 +6564,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "relative_days",
-    "help": "Enter the number of past days to include in the report (such as 7, 28, 90).",
+    "help": "Enter the number of past days to include in the report (7, 28, 90).",
     "type": "number",
     "label": "Last N Days",
     "required": true,
@@ -7386,7 +7386,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
         "type": "multiselect",
         "label": "",
         "required": true,
-        "customHelp": "Enter channel name(s) or channel ID(s) separated by commas (such as general, #random, C082ACF6XQQ). To find a channel ID, use the \"List all public channels\" action.",
+        "customHelp": "Enter channel name(s) or channel ID(s) separated by commas (general, #random, C082ACF6XQQ). To find a channel ID, use the \"List all public channels\" action.",
         "placeholder": "Select channels",
         "customInputLabel": "Channel IDs",
         "optionsGenerator": "try { return await get_all_channel(); } catch (error) { await errorComponent(error); }",
@@ -7558,7 +7558,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
       },
       {
         "key": "emoji",
-        "help": "Enter the emoji short code that will be used as the bot's icon, such as :smile:. You can find emoji codes [here](https://www.webfx.com/tools/emoji-cheat-sheet/).",
+        "help": "Enter the emoji short code that will be used as the bot's icon (:smile:). You can find emoji codes [here](https://www.webfx.com/tools/emoji-cheat-sheet/).",
         "type": "string",
         "label": "Emoji Code",
         "required": false,
