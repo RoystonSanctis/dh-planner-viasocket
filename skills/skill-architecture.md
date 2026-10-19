@@ -1,6 +1,8 @@
 # viaSocket Developer Hub — Skill Architecture
 
-How the three skills in `skills/` and their shared tool `skills/dh.mjs` work, and how to run them.
+How the skills in `skills/` work and how to run them. Every Developer Hub call goes through the DocStar MCP
+`https://mcp.docstar.io/connector/viasocket_developer_hub` — no shell, no downloaded script, no token in the prompt.
+
 
 ## 1. Prompt templates
 
@@ -18,14 +20,13 @@ ORG_ID: <YOUR_ORG_ID>
 APP_NAME: <APP_NAME>
 APP_DOMAIN: <APP_DOMAIN>
 API_BASE: <API_BASE_URL>
-PROXY_AUTH_TOKEN: <YOUR_PROXY_AUTH_TOKEN>
 USECASE: <DESCRIPTION_OF_INTEGRATION_GOALS>
 ```
 
 * `ORG_ID` — viaSocket organization ID (e.g. `org_abc123`).
 * `APP_NAME` / `APP_DOMAIN` — app name and primary domain (e.g. `Slack` / `slack.com`).
 * `API_BASE` — Developer Hub API base URL (production, testing or local).
-* `PROXY_AUTH_TOKEN` — temporary token for Developer Hub calls; stored only in `.dh-run/config.json`, deleted at the end.
+* Auth — connect and sign in to the MCP first; the MCP adds the user's token to every call.
 * `USECASE` — optional scope (e.g. "CRUD actions for Contacts, webhook trigger for new deals"). Empty → every action and trigger.
 
 ### 1.2 Connection — `SKILL-CONNECTION.md`
@@ -42,7 +43,6 @@ APP_NAME: <APP_NAME>
 APP_DOMAIN: <APP_DOMAIN>
 PREFERRED_AUTH_ID: <EXISTING_AUTH_ID_OR_EMPTY>
 API_BASE: <API_BASE_URL>
-PROXY_AUTH_TOKEN: <YOUR_PROXY_AUTH_TOKEN>
 REQUEST: <WHAT_AUTH_TO_CONFIGURE>
 ```
 
@@ -68,7 +68,6 @@ ACTION_NAME: <ACTION_OR_TRIGGER_NAME>
 VERSION_ID: <CONFIRMED_DRAFT_VERSION_ID_IF_UPDATE>
 PREFERRED_AUTH_ID: <PREFERRED_AUTH_ID>
 API_BASE: <API_BASE_URL>
-PROXY_AUTH_TOKEN: <YOUR_PROXY_AUTH_TOKEN>
 REQUEST: <WHAT_THIS_ACTION_OR_TRIGGER_DOES_OR_CHANGES_REQUESTED>
 ```
 
@@ -81,15 +80,15 @@ REQUEST: <WHAT_THIS_ACTION_OR_TRIGGER_DOES_OR_CHANGES_REQUESTED>
 ```mermaid
 flowchart TD
     Host["Host pre-context\nconsolidated KB + GET results"] --> LLM["Model reads the skill"]
-    LLM --> Setup["Setup (two lines)\ndownload dh.mjs + write config"]
-    Setup --> Research["Research official API docs\n(+ KB detail via dh.mjs kb)"]
+    LLM --> Setup["Setup\nMCP signed in + KB read from GitHub"]
+    Setup --> Research["Research official API docs\n(+ KB detail sections)"]
     Research --> Plan["Plan + KB self-review\n(posted to the user, no approval wait)"]
-    Plan --> Exec["Execute\ndh.mjs batch / COPY / MERGE"]
+    Plan --> Exec["Execute\nparallel MCP calls / COPY / MERGE"]
     Exec --> Report["Verify read-back + plain-language report with DH links"]
 ```
 
-1. **KB + pre-context:** the setup prints the consolidated KB from GitHub (`node dh.mjs kb <file> '*'`); the host pre-loads the GET results the skill
-   needs. The skills say "don't re-fetch"; anything missing is fetched with `node dh.mjs GET`.
+1. **KB + pre-context:** the setup reads the consolidated KB from GitHub (`knowledge-base/<file>`); the host pre-loads the GET results the skill
+   needs. The skills say "don't re-fetch"; anything missing is read through the MCP.
 
    | Skill | Consolidated KB | GET results |
    | ----- | --------------- | ----------- |
@@ -99,14 +98,15 @@ flowchart TD
 
 2. **Skill = process + tools; KB = knowledge.** A skill holds only the steps, the Developer Hub REST contract (where
    it overrides the KB payload schemas) and the tool. Design and runtime knowledge (UX, fields, naming, code rules,
-   runtime globals and limits, review priorities) lives in `knowledge-base/`; detailed files are read on demand with
-   `node dh.mjs kb <file> "Heading"`.
+   runtime globals and limits, review priorities) lives in `knowledge-base/`; detailed sections are read on demand
+   (`<file> "Heading"`).
 3. **Research → plan → execute.** Ask all clarifications upfront at the start (missing inputs, unverified API docs or
    curl, auth details); once proceeding with creation, do not ask or interrupt — post a high-level plan and execute
    without an approval pause.
-4. **One shared tool.** All three skills use `skills/dh.mjs`, downloaded by the setup (`curl -sfLO …/skills/dh.mjs`).
-   The model never reads the tool code — the skill documents only its commands — and there is one file to maintain.
-5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; `batch` runs 4 at a time per level.
+4. **One shared tool.** All skills call Developer Hub through the MCP (`call_any_api_of_viasocket_developer_hub`, or a
+   dedicated MCP tool when one fits). What the old script did automatically (code check, provenance, MERGE, COPY,
+   connection encoding) is spelled out in each skill's §2 and done by the model.
+5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; independent calls of a level go out together.
 6. **Metadata on create/update, not publish.** `plugins`/`actions` `metadata.aiLogs` and plug `metadata.aiContext` are
    MERGEd during Execute (every create/update). Publish only flips `status` / version publish fields — never defer
    metadata until the user says yes to publish (or skip it because a skill never publishes).
@@ -119,53 +119,35 @@ flowchart TD
 | **Branching** | domain match → extend, else create | create · edit in place (non-breaking, unused) · `COPY` to a new version (breaking or in use) | create · edit draft · `COPY` latest version to a new draft |
 | **Execution** | L0 plug · L1 connection ∥ components ∥ brand details · L2 actions/triggers ∥ plug MERGE · L3 versions ∥ mappings (unmap/delete via PATCH) | write → plug MERGE | components → action → version ∥ mappings (unmap/delete via PATCH) → action MERGE |
 
-## 4. `dh.mjs`
+## 4. MCP
 
-```text
-node dh.mjs GET   '<path>' [key,key]                  read; only those keys of each row; retried once on network error / 5xx
-node dh.mjs POST|PUT|PATCH '<path>' '{json}'|@file    write
-node dh.mjs MERGE 'update/<plugins|actions>?identifier=<id>&filter=…' '{changes}'   keep metadata, deep-merge aiContext
-node dh.mjs COPY  'get/<oauth_details|action_version>?identifier=<parentId>&filter=<f>' '{"rowid":"<id>",…changes}'
-node dh.mjs batch @ops.json                           [{ label, method, path, body?, keys? }], 4 in parallel → [{ label, ok, result | error }]
-node dh.mjs kb [file] ["Heading"… | '*']              KB files · headings · sections · whole file
-```
+| Tool | Use |
+| --- | --- |
+| `search_viasocket_developer_hub_docs` · `get_viasocket_developer_hub_api_docs` | find an endpoint's exact URL, headers, body |
+| `call_any_api_of_viasocket_developer_hub` | every read/write: `{ url, method, headers: { "proxy_auth_token": "", "Content-Type": "application/json" }, query, body }` |
 
-Paths are relative to `<API_BASE>/developers/<ORG_ID>/`; a leading `/` is relative to `<API_BASE>`. Config:
-`.dh-run/config.json` (`apiBase`, `orgId`, `token`, `skill`, optional `kbRepo`/`kbRef`). Every call is logged to
-`.dh-run/log.jsonl` (method, path, status — never the token).
+URLs: `DH_BASE/<path>` = `<API_BASE>/developers/<ORG_ID>/<path>`; `/<path>` = `<API_BASE>/<path>`. The auth header is
+sent empty — the MCP fills in the signed-in user's token. Done by the model on every write (see each skill's §2):
 
-Automatic behaviour:
-
-* **Guards** — only `GET`, `POST`, `PUT`, `PATCH`, `MERGE`, `COPY` (also inside `batch`; no `DELETE`); `GET` keys are
-  a comma list (spaces trimmed); `GET` is retried once on a network error or 5xx; parses rows from array, `.rows`, or `data.rows`. Supports `&fields=` query parameter on REST endpoints to filter columns server-side.
-* **Syntax check before a write** — code blocks (`perform`, `performlist`, `performsubscribe`, `performunsubscribe`,
-  `modifytriggerdata`, `transferoption`, component `code`), connection code, every field generator (recursively) and
-  every `authenticationpaths` value (must be a function body that `return`s).
-* **Provenance** — `create/*` gets a `metadata.aiLogs` `CREATED_BY_SKILL_AI` entry (+ `metadata.createdBy` on plugs);
-  `create/actions` then sets `isaiaction` + `aiorgid` and returns `{ actionId, versionId }` (a failed follow-up
-  returns the ids with a `warning`, so nothing is created twice).
-* **MERGE** — reads the row, keeps every metadata key, deep-merges `metadata.aiContext` (nested objects merged, arrays replaced; + `updatedAt`) and appends an
-  `UPDATED_BY_SKILL_AI` entry (optional `note`).
-* **COPY** — reads the parent's rows, copies the one with `rowid` minus DB-managed keys (`rowid`, `autonumber`,
-  timestamps, creator keys, `metadata`; connections also `pluginname`, `pluginiconurl`, `domain`, `isencrypted`,
-  `clientsecret`; versions also `version`, `versionid`, `status`, `isdeleted`, `actionversionrecordid`,
-  `publishdescription`), applies the changes, adds `metadata.duplicatedfrom` and creates it (returns `{ id }`). Versions become
-  `drafted` under the parent action; connections keep `authversion` (the server numbers it).
-* **Connection encoding** — `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` accept raw JS and are
-  stored as `{"source": …}` strings; a `queryparams` object is stringified.
-* **KB reader** — files are fetched from GitHub on first use and cached in `.dh-kb/`; headings match exact →
-  normalized → partial (ignoring code fences); a miss lists the closest headings; a section over 24,000 characters
-  returns its intro plus its sub-section names.
+* **Code check** — all code fields, field generators and `authenticationpaths` values parse before the write.
+* **Provenance** — `create/*` gets a `metadata.aiLogs` `CREATED_BY_SKILL` entry (+ `metadata.createdBy` on plugs);
+  `create/actions` is followed by a MERGE setting `isaiaction` + `aiorgid`.
+* **MERGE** — GET the row, keep every metadata key, deep-merge `metadata.aiContext` (+ `updatedAt`), append an
+  `UPDATED_BY_SKILL` entry, PUT.
+* **COPY** — GET the parent's rows, drop DB-managed keys (`rowid`, `autonumber`, timestamps, creator keys, `metadata`;
+  connections also `pluginname`, `pluginiconurl`, `domain`, `isencrypted`, `clientsecret`; versions also `version`,
+  `versionid`, `status`, `isdeleted`, `actionversionrecordid`, `publishdescription`), apply changes, add
+  `metadata.duplicatedfrom`, POST create. Versions become `drafted`; connections keep `authversion`.
+* **Connection encoding** — `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` sent as `{"source": …}`
+  strings; a `queryparams` object is stringified.
 
 ## 5. Operational rules
 
-1. **Token** — never printed, logged or committed; lives only in `.dh-run/config.json`, removed at the end.
+1. **Auth** — the MCP sign-in only; never ask for, print or pass a `proxy_auth_token`.
 2. **Credentials** — never asked for in chat (client ID/secret, API keys, passwords). The developer enters them in
    Developer Hub; the skill leaves them empty.
 3. **Never publish, never hard-delete, never edit a `published` version** — changes go to a `drafted` version or a
    new copy.
-4. **Branch / fork** — skills and tool point to `dev`. For another branch or fork, use its skill and `skills/dh.mjs`
-   URLs and set `"kbRepo":"<owner>/<repo>","kbRef":"<branch>"` in `.dh-run/config.json` (defaults
-   `RoystonSanctis/dh-planner-viasocket` / `dev`).
-5. **Editing the tool** — change `skills/dh.mjs` only; keep the command list in its header and in the skills' §2 in
-   sync. Skill and tool are fetched from the same branch, so push them together.
+4. **Branch / fork** — skills and KB point to `dev` (`RoystonSanctis/dh-planner-viasocket`). For another branch or
+   fork, use its skill URL and its `knowledge-base/` raw URL.
+5. **Editing the MCP rules** — keep the per-skill §2 and §4 above in sync.
