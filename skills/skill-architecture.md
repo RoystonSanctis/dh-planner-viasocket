@@ -121,13 +121,14 @@ flowchart TD
 
 ## 4. MCP
 
-| Tool | Use |
-| --- | --- |
-| `search_viasocket_developer_hub_docs` · `get_viasocket_developer_hub_api_docs` | find an endpoint's exact URL, headers, body |
-| `call_any_api_of_viasocket_developer_hub` | every read/write: `{ url, method, headers: { "proxy_auth_token": "", "Content-Type": "application/json" }, query, body }` |
+The MCP documents and runs every `/developers/<ORG_ID>/…` endpoint (`get_viasocket_developer_hub_api_docs` →
+`call_any_api_of_viasocket_developer_hub`), so the skills don't list them. A skill holds only what the MCP lacks:
 
-URLs: `DH_BASE/<path>` = `<API_BASE>/developers/<ORG_ID>/<path>`; `/<path>` = `<API_BASE>/<path>`. The auth header is
-sent empty — the MCP fills in the signed-in user's token. Done by the model on every write (see each skill's §2):
+* **Endpoints the MCP doesn't document** (each skill's §3): Search plug, Brand details, `/authtoken/…` connection
+  checks, `/users/me`, the `devhubPluginPreview/execute` dry run.
+* **Overrides of the MCP docs** (each skill's §3): write with `call_any_api_…` not the shortcut tools, never the
+  mapping `path` toggle, required connection keys, no per-call confirmation.
+* **`&fields=` column names, payload rules and the steps below**, done by the model on every write (each skill's §2):
 
 * **Code check** — all code fields, field generators and `authenticationpaths` values parse before the write.
 * **Provenance** — `create/*` gets a `metadata.aiLogs` `CREATED_BY_SKILL` entry (+ `metadata.createdBy` on plugs);
@@ -143,7 +144,7 @@ sent empty — the MCP fills in the signed-in user's token. Done by the model on
 
 ## 5. Operational rules
 
-1. **Auth** — the MCP sign-in only; never ask for, print or pass a `proxy_auth_token`.
+1. **Auth** — the MCP sign-in only; never ask for, print or pass a token.
 2. **Credentials** — never asked for in chat (client ID/secret, API keys, passwords). The developer enters them in
    Developer Hub; the skill leaves them empty.
 3. **Never publish, never hard-delete, never edit a `published` version** — changes go to a `drafted` version or a
