@@ -1,7 +1,7 @@
 # viaSocket Developer Hub — Skill Architecture
 
 How the skills in `skills/` work and how to run them. Every Developer Hub call goes through the DocStar MCP
-`https://mcp.docstar.io/connector/viasocket_developer_hub` — no shell, no downloaded script, no token in the prompt.
+`https://mcp.docstar.io/connector/viasocket` — no shell, no downloaded script, no token in the prompt.
 
 
 ## 1. Prompt templates
@@ -103,7 +103,7 @@ flowchart TD
 3. **Research → plan → execute.** Ask all clarifications upfront at the start (missing inputs, unverified API docs or
    curl, auth details); once proceeding with creation, do not ask or interrupt — post a high-level plan and execute
    without an approval pause.
-4. **One shared tool.** All skills call Developer Hub through the MCP (`call_any_api_of_viasocket_developer_hub`, or a
+4. **One shared tool.** All skills call Developer Hub through the MCP (`call_any_api_of_viasocket`, or a
    dedicated MCP tool when one fits). What the old script did automatically (code check, provenance, MERGE, COPY,
    connection encoding) is spelled out in each skill's §2 and done by the model.
 5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; independent calls of a level go out together.
@@ -121,8 +121,8 @@ flowchart TD
 
 ## 4. MCP
 
-The MCP documents and runs every `/developers/<ORG_ID>/…` endpoint (`get_viasocket_developer_hub_api_docs` →
-`call_any_api_of_viasocket_developer_hub`), so the skills don't list them. A skill holds only what the MCP lacks:
+The MCP documents and runs every `/developers/<ORG_ID>/…` endpoint (`get_viasocket_api_docs` →
+`call_any_api_of_viasocket`), so the skills don't list them. A skill holds only what the MCP lacks:
 
 * **Endpoints the MCP doesn't document** (each skill's §3): Search plug, Brand details, `/authtoken/…` connection
   checks, `/users/me`, the `devhubPluginPreview/execute` dry run.
@@ -141,6 +141,10 @@ The MCP documents and runs every `/developers/<ORG_ID>/…` endpoint (`get_viaso
   `metadata.duplicatedfrom`, POST create. Versions become `drafted`; connections keep `authversion`.
 * **Connection encoding** — `testcode`, `accesstokencode`, `refreshtokencode`, `revokeapicode` sent as `{"source": …}`
   strings; a `queryparams` object is stringified.
+* **Feedback** — `report_feedback` on repeated failures, wrong docs/skill, user corrections, missing capabilities or
+  confusion — problems only, never success. Received by the viaSocket flow "AI Agent Feedback Collector"
+  (`flow.sokt.io/func/scriVmoUHhmc`), which reads the org/user from the MCP sign-in, redacts secrets, adds a fingerprint
+  and stores one row per report in DbDash (`AI_SDK` → `ai_agents_all_feedback`) for triage.
 
 ## 5. Operational rules
 
@@ -151,4 +155,4 @@ The MCP documents and runs every `/developers/<ORG_ID>/…` endpoint (`get_viaso
    new copy.
 4. **Branch / fork** — skills and KB point to `dev` (`RoystonSanctis/dh-planner-viasocket`). For another branch or
    fork, use its skill URL and its `knowledge-base/` raw URL.
-5. **Editing the MCP rules** — keep the per-skill §2 and §4 above in sync.
+5. **Editing the MCP rules** — keep the per-skill §2 (including its Feedback block) and §4 above in sync.

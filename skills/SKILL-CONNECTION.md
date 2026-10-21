@@ -37,7 +37,7 @@ description: >-
 ## 1. Process
 
 **Setup** — the viaSocket Developer Hub MCP (§2) must be connected and signed in; if it is not, ask the user to add
-`https://mcp.docstar.io/connector/viasocket_developer_hub` to their AI client and sign in, then continue. Read `dh-connection-kb.md` in full from
+`https://mcp.docstar.io/connector/viasocket` to their AI client and sign in, then continue. Read `dh-connection-kb.md` in full from
 `https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL); KB detail sections come from the same place.
 
 1. **Research** — official auth docs, per KB "Selection & Priority Strategy" (+ the "me" response shape, every API
@@ -69,9 +69,9 @@ description: >-
 
 ## 2. Tool — viaSocket Developer Hub MCP
 
-All Developer Hub work goes through the MCP `https://mcp.docstar.io/connector/viasocket_developer_hub` — no shell, no
-local files. Look an endpoint up with `get_viasocket_developer_hub_api_docs` (module list → that module's full docs:
-URL, filter, identifier, body) and call it with `call_any_api_of_viasocket_developer_hub` (auth header empty — the MCP
+All Developer Hub work goes through the MCP `https://mcp.docstar.io/connector/viasocket` — no shell, no
+local files. Look an endpoint up with `get_viasocket_api_docs` (module list → that module's full docs:
+URL, filter, identifier, body) and call it with `call_any_api_of_viasocket` (auth header empty — the MCP
 signs the call). Endpoints the MCP does not document are in §3 with their exact URLs — don't look those up. Send
 independent calls in the same turn; retry a GET once on a network error / 5xx; `success: false` = failed.
 
@@ -100,13 +100,29 @@ The MCP sends exactly what you give it, so on every write do these yourself:
 KB detail (that file § heading): `dh-connection-practice.md "<auth type>"` · `… "Test (Me) API"` ·
 `dh-connection-schema.md "<Basic Auth|Authorization Code|Client Credentials|Auth1.0> Update JSON Schema"`.
 
+**Feedback** — call the MCP's `report_feedback` tool only when something goes wrong — never to report success (no need to
+ask the user; it never blocks the run):
+
+- a call failed twice with the same error → report before the third try (`kind: error`);
+- the MCP docs, this skill or the KB say one thing and the API does another (`kind: wrong_instructions`);
+- the user corrects a plug, connection, action or trigger you built (`kind: user_correction`);
+- the app's API or Developer Hub can't do what's needed (`kind: missing_capability`); unsure which endpoint, filter
+  or field applies (`kind: confusion`);
+- a published or existing action or trigger misbehaves in a dry run (errors on valid input, empty or wrong output,
+  broken `source`/options) and it isn't the code you just wrote (`kind: error`, `source: action` or `trigger`);
+
+Always send `source` (`plug`, `connection`, `action`, `trigger`, `skill`), `kind` and `feedback` (what went wrong, in
+plain words); add `stage`, `expected`, `actual`, `error` (status, code, message) and every id in `refs` (`app`, `pluginId`,
+`actionId`, `actionVersionId`, `authId`, `endpoint`, `docUrl`). Describe the call — never paste tokens, client secrets or full code. One report per distinct
+problem; a failed report never stops the run.
+
 ## 3. Payload + API
 
 Wins over the KB payload rules on REST (code encoding, `whitelistdomains` on create).
 
 ### Not in the MCP docs — call exactly as written
 
-Use `call_any_api_of_viasocket_developer_hub` with these URLs (`<API_BASE>` = `{{API_BASE}}`):
+Use `call_any_api_of_viasocket` with these URLs (`<API_BASE>` = `{{API_BASE}}`):
 
 | Op | Call |
 |---|---|
@@ -119,7 +135,7 @@ Reads and writes on `plugins`, `oauth_details` and `GetUsedInCountForAuth`: URL,
 from the MCP docs.
 ### Where this skill overrides the MCP docs
 
-- Writes go through `call_any_api_of_viasocket_developer_hub` with the full body from this skill. Don't write with
+- Writes go through `call_any_api_of_viasocket` with the full body from this skill. Don't write with
   the MCP's shortcut tools (`create_plugin`, `create_action_or_trigger`, `update_action_version`,
   `link_component_to_version`): they drop fields this skill needs. Reading with them is fine.
 - `plugins` / `actions` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2).
