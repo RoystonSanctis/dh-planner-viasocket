@@ -96,8 +96,9 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
 
 All Developer Hub work goes through the MCP `https://mcp.docstar.io/connector/viasocket` — no shell, no
 local files. Look an endpoint up with `get_viasocket_api_docs` (module list → that module's full docs:
-URL, filter, identifier, body) and call it with `call_any_api_of_viasocket` (auth header empty — the MCP
-signs the call). Endpoints the MCP does not document are in §3 with their exact URLs — don't look those up. Send
+URL, filter, identifier, body) and call it with `call_any_read_api_of_viasocket` for a GET or
+`call_any_api_of_viasocket` for POST/PUT/PATCH/DELETE (auth header empty — the MCP signs the call; `call_any_api`
+rejects GET). Endpoints the MCP does not document are in §3 with their exact URLs — don't look those up. Send
 independent calls in the same turn; retry a GET once on a network error / 5xx; `success: false` = failed.
 
 The MCP sends exactly what you give it, so on every write do these yourself:
@@ -153,7 +154,8 @@ edits to mapped components; code fields are plain strings.
 
 ### Not in the MCP docs — call exactly as written
 
-Use `call_any_api_of_viasocket` with these URLs (`<API_BASE>` = `{{API_BASE}}`):
+Use `call_any_read_api_of_viasocket` for the GETs and `call_any_api_of_viasocket` for the rest, with these URLs
+(`<API_BASE>` = `{{API_BASE}}`):
 
 | Op | Call |
 |---|---|

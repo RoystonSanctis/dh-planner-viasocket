@@ -103,8 +103,8 @@ flowchart TD
 3. **Research → plan → execute.** Ask all clarifications upfront at the start (missing inputs, unverified API docs or
    curl, auth details); once proceeding with creation, do not ask or interrupt — post a high-level plan and execute
    without an approval pause.
-4. **One shared tool.** All skills call Developer Hub through the MCP (`call_any_api_of_viasocket`, or a
-   dedicated MCP tool when one fits). What the old script did automatically (code check, provenance, MERGE, COPY,
+4. **One shared tool.** All skills call Developer Hub through the MCP (`call_any_read_api_of_viasocket` for GETs,
+   `call_any_api_of_viasocket` for writes, or a dedicated MCP tool when one fits). What the old script did automatically (code check, provenance, MERGE, COPY,
    connection encoding) is spelled out in each skill's §2 and done by the model.
 5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; independent calls of a level go out together.
 6. **Metadata on create/update, not publish.** `plugins`/`actions` `metadata.aiLogs` and plug `metadata.aiContext` are
@@ -122,7 +122,7 @@ flowchart TD
 ## 4. MCP
 
 The MCP documents and runs every `/developers/<ORG_ID>/…` endpoint (`get_viasocket_api_docs` →
-`call_any_api_of_viasocket`), so the skills don't list them. A skill holds only what the MCP lacks:
+`call_any_read_api_of_viasocket` / `call_any_api_of_viasocket`), so the skills don't list them. A skill holds only what the MCP lacks:
 
 * **Endpoints the MCP doesn't document** (each skill's §3): Search plug, Brand details, `/authtoken/…` connection
   checks, `/users/me`, the `devhubPluginPreview/execute` dry run.
