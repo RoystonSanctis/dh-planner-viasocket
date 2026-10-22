@@ -14,6 +14,8 @@ description: >-
 | ------------ | ------------------- | ------------------------------- | -------------- |
 | `{{ORG_ID}}` | `{{MASTER_ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` |
 
+Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` `https://flow-api.viasocket.com` (production); `MASTER_ORG_ID` `4160` (production).
+
 **Knowledge base:** read `dh-knowledgebase.md` + `dh-connection-kb.md` in full (Setup loads them; they
 decide all design). **Already in context — don't re-fetch:** the search/GET results: the org's plugs and, for a plug on `{{APP_DOMAIN}}`, its details, connections, connection usage, actions and components. Missing → search with Search plug or GET (§3).
 
@@ -50,7 +52,7 @@ decide all design). **Already in context — don't re-fetch:** the search/GET re
 
 **Setup** — the viaSocket Developer Hub MCP (§2) must be connected and signed in; if it is not, ask the user to add
 `https://mcp.docstar.io/connector/viasocket` to their AI client and sign in, then continue. Read `dh-knowledgebase.md` + `dh-connection-kb.md` in full from
-`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL); KB detail sections come from the same place.
+`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL). Fetch raw and read the whole file (`curl -s <url>`, or a fetch that returns the text verbatim; a summarizing fetch drops exact keys and schemas). KB detail sections (`<file> "<Heading>"`): look the heading up in `knowledge-base/index.md` and fetch only that section's file, never the whole large file. Who may publish what: `knowledge-base/publish-policy.md`.
 
 1. **Resolve** — prefer searching if the plug exists using the Search plug endpoint: `GET /dbdash/getPluginByQuery?query={{APP_NAME}}&mode=dh` (accepts `&fields=`; hits = array or `.rows`). If the full org plug list is needed, `getAllPlugins` (`GET get/plugins?identifier={{ORG_ID}}&filter=getAllPlugins`) gives all available plugs. If a non-deleted plug with `domain` = `{{APP_DOMAIN}}` exists → extend it (never duplicate) and build only what is missing or requested; its `metadata.aiContext` holds earlier findings — re-verify. Else create a plug.
 2. **Research & Scope** — verify the official docs (`/docs`, `/developers`, `/api`, `llms.txt`, `openapi.json`; a spec beats

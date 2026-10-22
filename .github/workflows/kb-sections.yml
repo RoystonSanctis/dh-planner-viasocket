@@ -1,0 +1,29 @@
+name: Rebuild knowledge-base sections
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'knowledge-base/*.md'
+      - 'code/build-kb-sections.py'
+permissions:
+  contents: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Regenerate knowledge-base/index.md and knowledge-base/sections/
+        run: python3 code/build-kb-sections.py
+      - name: Commit if anything changed
+        run: |
+          git add -A knowledge-base/index.md knowledge-base/sections
+          if git diff --cached --quiet; then
+            echo "Sections already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Rebuild knowledge-base sections"
+          git push

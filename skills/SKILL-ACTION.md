@@ -16,6 +16,8 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
 | ------------------------------ | ------------------------------- | ---------------- | ---------------------------------------------------- | ----------------------- | -------------- |
 | `{{ORG_ID}}` · `{{PLUGIN_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{SKILL_MODE}}` | `{{ACTION_ID}}` · {{ACTION_NAME}} · `{{VERSION_ID}}` | `{{PREFERRED_AUTH_ID}}` | `{{API_BASE}}` |
 
+Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` `https://flow-api.viasocket.com` (production).
+
 **Knowledge base:** read `dh-knowledgebase.md` in full (Setup loads it; it decides all design).
 **Already in context — don't re-fetch:** the GET results for the plug, its connections, actions and components. Missing → GET it (§3).
 
@@ -48,7 +50,7 @@ Add or change one **{{ENTITY_TYPE}}** (type fixed by the UI) on an existing plug
 
 **Setup** — the viaSocket Developer Hub MCP (§2) must be connected and signed in; if it is not, ask the user to add
 `https://mcp.docstar.io/connector/viasocket` to their AI client and sign in, then continue. Read `dh-knowledgebase.md` in full from
-`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL); KB detail sections come from the same place.
+`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL). Fetch raw and read the whole file (`curl -s <url>`, or a fetch that returns the text verbatim; a summarizing fetch drops exact keys and schemas). KB detail sections (`<file> "<Heading>"`): look the heading up in `knowledge-base/index.md` and fetch only that section's file, never the whole large file. Who may publish what: `knowledge-base/publish-policy.md`.
 
 1. **Resolve** — decide yourself, don't ask; skip `status: "deleted"` actions and `isdeleted: true` versions:
 

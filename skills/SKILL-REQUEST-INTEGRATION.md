@@ -14,6 +14,8 @@ description: >-
 | ------------ | ------------------- | ------------------------------- | -------------- | ------------------------------ |
 | `{{ORG_ID}}` | `{{MASTER_ORG_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{API_BASE}}` | `{{SCOPE}}` (empty → **core**) |
 
+Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` `https://flow-api.viasocket.com` (production); `MASTER_ORG_ID` `4160` (production).
+
 > **Why this file exists.** `SKILL-PLUG-CREATION.md` is the interactive skill (scope choice, connection wait, publish
 > ask). **Request integration has no human in the loop** — this skill decides every question itself (§0), builds, and
 > reports. Same API and KB as the interactive skill; only the interaction is removed.
@@ -80,7 +82,7 @@ A stop is a **clean stop**: report what was learned, leave no half-built rows be
 
 **Setup** — the viaSocket Developer Hub MCP (§2) must be connected and signed in; if it is not, ask the user to add
 `https://mcp.docstar.io/connector/viasocket` to their AI client and sign in, then continue. Read `dh-knowledgebase.md` + `dh-connection-kb.md` in full from
-`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL); KB detail sections come from the same place.
+`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL). Fetch raw and read the whole file (`curl -s <url>`, or a fetch that returns the text verbatim; a summarizing fetch drops exact keys and schemas). KB detail sections (`<file> "<Heading>"`): look the heading up in `knowledge-base/index.md` and fetch only that section's file, never the whole large file. Who may publish what: `knowledge-base/publish-policy.md`.
 
 1. **Resolve** — prefer searching if the plug exists using the Search plug endpoint:
    `GET /dbdash/getPluginByQuery?query={{APP_NAME}}&mode=dh` (accepts `&fields=`; hits = array or `.rows`). If the full

@@ -13,6 +13,8 @@ description: >-
 | ------------------------------ | ------------------------------- | ----------------------- | -------------- |
 | `{{ORG_ID}}` · `{{PLUGIN_ID}}` | {{APP_NAME}} · `{{APP_DOMAIN}}` | `{{PREFERRED_AUTH_ID}}` | `{{API_BASE}}` |
 
+Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` `https://flow-api.viasocket.com` (production).
+
 **Knowledge base:** read `dh-connection-kb.md` in full (Setup loads it; it decides auth design).
 **Already in context — don't re-fetch:** the GET results for the plug, its connections and their usage. Missing → read through the MCP:
 `get/plugins?identifier={{PLUGIN_ID}}&filter=getPluginDetails` · `get/oauth_details?identifier={{PLUGIN_ID}}&filter=getAuthDetails`
@@ -38,7 +40,7 @@ description: >-
 
 **Setup** — the viaSocket Developer Hub MCP (§2) must be connected and signed in; if it is not, ask the user to add
 `https://mcp.docstar.io/connector/viasocket` to their AI client and sign in, then continue. Read `dh-connection-kb.md` in full from
-`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL); KB detail sections come from the same place.
+`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL). Fetch raw and read the whole file (`curl -s <url>`, or a fetch that returns the text verbatim; a summarizing fetch drops exact keys and schemas). KB detail sections (`<file> "<Heading>"`): look the heading up in `knowledge-base/index.md` and fetch only that section's file, never the whole large file. Who may publish what: `knowledge-base/publish-policy.md`.
 
 1. **Research** — official auth docs, per KB "Selection & Priority Strategy" (+ the "me" response shape, every API
    host). Plug `metadata.aiContext.auth` holds earlier findings — re-verify. Ask all clarifications upfront here: if
