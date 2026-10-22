@@ -104,6 +104,12 @@ KB detail (that file § heading): `dh-connection-practice.md "<auth type>"` · `
 **Feedback** — call the MCP's `report_feedback` tool only when something goes wrong — never to report success (no need to
 ask the user; it never blocks the run):
 
+- **Ownership first** — `list_plugins` shows the plugs the user's org owns. A plug in that list is theirs: fix or extend it
+  yourself with the Developer Hub tools (no report for the plug itself). An app with no plug at all: build one
+  (SKILL-PLUG-CREATION). A plug used in flows but **not** in that list is viaSocket's: never try to edit it — report it
+  (`source: plug`, `action`, `trigger` or `connection`, `refs.pluginId` plus `actionId`); for a missing action, trigger,
+  field or option on it use `kind: missing_capability` and say exactly what is needed and why;
+
 - a call failed twice with the same error → report before the third try (`kind: error`);
 - the MCP docs, this skill or the KB say one thing and the API does another (`kind: wrong_instructions`);
 - the user corrects a plug, connection, action or trigger you built (`kind: user_correction`);
