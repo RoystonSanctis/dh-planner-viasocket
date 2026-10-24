@@ -7257,7 +7257,7 @@ List Users API: Retrieves workspace users for selecting message recipients and t
 
 List Messages API: Retrieves messages from the selected channel to allow users to reply to an existing thread.
 
-Post Message API: Sends a new message to one or more Slack channels or users with support for Markdown, mentions, action buttons, custom bot identity, and link/media preview settings.
+Post Message API: Sends a new message to one or more Slack channels or users with support for Markdown, mentions, action buttons, custom bot identity, and link/media preview settings. Raw Slack Block Kit `blocks` JSON is not supported on this action—use *With message* (mrkdwn text) and *Action Buttons* (link buttons); do not pass a `blocks` array.
 
 Schedule Message API: Schedules a message to be delivered at a specified date & time or after a configurable delay using the same message configuration as an immediate message.
 
@@ -7457,7 +7457,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
   },
   {
     "key": "markdown_content",
-    "help": "Enter the message text. You can use plain text or Markdown formatting like *bold*, _italic_, code, and links.",
+    "help": "Enter the message body as plain text or Slack mrkdwn (*bold*, _italic_, code, links). This is not a Block Kit `blocks` field—use Action Buttons for link buttons, or choose another action if you need custom Block Kit layouts.",
     "type": "markdown",
     "label": "With message",
     "required": true,
