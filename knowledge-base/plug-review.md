@@ -17,6 +17,7 @@ Rate each check from 0 to 100. If a check covers many items, the rating is the p
    - authData is used only for non-secret URL parts, such as the subdomain.
    - Every host called is whitelisted.
    - For OAuth apps, each action and trigger lists its own scopes.
+   - **One auth version per plug:** Every action and trigger version that calls the app's authenticated API must set `authid` to the plug's `preferedauthversion` (or the same auth row id as the other actions on that plug). Do not point some actions at a different auth version (for example NoAuth) when the perform code expects the primary API-key or Basic connection—users cannot reuse one connection across the flow.
 
    Rate it.
 5. **Matches the API docs.** The method, URL, query and body match the docs. No parameter is invented. IDs in URLs are encoded. Rate it.
