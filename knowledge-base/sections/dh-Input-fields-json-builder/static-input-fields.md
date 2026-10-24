@@ -5,11 +5,11 @@ The input fields, which are static, have fixed values. The depends on other feil
 
 **Subsections — fetch only the one you need:**
 
-- [String | Date | Number | HTML | Markdown](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/string-date-number-html-markdown.md)
-- [Dictionary](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/dictionary.md)
-- [Boolean](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/boolean.md)
-- [Dropdown Static](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/dropdown-static.md)
-- [Multiselect Static](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/multiselect-static.md)
-- [AI Field](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/ai-field.md)
-- [Help Static](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/help-static.md)
-- [Input Group Static](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static.md)
+- [String | Date | Number | HTML | Markdown](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/string-date-number-html-markdown.md)
+- [Dictionary](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/dictionary.md)
+- [Boolean](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/boolean.md)
+- [Dropdown Static](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/dropdown-static.md)
+- [Multiselect Static](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/multiselect-static.md)
+- [AI Field](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/ai-field.md)
+- [Help Static](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/help-static.md)
+- [Input Group Static](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static.md)

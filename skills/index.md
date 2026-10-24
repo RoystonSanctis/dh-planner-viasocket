@@ -6,7 +6,7 @@ Pick the row that matches the task, fetch that one guide, read it whole and foll
 Fetch raw and read the whole file you fetch (`curl -s <url>`, or a fetch that returns the text verbatim): a summarizing
 fetch drops the exact keys and schemas the skills depend on. These files change; never work from a saved copy.
 
-Base for the links below: `https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/`
+Base for the links below: `https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/`
 
 ## Pick one
 

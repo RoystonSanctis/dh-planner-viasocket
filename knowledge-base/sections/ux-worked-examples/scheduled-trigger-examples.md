@@ -3,6 +3,6 @@
 
 **Subsections — fetch only the one you need:**
 
-- [Google Calendar — New Upcoming Events (Scheduled Trigger)](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/google-calendar-new-upcoming-events-scheduled-trigger.md)
-- [Google Meet — New Upcoming Meeting (Scheduled Trigger)](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/google-meet-new-upcoming-meeting-scheduled-trigger.md)
-- [RSS Feed — RSS Feed Update Tracker (Scheduled Trigger)](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/rss-feed-rss-feed-update-tracker-scheduled-trigger.md)
+- [Google Calendar — New Upcoming Events (Scheduled Trigger)](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/google-calendar-new-upcoming-events-scheduled-trigger.md)
+- [Google Meet — New Upcoming Meeting (Scheduled Trigger)](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/google-meet-new-upcoming-meeting-scheduled-trigger.md)
+- [RSS Feed — RSS Feed Update Tracker (Scheduled Trigger)](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/rss-feed-rss-feed-update-tracker-scheduled-trigger.md)

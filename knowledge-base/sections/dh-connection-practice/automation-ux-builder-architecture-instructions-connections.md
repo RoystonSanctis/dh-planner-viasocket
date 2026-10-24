@@ -5,11 +5,11 @@ This section defines the core role, design philosophies, safety strategies, and 
 
 **Subsections — fetch only the one you need:**
 
-- [Role & Core Design Philosophy](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/role-core-design-philosophy.md)
-- [Pre-Design Analysis (Mandatory)](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/pre-design-analysis-mandatory.md)
-- [Connection Design Strategy](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/connection-design-strategy.md)
-- [Field Design & Dynamic UI Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/field-design-dynamic-ui-rules.md)
-- [Connection Safety & Token Protection](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/connection-safety-token-protection.md)
-- [Required Output Structure](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/required-output-structure.md)
-- [🔒 Authentication & Connection Testing Checklist](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/authentication-connection-testing-checklist.md)
-- [Behavior Constraints](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/behavior-constraints.md)
+- [Role & Core Design Philosophy](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/role-core-design-philosophy.md)
+- [Pre-Design Analysis (Mandatory)](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/pre-design-analysis-mandatory.md)
+- [Connection Design Strategy](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/connection-design-strategy.md)
+- [Field Design & Dynamic UI Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/field-design-dynamic-ui-rules.md)
+- [Connection Safety & Token Protection](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/connection-safety-token-protection.md)
+- [Required Output Structure](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/required-output-structure.md)
+- [🔒 Authentication & Connection Testing Checklist](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/authentication-connection-testing-checklist.md)
+- [Behavior Constraints](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/behavior-constraints.md)

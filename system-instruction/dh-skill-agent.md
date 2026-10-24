@@ -279,6 +279,6 @@ ENTITY_TYPE={{ENTITY_TYPE}}
 ACTION_ID={{ACTION_ID}}
 ACTION_NAME={{ACTION_NAME}}
 VERSION_ID={{VERSION_ID}}
-CONNECTION_KB=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-kb.md
-ACTION_KB=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md
+CONNECTION_KB=https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/dh-connection-kb.md
+ACTION_KB=https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/dh-knowledgebase.md
 ```

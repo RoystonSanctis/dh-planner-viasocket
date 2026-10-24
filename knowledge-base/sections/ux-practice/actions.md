@@ -5,11 +5,11 @@ Actions perform operations on external services. They are organized by category 
 
 **Subsections — fetch only the one you need:**
 
-- [GET](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/get.md)
-- [LIST](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/list.md)
-- [FIND/SEARCH](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/find-search.md)
-- [CREATE](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/create.md)
-- [UPDATE](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/update.md)
-- [FIND OR CREATE](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/find-or-create.md)
-- [FIND + UPDATE](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/find-update.md)
-- [DELETE](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-practice/delete.md)
+- [GET](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/get.md)
+- [LIST](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/list.md)
+- [FIND/SEARCH](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/find-search.md)
+- [CREATE](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/create.md)
+- [UPDATE](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/update.md)
+- [FIND OR CREATE](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/find-or-create.md)
+- [FIND + UPDATE](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/find-update.md)
+- [DELETE](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-practice/delete.md)

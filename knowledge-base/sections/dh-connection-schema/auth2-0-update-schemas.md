@@ -3,7 +3,7 @@
 
 **Subsections — fetch only the one you need:**
 
-- [Authorization Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/authorization-code.md)
-- [Client Credentials](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/client-credentials.md)
-- [Implicit](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/implicit.md)
-- [Password Credentials](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/password-credentials.md)
+- [Authorization Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/authorization-code.md)
+- [Client Credentials](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/client-credentials.md)
+- [Implicit](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/implicit.md)
+- [Password Credentials](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/password-credentials.md)

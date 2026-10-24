@@ -3,8 +3,8 @@
 
 **Subsections — fetch only the one you need:**
 
-- [Trigger Code Generation Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/trigger-code-generation-rules.md)
-- [Instant Trigger](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/instant-trigger.md)
-- [Instant Trigger Code Generation Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/instant-trigger-code-generation-rules.md)
-- [Scheduled Trigger](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/scheduled-trigger.md)
-- [Manual Trigger](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/manual-trigger.md)
+- [Trigger Code Generation Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/trigger-code-generation-rules.md)
+- [Instant Trigger](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/instant-trigger.md)
+- [Instant Trigger Code Generation Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/instant-trigger-code-generation-rules.md)
+- [Scheduled Trigger](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/scheduled-trigger.md)
+- [Manual Trigger](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/manual-trigger.md)

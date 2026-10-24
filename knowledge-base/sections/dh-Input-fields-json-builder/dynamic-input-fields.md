@@ -3,7 +3,7 @@
 
 **Subsections — fetch only the one you need:**
 
-- [Dropdown Dynamic](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/dropdown-dynamic.md)
-- [Multi Select Dynamic](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/multi-select-dynamic.md)
-- [Help Dynamic](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic.md)
-- [Input Group Dynamic](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic.md)
+- [Dropdown Dynamic](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/dropdown-dynamic.md)
+- [Multi Select Dynamic](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/multi-select-dynamic.md)
+- [Help Dynamic](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic.md)
+- [Input Group Dynamic](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic.md)

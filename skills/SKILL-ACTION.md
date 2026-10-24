@@ -50,7 +50,7 @@ Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` 
 
 **Setup** — the viaSocket Developer Hub MCP (§2) must be connected and signed in; if it is not, ask the user to add
 `https://mcp.docstar.io/connector/viasocket` to their AI client and sign in, then continue. Read `dh-knowledgebase.md` in full from
-`https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/<file>` (another repo/branch → its URL). Fetch raw and read the whole file (`curl -s <url>`, or a fetch that returns the text verbatim; a summarizing fetch drops exact keys and schemas). KB detail sections (`<file> "<Heading>"`): look the heading up in `knowledge-base/index.md` and fetch only that section's file, never the whole large file. Who may publish what: `knowledge-base/publish-policy.md`.
+`https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/<file>` (another repo/branch → its URL). Fetch raw and read the whole file (`curl -s <url>`, or a fetch that returns the text verbatim; a summarizing fetch drops exact keys and schemas). KB detail sections (`<file> "<Heading>"`): look the heading up in `knowledge-base/index.md` and fetch only that section's file, never the whole large file. Who may publish what: `knowledge-base/publish-policy.md`.
 
 1. **Resolve** — decide yourself, don't ask; skip `status: "deleted"` actions and `isdeleted: true` versions:
 

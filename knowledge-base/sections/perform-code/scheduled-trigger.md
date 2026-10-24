@@ -26,8 +26,8 @@ Runs your workflow at regular time intervals by repeatedly checking your app for
 
 **Subsections — fetch only the one you need:**
 
-- [Scheduled Trigger Code Generation Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/scheduled-trigger-code-generation-rules.md)
-- [Scheduled Trigger Perform Code Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/scheduled-trigger-perform-code-rules.md)
-- [Scheduled Trigger Sample Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/scheduled-trigger-sample-code.md)
-- [Scheduled Trigger Transfer Code Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/scheduled-trigger-transfer-code-rules.md)
-- [Scheduled Trigger Transfer Code Patterns](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/perform-code/scheduled-trigger-transfer-code-patterns.md)
+- [Scheduled Trigger Code Generation Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/scheduled-trigger-code-generation-rules.md)
+- [Scheduled Trigger Perform Code Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/scheduled-trigger-perform-code-rules.md)
+- [Scheduled Trigger Sample Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/scheduled-trigger-sample-code.md)
+- [Scheduled Trigger Transfer Code Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/scheduled-trigger-transfer-code-rules.md)
+- [Scheduled Trigger Transfer Code Patterns](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/perform-code/scheduled-trigger-transfer-code-patterns.md)

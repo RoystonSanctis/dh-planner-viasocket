@@ -5,8 +5,8 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
 
 **Subsections — fetch only the one you need:**
 
-- [LeadSquared — Search Leads by Criteria](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/leadsquared-search-leads-by-criteria.md)
-- [Google Calendar — List all Events](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/google-calendar-list-all-events.md)
-- [GoHighLevel — Add Tags on Contact](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/gohighlevel-add-tags-on-contact.md)
-- [Gmail — Add Label to Email](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/gmail-add-label-to-email.md)
-- [ActiveCampaign — Add or Remove Tag on Contact](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/activecampaign-add-or-remove-tag-on-contact.md)
+- [LeadSquared — Search Leads by Criteria](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/leadsquared-search-leads-by-criteria.md)
+- [Google Calendar — List all Events](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/google-calendar-list-all-events.md)
+- [GoHighLevel — Add Tags on Contact](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/gohighlevel-add-tags-on-contact.md)
+- [Gmail — Add Label to Email](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/gmail-add-label-to-email.md)
+- [ActiveCampaign — Add or Remove Tag on Contact](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/activecampaign-add-or-remove-tag-on-contact.md)

@@ -9,10 +9,10 @@ The following sections contain the complete perform code for each action documen
 
 **Subsections — fetch only the one you need:**
 
-- [Slack — Send Message Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/slack-send-message-perform-code.md)
-- [Google Sheet — Add New Row Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/google-sheet-add-new-row-perform-code.md)
-- [MSG91 — Send WhatsApp Template Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/msg91-send-whatsapp-template-perform-code.md)
-- [Leadconnector — Create Or Update Contact Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/leadconnector-create-or-update-contact-perform-code.md)
-- [Gmail — Send Email Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/gmail-send-email-perform-code.md)
-- [viaSocket Table — Add Records To Table Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/viasocket-table-add-records-to-table-perform-code.md)
-- [viaSocket Table — Get Table Rows Perform Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/viasocket-table-get-table-rows-perform-code.md)
+- [Slack — Send Message Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/slack-send-message-perform-code.md)
+- [Google Sheet — Add New Row Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/google-sheet-add-new-row-perform-code.md)
+- [MSG91 — Send WhatsApp Template Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/msg91-send-whatsapp-template-perform-code.md)
+- [Leadconnector — Create Or Update Contact Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/leadconnector-create-or-update-contact-perform-code.md)
+- [Gmail — Send Email Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/gmail-send-email-perform-code.md)
+- [viaSocket Table — Add Records To Table Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/viasocket-table-add-records-to-table-perform-code.md)
+- [viaSocket Table — Get Table Rows Perform Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/viasocket-table-get-table-rows-perform-code.md)

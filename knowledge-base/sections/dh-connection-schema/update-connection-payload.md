@@ -9,6 +9,6 @@ The Update Connection Payload is sent by the client to modify an existing Connec
 
 **Subsections — fetch only the one you need:**
 
-- [Basic Auth Update Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/basic-auth-update-schema.md)
-- [Auth2.0 Update Schemas](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/auth2-0-update-schemas.md)
-- [Auth1.0 Update Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-schema/auth1-0-update-schema.md)
+- [Basic Auth Update Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/basic-auth-update-schema.md)
+- [Auth2.0 Update Schemas](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/auth2-0-update-schemas.md)
+- [Auth1.0 Update Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-schema/auth1-0-update-schema.md)

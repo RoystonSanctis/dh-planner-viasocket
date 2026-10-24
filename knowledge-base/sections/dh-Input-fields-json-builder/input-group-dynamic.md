@@ -6,7 +6,7 @@ The Input Group Dynamic field is designed to dynamically render an entire group 
 
 **Subsections — fetch only the one you need:**
 
-- [Input Group Dynamic Input Field Generation Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-input-field-generation-rules.md)
-- [Input Group Dynamic JSON Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-json-schema.md)
-- [Input Group Dynamic TOON Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-toon-schema.md)
-- [Input Group Dynamic Examples](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-examples.md)
+- [Input Group Dynamic Input Field Generation Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-input-field-generation-rules.md)
+- [Input Group Dynamic JSON Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-json-schema.md)
+- [Input Group Dynamic TOON Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-toon-schema.md)
+- [Input Group Dynamic Examples](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-dynamic-examples.md)

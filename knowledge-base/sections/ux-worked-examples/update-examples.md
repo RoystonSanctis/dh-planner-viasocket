@@ -5,5 +5,5 @@ UPDATE actions modify an existing record.
 
 **Subsections — fetch only the one you need:**
 
-- [Cin7 Core — Update Customer](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/cin7-core-update-customer.md)
-- [Keka — Update Employee Details](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/keka-update-employee-details.md)
+- [Cin7 Core — Update Customer](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/cin7-core-update-customer.md)
+- [Keka — Update Employee Details](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/keka-update-employee-details.md)

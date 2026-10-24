@@ -5,8 +5,8 @@ A Connection lets users prove their identity to a plug's target app and authoriz
 
 **Subsections — fetch only the one you need:**
 
-- [Connection Selection & Priority Guidelines](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/connection-selection-priority-guidelines.md)
-- [Basic Auth](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/basic-auth.md)
-- [OAuth 2.0](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/oauth-2-0.md)
-- [OAuth 1.0](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/oauth-1-0.md)
-- [No Auth](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/no-auth.md)
+- [Connection Selection & Priority Guidelines](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/connection-selection-priority-guidelines.md)
+- [Basic Auth](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/basic-auth.md)
+- [OAuth 2.0](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/oauth-2-0.md)
+- [OAuth 1.0](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/oauth-1-0.md)
+- [No Auth](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/no-auth.md)

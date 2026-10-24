@@ -5,5 +5,5 @@ LIST actions return multiple records. The defining UX move is a **Mode selector*
 
 **Subsections — fetch only the one you need:**
 
-- [Keka — List All Employees](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/keka-list-all-employees.md)
-- [viaSocket Table — Get Table Rows](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/viasocket-table-get-table-rows.md)
+- [Keka — List All Employees](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/keka-list-all-employees.md)
+- [viaSocket Table — Get Table Rows](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/viasocket-table-get-table-rows.md)

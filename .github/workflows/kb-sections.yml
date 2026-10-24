@@ -2,7 +2,7 @@ name: Rebuild knowledge-base sections
 on:
   push:
     branches:
-      - dev
+      - main
     paths:
       - 'knowledge-base/*.md'
       - 'code/build-kb-sections.py'

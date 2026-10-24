@@ -7,7 +7,7 @@ An Input Group Static field is used to logically group related input fields toge
 
 **Subsections — fetch only the one you need:**
 
-- [Input Group Static Input Field Generation Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-input-field-generation-rules.md)
-- [Input Group Static JSON Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-json-schema.md)
-- [Input Group Static TOON Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-toon-schema.md)
-- [Input Group Static Examples](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-examples.md)
+- [Input Group Static Input Field Generation Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-input-field-generation-rules.md)
+- [Input Group Static JSON Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-json-schema.md)
+- [Input Group Static TOON Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-toon-schema.md)
+- [Input Group Static Examples](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/input-group-static-examples.md)

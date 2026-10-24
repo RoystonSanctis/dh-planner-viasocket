@@ -13,7 +13,7 @@ A Dynamic Help field is used to generate and display real-time instructional con
 
 **Subsections — fetch only the one you need:**
 
-- [Help Dynamic Input Field Generation Rules](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-input-field-generation-rules.md)
-- [Help Dynamic JSON Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-json-schema.md)
-- [Help Dynamic TOON Schema](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-toon-schema.md)
-- [Help Dynamic Examples](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-examples.md)
+- [Help Dynamic Input Field Generation Rules](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-input-field-generation-rules.md)
+- [Help Dynamic JSON Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-json-schema.md)
+- [Help Dynamic TOON Schema](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-toon-schema.md)
+- [Help Dynamic Examples](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-Input-fields-json-builder/help-dynamic-examples.md)

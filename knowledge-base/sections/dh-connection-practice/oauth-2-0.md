@@ -3,8 +3,8 @@
 
 **Subsections — fetch only the one you need:**
 
-- [OAuth 2.0 Grant Type Selection Guidelines](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/oauth-2-0-grant-type-selection-guidelines.md)
-- [Authorization Code](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/authorization-code.md)
-- [Implicit](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/implicit.md)
-- [Client Credentials](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/client-credentials.md)
-- [Password Credentials](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/dh-connection-practice/password-credentials.md)
+- [OAuth 2.0 Grant Type Selection Guidelines](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/oauth-2-0-grant-type-selection-guidelines.md)
+- [Authorization Code](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/authorization-code.md)
+- [Implicit](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/implicit.md)
+- [Client Credentials](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/client-credentials.md)
+- [Password Credentials](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/dh-connection-practice/password-credentials.md)

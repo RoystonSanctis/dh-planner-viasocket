@@ -5,7 +5,7 @@ Some actions are not plain CRUD — they orchestrate several optional behaviors 
 
 **Subsections — fetch only the one you need:**
 
-- [Slack — Schedule Message](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/slack-schedule-message.md)
-- [Slack — Send Message](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/slack-send-message.md)
-- [MSG91 — Send WhatsApp Template Message](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/msg91-send-whatsapp-template-message.md)
-- [Gmail — Send Email](https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/sections/ux-worked-examples/gmail-send-email.md)
+- [Slack — Schedule Message](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/slack-schedule-message.md)
+- [Slack — Send Message](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/slack-send-message.md)
+- [MSG91 — Send WhatsApp Template Message](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/msg91-send-whatsapp-template-message.md)
+- [Gmail — Send Email](https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/sections/ux-worked-examples/gmail-send-email.md)

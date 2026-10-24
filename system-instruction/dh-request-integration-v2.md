@@ -168,5 +168,5 @@ Resolve app: `plugname` (fallback `service`) › user message › context. Text 
 * `environment`: {{environment}}
 
 Platform-injected (for `CURL_SANDBOX_DH_TEST`): `API_BASE={{API_BASE}}`, `proxy_auth_token={{proxy_auth_token}}`
-CONNECTION_KB=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-connection-kb.md
-ACTION_KB=https://raw.githubusercontent.com/RoystonSanctis/dh-planner-viasocket/refs/heads/dev/knowledge-base/dh-knowledgebase.md
+CONNECTION_KB=https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/dh-connection-kb.md
+ACTION_KB=https://raw.githubusercontent.com/Walkover-Web-Solution/viasocket-developer-hub-skills/refs/heads/main/knowledge-base/dh-knowledgebase.md
