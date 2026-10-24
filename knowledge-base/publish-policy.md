@@ -19,6 +19,7 @@ maintenance agent follow this file; where another file disagrees, this file wins
 | A developer's agent, `SKILL-CONNECTION.md` / `SKILL-REQUEST-INTEGRATION.md` | the developer's own | never: they leave drafts |
 | A developer's agent | viaSocket's (used in flows, not in `list_plugins`) | never: no edits at all; `report_feedback` instead |
 | viaSocket's maintenance agent (from `report_feedback`) | viaSocket's | without asking, only (a) a new action or trigger, or (b) a backward-compatible new version of an existing one; anything else stays a draft and a person decides in Slack |
+| viaSocket's review agent (from `report_published`) | a developer's plug that was just published | the same as the maintenance agent: only new actions/triggers and backward-compatible new versions, after review and dry run; never the developer's connection or OAuth app |
 
 ## Backward compatible
 
