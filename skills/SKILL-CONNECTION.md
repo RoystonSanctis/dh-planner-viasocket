@@ -149,7 +149,7 @@ from the MCP docs.
 - Writes go through `call_any_api_of_viasocket` with the full body from this skill. Don't write with
   the MCP's shortcut tools (`create_plugin`, `create_action_or_trigger`, `update_action_version`,
   `link_component_to_version`): they drop fields this skill needs. Reading with them is fine.
-- `plugins` / `actions` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2).
+- `plugins` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2). The `actions` table has no `metadata` column (its column is `meta_data`; requesting `metadata` there returns 400): action updates send only the changed fields, never `metadata`.
 - Component mapping: never send `path` (the MCP's toggle); always send the full `metadata.componentdependson`.
 - Never use `actionToDuplicate` / `actionVersionToDuplicate` on `create/actions`; new versions come from COPY (§2).
 - Connection create: `clientid` / `clientsecret` are sent as `""` (the developer enters them), and
@@ -159,7 +159,7 @@ from the MCP docs.
 
 ### `&fields=` Columns (include `rowid` if you reuse the id; never invent names)
 - **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields,queryparams,accesstokencode,refreshtokencode,revokeapicode,testcode,authenticationpaths,whitelistdomains,skipwhitelistvalidation,uniquekeytostoreauth,connectionlabelkey,connectionlabelvalue,_connectionlabelvalue,isconnectionlabelmasked,clientid,clientsecret,isencrypted,authrequrl,redirecturl,scopeseperatedby,auth1parameters,pluginname,pluginiconurl,iconurlpath,domain,metadata,createdat,updatedat,created_by,updated_by`
-- **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,serviceid,service_url,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
+- **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
 
 ### Payloads & Rules
 - Create: `create/oauth_details` with every KB "Create Payload" key + `pluginrecordid: "{{PLUGIN_ID}}"`,

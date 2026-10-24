@@ -50,8 +50,8 @@ or GET (§3).
   casing) in every action/trigger `inputjson`, perform/source code, mappings, and `componentdependson` across the plug.
   When extending, reuse existing keys as already written — never invent a differently cased variant for the same field.
 - **Metadata is updated on every create and every update — do not wait for a later human publish.** During Execute:
-  every new/updated action/trigger gets a MERGE (`updateActionDetails`) so `metadata.aiLogs` gains a
-  `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry and `isaiaction: true`, `aiorgid` stay set; plug `metadata.aiContext`
+  every new/updated action/trigger gets a MERGE (`updateActionDetails`, changed columns only, §2) so `isaiaction: true`,
+  `aiorgid` stay set, and its version's `metadata.aiLogs` has a `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry; plug `metadata.aiContext`
   is MERGEd at level 2 (and again in the report if more facts appear). Never skip metadata because this run leaves
   drafts unpublished. Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any
   model/tool name into metadata, notes or `aiContext`.
@@ -108,7 +108,7 @@ A stop is a **clean stop**: report what was learned, leave no half-built rows be
    | ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------------ |
    | 0     | new plug: create                                                                                                                | —            |
    | 1     | connection ∥ components ∥ new plug: `getBrandDetails`                                                                           | PLUGIN_ID    |
-   | 2     | actions + triggers create ∥ each action MERGE (`isaiaction`, `aiorgid`, `aiLogs`) ∥ plug MERGE (details, `preferedauthversion`, every host in `whitelistdomains`, `metadata.aiContext`) | AUTH_ID |
+   | 2     | actions + triggers create ∥ each action MERGE (`isaiaction`, `aiorgid`) ∥ plug MERGE (details, `preferedauthversion`, every host in `whitelistdomains`, `metadata.aiContext`) | AUTH_ID |
    | 3     | fill versions ∥ mappings                                                                                                        | ids from 1–2 |
 
    A failed op → read the error, fix only that op, rerun it (≤3 tries). A create that returned ids is done — never redo it.
@@ -116,7 +116,7 @@ A stop is a **clean stop**: report what was learned, leave no half-built rows be
 
 5. **Verify** with parallel reads (use `fields`): plug, connections, actions, each version (`rowid,status,inputjson`) and its
    mappings — versions `drafted`, every field in `inputjson.blocks`, dynamic fields have `source`, every called
-   component mapped, `isaiaction: true`, and each action `metadata.aiLogs` has a create/update entry from this run.
+   component mapped, `isaiaction: true`, `aiorgid` set, and each version's `metadata.aiLogs` has a create/update entry from this run.
 6. **Connect & dry run** (§4) — reuse a valid existing connection without asking; if none, skip execution and continue
    to the report (static review + next human steps). Never wait. Never publish.
 7. **Report** (§5). Facts learned after level 2 (docs URLs, auth, pagination, rate limits, components, quirks; ≤4 KB,
@@ -146,11 +146,14 @@ The MCP sends exactly what you give it, so on every write do these yourself:
 - **`create/actions`** returns the action id at `actionData[0].rowid` and its first version id at
   `actionVersionData.data[0].rowid` (either may sit under `data.`). No ids → check `getAllActions` before retrying (never
   create twice). Then MERGE `{ "isaiaction": true, "aiorgid": "{{ORG_ID}}" }` into the action.
-- **MERGE** (`plugins` / `actions` updates replace `metadata`): GET the row (`getPluginDetails` / `getActionDetails`),
+- **MERGE** (`plugins` updates replace `metadata`; for `actions` see below): GET the row (`getPluginDetails`),
   parse its `metadata`, keep every key, deep-merge your `metadata.aiContext` into it (objects merged, arrays replaced,
   `aiContext.updatedAt` = now), append `{ "by": "UPDATED_BY_SKILL" (or `CREATED_BY_SKILL`), "time", "skill", "note"? }`
-  to `aiLogs`, then `PUT update/<table>?identifier=<id>&filter=<updatePluginDetails|updateActionDetails>` with your
-  changes + that full `metadata`. `by`/`note` go into the log entry, never as top-level keys.
+  to `aiLogs`, then `PUT update/plugins?identifier=<id>&filter=updatePluginDetails` with your
+  changes + that full `metadata`. `by`/`note` go into the log entry, never as top-level keys. **MERGE on an action** =
+  `PUT update/actions?identifier=<id>&filter=updateActionDetails` with only the changed columns (`isaiaction`, `aiorgid`,
+  `status`, `actionversionrecordid`, …): no `metadata`, no `by`/`note`. The action's history lives in its version's
+  `metadata.aiLogs` (written by the `create/actions` / `create/action_version` body).
 - **COPY** (new version of an `oauth_details` / `action_version` row): GET the parent's rows
   (`getAuthDetails` by PLUGIN_ID / `getActionVersions` by ACTION_ID), take the row by `rowid`, drop `rowid, autonumber,`
   `createdat, updatedat, createdby, updatedby, created_by, updated_by, metadata` (connections also `pluginname, pluginiconurl,
@@ -221,7 +224,7 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
 - Writes go through `call_any_api_of_viasocket` with the full body from this skill. Don't write with
   the MCP's shortcut tools (`create_plugin`, `create_action_or_trigger`, `update_action_version`,
   `link_component_to_version`): they drop fields this skill needs. Reading with them is fine.
-- `plugins` / `actions` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2).
+- `plugins` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2). The `actions` table has no `metadata` column (its column is `meta_data`; requesting `metadata` there returns 400): action updates send only the changed fields, never `metadata`.
 - Component mapping: never send `path` (the MCP's toggle); always send the full `metadata.componentdependson`.
 - Never use `actionToDuplicate` / `actionVersionToDuplicate` on `create/actions`; new versions come from COPY (§2).
 - Connection create: `clientid` / `clientsecret` are sent as `""` (the developer enters them), and
@@ -230,12 +233,12 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
 - The MCP asks to confirm before each write. This run is unattended: §0 replaces every confirmation — never ask.
 
 ### `&fields=` Columns (include `rowid` if you reuse the id; never invent names)
-- **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,serviceid,service_url,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
+- **plugins:** `rowid,name,domain,orgid,status,audience,description,category,tags,iconurl,brandcolor,whitelistdomains,preferedauthversion,havestaticip,metadata,createdat,updatedat,created_by,updated_by,publishdescription,istriggeravailable,marketplace_status,appslugname,verified`
 - **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields,queryparams,accesstokencode,refreshtokencode,revokeapicode,testcode,authenticationpaths,whitelistdomains,skipwhitelistvalidation,uniquekeytostoreauth,connectionlabelkey,connectionlabelvalue,_connectionlabelvalue,isconnectionlabelmasked,clientid,clientsecret,isencrypted,authrequrl,redirecturl,scopeseperatedby,auth1parameters,pluginname,pluginiconurl,iconurlpath,domain,metadata,createdat,updatedat,created_by,updated_by`
-- **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,authid,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,metadata,actionversionrecordid,authidlookup,pluginname`
-- **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,description,category,sub_category,canpaginate,preferred_step_name,metadata,createdat,updatedat,created_by,updated_by`
+- **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,meta_data,actionversionrecordid,authidlookup,pluginname`
+- **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,category,canpaginate,metadata,createdat,updatedat,created_by,updated_by`
 - **reusable_components:** `rowid,pluginrecordid,orgid,function_name,params,code,description,metadata,created_by,updated_by,componentgenerationsource`
-- **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata,status`
+- **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata`
 
 ### Entity Payloads & Rules
 - **Plug** — `create/plugins { name, orgid, domain, whitelistdomains: [domain] }` (+ `plugin_origin: "Community"`
@@ -269,7 +272,7 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
   `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `rtllayer` (auto-publishes), `isAIActionTrigger`, `functionId`, or a body-level `isUserOnDh` on writes.
   **Never** `status: "published"`, `actionversionrecordid`, or `publishdescription` — this run does not publish.
-  `plugins`/`actions` updates replace `metadata` → always use `MERGE` on create/update in Execute (keeps existing keys,
+  `plugins` updates replace `metadata` → always use `MERGE` on create/update in Execute (`actions`: changed columns only, §2) (keeps existing keys,
   deep-merges `aiContext`, appends `aiLogs`) — do not skip because drafts stay unpublished. `action_version` /
   `oauth_details` updates ignore it → omit it. Skip deleted rows (`status: "deleted"`, `isdeleted: true`). Unknown keys
   are silently stored or rejected — spell keys exactly.
@@ -283,7 +286,7 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
   rename auth field keys.
 - Action: edit a non-deleted `drafted` version; never a `published` one — `COPY` the latest non-deleted version
   (highest `version`), then PUT its full version fields (a copy has no blocks) and map it (mappings aren't copied).
-  Then MERGE the action with `isaiaction: true`, `aiorgid`, a `note` (+ name/description if changed). Never rename
+  Then MERGE the action with `isaiaction: true`, `aiorgid` (+ name/description if changed). Never rename
   the action `key`.
 - Component: not versioned — an edit changes every mapped version, published included. Never change a mapped one
   (except `errorComponent` per KB); add a new name. Check usage with `dhGetUsedActionVersionForComponent`. To delete an

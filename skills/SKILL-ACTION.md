@@ -38,7 +38,7 @@ Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` 
   invent a differently cased variant for the same field.
 - **Metadata is updated on every create and every update — not only on publish.** Publish (§4.3) does not own metadata.
   After a create or a draft update (even if the user later says no to publish, or dry run is skipped), always MERGE the
-  action (`updateActionDetails`) so `metadata.aiLogs` gains a `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry (`note`
+  action (`updateActionDetails`, changed columns only — see §2 MERGE) and record a `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` entry in the version's `metadata.aiLogs` (`note`
   describing what changed) and `isaiaction: true`, `aiorgid` stay set. Durable findings (endpoints, quirks, components;
   ≤4 KB, no secrets) → MERGE the plug's `metadata.aiContext` in the same run. Never defer metadata to publish.
   Metadata labels read only `CREATED_BY_SKILL` / `UPDATED_BY_SKILL` — never write "Claude" or any model/tool name into
@@ -70,11 +70,11 @@ Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` 
 4. **Execute** quietly without intermediate technical chatter (independent calls in parallel):
    - create: new components → `create/actions` → fill the version ∥ mappings → **always** `MERGE
      'update/actions?identifier=<actionId>&filter=updateActionDetails'
-     '{"isaiaction":true,"aiorgid":"{{ORG_ID}}","by":"CREATED_BY_SKILL","note":"<what was created>"}'`
-     (even if `create/actions` already set `isaiaction` — confirm metadata/`aiLogs`; do this before any publish ask);
+     '{"isaiaction":true,"aiorgid":"{{ORG_ID}}"}'`
+     (even if `create/actions` already set `isaiaction`; do this before any publish ask);
    - update: [`COPY`] → new components → fill the draft (full `inputjson` if inputs change; always after a copy) ∥
      mappings → **always** `MERGE 'update/actions?identifier=<actionId>&filter=updateActionDetails'
-     '{"isaiaction":true,"aiorgid":"{{ORG_ID}}","by":"UPDATED_BY_SKILL","note":"draft updated"}'`
+     '{"isaiaction":true,"aiorgid":"{{ORG_ID}}"}'`
      (`"new draft version"` after a copy; + `name`/`description` if changed). Required whether or not you will publish;
    - code calls a host missing from the plug's `whitelistdomains` → MERGE the plug (`updatePluginDetails`) with
      existing + new hosts; report that the connection must whitelist it too (connection skill);
@@ -82,7 +82,7 @@ Unfilled inputs: `ORG_ID` from the MCP's `get_org_details_by_token`; `API_BASE` 
      (`updatePluginDetails`) `metadata.aiContext` **now**, not at publish time.
 5. **Verify** (use `fields`): the action (`getActionDetails`), the version (`getActionVersions` → the `versionId` row,
    `rowid,status,inputjson`) and its mappings — version `drafted`, every field in `inputjson.blocks`, dynamic fields
-   have `source`, every called component mapped, `isaiaction: true`, and the action `metadata.aiLogs` has a
+   have `source`, every called component mapped, `isaiaction: true`, `aiorgid` set, and the version's `metadata.aiLogs` has a
    create/update entry from this run.
 6. **Connect & dry run** (§4.1–4.2) — reuse a valid existing connection without asking; otherwise ask the user to
    create one, then safely run the new/changed fields and the {{ENTITY_TYPE}} and fix what fails.
@@ -114,11 +114,14 @@ The MCP sends exactly what you give it, so on every write do these yourself:
 - **`create/actions`** returns the action id at `actionData[0].rowid` and its first version id at
   `actionVersionData.data[0].rowid` (either may sit under `data.`). No ids → check `getAllActions` before retrying (never
   create twice). Then MERGE `{ "isaiaction": true, "aiorgid": "{{ORG_ID}}" }` into the action.
-- **MERGE** (`plugins` / `actions` updates replace `metadata`): GET the row (`getPluginDetails` / `getActionDetails`),
+- **MERGE** (`plugins` updates replace `metadata`; for `actions` see below): GET the row (`getPluginDetails`),
   parse its `metadata`, keep every key, deep-merge your `metadata.aiContext` into it (objects merged, arrays replaced,
   `aiContext.updatedAt` = now), append `{ "by": "UPDATED_BY_SKILL" (or `CREATED_BY_SKILL`), "time", "skill", "note"? }`
-  to `aiLogs`, then `PUT update/<table>?identifier=<id>&filter=<updatePluginDetails|updateActionDetails>` with your
-  changes + that full `metadata`. `by`/`note` go into the log entry, never as top-level keys.
+  to `aiLogs`, then `PUT update/plugins?identifier=<id>&filter=updatePluginDetails` with your
+  changes + that full `metadata`. `by`/`note` go into the log entry, never as top-level keys. **MERGE on an action** =
+  `PUT update/actions?identifier=<id>&filter=updateActionDetails` with only the changed columns (`isaiaction`, `aiorgid`,
+  `status`, `actionversionrecordid`, …): no `metadata`, no `by`/`note`. The action's history lives in its version's
+  `metadata.aiLogs` (written by the `create/actions` / `create/action_version` body).
 - **COPY** (new version of an `action_version` row): GET the parent's rows
   (`getActionVersions` by ACTION_ID), take the row by `rowid`, drop `rowid, autonumber,`
   `createdat, updatedat, createdby, updatedby, created_by, updated_by, metadata`
@@ -181,16 +184,16 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
 - Writes go through `call_any_api_of_viasocket` with the full body from this skill. Don't write with
   the MCP's shortcut tools (`create_plugin`, `create_action_or_trigger`, `update_action_version`,
   `link_component_to_version`): they drop fields this skill needs. Reading with them is fine.
-- `plugins` / `actions` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2).
+- `plugins` updates: send only changed fields, **but** `metadata` is replaced on save — always MERGE (§2). The `actions` table has no `metadata` column (its column is `meta_data`; requesting `metadata` there returns 400): action updates send only the changed fields, never `metadata`.
 - Component mapping: never send `path` (the MCP's toggle); always send the full `metadata.componentdependson`.
 - Never use `actionToDuplicate` / `actionVersionToDuplicate` on `create/actions`; new versions come from COPY (§2).
 - The MCP asks to confirm before each write. This skill's own question points replace that — don't ask per call.
 
 ### `&fields=` Columns (include `rowid` if you reuse the id; never invent names)
-- **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,authid,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,metadata,actionversionrecordid,authidlookup,pluginname`
-- **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,description,category,sub_category,canpaginate,preferred_step_name,metadata,createdat,updatedat,created_by,updated_by`
+- **actions:** `rowid,name,description,key,pluginrecordid,orgid,type,isvisible,category,sub_category,preferred_step_name,ignoreuniversalsampledata,isaiaction,aiorgid,status,meta_data,actionversionrecordid,authidlookup,pluginname`
+- **action_version:** `rowid,actionid,authid,type,triggertype,versionid,perform,performlist,performsubscribe,performunsubscribe,modifytriggerdata,transferoption,inputjson,sampledata,status,isdeleted,verificationstatus,category,canpaginate,metadata,createdat,updatedat,created_by,updated_by`
 - **reusable_components:** `rowid,pluginrecordid,orgid,function_name,params,code,description,metadata,created_by,updated_by,componentgenerationsource`
-- **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata,status`
+- **action_version_component_table:** `rowid,action_version_id,component_id,action_id,pluginrecordid,orgid,metadata`
 - **plugins:** `rowid,name,domain,orgid,status,whitelistdomains,preferedauthversion,metadata`
 - **oauth_details:** `rowid,pluginrecordid,orgid,authversion,type,granttype,description,authfields`
 
@@ -217,8 +220,8 @@ Never call `GetActionVersionCount` or `/openai/dh/getActionTriggersSuggestions` 
   its mappings first (`dhGetUsedComponentInActionVersionDetails`); mapped → `PUT update/action_version_component_table?identifier=<rowid>&filter=dhUpdateReusableComponentDetails`
   with the full `metadata`. Unmap component (never on published versions) → `PATCH delete/action_version_component_table` `{ action_version_id, component_id, status: "drafted" }`.
 - Never send `rtllayer`, `isAIActionTrigger`, `functionId`, or a body-level `isUserOnDh` on writes;
-  `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `plugins`/`actions` updates
-  replace `metadata` → always use `MERGE` (keeps existing keys, deep-merges `aiContext`, appends `aiLogs`). Do that
+  `status: "published"`, `actionversionrecordid`, `publishdescription` only in §4.3. `plugins` updates
+  replace `metadata` → always use `MERGE` (keeps existing keys, deep-merges `aiContext`, appends `aiLogs`); `actions` updates send changed columns only (§2). Do that
   MERGE on create/update in §1 step 4; do not wait for §4.3. `action_version` updates ignore `metadata` → omit it.
   `success: false` → fix the payload (unknown keys are silently stored or rejected).
 
@@ -290,7 +293,7 @@ Then publish:
    (+ `"istriggeravailable": true` when a trigger is published). Public publish **must** include `audience: "Public"`.
 2. **The {{ENTITY_TYPE}}** (dry run passed or approved as not executed; has a description and an `authid`; publish the
    draft version you edited):
-   `MERGE 'update/actions?identifier=<ACTION_ID>&filter=updateActionDetails' '{"actionversionrecordid":"<VERSION_ID>","status":"published","type":"<action|trigger>","authidlookup":"<authid>","isvisible":<false if private, true if public>,"publishdescription":"<one line>","by":"UPDATED_BY_SKILL","note":"published <privately|publicly>"}'`
+   `MERGE 'update/actions?identifier=<ACTION_ID>&filter=updateActionDetails' '{"actionversionrecordid":"<VERSION_ID>","status":"published","type":"<action|trigger>","authidlookup":"<authid>","isvisible":<false if private, true if public>,"publishdescription":"<one line>"}'`
    then `PUT 'update/action_version?identifier=<VERSION_ID>&filter=updateActionVersionDetails'
    '{"versionid":"<the version row's versionid>","status":"published","publishdescription":"<one line>","verificationstatus":"L1_VERIFIED"}'`
    (add `verificationstatus` only when it is empty, `NOT_VERIFIED` or `L2_REJECTED`).

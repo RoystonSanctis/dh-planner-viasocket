@@ -107,7 +107,7 @@ flowchart TD
    `call_any_api_of_viasocket` for writes, or a dedicated MCP tool when one fits). What the old script did automatically (code check, provenance, MERGE, COPY,
    connection encoding) is spelled out in each skill's §2 and done by the model.
 5. **Parallel single-row calls.** Developer Hub endpoints take one row per call; independent calls of a level go out together.
-6. **Metadata on create/update, not publish.** `plugins`/`actions` `metadata.aiLogs` and plug `metadata.aiContext` are
+6. **Metadata on create/update, not publish.** Plug `metadata.aiLogs`, version `metadata.aiLogs` (the `actions` table has `meta_data`, not `metadata`) and plug `metadata.aiContext` are
    MERGEd during Execute (every create/update). Publish only flips `status` / version publish fields — never defer
    metadata until the user says yes to publish (or skip it because a skill never publishes).
 
