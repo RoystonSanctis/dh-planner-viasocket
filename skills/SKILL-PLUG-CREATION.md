@@ -331,6 +331,6 @@ Then publish:
    (add `verificationstatus` only when it is empty, `NOT_VERIFIED` or `L2_REJECTED`).
 3. Read back plug (`status`, `audience`) and each action (`status`, `isvisible`) and report private vs public. A
    published version is immutable: later changes go through `COPY`.
-4. Call the MCP's `report_published` tool once: `pluginId`, `published: "new_plug"` (or `new_action` / `new_trigger`
+4. (Developers' agents only; viaSocket's own agents skip this.) Call the MCP's `report_published` tool once: `pluginId`, `published: "new_plug"` (or `new_action` / `new_trigger`
    when extending), the published action/trigger rowids as `actionIds`, and `app`. viaSocket then reviews the plug.
    Never ask the user about it; a failed call never blocks the run.

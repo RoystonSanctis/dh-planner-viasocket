@@ -7,8 +7,10 @@ maintenance agent follow this file; where another file disagrees, this file wins
 
 - Edit a `published` version in place: changes go to a `drafted` version or a COPY of the published one.
 - Hard-delete anything, or unpublish or delete a plug (`status: "unpublished"` / `"deleted"` cascades to every action).
-- Publish a connection (auth version) change, or Force Update Action Version (moves end users' live flows), without a
-  person saying yes to that specific change.
+- Force Update Action Version (moves end users' live flows) without a person saying yes to that specific change.
+- Publish a connection (auth version) change without a person saying yes, except the review agent's switch to the
+  viaSocket OAuth version (below).
+- Edit or delete a developer's own connection versions, client ids or secrets.
 - Publish code that has not passed the review (`dh-review-agent.md`) and a dry run.
 
 ## Who may publish
@@ -19,15 +21,33 @@ maintenance agent follow this file; where another file disagrees, this file wins
 | A developer's agent, `SKILL-CONNECTION.md` / `SKILL-REQUEST-INTEGRATION.md` | the developer's own | never: they leave drafts |
 | A developer's agent | viaSocket's (used in flows, not in `list_plugins`) | never: no edits at all; `report_feedback` instead |
 | viaSocket's maintenance agent (from `report_feedback`) | viaSocket's | without asking, only (a) a new action or trigger, or (b) a backward-compatible new version of an existing one; anything else stays a draft and a person decides in Slack |
-| viaSocket's review agent (from `report_published`) | a developer's plug that was just published | the same as the maintenance agent: only new actions/triggers and backward-compatible new versions, after review and dry run; never the developer's connection or OAuth app |
+| viaSocket's review agent (from `report_published`) | a developer's plug that was just published | after review and an end-to-end test: new actions/triggers, backward-compatible new versions, and the switch to the viaSocket OAuth version (below); never the developer's own connection versions or OAuth app |
 
-## Test connection version
+## viaSocket OAuth version
 
-To test a plug end to end, viaSocket's maintenance and review agents may add one draft connection version named
-"viaSocket OAuth (test)" to a plug whose OAuth 2.0 connection uses the developer's own OAuth app: a COPY of that
-version with viaSocket's own client id and secret. It is never made the preferred version and never published, the
-developer's own versions are never changed, and later runs reuse it. Client ids and secrets go straight into the
-Developer Hub, never into chat, files, PRs or logs.
+When a developer publishes a plug whose OAuth 2.0 connection uses their own OAuth app (their client id and secret),
+viaSocket's review agent moves the plug onto viaSocket's own OAuth app for that service:
+
+1. COPY the developer's preferred connection version into a new version named "viaSocket OAuth" (every key, scope, URL
+   and field identical). The developer's versions are never changed or deleted.
+2. Sign in to the service's developer portal with viaSocket's Google account, create (or reuse) an OAuth app named
+   "viaSocket" with exactly those scopes and viaSocket's redirect URI, and write its client id and secret straight into
+   the new version with the Developer Hub API: never into chat, files, PRs or logs. If the portal needs app review,
+   payment, a company domain or another decision a person must make, stop there and say what is needed.
+3. Create a test connection on the new version and run the end-to-end test. Only if it passes: make the new version the
+   plug's preferred version, and for every published action and trigger publish a new version (a COPY of its published
+   version) whose `authid` is the new connection version, each after review and a dry run on that connection.
+4. Existing flows stay on the old versions and the developer's OAuth app (never force-update). Record every previous
+   version id for rollback.
+
+The maintenance agent may keep one draft "viaSocket OAuth (test)" version on a viaSocket plug for end-to-end tests; it is
+never preferred or published. Developers' agents never edit or delete a "viaSocket OAuth" version.
+
+## No loops
+
+viaSocket's maintenance and review agents never call `report_feedback` or `report_published` (nor their webhooks): they
+are the receivers. The feedback and publish flows also drop anything sent with viaSocket's worker token, so a change an
+agent publishes can never start another agent run.
 
 ## Backward compatible
 
