@@ -2,7 +2,7 @@
 
 Cursor, Codex and other agents load this file automatically when they open the repo.
 
-- Start at [index.md](index.md). It picks exactly one skill for the task; read that skill whole and follow it. Do not
+- Start at [skills/index.md](skills/index.md). It picks exactly one skill for the task; read that skill whole and follow it. Do not
   read the other skills.
 - Read [knowledge-base/publish-policy.md](knowledge-base/publish-policy.md) before publishing anything; it wins over
   every other file.

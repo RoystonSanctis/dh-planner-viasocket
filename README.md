@@ -1,6 +1,6 @@
 # DH-Planner — viaSocket Plug Creation System
 
-> **AI agents using the viaSocket MCP:** start at [index.md](index.md) — it picks the skill and points to the knowledge-base section index.
+> **AI agents using the viaSocket MCP:** start at [skills/index.md](skills/index.md) — it picks the skill and points to the knowledge-base section index.
 
 This repository contains the **system prompt instructions** used by the DH-Planner AI agent system on [viaSocket](https://viasocket.com) to create and manage **plug integrations**.
 
