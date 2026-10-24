@@ -178,7 +178,7 @@ Review test cases for a plug.
 
 _Fetch the whole file._
 
-### [publish-policy.md](publish-policy.md) · 2 KB
+### [publish-policy.md](publish-policy.md) · 3 KB
 
 _Fetch the whole file._
 

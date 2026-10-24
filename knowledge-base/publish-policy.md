@@ -21,6 +21,14 @@ maintenance agent follow this file; where another file disagrees, this file wins
 | viaSocket's maintenance agent (from `report_feedback`) | viaSocket's | without asking, only (a) a new action or trigger, or (b) a backward-compatible new version of an existing one; anything else stays a draft and a person decides in Slack |
 | viaSocket's review agent (from `report_published`) | a developer's plug that was just published | the same as the maintenance agent: only new actions/triggers and backward-compatible new versions, after review and dry run; never the developer's connection or OAuth app |
 
+## Test connection version
+
+To test a plug end to end, viaSocket's maintenance and review agents may add one draft connection version named
+"viaSocket OAuth (test)" to a plug whose OAuth 2.0 connection uses the developer's own OAuth app: a COPY of that
+version with viaSocket's own client id and secret. It is never made the preferred version and never published, the
+developer's own versions are never changed, and later runs reuse it. Client ids and secrets go straight into the
+Developer Hub, never into chat, files, PRs or logs.
+
 ## Backward compatible
 
 A new version of a published action or trigger is backward compatible only when every existing input key, its type
