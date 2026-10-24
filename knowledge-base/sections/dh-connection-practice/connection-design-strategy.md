@@ -19,11 +19,11 @@ Collect and request only what is strictly necessary:
 
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
-1. Resolve the Connection Label (`connectionlabelvalue`) from the Test (Me) API response wherever possible.
+1. Resolve the Connection Label (`connectionlabelvalue`) from the Test API response ONLY when the Test API is a current user / me / account / profile / userinfo endpoint. If it is any other endpoint (lists, `/status`, `/ping`), use the API key auth field with `isconnectionlabelmasked: true` (or the main credential field for auth types without an API key).
 2. Ensure `connectionlabelvalue` maps to **exactly one path** (prefer dot notation `context.authData?.testcode?.name`; use bracket notation `context?.authData?.testcode?.["name"]` when keys contain special characters or spaces). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
 3. The `testcode` perform code MUST return the response data directly (i.e. `return response.data;`). Do not mutate the response object to create composite or fallback keys.
 4. **Mandatory Knowledge of Test Response Structure**: To set the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Extract identifier keys (e.g., `id`, `email`, `name`, `workspace_name`) directly from `context.authData?.testcode`. Never guess property keys.
-5. If no user-identifiable field exists in the response, map directly to a stable non-sensitive value (e.g. account/workspace ID) from the original payload, noting this fallback explicitly in the design output.
+5. If the me/user/account response has no user-identifiable field, map a stable non-sensitive account/workspace ID from it, noting this fallback explicitly in the design output. Never map from list endpoints (`testcode?.[0]?.…` of brands, items, records) — the list can be empty.
 6. Never ask the user to manually paste internal system IDs when the Test API can supply them.
 
 ### Grant Type Evaluation

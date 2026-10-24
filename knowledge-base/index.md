@@ -77,13 +77,13 @@ Complete connection examples for real apps.
 - [Example 8: Instagram for Business (Short-to-Long Token + Query Parameter Auth Injection)](sections/dh-connection-examples/example-8-instagram-for-business-short-to-long-token-query-parameter-auth-inject.md) · 5 KB — also covers: Highlights:
 - [Example 9: Google Sheets (Google OAuth 2.0 + URLSearchParams + Avatar Icon)](sections/dh-connection-examples/example-9-google-sheets-google-oauth-2-0-urlsearchparams-avatar-icon.md) · 3 KB — also covers: Highlights:
 
-### [dh-connection-kb.md](dh-connection-kb.md) · 41 KB
+### [dh-connection-kb.md](dh-connection-kb.md) · 42 KB
 
 Consolidated KB for connections (auth): selection, payloads, DH URLs. Read in full.
 
 _Fetch the whole file._
 
-### [dh-connection-practice.md](dh-connection-practice.md) · 85 KB
+### [dh-connection-practice.md](dh-connection-practice.md) · 86 KB
 
 How to build each auth type (OAuth 2.0, API key, Basic, OAuth 1.0).
 

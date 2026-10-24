@@ -5,7 +5,7 @@ This section outlines the standard conventions for generating user-facing names,
 
 ## Connection Label Naming & Description
 A Connection Label uniquely identifies a saved connection so users can distinguish between multiple connected accounts.
-* **Format:** Build dynamically from Test API response data or auth fields — never a static generic string.
+* **Format:** Build from the me/user/account Test API response, or from the masked API key auth field when no such endpoint exists — never a static generic string.
   * *Bad:* "My App Connection"
   * *Good:* "John – Production API", "Marketing Account – US", masked ID formats like "XXX-XXX-23433"
 * **User-scoped auth (Basic Auth, Authorization Code, Implicit, Password Credentials, OAuth 1.0):** Prefer a real identifying value from the Test API response (name, email, workspace).

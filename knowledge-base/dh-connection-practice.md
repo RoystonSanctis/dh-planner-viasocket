@@ -748,7 +748,7 @@ This section outlines the standard conventions for generating user-facing names,
 
 ## Connection Label Naming & Description
 A Connection Label uniquely identifies a saved connection so users can distinguish between multiple connected accounts.
-* **Format:** Build dynamically from Test API response data or auth fields — never a static generic string.
+* **Format:** Build from the me/user/account Test API response, or from the masked API key auth field when no such endpoint exists — never a static generic string.
   * *Bad:* "My App Connection"
   * *Good:* "John – Production API", "Marketing Account – US", masked ID formats like "XXX-XXX-23433"
 * **User-scoped auth (Basic Auth, Authorization Code, Implicit, Password Credentials, OAuth 1.0):** Prefer a real identifying value from the Test API response (name, email, workspace).
@@ -887,11 +887,11 @@ Collect and request only what is strictly necessary:
 
 ### Identifier & Token Resolution
 Use **response-derived resolution** rather than asking users to manually supply identifiers:
-1. Resolve the Connection Label (`connectionlabelvalue`) from the Test (Me) API response wherever possible.
+1. Resolve the Connection Label (`connectionlabelvalue`) from the Test API response ONLY when the Test API is a current user / me / account / profile / userinfo endpoint. If it is any other endpoint (lists, `/status`, `/ping`), use the API key auth field with `isconnectionlabelmasked: true` (or the main credential field for auth types without an API key).
 2. Ensure `connectionlabelvalue` maps to **exactly one path** (prefer dot notation `context.authData?.testcode?.name`; use bracket notation `context?.authData?.testcode?.["name"]` when keys contain special characters or spaces). Never chain multiple paths with `||`, and never use `context?.res?.data?.*` — `res` is function-local to perform code and is not in scope at label resolution.
 3. The `testcode` perform code MUST return the response data directly (i.e. `return response.data;`). Do not mutate the response object to create composite or fallback keys.
 4. **Mandatory Knowledge of Test Response Structure**: To set the connection label and value paths, you MUST know and inspect the exact schema/shape of the Test (Me) API response (`response.data`). Extract identifier keys (e.g., `id`, `email`, `name`, `workspace_name`) directly from `context.authData?.testcode`. Never guess property keys.
-5. If no user-identifiable field exists in the response, map directly to a stable non-sensitive value (e.g. account/workspace ID) from the original payload, noting this fallback explicitly in the design output.
+5. If the me/user/account response has no user-identifiable field, map a stable non-sensitive account/workspace ID from it, noting this fallback explicitly in the design output. Never map from list endpoints (`testcode?.[0]?.…` of brands, items, records) — the list can be empty.
 6. Never ask the user to manually paste internal system IDs when the Test API can supply them.
 
 ### Grant Type Evaluation
@@ -1044,7 +1044,7 @@ Your final proposed design must strictly output the following structure:
 
 * [ ] **Verify correct scopes are requested:** Confirm the authorization URL or token exchange includes the exact required scopes.
 * [ ] **Confirm instructions and documentation links are provided:** Provide clean markdown links to the provider's developer/API documentation.
-* [ ] **Check that connection labels are clear and meaningful:** Ensure connection labels resolve human-readable workspace or account identifiers (e.g., email, account name).
+* [ ] **Check that connection labels are clear and meaningful:** Ensure connection labels resolve human-readable workspace or account identifiers (e.g., email, account name). Labels never come from list endpoints; without a me/user/account endpoint, the label is the masked API key.
 * [ ] **Test that authentication headers/query parameters are sent correctly:** Verify the injection format (e.g. `Bearer <token>`, `Basic <base64>`, query param) matches provider requirements.
 * [ ] **Validate that connection works in Test mode AND in real workflows:** Ensure the Test API endpoint succeeds and actions/triggers execute properly with the connection.
 

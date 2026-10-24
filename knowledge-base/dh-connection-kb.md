@@ -176,7 +176,8 @@ Identifies each saved account (`"John – Production API"`, `"Acme (US)"`, maske
 - **Source**: the Test (Me) response stored at `context.authData?.testcode` (or an auth field). You MUST verify and know the Test API response structure (`context.authData?.testcode`) to accurately map identifier keys into `connectionlabelvalue` (and `_connectionlabelvalue`). Never guess property paths.
   - User-scoped flows: name, email, workspace.
   - App-scoped (Client Credentials): app, workspace, or tenant ID.
-  - No user-identifiable field → stable non-sensitive ID (account/workspace).
+  - Map the label from the Test response ONLY when the Test API is a current user / me / account / profile / userinfo endpoint (`/me`, `/user`, `/users/me`, `/account`, `/profile`, `/userinfo`). If that response has no user-identifiable field → stable non-sensitive ID (account/workspace) from it.
+  - If the Test API is any other endpoint (lists like `/brands`, `/workspaces`, `/teams`, or `/status`, `/ping`), never map the label from its response — that data may not exist yet. Use the API key auth field with masking on: `connectionlabelkey: "API Key"`, `connectionlabelvalue: "context.authData?.<api key field key>"`, `_connectionlabelvalue: "${context.authData?.<api key field key>}"`, `isconnectionlabelmasked: true`. For auth types without an API key, use the main credential field the user enters (client ID, username, subdomain) the same way.
 - **Key Paths Structure & Formats (Applicable Across All Key Paths)**:
   Two formats are supported for accessing values across all key paths structures (`connectionlabelvalue`, `_connectionlabelvalue`, `iconurlpath`, `authenticationpaths`, etc.):
   1. `${context.authData?.testcode?.name}` (raw JS: `context.authData?.testcode?.name`) — **Preferred format**.
@@ -537,7 +538,7 @@ Dynamic URL to view and configure the connection in the Developer Hub.
 - [ ] `scopeseperatedby` is strictly `"space"`, `"comma"`, or `null` (never `" "` or `","`); connection scopes are passed via the `scope` key in `queryparams` and strictly minimal for Test (Me) API (action/trigger scopes are placed on individual entities in `dh-database-schema.md`); PKCE enabled when supported.
 - [ ] Test code: structure is `{"source": "..."}`; exactly one lightweight endpoint; returns `response.data` unmodified without synthetic wrappers.
 - [ ] Test API response structure verified and known (`context.authData?.testcode`) before mapping label paths; never guess property paths.
-- [ ] Label: single `context.authData?.` path from the verified test response (prefer dot format `context.authData?.testcode?.name`; use bracket format `context?.authData?.testcode?.["account name"]` for keys with special characters or spaces); no `return`, `||`, or `context?.res`; `_connectionlabelvalue` is `"${...}"`; masked if sensitive.
+- [ ] Label: single `context.authData?.` path from the verified test response (prefer dot format `context.authData?.testcode?.name`; use bracket format `context?.authData?.testcode?.["account name"]` for keys with special characters or spaces); no `return`, `||`, or `context?.res`; `_connectionlabelvalue` is `"${...}"`; masked if sensitive. Label comes from the Test response only for a me/user/account endpoint; otherwise the masked API key field.
 - [ ] Secrets use `password` fields and never appear in code, logs, labels, or defaults.
 - [ ] Credential fields: exact API keys, Title Case source-app labels, actionable help with link.
 - [ ] `whitelistdomains` has the service and API base domains.

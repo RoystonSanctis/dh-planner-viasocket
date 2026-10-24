@@ -37,7 +37,7 @@
 
 * [ ] **Verify correct scopes are requested:** Confirm the authorization URL or token exchange includes the exact required scopes.
 * [ ] **Confirm instructions and documentation links are provided:** Provide clean markdown links to the provider's developer/API documentation.
-* [ ] **Check that connection labels are clear and meaningful:** Ensure connection labels resolve human-readable workspace or account identifiers (e.g., email, account name).
+* [ ] **Check that connection labels are clear and meaningful:** Ensure connection labels resolve human-readable workspace or account identifiers (e.g., email, account name). Labels never come from list endpoints; without a me/user/account endpoint, the label is the masked API key.
 * [ ] **Test that authentication headers/query parameters are sent correctly:** Verify the injection format (e.g. `Bearer <token>`, `Basic <base64>`, query param) matches provider requirements.
 * [ ] **Validate that connection works in Test mode AND in real workflows:** Ensure the Test API endpoint succeeds and actions/triggers execute properly with the connection.
 
