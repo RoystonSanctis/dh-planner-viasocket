@@ -46,8 +46,7 @@ never preferred or published. Developers' agents never edit or delete a "viaSock
 ## No loops
 
 viaSocket's maintenance and review agents never call `report_feedback` or `report_published` (nor their webhooks): they
-are the receivers. The feedback and publish flows also drop anything sent with viaSocket's worker token, so a change an
-agent publishes can never start another agent run.
+are the receivers, so a change an agent publishes never starts another agent run.
 
 ## Backward compatible
 
