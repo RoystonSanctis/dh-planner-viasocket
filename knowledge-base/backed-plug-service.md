@@ -9,6 +9,7 @@ published: true
 
 - Create Service
   - Special Case: Batch Processing
+- Update Service
 - Verify Service
 - Subscribe User
   - Precondition Block Types (`type`)
@@ -62,6 +63,21 @@ For “operator" can refer below sections in “Subscribe User“.
 
 ### Special Case: Batch Processing
 Batch webhook processing is done, just add or update `payload_batch_paths` array in service configurations and add `/batch`.
+
+## Update Service
+
+```bash
+curl --location --request PUT 'https://plugservice-api.viasocket.com/api/services/{{service_slug}}' \
+--header 'Content-Type: application/json' \
+--header 'auth_token: {{auth_token}}' \
+--data '{
+  "user_extraction_paths": [
+    "body.id"
+  ]
+}'
+```
+
+You can pass any keys supported in [Create Service](#create-service) in the request body to update them.
 
 ## Verify Service
 
