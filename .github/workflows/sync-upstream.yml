@@ -1,0 +1,40 @@
+name: Sync with Upstream
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Runs daily at 2:00 AM UTC
+  workflow_dispatch:     # Allows manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add and fetch upstream
+        run: |
+          git remote add upstream https://github.com/Walkover-Web-Solution/viasocket-developer-hub-skills.git
+          git fetch upstream main
+
+      - name: Sync dev branch (exact 1:1 mirror)
+        run: |
+          git push origin upstream/main:dev --force
+
+      - name: Sync main branch (rebase on top of upstream)
+        run: |
+          git checkout main
+          git rebase upstream/main
+          git push origin main --force-with-lease
