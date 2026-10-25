@@ -86,6 +86,7 @@ Rate each check from 0 to 100. If a check covers many items, the rating is the p
     - An action name is a verb plus an object, such as "Create Customer".
     - A trigger name is New, Updated or Deleted plus an object, such as "New Page Created".
     - The description says what the user gets, in 120 characters or fewer.
+    - Messaging actions (chat, email, SMS) state in the description or primary body field help whether rich formats apply (for example Slack Block Kit `blocks` vs mrkdwn text only), so agents can pick the right action without guessing.
 
     Rate it.
 18. **Output.**
