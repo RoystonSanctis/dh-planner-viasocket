@@ -15,14 +15,14 @@ Backend plug service: one webhook per app, instant-trigger plumbing.
 
 _Fetch the whole file._
 
-### [dh-Input-fields-json-builder.md](dh-Input-fields-json-builder.md) · 331 KB
+### [dh-Input-fields-json-builder.md](dh-Input-fields-json-builder.md) · 330 KB
 
 Exact JSON schema of every input field type (static and dynamic).
 
 - [Intro](sections/dh-Input-fields-json-builder/_intro.md) · 1 KB
 - [Page Index](sections/dh-Input-fields-json-builder/page-index.md) · 5 KB
 - [DH Input Fields Knowledge Base](sections/dh-Input-fields-json-builder/dh-input-fields-knowledge-base.md) · 1 KB
-- [Static Input Fields](sections/dh-Input-fields-json-builder/static-input-fields.md) · 148 KB in all, split:
+- [Static Input Fields](sections/dh-Input-fields-json-builder/static-input-fields.md) · 147 KB in all, split:
   - [String | Date | Number | HTML | Markdown](sections/dh-Input-fields-json-builder/string-date-number-html-markdown.md) · 15 KB — also covers: String | Date | Number | HTML | Markdown Input Field Generation Rules; String | Date | Number | HTML | Markdown JSON Schema; String | Date | Number | HTML | Markdown TOON Schema; String | Date | Number | HTML | Markdown Examples
   - [Dictionary](sections/dh-Input-fields-json-builder/dictionary.md) · 11 KB — also covers: Dictionary Input Field Generation Rules; Dictionary Input Field JSON Schema; Dictionary TOON Schema; Dictionary Examples
   - [Boolean](sections/dh-Input-fields-json-builder/boolean.md) · 18 KB — also covers: Boolean Input Field Generation Rules; Boolean JSON Schema; Boolean TOON Schema; Boolean Examples
@@ -144,7 +144,7 @@ Developer Hub tables and columns.
 - [Trigger Object Schema](sections/dh-database-schema/trigger-object-schema.md) · 11 KB — also covers: Trigger JSON Schema (Common Fields); Instant Trigger Schema (`triggertype: "hook"`); Schedule Trigger Schema (`triggertype: "polling"`); Manual Trigger Schema (`triggertype: "manual_webhook"`)
 - [Reusable Component Object Schema](sections/dh-database-schema/reusable-component-object-schema.md) · 8 KB — also covers: Reusable Component JSON Schema; Reusable Component TOON Schema; Reusable Component Action Version Mapping Schema; Reusable Component Mapping Path Rules; Reusable Component Mapping JSON Schema; Reusable Component Mapping TOON Schema
 
-### [dh-knowledgebase.md](dh-knowledgebase.md) · 64 KB
+### [dh-knowledgebase.md](dh-knowledgebase.md) · 65 KB
 
 Consolidated KB for plugs, actions and triggers: design, UX, fields, naming, code, runtime, review. Read in full.
 

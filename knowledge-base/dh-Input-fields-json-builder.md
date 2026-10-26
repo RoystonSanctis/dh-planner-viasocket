@@ -964,7 +964,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
                         },
                         "customHelp": {
                             "type": "string",
-                            "description": "Required helper text for manual/dynamic input, explaining when to enter true and false values (e.g., 'Enter \"true\" if you want to enable pagination else \"false\"')."
+                            "description": "Required helper text for manual/dynamic input, explaining when to enter true and false values (e.g., 'Enter \"true\" to email the customer, or \"false\" to skip the email')."
                         },
                         "customPlaceholder": {
                             "type": "string",
@@ -1125,10 +1125,10 @@ schema:
         "customPlaceholder": "true"
       },
       {
-        "key": "is_pagination",
-        "help": "Select yes to enable pagination and enter page size, or no to fetch all content.",
+        "key": "notify_customer",
+        "help": "Select Yes to email the customer about this update. No email is sent if left empty.",
         "type": "boolean",
-        "label": "Enable Pagination",
+        "label": "Notify Customer",
         "options": [
           {
             "label": "Yes",
@@ -1140,13 +1140,9 @@ schema:
           }
         ],
         "required": false,
-        "customInputLabel": "Enable Pagination",
-        "customHelp": "Enter \"true\" to enable pagination, or \"false\" to fetch all content.",
-        "customPlaceholder": "true",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "customInputLabel": "Notify Customer",
+        "customHelp": "Enter \"true\" to email the customer, or \"false\" to skip the email.",
+        "customPlaceholder": "true"
       },
       {
         "key": "page_location",
@@ -1206,20 +1202,17 @@ schema:
       label: Basic
       value: true
     customPlaceholder: "true"
-  - key: is_pagination
-    help: Select yes to enable pagination and enter page size, or no to fetch all content.
+  - key: notify_customer
+    help: Select Yes to email the customer about this update. No email is sent if left empty.
     type: boolean
-    label: Enable Pagination
+    label: Notify Customer
     options[2]{label,value}:
       Yes,true
       No,false
     required: false
-    customInputLabel: Enable Pagination
-    customHelp: "Enter \"true\" to enable pagination, or \"false\" to fetch all content."
+    customInputLabel: Notify Customer
+    customHelp: "Enter \"true\" to email the customer, or \"false\" to skip the email."
     customPlaceholder: "true"
-    defaultValue:
-      label: No
-      value: false
   - key: page_location
     help: Select Parent Page to create page under a parent, or Workspace to create a private page.
     type: boolean
