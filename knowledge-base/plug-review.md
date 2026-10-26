@@ -39,7 +39,7 @@ Rate each check from 0 to 100. If a check covers many items, the rating is the p
 
     Rate it.
 11. **Field layout.**
-    - Fields run from parent selectors, to required fields, to optional fields. Optional fields are grouped behind one "Select Additional Fields" multiselect.
+    - Fields run from parent selectors, to required fields, to optional fields. Small forms show every field directly; only large forms (judged from the use case, roughly 10–15+ fields) put the less-used optional fields behind one "Select Additional Fields" multiselect.
     - Fixed choices are dropdowns, lists are repeating input groups, and nested objects are input groups.
     - Users enter dates and times in plain formats, and the code converts them. Users never work out timestamps.
     - A separate help field is used only for:
