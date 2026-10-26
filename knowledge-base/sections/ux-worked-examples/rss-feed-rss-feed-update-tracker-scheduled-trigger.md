@@ -8,7 +8,7 @@
 - **Use Case:** Polls multiple configured RSS feed URLs at regular intervals and triggers the workflow whenever new items or updates are published, tracking processed items by `pubDate` using pagination cursors.
 - **UX Highlights:**
   - **Preconfigured Multi-Item List (`feed_url` with `list: true`):** In triggers, dynamic data mapping from upstream steps is impossible because triggers start the workflow. Therefore, when multiple items (e.g. RSS Feed URLs) need to be configured, use `list: true` on the `string` field so users can enter multiple items in a clean line-item list UI during setup.
-  - **Filter Type Selection (`filter_type`):** Dropdown to select deduplication strategy (`Different Publish Date` / `pubDate`) to ensure each item is processed only once, paired with matching `defaultValue`.
+  - **Filter Type Selection (`filter_type`):** Dropdown to select deduplication strategy (`Different Publish Date` / `pubDate`) to ensure each item is processed only once, with its default stated in `help` and applied in perform code.
   - **Multi-Feed Aggregation & XML Parsing:** Loops through configured feed URLs, parses XML using `XMLParser`, filters items by `pubDate` against `context.paginationData` (or fallback window from `scheduledTime`), and merges channel metadata into each item.
   - **Chronological Sorting & Cursor Management:** Sorts items oldest-first so flows process events in natural sequence, caps results at 1000 items, and saves the latest item timestamp to `context.paginationData`.
   - **Representative Sample Data (`performlist`):** Scans the configured feed URLs to return the latest item found across feeds with a helpful `viasocket_help` message, falling back to a structured schema if feeds are currently empty or unreachable.
@@ -28,7 +28,7 @@
   },
   {
     "key": "filter_type",
-    "help": "Choose the filter type to ensure that each item is processed only once.",
+    "help": "Choose the filter type to ensure that each item is processed only once. Defaults to Different Publish Date.",
     "type": "dropdown",
     "label": "Filter Type",
     "options": [
@@ -39,12 +39,7 @@
       }
     ],
     "required": true,
-    "placeholder": "Choose Filter Type",
-    "defaultValue": {
-      "label": "Different Publish Date",
-      "value": "pubDate",
-      "sample": "pubDate"
-    }
+    "placeholder": "Choose Filter Type"
   }
 ]
 ```

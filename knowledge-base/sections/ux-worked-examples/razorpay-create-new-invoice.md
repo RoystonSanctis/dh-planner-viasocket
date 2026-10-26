@@ -135,7 +135,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
 [
   {
     "key": "use_customer_id",
-    "help": "Choose whether to use an existing Customer ID or enter new customer details.",
+    "help": "Choose whether to use an existing Customer ID or enter new customer details. Defaults to Use Customer Details.",
     "type": "boolean",
     "label": "Generate invoice with?",
     "options": [
@@ -148,11 +148,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
         "value": false
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Use Customer Details",
-      "value": false
-    }
+    "required": true
   },
   {
     "key": "customer_id",
@@ -207,12 +203,11 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
   },
   {
     "key": "expire_by_days",
-    "help": "Enter the number of days after which the invoice should expire.",
+    "help": "Enter the number of days after which the invoice should expire. Defaults to 120.",
     "type": "number",
     "label": "Expiry (in days)",
     "required": true,
-    "placeholder": "30 for 30 days",
-    "defaultValue": "120"
+    "placeholder": "30 for 30 days"
   },
   {
     "key": "billing_address",
@@ -268,7 +263,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
   },
   {
     "key": "same_as_billing",
-    "help": "Is the shipping address the same as the billing address?",
+    "help": "Is the shipping address the same as the billing address? Defaults to Yes.",
     "type": "boolean",
     "label": "Billing Address Same as Shipping?",
     "options": [
@@ -281,11 +276,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
         "value": false
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Yes",
-      "value": true
-    }
+    "required": true
   },
   {
     "key": "shipping_address",
@@ -398,7 +389,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
   },
   {
     "key": "partial_payment",
-    "help": "Enable this to allow partial payments.",
+    "help": "Enable this to allow partial payments. Defaults to No.",
     "type": "boolean",
     "label": "Allow Partial Payment",
     "options": [
@@ -411,11 +402,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   }
 ]
 ```

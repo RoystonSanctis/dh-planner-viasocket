@@ -41,7 +41,7 @@
   },
   {
     "key": "date_mode",
-    "help": "Choose how you want to filter events by time range.",
+    "help": "Choose how you want to filter events by time range. Defaults to All Upcoming Events.",
     "type": "dropdown",
     "label": "Time Range",
     "options": [
@@ -61,12 +61,7 @@
         "sample": "fixed"
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "All Upcoming Events",
-      "value": "all",
-      "sample": "all"
-    }
+    "required": true
   },
   {
     "key": "relative_days",
@@ -239,7 +234,7 @@
   },
   {
     "key": "show_deleted",
-    "help": "Choose whether to include cancelled/deleted events in the results.",
+    "help": "Choose whether to include cancelled/deleted events in the results. Defaults to No.",
     "type": "boolean",
     "label": "Include Deleted Events",
     "options": [
@@ -252,15 +247,11 @@
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   },
   {
     "key": "show_hidden_invitations",
-    "help": "Choose whether to include hidden invitations in the results.",
+    "help": "Choose whether to include hidden invitations in the results. Defaults to No.",
     "type": "boolean",
     "label": "Include Hidden Invitations",
     "options": [
@@ -273,11 +264,7 @@
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   },
   {
     "key": "maxResults",

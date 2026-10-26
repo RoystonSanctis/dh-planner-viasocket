@@ -70,7 +70,7 @@
   },
   {
     "key": "close_date_type",
-    "help": "Select how you want to set the expected close date for this deal.",
+    "help": "Select how you want to set the expected close date for this deal. Defaults to Days from today.",
     "type": "boolean",
     "label": "Expected Close Date",
     "options": [
@@ -85,10 +85,6 @@
     ],
     "required": false,
     "customHelp": "Enter true for days from today and false for a specific date.",
-    "defaultValue": {
-      "label": "Days from today",
-      "value": true
-    },
     "customInputLabel": "Expected Close Date Type",
     "customPlaceholder": "true"
   },

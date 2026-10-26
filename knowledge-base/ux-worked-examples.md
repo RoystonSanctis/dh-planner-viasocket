@@ -126,19 +126,10 @@ This is the canonical **field-chooser → schema-driven dynamic input group** pa
 [
   {
     "key": "selected_properties",
-    "help": "Select the contact properties you want to include in this action. Email must be provided at runtime.",
+    "help": "Select the contact properties you want to include in this action. Email must be provided at runtime. Defaults to Email, First name, Last name, Company, Phone, Job title, Lifecycle stage.",
     "type": "multiselect",
     "label": "Select Contact Properties",
     "required": true,
-    "defaultValue": [
-      { "label": "Email", "value": "email" },
-      { "label": "First name", "value": "firstname" },
-      { "label": "Last name", "value": "lastname" },
-      { "label": "Company", "value": "company" },
-      { "label": "Phone", "value": "phone" },
-      { "label": "Job title", "value": "jobtitle" },
-      { "label": "Lifecycle stage", "value": "lifecyclestage" }
-    ],
     "optionsGenerator": "async function getOptions() { try { const resp = await axios.get('https://api.hubapi.com/properties/v2/contacts/properties', { headers: { 'Content-Type': 'application/json' } }); const fields = resp.data || []; return fields.map(f => ({ label: f.label || f.name, value: f.name, sample: f.name, type: f.type || f.fieldType || 'string', options: Array.isArray(f.options) ? f.options.map(o => ({ label: o.label, value: o.value })) : [] })).sort((a,b) => (a.label||'').localeCompare(b.label||'')); } catch (err) { throw err; } }\n\nreturn await getOptions();"
   },
   {
@@ -228,7 +219,7 @@ return await performAction();
 - **Field chooser + `fieldsGenerator`** is the go-to CREATE pattern for schema-rich CRMs: pick properties → render typed inputs for only those properties.
 - Map API property types to the correct viaSocket field type (boolean/number/date/dropdown/string) instead of dumping everything as strings.
 - When the chooser is empty, return `[{ message: "..." }]` from the generator so the user gets a clear instruction instead of a broken form.
-- Pre-select the fields 90% of users need as `defaultValue`, keeping the common path one click away.
+- Default to the fields 90% of users need (state them in `help`, apply them in perform code, never a `defaultValue` key), keeping the common path one click away.
 
 ---
 
@@ -433,7 +424,7 @@ return await performAction();
 [
   {
     "key": "event_scope",
-    "help": "Select Personal for your own event types or Team for a shared team event.",
+    "help": "Select Personal for your own event types or Team for a shared team event. Defaults to Personal.",
     "type": "dropdown",
     "label": "Event Type Scope",
     "options": [
@@ -446,11 +437,7 @@ return await performAction();
         "value": "team"
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Personal",
-      "value": "personal"
-    }
+    "required": true
   },
   {
     "key": "team_id",
@@ -475,7 +462,7 @@ return await performAction();
   },
   {
     "key": "date_selection_mode",
-    "help": "Use Days from Today for relative scheduling or Exact Date & Time for a fixed slot.",
+    "help": "Use Days from Today for relative scheduling or Exact Date & Time for a fixed slot. Defaults to Days from Today.",
     "type": "boolean",
     "label": "Schedule Booking Using",
     "options": [
@@ -488,11 +475,7 @@ return await performAction();
         "value": false
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Days from Today",
-      "value": true
-    }
+    "required": true
   },
   {
     "key": "start_no_of_days",
@@ -523,7 +506,7 @@ return await performAction();
   },
   {
     "key": "timeZone",
-    "help": "The start time will be interpreted in this timezone.",
+    "help": "The start time will be interpreted in this timezone. Defaults to India Standard Time (Asia/Kolkata).",
     "type": "dropdown",
     "label": "Time Zone",
     "options": [
@@ -641,10 +624,6 @@ return await performAction();
       }
     ],
     "required": true,
-    "defaultValue": {
-      "label": "India Standard Time (Asia/Kolkata)",
-      "value": "Asia/Kolkata"
-    },
     "customInputLabel": "Enter Timezone",
     "customPlaceholder": "America/New_York"
   },
@@ -683,7 +662,7 @@ return await performAction();
   },
   {
     "key": "location_kind",
-    "help": "Select the meeting location. Ensure the integration is connected in your Cal.id account.",
+    "help": "Select the meeting location. Ensure the integration is connected in your Cal.id account. Defaults to Google Meet.",
     "type": "dropdown",
     "label": "Meeting Location",
     "options": [
@@ -717,10 +696,6 @@ return await performAction();
       }
     ],
     "required": false,
-    "defaultValue": {
-      "label": "Google Meet",
-      "value": "integrations:google:meet"
-    },
     "customInputLabel": "Enter location value manually",
     "customPlaceholder": "integrations:zoom:video"
   },
@@ -759,7 +734,7 @@ return await performAction();
   },
   {
     "key": "language",
-    "help": "Language for booking confirmation emails sent to the attendee.",
+    "help": "Language for booking confirmation emails sent to the attendee. Defaults to English.",
     "type": "dropdown",
     "label": "Confirmation Email Language",
     "options": [
@@ -796,15 +771,11 @@ return await performAction();
         "value": "ar"
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "English",
-      "value": "en"
-    }
+    "required": false
   },
   {
     "key": "show_advanced",
-    "help": "Attach custom metadata to this booking for tracking or CRM purposes.",
+    "help": "Attach custom metadata to this booking for tracking or CRM purposes. Defaults to No.",
     "type": "boolean",
     "label": "Add Custom Metadata?",
     "options": [
@@ -817,11 +788,7 @@ return await performAction();
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   },
   {
     "key": "metadata",
@@ -1107,6 +1074,7 @@ try {
   },
   {
     "key": "invitee_timezone",
+    "help": "Select the invitee's timezone. Defaults to Asia/Kolkata (IST, UTC+5:30).",
     "type": "dropdown",
     "label": "Invitee Timezone",
     "options": [
@@ -1256,10 +1224,6 @@ try {
       }
     ],
     "required": true,
-    "defaultValue": {
-      "label": "Asia/Kolkata (IST, UTC+5:30)",
-      "value": "Asia/Kolkata"
-    },
     "customInputLabel": "Enter Timezone",
     "customPlaceholder": "Asia/Kolkata"
   }
@@ -1628,7 +1592,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
 [
   {
     "key": "use_customer_id",
-    "help": "Choose whether to use an existing Customer ID or enter new customer details.",
+    "help": "Choose whether to use an existing Customer ID or enter new customer details. Defaults to Use Customer Details.",
     "type": "boolean",
     "label": "Generate invoice with?",
     "options": [
@@ -1641,11 +1605,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
         "value": false
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Use Customer Details",
-      "value": false
-    }
+    "required": true
   },
   {
     "key": "customer_id",
@@ -1700,12 +1660,11 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
   },
   {
     "key": "expire_by_days",
-    "help": "Enter the number of days after which the invoice should expire.",
+    "help": "Enter the number of days after which the invoice should expire. Defaults to 120.",
     "type": "number",
     "label": "Expiry (in days)",
     "required": true,
-    "placeholder": "30 for 30 days",
-    "defaultValue": "120"
+    "placeholder": "30 for 30 days"
   },
   {
     "key": "billing_address",
@@ -1761,7 +1720,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
   },
   {
     "key": "same_as_billing",
-    "help": "Is the shipping address the same as the billing address?",
+    "help": "Is the shipping address the same as the billing address? Defaults to Yes.",
     "type": "boolean",
     "label": "Billing Address Same as Shipping?",
     "options": [
@@ -1774,11 +1733,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
         "value": false
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Yes",
-      "value": true
-    }
+    "required": true
   },
   {
     "key": "shipping_address",
@@ -1891,7 +1846,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
   },
   {
     "key": "partial_payment",
-    "help": "Enable this to allow partial payments.",
+    "help": "Enable this to allow partial payments. Defaults to No.",
     "type": "boolean",
     "label": "Allow Partial Payment",
     "options": [
@@ -1904,11 +1859,7 @@ Once the invoice is created, the system returns the invoice ID, URL, and other r
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   }
 ]
 ```
@@ -2024,7 +1975,7 @@ return createInvoice();
   },
   {
     "key": "column_key",
-    "help": "Determines how the data columns are labelled.",
+    "help": "Determines how the data columns are labelled. Defaults to Yes.",
     "type": "boolean",
     "label": "Does your first row contain column name?",
     "options": [
@@ -2034,7 +1985,6 @@ return createInvoice();
     "required": true,
     "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
     "placeholder": "Choose Option",
-    "defaultValue": { "label": "Yes", "value": true },
     "customPlaceholder": "true ",
     "visibilityCondition": "context?.inputData?.spreadsheet_Id && context?.inputData?.grid_Id"
   },
@@ -2212,7 +2162,7 @@ return createInvoice();
   },
   {
     "key": "close_date_type",
-    "help": "Select how you want to set the expected close date for this deal.",
+    "help": "Select how you want to set the expected close date for this deal. Defaults to Days from today.",
     "type": "boolean",
     "label": "Expected Close Date",
     "options": [
@@ -2227,10 +2177,6 @@ return createInvoice();
     ],
     "required": false,
     "customHelp": "Enter true for days from today and false for a specific date.",
-    "defaultValue": {
-      "label": "Days from today",
-      "value": true
-    },
     "customInputLabel": "Expected Close Date Type",
     "customPlaceholder": "true"
   },
@@ -2715,7 +2661,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
       },
       {
         "key": "is_on_credit_hold",
-        "help": "Select yes to place the customer on credit hold.",
+        "help": "Select yes to place the customer on credit hold. Defaults to No.",
         "type": "boolean",
         "label": "On Credit Hold?",
         "options": [
@@ -2730,17 +2676,13 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": false,
         "customHelp": "Enter true for on hold, or false for not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "On Credit Hold?",
         "customPlaceholder": "false",
         "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('is_on_credit_hold')"
       },
       {
         "key": "is_legal_entity",
-        "help": "Select yes if the customer is a legal entity.",
+        "help": "Select yes if the customer is a legal entity. Defaults to No.",
         "type": "boolean",
         "label": "Is a Legal Entity?",
         "options": [
@@ -2755,10 +2697,6 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": false,
         "customHelp": "Enter true for legal entity, or false for not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "Is a Legal Entity?",
         "customPlaceholder": "false",
         "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('is_legal_entity')"
@@ -3081,10 +3019,6 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": true,
         "customHelp": "Enter true to set as default, or false to not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "Default contact?",
         "customPlaceholder": "false"
       },
@@ -3098,7 +3032,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
       },
       {
         "key": "IncludeInEmail",
-        "help": "Select yes to include this contact in CC for emails.",
+        "help": "Select yes to include this contact in CC for emails. Defaults to No.",
         "type": "boolean",
         "label": "Include in CC for emails?",
         "options": [
@@ -3113,10 +3047,6 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": false,
         "customHelp": "Enter true to include in CC, or false to not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "Include in CC for emails?",
         "customPlaceholder": "false"
       },
@@ -3370,7 +3300,7 @@ return await updateCustomer();
     "fields": [
       {
         "key": "fetch_method",
-        "help": "Select how you want to find the employee. Use Email for natural identification. Use Employee Number or ID if you already have it.",
+        "help": "Select how you want to find the employee. Use Email for natural identification. Use Employee Number or ID if you already have it. Defaults to Email Address.",
         "type": "dropdown",
         "label": "Find Employee By",
         "options": [
@@ -3384,10 +3314,6 @@ return await updateCustomer();
           }
         ],
         "required": true,
-        "defaultValue": {
-          "label": "Email Address",
-          "value": "email"
-        },
         "customInputLabel": "Enter fetch method",
         "customPlaceholder": "email"
       },
@@ -3832,7 +3758,7 @@ return await updateCustomer();
       },
       {
         "key": "updateCurrentAddress",
-        "help": "Enable this to update the employee's current address.",
+        "help": "Enable this to update the employee's current address. Defaults to No.",
         "type": "boolean",
         "label": "Update Current Address?",
         "options": [
@@ -3845,11 +3771,7 @@ return await updateCustomer();
             "value": false
           }
         ],
-        "required": false,
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "required": false
       },
       {
         "key": "currentAddress",
@@ -3951,7 +3873,7 @@ return await updateCustomer();
       },
       {
         "key": "isCurrentAddressSameAsPermanent",
-        "help": "Select Yes if the permanent address is the same as the updated current address.",
+        "help": "Select Yes if the permanent address is the same as the updated current address. Defaults to Yes.",
         "type": "boolean",
         "label": "Is Current Address Same as Permanent Address?",
         "options": [
@@ -3965,10 +3887,6 @@ return await updateCustomer();
           }
         ],
         "required": false,
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
         "visibilityCondition": "context.inputData?.contactDetails?.updateCurrentAddress === true"
       },
       {
@@ -4398,7 +4316,7 @@ return await updateCustomer();
       },
       {
         "key": "add_bonus_information",
-        "help": "Enable this to add bonus information along with the salary revision.",
+        "help": "Enable this to add bonus information along with the salary revision. Defaults to No.",
         "type": "boolean",
         "label": "Add Bonus Information?",
         "options": [
@@ -4411,11 +4329,7 @@ return await updateCustomer();
             "value": false
           }
         ],
-        "required": false,
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "required": false
       },
       {
         "key": "apiBonusDto",
@@ -4460,7 +4374,7 @@ return await updateCustomer();
           },
           {
             "key": "isBonusAmountIncludedInSalary",
-            "help": "Is the bonus amount already included in the salary figure above?",
+            "help": "Is the bonus amount already included in the salary figure above? Defaults to No.",
             "type": "boolean",
             "label": "Is Bonus Included in Salary?",
             "options": [
@@ -4473,11 +4387,7 @@ return await updateCustomer();
                 "value": false
               }
             ],
-            "required": false,
-            "defaultValue": {
-              "label": "No",
-              "value": false
-            }
+            "required": false
           }
         ]
       }
@@ -4493,7 +4403,7 @@ return await updateCustomer();
     "fields": [
       {
         "key": "salaryPaymentMode",
-        "help": "Select or enter the updated payment mode. None (0), Bank Transfer (1), Cash (2), Cheque (3), Unknown (4).",
+        "help": "Select or enter the updated payment mode. None (0), Bank Transfer (1), Cash (2), Cheque (3), Unknown (4). Defaults to Bank Transfer.",
         "type": "dropdown",
         "label": "Salary Payment Mode",
         "options": [
@@ -4520,10 +4430,6 @@ return await updateCustomer();
         ],
         "required": true,
         "placeholder": "Select salary payment mode",
-        "defaultValue": {
-          "label": "Bank Transfer",
-          "value": 1
-        },
         "customInputLabel": "Enter payment mode manually",
         "customPlaceholder": "1 for Bank Transfer"
       },
@@ -5005,7 +4911,7 @@ Allows users to choose which employee attributes should be returned in the outpu
 [
   {
     "key": "mode",
-    "help": "Choose how you want to fetch employees (all, recent, or specific).",
+    "help": "Choose how you want to fetch employees (all, recent, or specific). Defaults to Fetch All Employees.",
     "type": "dropdown",
     "label": "How Do You Want to Fetch Employees?",
     "options": [
@@ -5024,10 +4930,6 @@ Allows users to choose which employee attributes should be returned in the outpu
     ],
     "required": true,
     "placeholder": "Select fetch mode",
-    "defaultValue": {
-      "label": "Fetch All Employees",
-      "value": "all"
-    },
     "customInputLabel": "Enter fetch mode",
     "customPlaceholder": "Fetch all employees"
   },
@@ -5105,22 +5007,12 @@ Allows users to choose which employee attributes should be returned in the outpu
         ],
         "required": false,
         "placeholder": "Select employment status",
-        "defaultValue": [
-          {
-            "label": "Working",
-            "value": "Working"
-          },
-          {
-            "label": "Relieved",
-            "value": "Relieved"
-          }
-        ],
         "customInputLabel": "Enter employment status",
         "customPlaceholder": "Working"
       },
       {
         "key": "inNoticePeriod",
-        "help": "Choose whether to fetch only employees who are currently serving a notice period or employees who are not on notice.",
+        "help": "Choose whether to fetch only employees who are currently serving a notice period or employees who are not on notice. Defaults to Employees not on notice.",
         "type": "dropdown",
         "label": "Notice Period",
         "options": [
@@ -5135,16 +5027,12 @@ Allows users to choose which employee attributes should be returned in the outpu
         ],
         "required": false,
         "placeholder": "Select notice period filter",
-        "defaultValue": {
-          "label": "Employees not on notice",
-          "value": false
-        },
         "customInputLabel": "Enter notice period filter",
         "customPlaceholder": "Only notice period employees"
       },
       {
         "key": "inProbation",
-        "help": "Choose whether to fetch only employees who are currently in probation or permanent employees.",
+        "help": "Choose whether to fetch only employees who are currently in probation or permanent employees. Defaults to Permanent Employees.",
         "type": "dropdown",
         "label": "Probation",
         "options": [
@@ -5159,10 +5047,6 @@ Allows users to choose which employee attributes should be returned in the outpu
         ],
         "required": false,
         "placeholder": "Select probation filter",
-        "defaultValue": {
-          "label": "Permanent Employees",
-          "value": false
-        },
         "customInputLabel": "Enter probation filter",
         "customPlaceholder": "Only probation employees"
       }
@@ -5405,56 +5289,6 @@ Allows users to choose which employee attributes should be returned in the outpu
     ],
     "required": false,
     "placeholder": "Select fields",
-    "defaultValue": [
-      {
-        "label": "Employee Number",
-        "value": "employeeNumber"
-      },
-      {
-        "label": "Full Name",
-        "value": "displayName"
-      },
-      {
-        "label": "Work Email",
-        "value": "email"
-      },
-      {
-        "label": "Mobile Phone",
-        "value": "mobilePhone"
-      },
-      {
-        "label": "Job Title",
-        "value": "jobTitle.title"
-      },
-      {
-        "label": "Reports To (Manager)",
-        "value": "reportsTo"
-      },
-      {
-        "label": "Employment Status",
-        "value": "employmentStatus"
-      },
-      {
-        "label": "Account Status",
-        "value": "accountStatus"
-      },
-      {
-        "label": "Joining Date",
-        "value": "joiningDate"
-      },
-      {
-        "label": "Date of Birth",
-        "value": "dateOfBirth"
-      },
-      {
-        "label": "Groups / Department",
-        "value": "groups"
-      },
-      {
-        "label": "City",
-        "value": "city"
-      }
-    ],
     "customInputLabel": "Enter field name",
     "customPlaceholder": "firstName"
   }
@@ -5832,12 +5666,11 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
   },
   {
     "key": "maxRecords",
-    "help": "Limits the number of records returned. Example: 50. Maximum allowed value is 1000.",
+    "help": "Limits the number of records returned. Example: 50. Maximum allowed value is 1000. Defaults to 100.",
     "type": "number",
     "label": "Maximum Records to Return",
     "required": false,
     "placeholder": "Default 100 (maximum 1000)",
-    "defaultValue": 100,
     "visibilityCondition": "context?.inputData?.bulkMode === false"
   },
   {
@@ -5851,7 +5684,7 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
   },
   {
     "key": "sortDirection",
-    "help": "Choose result order. Descending shows newest records first. Ascending shows oldest first.",
+    "help": "Choose result order. Descending shows newest records first. Ascending shows oldest first. Defaults to 1.",
     "type": "dropdown",
     "label": "Sort Direction",
     "options": [
@@ -5859,12 +5692,11 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
       { "label": "Ascending (Oldest First)", "value": "0" }
     ],
     "required": false,
-    "placeholder": "Select sorting order",
-    "defaultValue": "1"
+    "placeholder": "Select sorting order"
   },
   {
     "key": "responseMode",
-    "help": "Basic returns essential lead fields. Custom allows selecting specific columns. Full returns all available data.",
+    "help": "Basic returns essential lead fields. Custom allows selecting specific columns. Full returns all available data. Defaults to Basic.",
     "type": "dropdown",
     "label": "Response Mode",
     "options": [
@@ -5873,8 +5705,7 @@ FIND/SEARCH actions locate records by criteria rather than a known ID. Recurring
       { "label": "Full Raw Data", "value": "full" }
     ],
     "required": false,
-    "placeholder": "Select response format",
-    "defaultValue": { "label": "Basic", "value": "basic", "sample": "Recommended" }
+    "placeholder": "Select response format"
   },
   {
     "key": "customColumns",
@@ -6018,7 +5849,7 @@ try {
   },
   {
     "key": "date_mode",
-    "help": "Choose how you want to filter events by time range.",
+    "help": "Choose how you want to filter events by time range. Defaults to All Upcoming Events.",
     "type": "dropdown",
     "label": "Time Range",
     "options": [
@@ -6038,12 +5869,7 @@ try {
         "sample": "fixed"
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "All Upcoming Events",
-      "value": "all",
-      "sample": "all"
-    }
+    "required": true
   },
   {
     "key": "relative_days",
@@ -6216,7 +6042,7 @@ try {
   },
   {
     "key": "show_deleted",
-    "help": "Choose whether to include cancelled/deleted events in the results.",
+    "help": "Choose whether to include cancelled/deleted events in the results. Defaults to No.",
     "type": "boolean",
     "label": "Include Deleted Events",
     "options": [
@@ -6229,15 +6055,11 @@ try {
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   },
   {
     "key": "show_hidden_invitations",
-    "help": "Choose whether to include hidden invitations in the results.",
+    "help": "Choose whether to include hidden invitations in the results. Defaults to No.",
     "type": "boolean",
     "label": "Include Hidden Invitations",
     "options": [
@@ -6250,11 +6072,7 @@ try {
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   },
   {
     "key": "maxResults",
@@ -6536,7 +6354,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "date_mode",
-    "help": "Select how you'd like to specify the reporting date range.",
+    "help": "Select how you'd like to specify the reporting date range. Defaults to Relative (Last N Days).",
     "type": "dropdown",
     "label": "Date Range Type",
     "options": [
@@ -6554,22 +6372,16 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     "required": true,
     "customHelp": "Enter 'relative' for Last N Days or 'fixed' for specific start and end dates.",
     "placeholder": "Select date range type",
-    "defaultValue": {
-      "label": "Relative (Last N Days)",
-      "value": "relative",
-      "sample": "relative"
-    },
     "customInputLabel": "Date Range Type",
     "customPlaceholder": "relative"
   },
   {
     "key": "relative_days",
-    "help": "Enter the number of past days to include in the report (7, 28, 90).",
+    "help": "Enter the number of past days to include in the report (7, 28, 90). Defaults to 28.",
     "type": "number",
     "label": "Last N Days",
     "required": true,
     "placeholder": "28",
-    "defaultValue": 28,
     "visibilityCondition": "context?.inputData?.date_mode === 'relative'"
   },
   {
@@ -6857,7 +6669,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "sort_order",
-    "help": "Select the sort direction to apply to all selected sort fields.",
+    "help": "Select the sort direction to apply to all selected sort fields. Defaults to Descending.",
     "type": "dropdown",
     "label": "Sort Order",
     "options": [
@@ -6874,11 +6686,6 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     ],
     "required": false,
     "customHelp": "Enter 'asc' for ascending or 'desc' for descending sort order.",
-    "defaultValue": {
-      "label": "Descending",
-      "value": "desc",
-      "sample": "desc"
-    },
     "customInputLabel": "Sort Order",
     "customPlaceholder": "desc",
     "visibilityCondition": "(Array.isArray(context?.inputData?.sort_fields) && context.inputData.sort_fields.length > 0) || (typeof context?.inputData?.sort_fields === 'string' && context.inputData.sort_fields.trim().length > 0)"
@@ -7340,7 +7147,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
     "fields": [
       {
         "key": "messageto",
-        "help": "Select where to send the message.",
+        "help": "Select where to send the message. Defaults to Channel.",
         "type": "dropdown",
         "label": "To",
         "options": [
@@ -7360,10 +7167,6 @@ Automatically retries requests when Slack rate limits are encountered before ret
         "required": true,
         "customHelp": "Enter channel, user, or thread.",
         "placeholder": "Select destination type",
-        "defaultValue": {
-          "label": "Channel",
-          "value": "channel"
-        },
         "customInputLabel": "Destination type",
         "customPlaceholder": "channel"
       },
@@ -8552,7 +8355,7 @@ return await fetchUpcomingMeetings();
 - **Use Case:** Polls multiple configured RSS feed URLs at regular intervals and triggers the workflow whenever new items or updates are published, tracking processed items by `pubDate` using pagination cursors.
 - **UX Highlights:**
   - **Preconfigured Multi-Item List (`feed_url` with `list: true`):** In triggers, dynamic data mapping from upstream steps is impossible because triggers start the workflow. Therefore, when multiple items (e.g. RSS Feed URLs) need to be configured, use `list: true` on the `string` field so users can enter multiple items in a clean line-item list UI during setup.
-  - **Filter Type Selection (`filter_type`):** Dropdown to select deduplication strategy (`Different Publish Date` / `pubDate`) to ensure each item is processed only once, paired with matching `defaultValue`.
+  - **Filter Type Selection (`filter_type`):** Dropdown to select deduplication strategy (`Different Publish Date` / `pubDate`) to ensure each item is processed only once, with its default stated in `help` and applied in perform code.
   - **Multi-Feed Aggregation & XML Parsing:** Loops through configured feed URLs, parses XML using `XMLParser`, filters items by `pubDate` against `context.paginationData` (or fallback window from `scheduledTime`), and merges channel metadata into each item.
   - **Chronological Sorting & Cursor Management:** Sorts items oldest-first so flows process events in natural sequence, caps results at 1000 items, and saves the latest item timestamp to `context.paginationData`.
   - **Representative Sample Data (`performlist`):** Scans the configured feed URLs to return the latest item found across feeds with a helpful `viasocket_help` message, falling back to a structured schema if feeds are currently empty or unreachable.
@@ -8572,7 +8375,7 @@ return await fetchUpcomingMeetings();
   },
   {
     "key": "filter_type",
-    "help": "Choose the filter type to ensure that each item is processed only once.",
+    "help": "Choose the filter type to ensure that each item is processed only once. Defaults to Different Publish Date.",
     "type": "dropdown",
     "label": "Filter Type",
     "options": [
@@ -8583,12 +8386,7 @@ return await fetchUpcomingMeetings();
       }
     ],
     "required": true,
-    "placeholder": "Choose Filter Type",
-    "defaultValue": {
-      "label": "Different Publish Date",
-      "value": "pubDate",
-      "sample": "pubDate"
-    }
+    "placeholder": "Choose Filter Type"
   }
 ]
 ```
@@ -8971,7 +8769,7 @@ These are the reusable moves that recur across the examples above. When designin
 
 **10. Normalize flexible inputs in code.** ID fields may arrive as an array of `{label,value}` objects (select mode) or a comma-separated string (custom-input mode). Normalize both; also support comma-separated multi-values in a single string for quick multi-lookups (Keka, Slack).
 
-**11. Defaults hug the common path.** Pre-select the values 90% of users want (`notification_type: none`, `isScheduledMessage: No`, curated response fields) so the simplest use case needs almost no input. But: if the API applies its own default when a field is omitted, don't set a builder `defaultValue` — let the API default win.
+**11. Defaults hug the common path.** Default to the values 90% of users want (`notification_type: none`, `isScheduledMessage: No`, curated response fields) — state them in `help` and apply them in perform code, never with a `defaultValue` key — so the simplest use case needs almost no input. But: if the API applies its own default when a field is omitted, don't add a code fallback — let the API default win.
 
 **12. Partial-update / payload sanitization.** For updates and multi-field creates, strip `undefined`/`null`/`""` before sending (Razorpay `JSON.parse(JSON.stringify(...))`, HubSpot skip-empty loop) to avoid accidentally clearing destination fields.
 

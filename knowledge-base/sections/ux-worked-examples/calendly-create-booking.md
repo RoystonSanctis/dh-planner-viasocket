@@ -69,6 +69,7 @@
   },
   {
     "key": "invitee_timezone",
+    "help": "Select the invitee's timezone. Defaults to Asia/Kolkata (IST, UTC+5:30).",
     "type": "dropdown",
     "label": "Invitee Timezone",
     "options": [
@@ -218,10 +219,6 @@
       }
     ],
     "required": true,
-    "defaultValue": {
-      "label": "Asia/Kolkata (IST, UTC+5:30)",
-      "value": "Asia/Kolkata"
-    },
     "customInputLabel": "Enter Timezone",
     "customPlaceholder": "Asia/Kolkata"
   }

@@ -60,35 +60,6 @@
                         "visibilityCondition": {
                             "type": "string",
                             "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-                        },
-                        "defaultValue": {
-                            "type": "array",
-                            "description": "The default array of objects to select initially. Omit this field entirely if there is no default.",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "label": {
-                                        "type": "string",
-                                        "description": "The display name of the default option."
-                                    },
-                                    "value": {
-                                        "type": [
-                                            "string",
-                                            "number"
-                                        ],
-                                        "description": "The internal value of the default option."
-                                    },
-                                    "sample": {
-                                        "type": "string",
-                                        "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                    }
-                                },
-                                "required": [
-                                    "label",
-                                    "value",
-                                    "sample"
-                                ]
-                            }
                         }
                     },
                     "required": [

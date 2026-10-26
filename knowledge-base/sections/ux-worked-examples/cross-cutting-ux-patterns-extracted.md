@@ -23,7 +23,7 @@ These are the reusable moves that recur across the examples above. When designin
 
 **10. Normalize flexible inputs in code.** ID fields may arrive as an array of `{label,value}` objects (select mode) or a comma-separated string (custom-input mode). Normalize both; also support comma-separated multi-values in a single string for quick multi-lookups (Keka, Slack).
 
-**11. Defaults hug the common path.** Pre-select the values 90% of users want (`notification_type: none`, `isScheduledMessage: No`, curated response fields) so the simplest use case needs almost no input. But: if the API applies its own default when a field is omitted, don't set a builder `defaultValue` — let the API default win.
+**11. Defaults hug the common path.** Default to the values 90% of users want (`notification_type: none`, `isScheduledMessage: No`, curated response fields) — state them in `help` and apply them in perform code, never with a `defaultValue` key — so the simplest use case needs almost no input. But: if the API applies its own default when a field is omitted, don't add a code fallback — let the API default win.
 
 **12. Partial-update / payload sanitization.** For updates and multi-field creates, strip `undefined`/`null`/`""` before sending (Razorpay `JSON.parse(JSON.stringify(...))`, HubSpot skip-empty loop) to avoid accidentally clearing destination fields.
 

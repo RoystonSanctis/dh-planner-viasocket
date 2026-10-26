@@ -43,9 +43,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 - The true-value option must appear first, followed by the false-value option
 
 **6. Default Value Rule**
-- Set defaultValue only if a sensible default exists
-- defaultValue must be an object with label and value matching one of the options
-- Omit defaultValue entirely if there is no default
+- Never add a `defaultValue` key. State the default in `help` ("Defaults to X.") and apply it in perform code.
 
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
@@ -121,24 +119,6 @@ Generate a JSON object strictly following the rules below for a boolean field.
                                     "value"
                                 ]
                             }
-                        },
-                        "defaultValue": {
-                            "type": "object",
-                            "description": "The default selection. Omit this field entirely if there is no default.",
-                            "properties": {
-                                "label": {
-                                    "type": "string",
-                                    "description": "The label of the default option (e.g. 'No', 'Basic')."
-                                },
-                                "value": {
-                                    "type": "boolean",
-                                    "description": "The value of the default option (e.g. false, true)."
-                                }
-                            },
-                            "required": [
-                                "label",
-                                "value"
-                            ]
                         },
                         "placeholder": {
                             "type": "string",
@@ -226,17 +206,6 @@ schema:
                   type: boolean
                   description: The actual boolean value (true or false).
               required[2]: label,value
-          defaultValue:
-            type: object
-            description: The default selection. Omit this field entirely if there is no default.
-            properties:
-              label:
-                type: string
-                description: "The label of the default option (e.g. 'No', 'Basic')."
-              value:
-                type: boolean
-                description: "The value of the default option (e.g. false, true)."
-            required[2]: label,value
           placeholder:
             type: string
             description: "Optional placeholder text shown before selection. Omit if not applicable."
@@ -263,7 +232,7 @@ schema:
 [
    {
         "key": "column_key",
-        "help": "Select yes if the first row contains the column name.",
+        "help": "Select yes if the first row contains the column name. Defaults to Yes.",
         "type": "boolean",
         "label": "Does your first row contain column name?",
         "options": [
@@ -280,15 +249,11 @@ schema:
         "placeholder": "Choose Option",
         "customInputLabel": "Does your first row contain column name?",
         "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
         "key": "search_filter_type",
-        "help": "Select the filter type.",
+        "help": "Select the filter type. Defaults to Basic.",
         "type": "boolean",
         "label": "Search Filter Type",
         "options": [
@@ -304,10 +269,6 @@ schema:
         "required": true,
         "customInputLabel": "Search Filter Type",
         "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
-        "defaultValue": {
-          "label": "Basic",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
@@ -332,7 +293,7 @@ schema:
       },
       {
         "key": "page_location",
-        "help": "Select Parent Page to create page under a parent, or Workspace to create a private page.",
+        "help": "Select Parent Page to create page under a parent, or Workspace to create a private page. Defaults to Parent Page.",
         "type": "boolean",
         "label": "Create page at",
         "options": [
@@ -347,10 +308,6 @@ schema:
         ],
         "required": true,
         "customPlaceholder": "true",
-        "defaultValue": {
-          "label": "Parent Page",
-          "value": true
-        },
         "customInputLabel": "Create page at",
         "customHelp": "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
       }
@@ -360,7 +317,7 @@ schema:
 ```toon
 [4]:
   - key: column_key
-    help: Select yes if the first row contains the column name.
+    help: Select yes if the first row contains the column name. Defaults to Yes.
     type: boolean
     label: Does your first row contain column name?
     options[2]{label,value}:
@@ -370,12 +327,9 @@ schema:
     placeholder: Choose Option
     customInputLabel: Does your first row contain column name?
     customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
-    defaultValue:
-      label: Yes
-      value: true
     customPlaceholder: "true"
   - key: search_filter_type
-    help: Select the filter type.
+    help: Select the filter type. Defaults to Basic.
     type: boolean
     label: Search Filter Type
     options[2]{label,value}:
@@ -384,9 +338,6 @@ schema:
     required: true
     customInputLabel: Search Filter Type
     customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
-    defaultValue:
-      label: Basic
-      value: true
     customPlaceholder: "true"
   - key: notify_customer
     help: Select Yes to email the customer about this update. No email is sent if left empty.
@@ -400,7 +351,7 @@ schema:
     customHelp: "Enter \"true\" to email the customer, or \"false\" to skip the email."
     customPlaceholder: "true"
   - key: page_location
-    help: Select Parent Page to create page under a parent, or Workspace to create a private page.
+    help: Select Parent Page to create page under a parent, or Workspace to create a private page. Defaults to Parent Page.
     type: boolean
     label: Create page at
     options[2]{label,value}:
@@ -408,9 +359,6 @@ schema:
       Parent Page,true
     required: true
     customPlaceholder: "true"
-    defaultValue:
-      label: Parent Page
-      value: true
     customInputLabel: Create page at
     customHelp: "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
 ```

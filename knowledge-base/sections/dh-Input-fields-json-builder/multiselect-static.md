@@ -37,10 +37,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Each option may optionally include:
   - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
 **8. Default Value Rule**
-- Set defaultValue only if a sensible default exists.
-- MANDATORY RULE: If provided, defaultValue must be an array of objects where each object is an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
-- Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
-- Omit defaultValue entirely if there is no default.
+- Never add a `defaultValue` key. State the default in `help` ("Defaults to X.") and apply it in perform code.
 **9. Custom Input Rules**
 - **help key**: Must focus on selection. **The value must start with "Select"** (e.g. `"Select the fields to include in the output."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 - **customInputLabel is required**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Output Response"`, customInputLabel `"Output Response"`). If not an ID field, standard label and `customInputLabel` must be the same.
@@ -142,35 +139,6 @@ Generate a JSON object strictly following the rules below for a static multisele
                                     "sample"
                                 ]
                             }
-                        },
-                        "defaultValue": {
-                            "type": "array",
-                            "description": "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default.",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "label": {
-                                        "type": "string",
-                                        "description": "The display name of the default option."
-                                    },
-                                    "value": {
-                                        "type": [
-                                            "string",
-                                            "number"
-                                        ],
-                                        "description": "The internal value of the default option."
-                                    },
-                                    "sample": {
-                                        "type": "string",
-                                        "description": "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                    }
-                                },
-                                "required": [
-                                    "label",
-                                    "value",
-                                    "sample"
-                                ]
-                            }
                         }
                     },
                     "required": [
@@ -257,22 +225,6 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-          defaultValue:
-            type: array
-            description: "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default."
-            items:
-              type: object
-              properties:
-                label:
-                  type: string
-                  description: The display name of the default option.
-                value:
-                  type[2]: string,number
-                  description: The internal value of the default option.
-                sample:
-                  type: string
-                  description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-              required[3]: label,value,sample
         required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
@@ -282,7 +234,7 @@ schema:
 [
   {
     "key": "output_response",
-    "help": "Select the output response format (markdown, blocks, or html).",
+    "help": "Select the output response format (markdown, blocks, or html). Defaults to Markdown.",
     "type": "multiselect",
     "label": "Output Response",
     "options": [
@@ -304,13 +256,6 @@ schema:
     ],
     "required": true,
     "placeholder": "Choose Return Type",
-    "defaultValue": [
-      {
-        "label": "Markdown",
-        "value": "markdown",
-        "sample": "markdown"
-      }
-    ],
     "customInputLabel": "Output Response",
     "customHelp": "Enter 'markdown', 'blocks', or 'html' in an array format to customize the output response.",
     "customPlaceholder": "[\"markdown\",\"block\"]"
@@ -355,7 +300,7 @@ schema:
 ```toon
 [2]:
   - key: output_response
-    help: "Select the output response format (markdown, blocks, or html)."
+    help: "Select the output response format (markdown, blocks, or html). Defaults to Markdown."
     type: multiselect
     label: Output Response
     options[3]{label,value,sample}:
@@ -364,8 +309,6 @@ schema:
       HTML,html,html
     required: true
     placeholder: Choose Return Type
-    defaultValue[1]{label,value,sample}:
-      Markdown,markdown,markdown
     customInputLabel: Output Response
     customHelp: "Enter 'markdown', 'blocks', or 'html' in an array format to customize the output response."
     customPlaceholder: "[\"markdown\",\"block\"]"

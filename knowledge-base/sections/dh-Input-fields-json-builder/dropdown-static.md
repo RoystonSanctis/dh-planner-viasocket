@@ -38,10 +38,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
   - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
   - extraValue: an extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type (string, number, boolean, object, array). Omit if not needed.
 **8. Default Value Rule**
-- Set defaultValue only if a sensible default exists.
-- MANDATORY RULE: If provided, defaultValue must be an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
-- defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
-- Omit defaultValue entirely if there is no default.
+- Never add a `defaultValue` key. State the default in `help` ("Defaults to X.") and apply it in perform code.
 **9. Custom Input Rules**
 - **help key**: Must focus on selection. **The value must start with "Select"** (e.g. `"Select the spreadsheet."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 - **customInputLabel is required**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`). If not an ID field, standard label and `customInputLabel` must be the same.
@@ -152,42 +149,6 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                                     "value"
                                 ]
                             }
-                        },
-                        "defaultValue": {
-                            "type": "object",
-                            "description": "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default.",
-                            "properties": {
-                                "label": {
-                                    "type": "string",
-                                    "description": "The display name of the default option."
-                                },
-                                "value": {
-                                    "type": [
-                                        "string",
-                                        "number"
-                                    ],
-                                    "description": "The internal value of the default option."
-                                },
-                                "sample": {
-                                    "type": "string",
-                                    "description": "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                },
-                                "extraValue": {
-                                    "type": [
-                                        "string",
-                                        "number",
-                                        "boolean",
-                                        "object",
-                                        "array"
-                                    ],
-                                    "description": "An optional extra value for the default option. Omit if not needed."
-                                }
-                            },
-                            "required": [
-                                "label",
-                                "value",
-                                "sample"
-                            ]
                         }
                     },
                     "required": [
@@ -277,23 +238,6 @@ schema:
                   type[5]: string,number,boolean,object,array
                   description: "An optional extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type. Omit if not needed."
               required[3]: label,value,sample
-          defaultValue:
-            type: object
-            description: "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default."
-            properties:
-              label:
-                type: string
-                description: The display name of the default option.
-              value:
-                type[2]: string,number
-                description: The internal value of the default option.
-              sample:
-                type: string
-                description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-              extraValue:
-                type[5]: string,number,boolean,object,array
-                description: An optional extra value for the default option. Omit if not needed.
-            required[3]: label,value,sample
         required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
@@ -342,7 +286,7 @@ schema:
   },
   {
     "key": "video_status",
-    "help": "Select the video visibility status.",
+    "help": "Select the video visibility status. Defaults to Public.",
     "type": "dropdown",
     "label": "Video Status",
     "options": [
@@ -361,10 +305,6 @@ schema:
     ],
     "required": true,
     "placeholder": "Choose visibility status",
-    "defaultValue": {
-      "label": "Public",
-      "value": "public"
-    },
     "customInputLabel": "Video Status",
     "customHelp": "Enter 'public', 'private', or 'unlisted' to set video status.",
     "customPlaceholder": "public"
@@ -479,7 +419,7 @@ schema:
     customHelp: "Enter 'text', 'image', 'audio', 'video', 'sticker', or 'media_share' based on media type."
     customPlaceholder: "text"
   - key: video_status
-    help: "Select the video visibility status."
+    help: "Select the video visibility status. Defaults to Public."
     type: dropdown
     label: Video Status
     options[3]{label,value}:
@@ -488,9 +428,6 @@ schema:
       Unlisted,unlisted
     required: true
     placeholder: Choose visibility status
-    defaultValue:
-      label: Public
-      value: public
     customInputLabel: Video Status
     customHelp: "Enter 'public', 'private', or 'unlisted' to set video status."
     customPlaceholder: "public"
