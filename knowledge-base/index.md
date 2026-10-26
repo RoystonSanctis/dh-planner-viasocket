@@ -182,7 +182,7 @@ _Fetch the whole file._
 
 _Fetch the whole file._
 
-### [ux-practice.md](ux-practice.md) · 87 KB
+### [ux-practice.md](ux-practice.md) · 88 KB
 
 Input-field UX rules by action category and trigger type.
 
@@ -200,7 +200,7 @@ Input-field UX rules by action category and trigger type.
   - [FIND + UPDATE](sections/ux-practice/find-update.md) · 2 KB — also covers: FIND + UPDATE Purpose; FIND + UPDATE UX Pattern; FIND + UPDATE Common Input Fields; FIND + UPDATE Perform Code Reference; FIND + UPDATE Best Practices
   - [DELETE](sections/ux-practice/delete.md) · 2 KB — also covers: DELETE Purpose; DELETE UX Pattern; DELETE Common Input Fields; DELETE Perform Code Reference; DELETE Best Practices
 - [Title & Description Naming Guidelines](sections/ux-practice/title-description-naming-guidelines.md) · 4 KB — also covers: Action Naming & Description; Trigger Naming & Description; General Copywriting Guidelines
-- [General UX Patterns & Design Strategy](sections/ux-practice/general-ux-patterns-design-strategy.md) · 23 KB — also covers: Action Design Strategy; Field Design & Dynamic UI Rules; UX Practice Checklist
+- [General UX Patterns & Design Strategy](sections/ux-practice/general-ux-patterns-design-strategy.md) · 24 KB — also covers: Action Design Strategy; Field Design & Dynamic UI Rules; UX Practice Checklist
 
 ### [ux-worked-examples.md](ux-worked-examples.md) · 404 KB
 
