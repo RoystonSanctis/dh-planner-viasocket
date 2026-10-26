@@ -57,7 +57,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "date_mode",
-    "help": "Select how you'd like to specify the reporting date range.",
+    "help": "Select how you'd like to specify the reporting date range. Defaults to Relative (Last N Days).",
     "type": "dropdown",
     "label": "Date Range Type",
     "options": [
@@ -75,22 +75,16 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     "required": true,
     "customHelp": "Enter 'relative' for Last N Days or 'fixed' for specific start and end dates.",
     "placeholder": "Select date range type",
-    "defaultValue": {
-      "label": "Relative (Last N Days)",
-      "value": "relative",
-      "sample": "relative"
-    },
     "customInputLabel": "Date Range Type",
     "customPlaceholder": "relative"
   },
   {
     "key": "relative_days",
-    "help": "Enter the number of past days to include in the report (7, 28, 90).",
+    "help": "Enter the number of past days to include in the report (7, 28, 90). Defaults to 28.",
     "type": "number",
     "label": "Last N Days",
     "required": true,
     "placeholder": "28",
-    "defaultValue": 28,
     "visibilityCondition": "context?.inputData?.date_mode === 'relative'"
   },
   {
@@ -378,7 +372,7 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
   },
   {
     "key": "sort_order",
-    "help": "Select the sort direction to apply to all selected sort fields.",
+    "help": "Select the sort direction to apply to all selected sort fields. Defaults to Descending.",
     "type": "dropdown",
     "label": "Sort Order",
     "options": [
@@ -395,11 +389,6 @@ GET returns one record by a known ID. Keep it to: (optionally a parent dropdown)
     ],
     "required": false,
     "customHelp": "Enter 'asc' for ascending or 'desc' for descending sort order.",
-    "defaultValue": {
-      "label": "Descending",
-      "value": "desc",
-      "sample": "desc"
-    },
     "customInputLabel": "Sort Order",
     "customPlaceholder": "desc",
     "visibilityCondition": "(Array.isArray(context?.inputData?.sort_fields) && context.inputData.sort_fields.length > 0) || (typeof context?.inputData?.sort_fields === 'string' && context.inputData.sort_fields.trim().length > 0)"

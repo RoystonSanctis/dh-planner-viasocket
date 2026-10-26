@@ -293,7 +293,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
       },
       {
         "key": "is_on_credit_hold",
-        "help": "Select yes to place the customer on credit hold.",
+        "help": "Select yes to place the customer on credit hold. Defaults to No.",
         "type": "boolean",
         "label": "On Credit Hold?",
         "options": [
@@ -308,17 +308,13 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": false,
         "customHelp": "Enter true for on hold, or false for not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "On Credit Hold?",
         "customPlaceholder": "false",
         "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('is_on_credit_hold')"
       },
       {
         "key": "is_legal_entity",
-        "help": "Select yes if the customer is a legal entity.",
+        "help": "Select yes if the customer is a legal entity. Defaults to No.",
         "type": "boolean",
         "label": "Is a Legal Entity?",
         "options": [
@@ -333,10 +329,6 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": false,
         "customHelp": "Enter true for legal entity, or false for not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "Is a Legal Entity?",
         "customPlaceholder": "false",
         "visibilityCondition": "Array.isArray(context?.inputData?.fields_to_update) && context.inputData.fields_to_update.includes('is_legal_entity')"
@@ -659,10 +651,6 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": true,
         "customHelp": "Enter true to set as default, or false to not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "Default contact?",
         "customPlaceholder": "false"
       },
@@ -676,7 +664,7 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
       },
       {
         "key": "IncludeInEmail",
-        "help": "Select yes to include this contact in CC for emails.",
+        "help": "Select yes to include this contact in CC for emails. Defaults to No.",
         "type": "boolean",
         "label": "Include in CC for emails?",
         "options": [
@@ -691,10 +679,6 @@ The Perform Code conditionally extracts data based on the user's multiselect cho
         ],
         "required": false,
         "customHelp": "Enter true to include in CC, or false to not.",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        },
         "customInputLabel": "Include in CC for emails?",
         "customPlaceholder": "false"
       },

@@ -22,19 +22,10 @@ This is the canonical **field-chooser → schema-driven dynamic input group** pa
 [
   {
     "key": "selected_properties",
-    "help": "Select the contact properties you want to include in this action. Email must be provided at runtime.",
+    "help": "Select the contact properties you want to include in this action. Email must be provided at runtime. Defaults to Email, First name, Last name, Company, Phone, Job title, Lifecycle stage.",
     "type": "multiselect",
     "label": "Select Contact Properties",
     "required": true,
-    "defaultValue": [
-      { "label": "Email", "value": "email" },
-      { "label": "First name", "value": "firstname" },
-      { "label": "Last name", "value": "lastname" },
-      { "label": "Company", "value": "company" },
-      { "label": "Phone", "value": "phone" },
-      { "label": "Job title", "value": "jobtitle" },
-      { "label": "Lifecycle stage", "value": "lifecyclestage" }
-    ],
     "optionsGenerator": "async function getOptions() { try { const resp = await axios.get('https://api.hubapi.com/properties/v2/contacts/properties', { headers: { 'Content-Type': 'application/json' } }); const fields = resp.data || []; return fields.map(f => ({ label: f.label || f.name, value: f.name, sample: f.name, type: f.type || f.fieldType || 'string', options: Array.isArray(f.options) ? f.options.map(o => ({ label: o.label, value: o.value })) : [] })).sort((a,b) => (a.label||'').localeCompare(b.label||'')); } catch (err) { throw err; } }\n\nreturn await getOptions();"
   },
   {
@@ -124,6 +115,6 @@ return await performAction();
 - **Field chooser + `fieldsGenerator`** is the go-to CREATE pattern for schema-rich CRMs: pick properties → render typed inputs for only those properties.
 - Map API property types to the correct viaSocket field type (boolean/number/date/dropdown/string) instead of dumping everything as strings.
 - When the chooser is empty, return `[{ message: "..." }]` from the generator so the user gets a clear instruction instead of a broken form.
-- Pre-select the fields 90% of users need as `defaultValue`, keeping the common path one click away.
+- Default to the fields 90% of users need (state them in `help`, apply them in perform code, never a `defaultValue` key), keeping the common path one click away.
 
 ---

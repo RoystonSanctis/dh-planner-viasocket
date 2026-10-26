@@ -23,11 +23,6 @@
         ],
         "customHelp": "Accepted integer from 1 to 100",
         "placeholder": "Enter Page Limit",
-        "defaultValue": {
-          "label": "Default",
-          "value": 100,
-          "sample": "100"
-        },
         "customPlaceholder": "10"
       },
       {
@@ -60,7 +55,7 @@
     "fields": [
       {
         "key": "column_key",
-        "help": "Determines how the data columns are labelled.",
+        "help": "Determines how the data columns are labelled. Defaults to Yes.",
         "type": "boolean",
         "label": "Does your first row contain column name?",
         "options": [
@@ -76,15 +71,11 @@
         "required": true,
         "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
         "placeholder": "Choose Option",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
         "key": "search_filter_type",
-        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns.",
+        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns. Defaults to Basic.",
         "type": "boolean",
         "label": "Search Filter Type",
         "options": [
@@ -100,10 +91,6 @@
         "required": true,
         "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
         "placeholder": "Choose Option",
-        "defaultValue": {
-          "label": "Basic",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
@@ -165,7 +152,7 @@
       },
       {
         "key": "is_last_row",
-        "help": "Search from the last row of the spreadsheet up. Select “Yes” to enable.",
+        "help": "Search from the last row of the spreadsheet up. Select “Yes” to enable. Defaults to No.",
         "type": "boolean",
         "label": "Search from last row",
         "options": [
@@ -180,11 +167,7 @@
         ],
         "required": true,
         "customHelp": "Enter \"true\" for search from the last row of the spreadsheet.",
-        "placeholder": "true",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "placeholder": "true"
       },
       {
         "key": "returnColumn",
@@ -276,10 +259,6 @@
           Default,100,"100"
         customHelp: Accepted integer from 1 to 100
         placeholder: Enter Page Limit
-        defaultValue:
-          label: Default
-          value: 100
-          sample: "100"
         customPlaceholder: "10"
       - key: filter_properties
         help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
@@ -303,7 +282,7 @@
     visibilityCondition: context?.inputData?.sheet_Id
     fields[6]:
       - key: column_key
-        help: Determines how the data columns are labelled.
+        help: Determines how the data columns are labelled. Defaults to Yes.
         type: boolean
         label: Does your first row contain column name?
         options[2]{label,value}:
@@ -312,12 +291,9 @@
         required: true
         customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
         placeholder: Choose Option
-        defaultValue:
-          label: Yes
-          value: true
         customPlaceholder: "true"
       - key: search_filter_type
-        help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns."
+        help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns. Defaults to Basic."
         type: boolean
         label: Search Filter Type
         options[2]{label,value}:
@@ -326,9 +302,6 @@
         required: true
         customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
         placeholder: Choose Option
-        defaultValue:
-          label: Basic
-          value: true
         customPlaceholder: "true"
       - key: lookupColumn
         help: "Select the column to search in, based on header names."
@@ -374,7 +347,7 @@
         required: false
         placeholder: "10"
       - key: is_last_row
-        help: Search from the last row of the spreadsheet up. Select “Yes” to enable.
+        help: Search from the last row of the spreadsheet up. Select “Yes” to enable. Defaults to No.
         type: boolean
         label: Search from last row
         options[2]{label,value}:
@@ -383,9 +356,6 @@
         required: true
         customHelp: "Enter \"true\" for search from the last row of the spreadsheet."
         placeholder: "true"
-        defaultValue:
-          label: No
-          value: false
       - key: returnColumn
         help: "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns."
         type: multiselect

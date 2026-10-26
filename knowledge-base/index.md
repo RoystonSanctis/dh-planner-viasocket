@@ -15,37 +15,37 @@ Backend plug service: one webhook per app, instant-trigger plumbing.
 
 _Fetch the whole file._
 
-### [dh-Input-fields-json-builder.md](dh-Input-fields-json-builder.md) · 330 KB
+### [dh-Input-fields-json-builder.md](dh-Input-fields-json-builder.md) · 314 KB
 
 Exact JSON schema of every input field type (static and dynamic).
 
 - [Intro](sections/dh-Input-fields-json-builder/_intro.md) · 1 KB
 - [Page Index](sections/dh-Input-fields-json-builder/page-index.md) · 5 KB
 - [DH Input Fields Knowledge Base](sections/dh-Input-fields-json-builder/dh-input-fields-knowledge-base.md) · 1 KB
-- [Static Input Fields](sections/dh-Input-fields-json-builder/static-input-fields.md) · 147 KB in all, split:
+- [Static Input Fields](sections/dh-Input-fields-json-builder/static-input-fields.md) · 137 KB in all, split:
   - [String | Date | Number | HTML | Markdown](sections/dh-Input-fields-json-builder/string-date-number-html-markdown.md) · 15 KB — also covers: String | Date | Number | HTML | Markdown Input Field Generation Rules; String | Date | Number | HTML | Markdown JSON Schema; String | Date | Number | HTML | Markdown TOON Schema; String | Date | Number | HTML | Markdown Examples
   - [Dictionary](sections/dh-Input-fields-json-builder/dictionary.md) · 11 KB — also covers: Dictionary Input Field Generation Rules; Dictionary Input Field JSON Schema; Dictionary TOON Schema; Dictionary Examples
-  - [Boolean](sections/dh-Input-fields-json-builder/boolean.md) · 18 KB — also covers: Boolean Input Field Generation Rules; Boolean JSON Schema; Boolean TOON Schema; Boolean Examples
-  - [Dropdown Static](sections/dh-Input-fields-json-builder/dropdown-static.md) · 24 KB — also covers: Dropdown Static Input Field Generation Rules; Dropdown Static JSON Schema; Dropdown Static TOON Schema; Dropdown Static Examples
-  - [Multiselect Static](sections/dh-Input-fields-json-builder/multiselect-static.md) · 19 KB — also covers: Multiselect Static Input Field Generation Rules; Multiselect Static JSON Schema; Multiselect Static TOON Schema; Multiselect Static JSON Example; Multiselect Static TOON Example
+  - [Boolean](sections/dh-Input-fields-json-builder/boolean.md) · 16 KB — also covers: Boolean Input Field Generation Rules; Boolean JSON Schema; Boolean TOON Schema; Boolean Examples
+  - [Dropdown Static](sections/dh-Input-fields-json-builder/dropdown-static.md) · 20 KB — also covers: Dropdown Static Input Field Generation Rules; Dropdown Static JSON Schema; Dropdown Static TOON Schema; Dropdown Static Examples
+  - [Multiselect Static](sections/dh-Input-fields-json-builder/multiselect-static.md) · 16 KB — also covers: Multiselect Static Input Field Generation Rules; Multiselect Static JSON Schema; Multiselect Static TOON Schema; Multiselect Static JSON Example; Multiselect Static TOON Example
   - [AI Field](sections/dh-Input-fields-json-builder/ai-field.md) · 14 KB — also covers: AI Field Input Field Generation Rules; AI Field JSON Schema; AI Field TOON Schema; AI Field Examples
   - [Help Static](sections/dh-Input-fields-json-builder/help-static.md) · 9 KB — also covers: Help Static Input Field Generation Rules; Help Static JSON Schema; Help Static TOON Schema; Help Static Examples
   - [Input Group Static](sections/dh-Input-fields-json-builder/input-group-static.md) · 37 KB in all, split:
     - [Input Group Static Input Field Generation Rules](sections/dh-Input-fields-json-builder/input-group-static-input-field-generation-rules.md) · 3 KB
     - [Input Group Static JSON Schema](sections/dh-Input-fields-json-builder/input-group-static-json-schema.md) · 4 KB
     - [Input Group Static TOON Schema](sections/dh-Input-fields-json-builder/input-group-static-toon-schema.md) · 2 KB
-    - [Input Group Static Examples](sections/dh-Input-fields-json-builder/input-group-static-examples.md) · 28 KB
-- [Dynamic Input Fields](sections/dh-Input-fields-json-builder/dynamic-input-fields.md) · 159 KB in all, split:
-  - [Dropdown Dynamic](sections/dh-Input-fields-json-builder/dropdown-dynamic.md) · 54 KB in all, split:
+    - [Input Group Static Examples](sections/dh-Input-fields-json-builder/input-group-static-examples.md) · 27 KB
+- [Dynamic Input Fields](sections/dh-Input-fields-json-builder/dynamic-input-fields.md) · 153 KB in all, split:
+  - [Dropdown Dynamic](sections/dh-Input-fields-json-builder/dropdown-dynamic.md) · 50 KB in all, split:
     - [Dropdown Dynamic Input Field Generation Rules](sections/dh-Input-fields-json-builder/dropdown-dynamic-input-field-generation-rules.md) · 5 KB
-    - [Dropdown Dynamic JSON Schema](sections/dh-Input-fields-json-builder/dropdown-dynamic-json-schema.md) · 9 KB
-    - [Dropdown Dynamic TOON Schema](sections/dh-Input-fields-json-builder/dropdown-dynamic-toon-schema.md) · 7 KB
+    - [Dropdown Dynamic JSON Schema](sections/dh-Input-fields-json-builder/dropdown-dynamic-json-schema.md) · 7 KB
+    - [Dropdown Dynamic TOON Schema](sections/dh-Input-fields-json-builder/dropdown-dynamic-toon-schema.md) · 5 KB
     - [Dropdown Dynamic Examples](sections/dh-Input-fields-json-builder/dropdown-dynamic-examples.md) · 20 KB
     - [Reusable Component In Dropdown Dynamic](sections/dh-Input-fields-json-builder/reusable-component-in-dropdown-dynamic.md) · 12 KB
-  - [Multi Select Dynamic](sections/dh-Input-fields-json-builder/multi-select-dynamic.md) · 32 KB in all, split:
+  - [Multi Select Dynamic](sections/dh-Input-fields-json-builder/multi-select-dynamic.md) · 29 KB in all, split:
     - [Multi Select Dynamic Input Field Generation Rules](sections/dh-Input-fields-json-builder/multi-select-dynamic-input-field-generation-rules.md) · 5 KB
-    - [Multi Select Dynamic JSON Schema](sections/dh-Input-fields-json-builder/multi-select-dynamic-json-schema.md) · 7 KB
-    - [Multi Select Dynamic TOON Schema](sections/dh-Input-fields-json-builder/multi-select-dynamic-toon-schema.md) · 4 KB
+    - [Multi Select Dynamic JSON Schema](sections/dh-Input-fields-json-builder/multi-select-dynamic-json-schema.md) · 5 KB
+    - [Multi Select Dynamic TOON Schema](sections/dh-Input-fields-json-builder/multi-select-dynamic-toon-schema.md) · 3 KB
     - [Multi Select Dynamic Examples](sections/dh-Input-fields-json-builder/multi-select-dynamic-examples.md) · 6 KB
     - [Reusable Component In Multi Select Dynamic](sections/dh-Input-fields-json-builder/reusable-component-in-multi-select-dynamic.md) · 9 KB
   - [Help Dynamic](sections/dh-Input-fields-json-builder/help-dynamic.md) · 35 KB in all, split:
@@ -202,7 +202,7 @@ Input-field UX rules by action category and trigger type.
 - [Title & Description Naming Guidelines](sections/ux-practice/title-description-naming-guidelines.md) · 4 KB — also covers: Action Naming & Description; Trigger Naming & Description; General Copywriting Guidelines
 - [General UX Patterns & Design Strategy](sections/ux-practice/general-ux-patterns-design-strategy.md) · 23 KB — also covers: Action Design Strategy; Field Design & Dynamic UI Rules; UX Practice Checklist
 
-### [ux-worked-examples.md](ux-worked-examples.md) · 408 KB
+### [ux-worked-examples.md](ux-worked-examples.md) · 405 KB
 
 Worked input-field designs for real apps.
 
@@ -211,7 +211,7 @@ Worked input-field designs for real apps.
 - [UX Worked Examples Knowledge Base](sections/ux-worked-examples/ux-worked-examples-knowledge-base.md) · 1 KB
 - [How to Use This Document](sections/ux-worked-examples/how-to-use-this-document.md) · 1 KB
 - [Example Anatomy](sections/ux-worked-examples/example-anatomy.md) · 1 KB
-- [CREATE Examples](sections/ux-worked-examples/create-examples.md) · 100 KB in all, split:
+- [CREATE Examples](sections/ux-worked-examples/create-examples.md) · 99 KB in all, split:
   - [HubSpot — Create New Contact](sections/ux-worked-examples/hubspot-create-new-contact.md) · 7 KB
   - [ResourceGuru — Create Resource](sections/ux-worked-examples/resourceguru-create-resource.md) · 7 KB
   - [OneDeck — Create Contact](sections/ux-worked-examples/onedeck-create-contact.md) · 1 KB
@@ -219,19 +219,17 @@ Worked input-field designs for real apps.
   - [Livestorm — Create Registration](sections/ux-worked-examples/livestorm-create-registration.md) · 1 KB
   - [Xero — Create Invoice](sections/ux-worked-examples/xero-create-invoice.md) · 1 KB
   - [Cal ID — Create Booking](sections/ux-worked-examples/cal-id-create-booking.md) · 24 KB
-  - [Calendly — Create Booking](sections/ux-worked-examples/calendly-create-booking.md) · 9 KB
+  - [Calendly — Create Booking](sections/ux-worked-examples/calendly-create-booking.md) · 8 KB
   - [Sangam CRM — Insert or Update Data with Linking Module](sections/ux-worked-examples/sangam-crm-insert-or-update-data-with-linking-module.md) · 13 KB
   - [Razorpay — Create New Invoice](sections/ux-worked-examples/razorpay-create-new-invoice.md) · 13 KB
   - [Google Sheet — Add New Row to Sheet](sections/ux-worked-examples/google-sheet-add-new-row-to-sheet.md) · 4 KB
   - [viaSocket Table — Add Records To Table](sections/ux-worked-examples/viasocket-table-add-records-to-table.md) · 2 KB
   - [Keka — Add a New Employee](sections/ux-worked-examples/keka-add-a-new-employee.md) · 3 KB
   - [Freshsales classic — Create Deal](sections/ux-worked-examples/freshsales-classic-create-deal.md) · 14 KB
-- [UPDATE Examples](sections/ux-worked-examples/update-examples.md) · 87 KB in all, split:
-  - [Cin7 Core — Update Customer](sections/ux-worked-examples/cin7-core-update-customer.md) · 33 KB
-  - [Keka — Update Employee Details](sections/ux-worked-examples/keka-update-employee-details.md) · 54 KB
-- [LIST Examples](sections/ux-worked-examples/list-examples.md) · 24 KB in all, split:
-  - [Keka — List All Employees](sections/ux-worked-examples/keka-list-all-employees.md) · 22 KB
-  - [viaSocket Table — Get Table Rows](sections/ux-worked-examples/viasocket-table-get-table-rows.md) · 2 KB
+- [UPDATE Examples](sections/ux-worked-examples/update-examples.md) · 86 KB in all, split:
+  - [Cin7 Core — Update Customer](sections/ux-worked-examples/cin7-core-update-customer.md) · 32 KB
+  - [Keka — Update Employee Details](sections/ux-worked-examples/keka-update-employee-details.md) · 53 KB
+- [LIST Examples](sections/ux-worked-examples/list-examples.md) · 23 KB — also covers: Keka — List All Employees; viaSocket Table — Get Table Rows
 - [FIND / SEARCH Examples](sections/ux-worked-examples/find-search-examples.md) · 31 KB in all, split:
   - [LeadSquared — Search Leads by Criteria](sections/ux-worked-examples/leadsquared-search-leads-by-criteria.md) · 12 KB
   - [Google Calendar — List all Events](sections/ux-worked-examples/google-calendar-list-all-events.md) · 16 KB

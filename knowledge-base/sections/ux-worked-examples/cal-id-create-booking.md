@@ -27,7 +27,7 @@
 [
   {
     "key": "event_scope",
-    "help": "Select Personal for your own event types or Team for a shared team event.",
+    "help": "Select Personal for your own event types or Team for a shared team event. Defaults to Personal.",
     "type": "dropdown",
     "label": "Event Type Scope",
     "options": [
@@ -40,11 +40,7 @@
         "value": "team"
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Personal",
-      "value": "personal"
-    }
+    "required": true
   },
   {
     "key": "team_id",
@@ -69,7 +65,7 @@
   },
   {
     "key": "date_selection_mode",
-    "help": "Use Days from Today for relative scheduling or Exact Date & Time for a fixed slot.",
+    "help": "Use Days from Today for relative scheduling or Exact Date & Time for a fixed slot. Defaults to Days from Today.",
     "type": "boolean",
     "label": "Schedule Booking Using",
     "options": [
@@ -82,11 +78,7 @@
         "value": false
       }
     ],
-    "required": true,
-    "defaultValue": {
-      "label": "Days from Today",
-      "value": true
-    }
+    "required": true
   },
   {
     "key": "start_no_of_days",
@@ -117,7 +109,7 @@
   },
   {
     "key": "timeZone",
-    "help": "The start time will be interpreted in this timezone.",
+    "help": "The start time will be interpreted in this timezone. Defaults to India Standard Time (Asia/Kolkata).",
     "type": "dropdown",
     "label": "Time Zone",
     "options": [
@@ -235,10 +227,6 @@
       }
     ],
     "required": true,
-    "defaultValue": {
-      "label": "India Standard Time (Asia/Kolkata)",
-      "value": "Asia/Kolkata"
-    },
     "customInputLabel": "Enter Timezone",
     "customPlaceholder": "America/New_York"
   },
@@ -277,7 +265,7 @@
   },
   {
     "key": "location_kind",
-    "help": "Select the meeting location. Ensure the integration is connected in your Cal.id account.",
+    "help": "Select the meeting location. Ensure the integration is connected in your Cal.id account. Defaults to Google Meet.",
     "type": "dropdown",
     "label": "Meeting Location",
     "options": [
@@ -311,10 +299,6 @@
       }
     ],
     "required": false,
-    "defaultValue": {
-      "label": "Google Meet",
-      "value": "integrations:google:meet"
-    },
     "customInputLabel": "Enter location value manually",
     "customPlaceholder": "integrations:zoom:video"
   },
@@ -353,7 +337,7 @@
   },
   {
     "key": "language",
-    "help": "Language for booking confirmation emails sent to the attendee.",
+    "help": "Language for booking confirmation emails sent to the attendee. Defaults to English.",
     "type": "dropdown",
     "label": "Confirmation Email Language",
     "options": [
@@ -390,15 +374,11 @@
         "value": "ar"
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "English",
-      "value": "en"
-    }
+    "required": false
   },
   {
     "key": "show_advanced",
-    "help": "Attach custom metadata to this booking for tracking or CRM purposes.",
+    "help": "Attach custom metadata to this booking for tracking or CRM purposes. Defaults to No.",
     "type": "boolean",
     "label": "Add Custom Metadata?",
     "options": [
@@ -411,11 +391,7 @@
         "value": false
       }
     ],
-    "required": false,
-    "defaultValue": {
-      "label": "No",
-      "value": false
-    }
+    "required": false
   },
   {
     "key": "metadata",

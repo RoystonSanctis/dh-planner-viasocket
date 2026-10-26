@@ -55,7 +55,7 @@
   },
   {
     "key": "column_key",
-    "help": "Determines how the data columns are labelled.",
+    "help": "Determines how the data columns are labelled. Defaults to Yes.",
     "type": "boolean",
     "label": "Does your first row contain column name?",
     "options": [
@@ -65,7 +65,6 @@
     "required": true,
     "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
     "placeholder": "Choose Option",
-    "defaultValue": { "label": "Yes", "value": true },
     "customPlaceholder": "true ",
     "visibilityCondition": "context?.inputData?.spreadsheet_Id && context?.inputData?.grid_Id"
   },

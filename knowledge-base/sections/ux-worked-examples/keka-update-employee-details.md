@@ -25,7 +25,7 @@
     "fields": [
       {
         "key": "fetch_method",
-        "help": "Select how you want to find the employee. Use Email for natural identification. Use Employee Number or ID if you already have it.",
+        "help": "Select how you want to find the employee. Use Email for natural identification. Use Employee Number or ID if you already have it. Defaults to Email Address.",
         "type": "dropdown",
         "label": "Find Employee By",
         "options": [
@@ -39,10 +39,6 @@
           }
         ],
         "required": true,
-        "defaultValue": {
-          "label": "Email Address",
-          "value": "email"
-        },
         "customInputLabel": "Enter fetch method",
         "customPlaceholder": "email"
       },
@@ -487,7 +483,7 @@
       },
       {
         "key": "updateCurrentAddress",
-        "help": "Enable this to update the employee's current address.",
+        "help": "Enable this to update the employee's current address. Defaults to No.",
         "type": "boolean",
         "label": "Update Current Address?",
         "options": [
@@ -500,11 +496,7 @@
             "value": false
           }
         ],
-        "required": false,
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "required": false
       },
       {
         "key": "currentAddress",
@@ -606,7 +598,7 @@
       },
       {
         "key": "isCurrentAddressSameAsPermanent",
-        "help": "Select Yes if the permanent address is the same as the updated current address.",
+        "help": "Select Yes if the permanent address is the same as the updated current address. Defaults to Yes.",
         "type": "boolean",
         "label": "Is Current Address Same as Permanent Address?",
         "options": [
@@ -620,10 +612,6 @@
           }
         ],
         "required": false,
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
         "visibilityCondition": "context.inputData?.contactDetails?.updateCurrentAddress === true"
       },
       {
@@ -1053,7 +1041,7 @@
       },
       {
         "key": "add_bonus_information",
-        "help": "Enable this to add bonus information along with the salary revision.",
+        "help": "Enable this to add bonus information along with the salary revision. Defaults to No.",
         "type": "boolean",
         "label": "Add Bonus Information?",
         "options": [
@@ -1066,11 +1054,7 @@
             "value": false
           }
         ],
-        "required": false,
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "required": false
       },
       {
         "key": "apiBonusDto",
@@ -1115,7 +1099,7 @@
           },
           {
             "key": "isBonusAmountIncludedInSalary",
-            "help": "Is the bonus amount already included in the salary figure above?",
+            "help": "Is the bonus amount already included in the salary figure above? Defaults to No.",
             "type": "boolean",
             "label": "Is Bonus Included in Salary?",
             "options": [
@@ -1128,11 +1112,7 @@
                 "value": false
               }
             ],
-            "required": false,
-            "defaultValue": {
-              "label": "No",
-              "value": false
-            }
+            "required": false
           }
         ]
       }
@@ -1148,7 +1128,7 @@
     "fields": [
       {
         "key": "salaryPaymentMode",
-        "help": "Select or enter the updated payment mode. None (0), Bank Transfer (1), Cash (2), Cheque (3), Unknown (4).",
+        "help": "Select or enter the updated payment mode. None (0), Bank Transfer (1), Cash (2), Cheque (3), Unknown (4). Defaults to Bank Transfer.",
         "type": "dropdown",
         "label": "Salary Payment Mode",
         "options": [
@@ -1175,10 +1155,6 @@
         ],
         "required": true,
         "placeholder": "Select salary payment mode",
-        "defaultValue": {
-          "label": "Bank Transfer",
-          "value": 1
-        },
         "customInputLabel": "Enter payment mode manually",
         "customPlaceholder": "1 for Bank Transfer"
       },
