@@ -254,10 +254,6 @@ Generate a JSON object strictly following the rules below.
                 "type": "string",
                 "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
             },
-            "defaultValue": {
-                "type": "string",
-                "description": "The default value. Omit if none."
-            },
             "dateFormat": {
                 "type": "string",
                 "enum": [
@@ -316,9 +312,6 @@ schema:
     visibilityCondition:
       type: string
       description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-    defaultValue:
-      type: string
-      description: The default value. Omit if none.
     dateFormat:
       type: string
       enum[4]: YYYY-MM-DDTHH:mm:ssZ,YYYY-MM-DD HH:mm:ss Z,MM-DD-YYYY HH:mm:ss Z,MM-DD-YYYY HH:mm:ss
@@ -376,8 +369,7 @@ schema:
     "help": "Default it will fetch data upto 100. The maximum value is 100.",
     "type": "number",
     "label": "Page Limit",
-    "placeholder": "10",
-    "defaultValue": 100
+    "placeholder": "10"
   },
   {
     "key": "feed_url",
@@ -464,7 +456,6 @@ schema:
     type: number
     label: Page Limit
     placeholder: "10"
-    defaultValue: 100
   - key: feed_url
     help: Paste your RSS URL here. Must be publicly accessible. Multiple feed links can be given in a line item.
     list: true
@@ -857,9 +848,7 @@ Generate a JSON object strictly following the rules below for a boolean field.
 - The true-value option must appear first, followed by the false-value option
 
 **6. Default Value Rule**
-- Set defaultValue only if a sensible default exists
-- defaultValue must be an object with label and value matching one of the options
-- Omit defaultValue entirely if there is no default
+- Never add a `defaultValue` key. State the default in `help` ("Defaults to X.") and apply it in perform code.
 
 **7. Custom Input Rules**
 - Include placeholder only if a placeholder is needed for dropdown selection. Omit if not applicable
@@ -935,24 +924,6 @@ Generate a JSON object strictly following the rules below for a boolean field.
                                     "value"
                                 ]
                             }
-                        },
-                        "defaultValue": {
-                            "type": "object",
-                            "description": "The default selection. Omit this field entirely if there is no default.",
-                            "properties": {
-                                "label": {
-                                    "type": "string",
-                                    "description": "The label of the default option (e.g. 'No', 'Basic')."
-                                },
-                                "value": {
-                                    "type": "boolean",
-                                    "description": "The value of the default option (e.g. false, true)."
-                                }
-                            },
-                            "required": [
-                                "label",
-                                "value"
-                            ]
                         },
                         "placeholder": {
                             "type": "string",
@@ -1040,17 +1011,6 @@ schema:
                   type: boolean
                   description: The actual boolean value (true or false).
               required[2]: label,value
-          defaultValue:
-            type: object
-            description: The default selection. Omit this field entirely if there is no default.
-            properties:
-              label:
-                type: string
-                description: "The label of the default option (e.g. 'No', 'Basic')."
-              value:
-                type: boolean
-                description: "The value of the default option (e.g. false, true)."
-            required[2]: label,value
           placeholder:
             type: string
             description: "Optional placeholder text shown before selection. Omit if not applicable."
@@ -1077,7 +1037,7 @@ schema:
 [
    {
         "key": "column_key",
-        "help": "Select yes if the first row contains the column name.",
+        "help": "Select yes if the first row contains the column name. Defaults to Yes.",
         "type": "boolean",
         "label": "Does your first row contain column name?",
         "options": [
@@ -1094,15 +1054,11 @@ schema:
         "placeholder": "Choose Option",
         "customInputLabel": "Does your first row contain column name?",
         "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
         "key": "search_filter_type",
-        "help": "Select the filter type.",
+        "help": "Select the filter type. Defaults to Basic.",
         "type": "boolean",
         "label": "Search Filter Type",
         "options": [
@@ -1118,10 +1074,6 @@ schema:
         "required": true,
         "customInputLabel": "Search Filter Type",
         "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
-        "defaultValue": {
-          "label": "Basic",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
@@ -1146,7 +1098,7 @@ schema:
       },
       {
         "key": "page_location",
-        "help": "Select Parent Page to create page under a parent, or Workspace to create a private page.",
+        "help": "Select Parent Page to create page under a parent, or Workspace to create a private page. Defaults to Parent Page.",
         "type": "boolean",
         "label": "Create page at",
         "options": [
@@ -1161,10 +1113,6 @@ schema:
         ],
         "required": true,
         "customPlaceholder": "true",
-        "defaultValue": {
-          "label": "Parent Page",
-          "value": true
-        },
         "customInputLabel": "Create page at",
         "customHelp": "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
       }
@@ -1174,7 +1122,7 @@ schema:
 ```toon
 [4]:
   - key: column_key
-    help: Select yes if the first row contains the column name.
+    help: Select yes if the first row contains the column name. Defaults to Yes.
     type: boolean
     label: Does your first row contain column name?
     options[2]{label,value}:
@@ -1184,12 +1132,9 @@ schema:
     placeholder: Choose Option
     customInputLabel: Does your first row contain column name?
     customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
-    defaultValue:
-      label: Yes
-      value: true
     customPlaceholder: "true"
   - key: search_filter_type
-    help: Select the filter type.
+    help: Select the filter type. Defaults to Basic.
     type: boolean
     label: Search Filter Type
     options[2]{label,value}:
@@ -1198,9 +1143,6 @@ schema:
     required: true
     customInputLabel: Search Filter Type
     customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
-    defaultValue:
-      label: Basic
-      value: true
     customPlaceholder: "true"
   - key: notify_customer
     help: Select Yes to email the customer about this update. No email is sent if left empty.
@@ -1214,7 +1156,7 @@ schema:
     customHelp: "Enter \"true\" to email the customer, or \"false\" to skip the email."
     customPlaceholder: "true"
   - key: page_location
-    help: Select Parent Page to create page under a parent, or Workspace to create a private page.
+    help: Select Parent Page to create page under a parent, or Workspace to create a private page. Defaults to Parent Page.
     type: boolean
     label: Create page at
     options[2]{label,value}:
@@ -1222,9 +1164,6 @@ schema:
       Parent Page,true
     required: true
     customPlaceholder: "true"
-    defaultValue:
-      label: Parent Page
-      value: true
     customInputLabel: Create page at
     customHelp: "Enter \"true\" to create page under parent page or \"false\" for private page in the workspace."
 ```
@@ -1268,10 +1207,7 @@ Generate a JSON object strictly following the rules below for a static dropdown 
   - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
   - extraValue: an extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type (string, number, boolean, object, array). Omit if not needed.
 **8. Default Value Rule**
-- Set defaultValue only if a sensible default exists.
-- MANDATORY RULE: If provided, defaultValue must be an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
-- defaultValue must include label and value, and optionally sample and extraValue if they exist on the matching option.
-- Omit defaultValue entirely if there is no default.
+- Never add a `defaultValue` key. State the default in `help` ("Defaults to X.") and apply it in perform code.
 **9. Custom Input Rules**
 - **help key**: Must focus on selection. **The value must start with "Select"** (e.g. `"Select the spreadsheet."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 - **customInputLabel is required**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Spreadsheet"`, customInputLabel `"Spreadsheet ID"`). If not an ID field, standard label and `customInputLabel` must be the same.
@@ -1382,42 +1318,6 @@ Generate a JSON object strictly following the rules below for a static dropdown 
                                     "value"
                                 ]
                             }
-                        },
-                        "defaultValue": {
-                            "type": "object",
-                            "description": "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default.",
-                            "properties": {
-                                "label": {
-                                    "type": "string",
-                                    "description": "The display name of the default option."
-                                },
-                                "value": {
-                                    "type": [
-                                        "string",
-                                        "number"
-                                    ],
-                                    "description": "The internal value of the default option."
-                                },
-                                "sample": {
-                                    "type": "string",
-                                    "description": "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                },
-                                "extraValue": {
-                                    "type": [
-                                        "string",
-                                        "number",
-                                        "boolean",
-                                        "object",
-                                        "array"
-                                    ],
-                                    "description": "An optional extra value for the default option. Omit if not needed."
-                                }
-                            },
-                            "required": [
-                                "label",
-                                "value",
-                                "sample"
-                            ]
                         }
                     },
                     "required": [
@@ -1507,23 +1407,6 @@ schema:
                   type[5]: string,number,boolean,object,array
                   description: "An optional extra value used in visibility conditions or perform scripts, hidden from users. Can be any valid JSON type. Omit if not needed."
               required[3]: label,value,sample
-          defaultValue:
-            type: object
-            description: "The default object to select initially. MANDATORY RULE: If provided, this object MUST be an exact, identical copy of one of the items in the 'options' array (all keys and values must match perfectly). Omit this field entirely if there is no default."
-            properties:
-              label:
-                type: string
-                description: The display name of the default option.
-              value:
-                type[2]: string,number
-                description: The internal value of the default option.
-              sample:
-                type: string
-                description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-              extraValue:
-                type[5]: string,number,boolean,object,array
-                description: An optional extra value for the default option. Omit if not needed.
-            required[3]: label,value,sample
         required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
@@ -1572,7 +1455,7 @@ schema:
   },
   {
     "key": "video_status",
-    "help": "Select the video visibility status.",
+    "help": "Select the video visibility status. Defaults to Public.",
     "type": "dropdown",
     "label": "Video Status",
     "options": [
@@ -1591,10 +1474,6 @@ schema:
     ],
     "required": true,
     "placeholder": "Choose visibility status",
-    "defaultValue": {
-      "label": "Public",
-      "value": "public"
-    },
     "customInputLabel": "Video Status",
     "customHelp": "Enter 'public', 'private', or 'unlisted' to set video status.",
     "customPlaceholder": "public"
@@ -1709,7 +1588,7 @@ schema:
     customHelp: "Enter 'text', 'image', 'audio', 'video', 'sticker', or 'media_share' based on media type."
     customPlaceholder: "text"
   - key: video_status
-    help: "Select the video visibility status."
+    help: "Select the video visibility status. Defaults to Public."
     type: dropdown
     label: Video Status
     options[3]{label,value}:
@@ -1718,9 +1597,6 @@ schema:
       Unlisted,unlisted
     required: true
     placeholder: Choose visibility status
-    defaultValue:
-      label: Public
-      value: public
     customInputLabel: Video Status
     customHelp: "Enter 'public', 'private', or 'unlisted' to set video status."
     customPlaceholder: "public"
@@ -1790,10 +1666,7 @@ Generate a JSON object strictly following the rules below for a static multisele
 - Each option may optionally include:
   - sample: must always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise.
 **8. Default Value Rule**
-- Set defaultValue only if a sensible default exists.
-- MANDATORY RULE: If provided, defaultValue must be an array of objects where each object is an exact, identical copy of one of the items in the options array (all keys and values must match perfectly).
-- Each object in defaultValue must include label and value, and optionally sample if it exists on the matching option.
-- Omit defaultValue entirely if there is no default.
+- Never add a `defaultValue` key. State the default in `help` ("Defaults to X.") and apply it in perform code.
 **9. Custom Input Rules**
 - **help key**: Must focus on selection. **The value must start with "Select"** (e.g. `"Select the fields to include in the output."`). It supports string format and markdown links like `[Lean More](https://example.com)`. Both `help` and `customHelp` must be very crisp and to the point.
 - **customInputLabel is required**: **It must be short and must NOT start with "Enter"** (e.g. standard label `"Output Response"`, customInputLabel `"Output Response"`). If not an ID field, standard label and `customInputLabel` must be the same.
@@ -1895,35 +1768,6 @@ Generate a JSON object strictly following the rules below for a static multisele
                                     "sample"
                                 ]
                             }
-                        },
-                        "defaultValue": {
-                            "type": "array",
-                            "description": "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default.",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "label": {
-                                        "type": "string",
-                                        "description": "The display name of the default option."
-                                    },
-                                    "value": {
-                                        "type": [
-                                            "string",
-                                            "number"
-                                        ],
-                                        "description": "The internal value of the default option."
-                                    },
-                                    "sample": {
-                                        "type": "string",
-                                        "description": "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                    }
-                                },
-                                "required": [
-                                    "label",
-                                    "value",
-                                    "sample"
-                                ]
-                            }
                         }
                     },
                     "required": [
@@ -2010,22 +1854,6 @@ schema:
                   type: string
                   description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
               required[3]: label,value,sample
-          defaultValue:
-            type: array
-            description: "The default array of objects to select initially. MANDATORY RULE: If provided, this MUST be an array containing exact identical copies of items from the 'options' array. Omit this field entirely if there is no default."
-            items:
-              type: object
-              properties:
-                label:
-                  type: string
-                  description: The display name of the default option.
-                value:
-                  type[2]: string,number
-                  description: The internal value of the default option.
-                sample:
-                  type: string
-                  description: "Optional string. MUST always be identical to the default option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-              required[3]: label,value,sample
         required[8]: key,type,label,help,options,customInputLabel,customPlaceholder,customHelp
   required[1]: inputFields
 ```
@@ -2035,7 +1863,7 @@ schema:
 [
   {
     "key": "output_response",
-    "help": "Select the output response format (markdown, blocks, or html).",
+    "help": "Select the output response format (markdown, blocks, or html). Defaults to Markdown.",
     "type": "multiselect",
     "label": "Output Response",
     "options": [
@@ -2057,13 +1885,6 @@ schema:
     ],
     "required": true,
     "placeholder": "Choose Return Type",
-    "defaultValue": [
-      {
-        "label": "Markdown",
-        "value": "markdown",
-        "sample": "markdown"
-      }
-    ],
     "customInputLabel": "Output Response",
     "customHelp": "Enter 'markdown', 'blocks', or 'html' in an array format to customize the output response.",
     "customPlaceholder": "[\"markdown\",\"block\"]"
@@ -2108,7 +1929,7 @@ schema:
 ```toon
 [2]:
   - key: output_response
-    help: "Select the output response format (markdown, blocks, or html)."
+    help: "Select the output response format (markdown, blocks, or html). Defaults to Markdown."
     type: multiselect
     label: Output Response
     options[3]{label,value,sample}:
@@ -2117,8 +1938,6 @@ schema:
       HTML,html,html
     required: true
     placeholder: Choose Return Type
-    defaultValue[1]{label,value,sample}:
-      Markdown,markdown,markdown
     customInputLabel: Output Response
     customHelp: "Enter 'markdown', 'blocks', or 'html' in an array format to customize the output response."
     customPlaceholder: "[\"markdown\",\"block\"]"
@@ -2730,11 +2549,6 @@ schema:
         ],
         "customHelp": "Accepted integer from 1 to 100",
         "placeholder": "Enter Page Limit",
-        "defaultValue": {
-          "label": "Default",
-          "value": 100,
-          "sample": "100"
-        },
         "customPlaceholder": "10"
       },
       {
@@ -2767,7 +2581,7 @@ schema:
     "fields": [
       {
         "key": "column_key",
-        "help": "Determines how the data columns are labelled.",
+        "help": "Determines how the data columns are labelled. Defaults to Yes.",
         "type": "boolean",
         "label": "Does your first row contain column name?",
         "options": [
@@ -2783,15 +2597,11 @@ schema:
         "required": true,
         "customHelp": "Enter \"true\" if the first row contains the column name, else \"false\".",
         "placeholder": "Choose Option",
-        "defaultValue": {
-          "label": "Yes",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
         "key": "search_filter_type",
-        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns.",
+        "help": "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns. Defaults to Basic.",
         "type": "boolean",
         "label": "Search Filter Type",
         "options": [
@@ -2807,10 +2617,6 @@ schema:
         "required": true,
         "customHelp": "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\"",
         "placeholder": "Choose Option",
-        "defaultValue": {
-          "label": "Basic",
-          "value": true
-        },
         "customPlaceholder": "true"
       },
       {
@@ -2872,7 +2678,7 @@ schema:
       },
       {
         "key": "is_last_row",
-        "help": "Search from the last row of the spreadsheet up. Select “Yes” to enable.",
+        "help": "Search from the last row of the spreadsheet up. Select “Yes” to enable. Defaults to No.",
         "type": "boolean",
         "label": "Search from last row",
         "options": [
@@ -2887,11 +2693,7 @@ schema:
         ],
         "required": true,
         "customHelp": "Enter \"true\" for search from the last row of the spreadsheet.",
-        "placeholder": "true",
-        "defaultValue": {
-          "label": "No",
-          "value": false
-        }
+        "placeholder": "true"
       },
       {
         "key": "returnColumn",
@@ -2983,10 +2785,6 @@ schema:
           Default,100,"100"
         customHelp: Accepted integer from 1 to 100
         placeholder: Enter Page Limit
-        defaultValue:
-          label: Default
-          value: 100
-          sample: "100"
         customPlaceholder: "10"
       - key: filter_properties
         help: Filter Properties helps to filter only the properties of the data source schema you need from the response items. Leave blank to get all properties in the response.
@@ -3010,7 +2808,7 @@ schema:
     visibilityCondition: context?.inputData?.sheet_Id
     fields[6]:
       - key: column_key
-        help: Determines how the data columns are labelled.
+        help: Determines how the data columns are labelled. Defaults to Yes.
         type: boolean
         label: Does your first row contain column name?
         options[2]{label,value}:
@@ -3019,12 +2817,9 @@ schema:
         required: true
         customHelp: "Enter \"true\" if the first row contains the column name, else \"false\"."
         placeholder: Choose Option
-        defaultValue:
-          label: Yes
-          value: true
         customPlaceholder: "true"
       - key: search_filter_type
-        help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns."
+        help: "Select the filter type, basic will have one column and value which will check an exact match. In advance, the user can provide the advanced query AND, OR operations with multiple columns. Defaults to Basic."
         type: boolean
         label: Search Filter Type
         options[2]{label,value}:
@@ -3033,9 +2828,6 @@ schema:
         required: true
         customHelp: "Enter \"true\" for \"Basic\" and \"false\" for \"Advance\""
         placeholder: Choose Option
-        defaultValue:
-          label: Basic
-          value: true
         customPlaceholder: "true"
       - key: lookupColumn
         help: "Select the column to search in, based on header names."
@@ -3081,7 +2873,7 @@ schema:
         required: false
         placeholder: "10"
       - key: is_last_row
-        help: Search from the last row of the spreadsheet up. Select “Yes” to enable.
+        help: Search from the last row of the spreadsheet up. Select “Yes” to enable. Defaults to No.
         type: boolean
         label: Search from last row
         options[2]{label,value}:
@@ -3090,9 +2882,6 @@ schema:
         required: true
         customHelp: "Enter \"true\" for search from the last row of the spreadsheet."
         placeholder: "true"
-        defaultValue:
-          label: No
-          value: false
       - key: returnColumn
         help: "Select the column to return in response, If selected will return the selected columns. If left empty will return all the columns."
         type: multiselect
@@ -3200,42 +2989,6 @@ You can use **Reusable Components** inside the `optionsGenerator` to securely fe
                         "visibilityCondition": {
                             "type": "string",
                             "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-                        },
-                        "defaultValue": {
-                            "type": "object",
-                            "description": "The default object to select initially. Omit this field entirely if there is no default.",
-                            "properties": {
-                                "label": {
-                                    "type": "string",
-                                    "description": "The display name of the default option."
-                                },
-                                "value": {
-                                    "type": [
-                                        "string",
-                                        "number"
-                                    ],
-                                    "description": "The internal value of the default option."
-                                },
-                                "sample": {
-                                    "type": "string",
-                                    "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                },
-                                "extraValue": {
-                                    "type": [
-                                        "string",
-                                        "number",
-                                        "boolean",
-                                        "object",
-                                        "array"
-                                    ],
-                                    "description": "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
-                                }
-                            },
-                            "required": [
-                                "label",
-                                "value",
-                                "sample"
-                            ]
                         }
                     },
                     "required": [
@@ -3315,23 +3068,6 @@ schema:
           visibilityCondition:
             type: string
             description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-          defaultValue:
-            type: object
-            description: The default object to select initially. Omit this field entirely if there is no default.
-            properties:
-              label:
-                type: string
-                description: The display name of the default option.
-              value:
-                type[2]: string,number
-                description: The internal value of the default option.
-              sample:
-                type: string
-                description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-              extraValue:
-                type[5]: string,number,boolean,object,array
-                description: "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
-            required[3]: label,value,sample
         required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
 ```
@@ -3828,35 +3564,6 @@ Just like the Dropdown Dynamic field, you can use **Reusable Components** inside
                         "visibilityCondition": {
                             "type": "string",
                             "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-                        },
-                        "defaultValue": {
-                            "type": "array",
-                            "description": "The default array of objects to select initially. Omit this field entirely if there is no default.",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "label": {
-                                        "type": "string",
-                                        "description": "The display name of the default option."
-                                    },
-                                    "value": {
-                                        "type": [
-                                            "string",
-                                            "number"
-                                        ],
-                                        "description": "The internal value of the default option."
-                                    },
-                                    "sample": {
-                                        "type": "string",
-                                        "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                    }
-                                },
-                                "required": [
-                                    "label",
-                                    "value",
-                                    "sample"
-                                ]
-                            }
                         }
                     },
                     "required": [
@@ -3930,22 +3637,6 @@ schema:
           visibilityCondition:
             type: string
             description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-          defaultValue:
-            type: array
-            description: The default array of objects to select initially. Omit this field entirely if there is no default.
-            items:
-              type: object
-              properties:
-                label:
-                  type: string
-                  description: The display name of the default option.
-                value:
-                  type[2]: string,number
-                  description: The internal value of the default option.
-                sample:
-                  type: string
-                  description: "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-              required[3]: label,value,sample
         required[8]: key,type,label,help,optionsGenerator,customPlaceholder,customInputLabel,customHelp
   required[1]: inputFields
   ```

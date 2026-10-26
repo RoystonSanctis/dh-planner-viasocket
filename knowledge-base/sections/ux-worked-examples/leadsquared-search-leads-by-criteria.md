@@ -77,12 +77,11 @@
   },
   {
     "key": "maxRecords",
-    "help": "Limits the number of records returned. Example: 50. Maximum allowed value is 1000.",
+    "help": "Limits the number of records returned. Example: 50. Maximum allowed value is 1000. Defaults to 100.",
     "type": "number",
     "label": "Maximum Records to Return",
     "required": false,
     "placeholder": "Default 100 (maximum 1000)",
-    "defaultValue": 100,
     "visibilityCondition": "context?.inputData?.bulkMode === false"
   },
   {
@@ -96,7 +95,7 @@
   },
   {
     "key": "sortDirection",
-    "help": "Choose result order. Descending shows newest records first. Ascending shows oldest first.",
+    "help": "Choose result order. Descending shows newest records first. Ascending shows oldest first. Defaults to 1.",
     "type": "dropdown",
     "label": "Sort Direction",
     "options": [
@@ -104,12 +103,11 @@
       { "label": "Ascending (Oldest First)", "value": "0" }
     ],
     "required": false,
-    "placeholder": "Select sorting order",
-    "defaultValue": "1"
+    "placeholder": "Select sorting order"
   },
   {
     "key": "responseMode",
-    "help": "Basic returns essential lead fields. Custom allows selecting specific columns. Full returns all available data.",
+    "help": "Basic returns essential lead fields. Custom allows selecting specific columns. Full returns all available data. Defaults to Basic.",
     "type": "dropdown",
     "label": "Response Mode",
     "options": [
@@ -118,8 +116,7 @@
       { "label": "Full Raw Data", "value": "full" }
     ],
     "required": false,
-    "placeholder": "Select response format",
-    "defaultValue": { "label": "Basic", "value": "basic", "sample": "Recommended" }
+    "placeholder": "Select response format"
   },
   {
     "key": "customColumns",
