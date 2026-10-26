@@ -76,7 +76,7 @@ description: "Token-minimal knowledge base for viaSocket plugs. Top-down structu
    - **No `defaultValue` Key**: state the default in `help`; apply the fallback in code (`context.inputData?.limit || 10`; booleans `?? true`).
    - **Derived Values** (e.g. mimetype from URL): always a safe fallback if derivation fails.
    - **Rate Limits**: API calls in loops respect limits (sequential + delay, retry, rate-limit headers); never `Promise.all` over paginated calls to rate-limited APIs.
-   - **Internal Pagination** (looping pages in one run): only for "list all" or when a user flag (Enable Pagination off) asks for it.
+   - **Internal Pagination** (looping pages in one run): only for "list all" when the user leaves the pagination fields (limit/offset/cursor) empty.
 8. **Dropdown Priority**: Dynamic dropdown/multiselect over text for every ID/resource reference—UPDATE included. Build required parent dropdowns; never bypass them. Exceptions only:
    - Category `DELETE` (string ID only).
    - IDs passed from upstream steps with no list API.
@@ -140,6 +140,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 - **Partial Updates**: Send only user-filled fields; strip `undefined`, `null`, `''` (send them only when the user explicitly clears a field)—prevents data erasure.
 - **Stable Identifiers**: Prefer email/external ID/slug over volatile DB IDs; never make users copy internal system IDs (GUIDs) when a stable value exists.
 - **Response Size**: Small/flat → full payload. Large/nested → Basic vs Detailed mode (key identifiers by default).
+- **Pagination Fields**: When an action's API supports pagination, show its pagination fields (limit, offset/cursor) directly as optional fields. Never add an "Enable Pagination" toggle to ask the user first. No pagination support → no pagination fields. (Scheduled triggers still have no pagination fields.)
 - **No Raw Schemas**: Never mirror raw API structure onto the UI; design per field types.
 - **Units & Formats**: Accept human units (days, relative dates); convert to machine units (epoch, ISO) in code—never make users compute timestamps. Infer content format (HTML vs text) internally instead of exposing a selector.
 - **Coded Values**: API codes (`1 = Male`) → dropdown if mapping is stable, else explain the mapping in `help`.
@@ -196,7 +197,7 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
 | **Scheduled** | DynDropdown/DynMultiselect(resource) → DynDropdown(dependent)? → Number(time offset)? → Help(polling math)? → Boolean? → DynMultiselect(output fields)? → Group(filters)? |
 | **Manual** | Standalone static `help` field only |
 | **GET** | DynDropdown(parent) → DynDropdown/String(ID) → DynMultiselect(fields)? → Group(options)? |
-| **LIST** | DynDropdown(parent) → DropdownStatic(Mode: List All, Search by…, Search by ID, Advance Search) → DropdownStatic(`find_by`)? → Boolean(Enable Pagination)? → Group(limit, offset)? → String(search/ID input)? → AIField? → Group(filters)? → DynMultiselect(return fields)? |
+| **LIST** | DynDropdown(parent) → DropdownStatic(Mode: List All, Search by…, Search by ID, Advance Search) → DropdownStatic(`find_by`)? → Group(limit, offset)? → String(search/ID input)? → AIField? → Group(filters)? → DynMultiselect(return fields)? |
 | **FIND/SEARCH** | DynDropdown(parent) → DynDropdown(child)? → Boolean(Basic/Advanced) → Group(search: Boolean(config)?, DynDropdown(column), DropdownStatic(operator)?, String(value) or AIField, HelpStatic?) → Boolean(bulk)? → Group(sort field, direction, limit)? → DropdownStatic(response mode)? → DynMultiselect(return columns) |
 | **CREATE** | DynDropdown(parent) → DynDropdown(child)? → Boolean? → DynMultiselect(field chooser)? → DynGroup(`fieldsGenerator`) → AIField? → Dictionary? |
 | **UPDATE** | DynDropdown(parent) → DynDropdown(child)? → DynDropdown/String(ID) → Multiselect(chooser)? → Group(known fields, each gated) or DynGroup(schema fields) |
@@ -212,8 +213,8 @@ Read categories (GET/LIST/FIND) may POST to query endpoints.
   2. `<p><strong>📤 What happens next?</strong></p>` + `<ul>`: what event data the app sends.
 - **GET**: Custom triplet guides ID mapping from prior steps. Single record (many → LIST). Handle 404. Reports/analytics: `date_mode` + hardcoded metric set.
 - **LIST**:
-  - *List All*: Enable Pagination true → one request with `limit`/`offset`; false → loop all pages internally.
-  - *Search by…*: `find_by` when several attributes (Name/Email vs Employee ID); input visibility chained on `mode` + `find_by`; non-unique identifier → pagination UI required (same on/off behavior as List All); unique → none.
+  - *List All*: API supports pagination → show the `limit`/`offset` (or cursor) fields directly, never behind an "Enable Pagination" toggle. Filled → one request with those values; left empty → loop all pages internally. No pagination support → no pagination fields.
+  - *Search by…*: `find_by` when several attributes (Name/Email vs Employee ID); input visibility chained on `mode` + `find_by`; non-unique identifier → pagination fields shown directly (same filled/empty behavior as List All); unique → none.
   - *Search by ID*: direct GET; no pagination.
   - *Advance Search*: only if the API supports advanced filtering; AIField.
   - Filters group only for narrowing modes (may hold an AIField for date normalization). Return-field multiselect empty → all fields (curated defaults stated in `help`). Comma-separated multi-lookups.
