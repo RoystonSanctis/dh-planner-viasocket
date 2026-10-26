@@ -202,7 +202,7 @@ Input-field UX rules by action category and trigger type.
 - [Title & Description Naming Guidelines](sections/ux-practice/title-description-naming-guidelines.md) · 4 KB — also covers: Action Naming & Description; Trigger Naming & Description; General Copywriting Guidelines
 - [General UX Patterns & Design Strategy](sections/ux-practice/general-ux-patterns-design-strategy.md) · 23 KB — also covers: Action Design Strategy; Field Design & Dynamic UI Rules; UX Practice Checklist
 
-### [ux-worked-examples.md](ux-worked-examples.md) · 405 KB
+### [ux-worked-examples.md](ux-worked-examples.md) · 404 KB
 
 Worked input-field designs for real apps.
 
