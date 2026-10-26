@@ -96,7 +96,7 @@ Automatically retries requests when Slack rate limits are encountered before ret
     "fields": [
       {
         "key": "messageto",
-        "help": "Select where to send the message.",
+        "help": "Select where to send the message. Defaults to Channel.",
         "type": "dropdown",
         "label": "To",
         "options": [
@@ -116,10 +116,6 @@ Automatically retries requests when Slack rate limits are encountered before ret
         "required": true,
         "customHelp": "Enter channel, user, or thread.",
         "placeholder": "Select destination type",
-        "defaultValue": {
-          "label": "Channel",
-          "value": "channel"
-        },
         "customInputLabel": "Destination type",
         "customPlaceholder": "channel"
       },

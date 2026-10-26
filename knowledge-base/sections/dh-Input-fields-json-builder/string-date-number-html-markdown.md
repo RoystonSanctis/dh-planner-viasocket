@@ -119,10 +119,6 @@ Generate a JSON object strictly following the rules below.
                 "type": "string",
                 "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
             },
-            "defaultValue": {
-                "type": "string",
-                "description": "The default value. Omit if none."
-            },
             "dateFormat": {
                 "type": "string",
                 "enum": [
@@ -181,9 +177,6 @@ schema:
     visibilityCondition:
       type: string
       description: "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-    defaultValue:
-      type: string
-      description: The default value. Omit if none.
     dateFormat:
       type: string
       enum[4]: YYYY-MM-DDTHH:mm:ssZ,YYYY-MM-DD HH:mm:ss Z,MM-DD-YYYY HH:mm:ss Z,MM-DD-YYYY HH:mm:ss
@@ -241,8 +234,7 @@ schema:
     "help": "Default it will fetch data upto 100. The maximum value is 100.",
     "type": "number",
     "label": "Page Limit",
-    "placeholder": "10",
-    "defaultValue": 100
+    "placeholder": "10"
   },
   {
     "key": "feed_url",
@@ -329,7 +321,6 @@ schema:
     type: number
     label: Page Limit
     placeholder: "10"
-    defaultValue: 100
   - key: feed_url
     help: Paste your RSS URL here. Must be publicly accessible. Multiple feed links can be given in a line item.
     list: true

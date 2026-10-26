@@ -68,42 +68,6 @@
                         "visibilityCondition": {
                             "type": "string",
                             "description": "A JS boolean expression using context?.inputData?.<key>. String values must be single-quoted, e.g. context?.inputData?.type === 'custom'. Omit if always visible."
-                        },
-                        "defaultValue": {
-                            "type": "object",
-                            "description": "The default object to select initially. Omit this field entirely if there is no default.",
-                            "properties": {
-                                "label": {
-                                    "type": "string",
-                                    "description": "The display name of the default option."
-                                },
-                                "value": {
-                                    "type": [
-                                        "string",
-                                        "number"
-                                    ],
-                                    "description": "The internal value of the default option."
-                                },
-                                "sample": {
-                                    "type": "string",
-                                    "description": "Optional string. MUST always be identical to the option's value. In the UI, users see the label with the sample shown in brackets. MANDATORY RULE: If the value is an ID, the sample MUST be included. If the label and sample are exactly the same, then NO sample is needed. Omit otherwise."
-                                },
-                                "extraValue": {
-                                    "type": [
-                                        "string",
-                                        "number",
-                                        "boolean",
-                                        "object",
-                                        "array"
-                                    ],
-                                    "description": "An optional extra value for the default option. Can be any valid JSON type,hidden data for scripts/visibility. Omit if not needed."
-                                }
-                            },
-                            "required": [
-                                "label",
-                                "value",
-                                "sample"
-                            ]
                         }
                     },
                     "required": [
