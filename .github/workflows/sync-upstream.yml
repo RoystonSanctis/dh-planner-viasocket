@@ -29,12 +29,12 @@ jobs:
           git remote add upstream https://github.com/Walkover-Web-Solution/viasocket-developer-hub-skills.git
           git fetch upstream main
 
-      - name: Sync dev branch (exact 1:1 mirror)
-        run: |
-          git push origin upstream/main:dev --force
-
       - name: Sync main branch (rebase on top of upstream)
         run: |
           git checkout main
           git rebase upstream/main
           git push origin main --force-with-lease
+
+      - name: Sync dev branch (mirror of main, keeps our commits)
+        run: |
+          git push origin main:dev --force
