@@ -144,6 +144,8 @@ ask the user; it never blocks the run):
   (SKILL-PLUG-CREATION). A plug used in flows but **not** in that list is viaSocket's: never try to edit it — report it
   (`source: plug`, `action`, `trigger` or `connection`, `refs.pluginId` plus `actionId`); for a missing action, trigger,
   field or option on it use `kind: missing_capability` and say exactly what is needed and why;
+  Developer Hub REST paths use only `{{ORG_ID}}` from `get_org_details_by_token` — never `4160`, `MASTER_ORG_ID`, or a
+  plug row's `orgid`. A `403` on another org means stop and `report_feedback` (do not retry with a different org).
 
 - a call failed twice with the same error → report before the third try (`kind: error`);
 - the MCP docs, this skill or the KB say one thing and the API does another (`kind: wrong_instructions`);
