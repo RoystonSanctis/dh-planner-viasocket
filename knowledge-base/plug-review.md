@@ -14,6 +14,7 @@ Rate each check from 0 to 100. If a check covers many items, the rating is the p
 3. **Safe reads.** Every property read uses `?.`. Required inputs are checked before the API call and throw a clear error. Rate it.
 4. **Auth.**
    - When the connection uses authenticationpaths, the code has no auth headers, API keys, tokens or secrets.
+   - On viaSocket-backed or No Auth connections, never put org MSG91/API keys in perform code: store them only on the connection's `authenticationpaths` (server-side injection).
    - authData is used only for non-secret URL parts, such as the subdomain.
    - Every host called is whitelisted.
    - For OAuth apps, each action and trigger lists its own scopes.
